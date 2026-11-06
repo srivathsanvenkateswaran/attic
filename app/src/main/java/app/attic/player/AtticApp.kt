@@ -2,7 +2,9 @@ package app.attic.player
 
 import android.app.Application
 import android.content.Context
+import app.attic.player.data.AppSettings
 import app.attic.player.data.LibraryRepository
+import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
 import app.attic.player.data.UserData
 import app.attic.player.playback.PlayerClient
@@ -24,6 +26,8 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val database by lazy { AtticDatabase.create(this) }
     val library by lazy { LibraryRepository(this, scope) }
     val userData by lazy { UserData(database.dao(), scope) }
+    val lyrics by lazy { LyricsRepository(database.dao(), scope) }
+    val settings by lazy { AppSettings(this) }
     val player by lazy { PlayerClient(this, library, scope) }
 
     /** Short confirmations and playback errors, shown as a snackbar. */

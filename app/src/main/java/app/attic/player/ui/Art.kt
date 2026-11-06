@@ -102,7 +102,7 @@ private const val NO_COLOR = 0
 
 /** A dark tint pulled from the cover, for gradients behind album headers and Now Playing. */
 @Composable
-fun rememberArtColor(mediaId: Long?, fallback: Color = Palette.PlumHigh): Color {
+fun rememberArtColor(mediaId: Long?, fallback: Color = Color(0xFF333333)): Color {
     val context = LocalContext.current
     val color by produceState(
         initialValue = mediaId?.let { artColors.get(it) }?.takeIf { it != NO_COLOR }?.let { Color(it) } ?: fallback,
