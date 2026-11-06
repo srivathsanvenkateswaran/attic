@@ -82,11 +82,14 @@ class PlayerWidget : AppWidgetProvider() {
         private const val ACTION_PREVIOUS = "app.attic.player.widget.PREVIOUS"
         private const val PREFS = "player_widget"
         private const val COVER_PX = 360
+        /** The real state while the service has published in this process. */
+        private var live: WidgetState? = null
         private var lastCoverId: Long? = null
         private var lastCover: Bitmap? = null
 
         /** Saves the state so a widget added later, or after a reboot, still shows the last song. */
         fun publish(context: Context, state: WidgetState) {
+            live = state
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putString("title", state.title)
                 .putString("artist", state.artist)
@@ -97,12 +100,13 @@ class PlayerWidget : AppWidgetProvider() {
         }
 
         private fun read(context: Context): WidgetState {
+            live?.let { return it }
             val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             return WidgetState(
                 title = prefs.getString("title", null),
                 artist = prefs.getString("artist", null),
                 mediaId = prefs.getLong("mediaId", -1L).takeIf { it >= 0 },
-                // The process may have died since this was saved, so nothing can be playing now.
+                // Only reached in a fresh process, so nothing can be playing yet.
                 isPlaying = false,
             )
         }
