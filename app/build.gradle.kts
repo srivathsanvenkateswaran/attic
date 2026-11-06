@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "app.offbeat.player"
+    namespace = "app.attic.player"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "app.offbeat.player"
+        applicationId = "app.attic.player"
         // 33 is the first release with READ_MEDIA_AUDIO, so there is no legacy storage path to carry.
         minSdk = 33
         targetSdk = 36

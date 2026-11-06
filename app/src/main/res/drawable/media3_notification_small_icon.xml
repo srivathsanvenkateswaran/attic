@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Overrides Media3's default status bar icon with the Offbeat mark. -->
+<!-- Overrides Media3's default status bar icon with the Attic mark. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
