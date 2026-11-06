@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Overrides Media3's default status bar icon with the Offbeat mark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M2,12a10,10 0 1,0 20,0a10,10 0 1,0 -20,0ZM12.4,9a2.9,2.9 0 1,0 5.8,0a2.9,2.9 0 1,0 -5.8,0Z" />
+</vector>
