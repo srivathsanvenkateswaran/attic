@@ -44,6 +44,17 @@
             </intent-filter>
         </service>
 
+        <receiver
+            android:name=".widget.PlayerWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_player" />
+        </receiver>
+
         <!-- Lets a headset or car play button restart playback after the service has been killed. -->
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"

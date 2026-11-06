@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Attic mark: a record whose spindle hole sits off-centre. Disc is centred at 54,54 in the adaptive safe zone. -->
+<!-- Attic mark: a gabled roofline with a round window, centred in the adaptive safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -8,5 +8,5 @@
     <path
         android:fillColor="#1ED760"
         android:fillType="evenOdd"
-        android:pathData="M26,54a28,28 0 1,0 56,0a28,28 0 1,0 -56,0ZM55,46a8,8 0 1,0 16,0a8,8 0 1,0 -16,0Z" />
+        android:pathData="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z" />
 </vector>

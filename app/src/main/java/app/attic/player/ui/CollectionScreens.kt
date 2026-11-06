@@ -1,7 +1,8 @@
 package app.attic.player.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.DropdownMenu
@@ -38,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,87 +51,165 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.Track
-import app.attic.player.attic
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-/** Art-tinted header shared by album, artist, folder and playlist screens. */
+/** Cover tint for gradients. Softer in light mode, where the text on top of it is dark. */
+@Composable
+private fun headerTint(mediaId: Long?): Color {
+    val raw = rememberArtColor(mediaId)
+    return if (LocalIsDark.current) raw else raw.copy(alpha = 0.4f).compositeOver(MaterialTheme.colorScheme.background)
+}
+
+/** Back button and a title that fades in once the header has scrolled away. */
+@Composable
+private fun CollapsingBar(title: String, tint: Color, list: LazyListState, actions: @Composable () -> Unit = {}) {
+    val ui = LocalUi.current
+    val collapsed by remember(list) {
+        derivedStateOf { list.firstVisibleItemIndex > 0 || list.firstVisibleItemScrollOffset > HEADER_COLLAPSE_PX }
+    }
+    val background by animateColorAsState(if (collapsed) tint else Color.Transparent, tween(180), label = "bar")
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(background)
+            .statusBarsPadding()
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BackButton({ ui.back() })
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                .graphicsLayer { alpha = if (collapsed) 1f else 0f },
+        )
+        actions()
+    }
+}
+
+private const val HEADER_COLLAPSE_PX = 520
+
+/** Screen frame: a list beneath a bar that sits on top of it. */
+@Composable
+private fun CollectionFrame(
+    title: String,
+    tintFrom: Long?,
+    state: LazyListState = rememberLazyListState(),
+    actions: @Composable () -> Unit = {},
+    content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
+) {
+    val tint = headerTint(tintFrom)
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            state = state,
+            contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
+            content = content,
+        )
+        CollapsingBar(title, tint, state, actions)
+    }
+}
+
 @Composable
 private fun CollectionHeader(
     title: String,
-    subtitle: String,
-    detail: String?,
     tintFrom: Long?,
     cover: @Composable () -> Unit,
-    onSubtitleClick: (() -> Unit)? = null,
-    actions: @Composable () -> Unit = {},
+    subtitle: @Composable () -> Unit = {},
+    detail: String?,
 ) {
-    val ui = LocalUi.current
-    val tint = rememberArtColor(tintFrom)
-    Box(
+    val tint = headerTint(tintFrom)
+    Column(
         Modifier
             .fillMaxWidth()
             .background(Brush.verticalGradient(listOf(tint, MaterialTheme.colorScheme.background))),
     ) {
-        Column(Modifier.statusBarsPadding()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                BackButton({ ui.back() })
-                Spacer(Modifier.weight(1f))
-                actions()
-            }
-            Box(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 18.dp), contentAlignment = Alignment.Center) {
-                cover()
-            }
+        Spacer(Modifier.statusBarsPadding().height(52.dp))
+        Box(Modifier.fillMaxWidth().padding(bottom = 18.dp), contentAlignment = Alignment.Center) { cover() }
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineSmall,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(6.dp))
+        subtitle()
+        if (detail != null) {
             Text(
-                title,
-                style = MaterialTheme.typography.headlineSmall,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp),
             )
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 4.dp)
-                    .then(if (onSubtitleClick != null) Modifier.clickable(onClick = onSubtitleClick) else Modifier),
-            )
-            if (detail != null) {
-                Text(
-                    detail,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp),
-                )
-            }
         }
     }
 }
 
-/** Shuffle plus a play button that pauses instead if this collection is the one already playing. */
+/** Artist line under a title: their picture in a small circle, then the name. */
 @Composable
-private fun PlayControls(tracks: List<Track>, contextName: String, extra: @Composable () -> Unit = {}) {
+private fun ArtistLine(name: String, mediaId: Long?, onClick: (() -> Unit)?) {
+    Row(
+        Modifier
+            .padding(horizontal = 16.dp)
+            .then(if (onClick != null) Modifier.pressable(onClick = onClick) else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        CoverArt(mediaId, CircleShape, Modifier.size(24.dp), iconSize = 14.dp)
+        Spacer(Modifier.width(8.dp))
+        Text(name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun PlainSubtitle(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp),
+    )
+}
+
+/** Row under every header: the downloaded marker on the left, shuffle and a green play button on the right. */
+@Composable
+private fun PlayControls(tracks: List<Track>, contextName: String, leading: @Composable () -> Unit = {}) {
     val app = LocalContext.current.attic
     val player by app.player.state.collectAsStateWithLifecycle()
     val isThisContext = player.contextName == contextName && player.current?.key in tracks.map { it.key }
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = 12.dp, end = 16.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        extra()
+        Spacer(Modifier.width(4.dp))
+        DownloadedBadge()
+        Spacer(Modifier.width(4.dp))
+        leading()
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { app.player.shufflePlay(tracks, contextName) }, enabled = tracks.isNotEmpty()) {
-            Icon(Icons.Rounded.Shuffle, contentDescription = "Shuffle $contextName")
+            Icon(
+                Icons.Rounded.Shuffle,
+                contentDescription = "Shuffle $contextName",
+                tint = if (player.shuffle && isThisContext) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(28.dp),
+            )
         }
         Spacer(Modifier.width(8.dp))
         PlayCircle(
@@ -141,7 +223,7 @@ private fun PlayControls(tracks: List<Track>, contextName: String, extra: @Compo
 
 @Composable
 private fun LargeCover(mediaId: Long?) {
-    CoverArt(mediaId, BigCoverShape, Modifier.fillMaxWidth(0.58f).aspectRatio(1f), iconSize = 64.dp)
+    CoverArt(mediaId, CoverShape, Modifier.fillMaxWidth(0.62f).aspectRatio(1f), iconSize = 64.dp)
 }
 
 @Composable
@@ -160,16 +242,22 @@ fun AlbumScreen(library: Library, key: String) {
     val album = library.albumByKey[key]
     val player by app.player.state.collectAsStateWithLifecycle()
     if (album == null) return NotFound("This album")
+    val mediaId = album.tracks.first().mediaId
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+    CollectionFrame(album.name, mediaId) {
         item {
             CollectionHeader(
                 title = album.name,
-                subtitle = album.artist,
-                detail = listOfNotNull(album.year?.toString(), summarize(album.tracks)).joinToString(", "),
-                tintFrom = album.tracks.first().mediaId,
-                cover = { LargeCover(album.tracks.first().mediaId) },
-                onSubtitleClick = album.artistKey?.let { k -> { ui.openArtist(k) } },
+                tintFrom = mediaId,
+                cover = { LargeCover(mediaId) },
+                subtitle = {
+                    ArtistLine(
+                        album.artist,
+                        album.artistKey?.let { library.artistByKey[it]?.tracks?.first()?.mediaId } ?: mediaId,
+                        album.artistKey?.let { k -> { ui.openArtist(k) } },
+                    )
+                },
+                detail = listOfNotNull("Album", album.year?.toString()).joinToString(", "),
             )
             PlayControls(album.tracks, album.name)
         }
@@ -178,10 +266,17 @@ fun AlbumScreen(library: Library, key: String) {
                 track = track,
                 isCurrent = player.current?.key == track.key,
                 isPlaying = player.isPlaying,
-                number = track.trackNumber ?: (index + 1),
                 showArt = false,
                 onClick = { app.player.play(album.tracks, index, album.name) },
                 onMenu = { ui.showMenu(TrackMenuRequest(track)) },
+            )
+        }
+        item {
+            Text(
+                summarize(album.tracks),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
             )
         }
     }
@@ -193,50 +288,87 @@ fun ArtistScreen(library: Library, key: String) {
     val ui = LocalUi.current
     val artist = library.artistByKey[key]
     val player by app.player.state.collectAsStateWithLifecycle()
+    val recentKeys by app.userData.recentKeys.collectAsStateWithLifecycle(emptyList())
     if (artist == null) return NotFound("This artist")
     val mediaId = artist.tracks.first().mediaId
+    val background = MaterialTheme.colorScheme.background
+    // No play counts from a streaming service here, so "Popular" means what you've played most recently.
+    val popular = remember(artist, recentKeys) {
+        val rank = recentKeys.withIndex().associate { it.value to it.index }
+        artist.tracks.sortedBy { rank[it.key] ?: Int.MAX_VALUE }
+    }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+    CollectionFrame(artist.name, mediaId) {
         item {
-            CollectionHeader(
-                title = artist.name,
-                subtitle = summarize(artist.tracks),
-                detail = null,
-                tintFrom = mediaId,
-                cover = { CoverArt(mediaId, CircleShape, Modifier.size(180.dp), iconSize = 64.dp) },
-            )
+            Box(Modifier.fillMaxWidth().aspectRatio(1.15f)) {
+                CoverArt(mediaId, androidx.compose.ui.graphics.RectangleShape, Modifier.fillMaxSize(), iconSize = 96.dp)
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to background)),
+                )
+                Text(
+                    artist.name,
+                    style = MaterialTheme.typography.displaySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+            PlainSubtitle(summarize(artist.tracks))
             PlayControls(artist.tracks, artist.name)
+            SectionTitle("Popular")
+        }
+        itemsIndexed(popular.take(POPULAR_COUNT), key = { _, t -> "pop:${t.key}" }) { index, track ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${index + 1}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp).width(16.dp),
+                )
+                TrackRow(
+                    track = track,
+                    isCurrent = player.current?.key == track.key,
+                    isPlaying = player.isPlaying,
+                    onClick = { app.player.play(popular, index, artist.name) },
+                    onMenu = { ui.showMenu(TrackMenuRequest(track)) },
+                )
+            }
         }
         if (artist.albums.isNotEmpty()) {
             item {
-                SectionTitle("Albums")
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
+                SectionTitle("Discography")
+                LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     items(artist.albums, key = { it.key }) { album ->
                         ShelfCard(
                             mediaId = album.tracks.first().mediaId,
                             title = album.name,
-                            subtitle = album.year?.toString() ?: songCount(album.tracks.size),
+                            subtitle = listOfNotNull(album.year?.toString(), if (album.tracks.size == 1) "Single" else "Album").joinToString(", "),
                             onClick = { ui.openAlbum(album.key) },
                         )
                     }
                 }
             }
         }
-        item { SectionTitle("Songs") }
-        itemsIndexed(artist.tracks, key = { _, t -> t.key }) { index, track ->
-            TrackRow(
-                track = track,
-                isCurrent = player.current?.key == track.key,
-                isPlaying = player.isPlaying,
-                onClick = { app.player.play(artist.tracks, index, artist.name) },
-                onMenu = { ui.showMenu(TrackMenuRequest(track)) },
-            )
+        if (popular.size > POPULAR_COUNT) {
+            item { SectionTitle("All songs") }
+            itemsIndexed(popular.drop(POPULAR_COUNT), key = { _, t -> t.key }) { index, track ->
+                TrackRow(
+                    track = track,
+                    isCurrent = player.current?.key == track.key,
+                    isPlaying = player.isPlaying,
+                    onClick = { app.player.play(popular, index + POPULAR_COUNT, artist.name) },
+                    onMenu = { ui.showMenu(TrackMenuRequest(track)) },
+                )
+            }
         }
     }
 }
+
+private const val POPULAR_COUNT = 5
 
 @Composable
 fun FolderScreen(library: Library, name: String) {
@@ -244,22 +376,17 @@ fun FolderScreen(library: Library, name: String) {
     val ui = LocalUi.current
     val folder = library.folders.firstOrNull { it.name == name }
     val player by app.player.state.collectAsStateWithLifecycle()
-    if (folder == null) return NotFound("This folder")
-    val step = (folder.tracks.size / 3).coerceAtLeast(1)
+    if (folder == null) return NotFound("This playlist")
+    val first = folder.tracks.first().mediaId
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+    CollectionFrame(folder.name, first) {
         item {
             CollectionHeader(
                 title = folder.name,
-                subtitle = summarize(folder.tracks),
-                detail = "Folder in Music/Offline",
-                tintFrom = folder.tracks.first().mediaId,
-                cover = {
-                    FannedCovers(
-                        listOf(step * 2, step, 0).mapNotNull { folder.tracks.getOrNull(it)?.mediaId },
-                        coverSize = 150.dp,
-                    )
-                },
+                tintFrom = first,
+                cover = { MosaicCover(mosaicIds(folder.tracks), Modifier.fillMaxWidth(0.62f)) },
+                subtitle = { PlainSubtitle("Playlist from your Music/Offline folder") },
+                detail = summarize(folder.tracks),
             )
             PlayControls(folder.tracks, folder.name)
         }
@@ -283,26 +410,26 @@ fun LikedScreen(library: Library) {
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = remember(likedKeys, library) { likedKeys.mapNotNull { library.trackByKey[it] } }
 
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+    CollectionFrame("Liked Songs", tracks.firstOrNull()?.mediaId) {
         item {
             CollectionHeader(
-                title = "Liked songs",
-                subtitle = summarize(tracks),
-                detail = null,
+                title = "Liked Songs",
                 tintFrom = tracks.firstOrNull()?.mediaId,
-                cover = { LikedTile(Modifier.fillMaxWidth(0.42f).aspectRatio(1f).clip(BigCoverShape)) },
+                cover = { LikedTile(Modifier.fillMaxWidth(0.5f).aspectRatio(1f).clip(CoverShape)) },
+                subtitle = { PlainSubtitle(summarize(tracks)) },
+                detail = null,
             )
-            PlayControls(tracks, "Liked songs")
+            PlayControls(tracks, "Liked Songs")
         }
         if (tracks.isEmpty()) {
-            item { EmptyMessage("No liked songs yet", "Tap the heart on a song and it will be saved here.") }
+            item { EmptyMessage("Songs you like will appear here", "Tap the plus on a song to save it.") }
         }
         itemsIndexed(tracks, key = { _, t -> t.key }) { index, track ->
             TrackRow(
                 track = track,
                 isCurrent = player.current?.key == track.key,
                 isPlaying = player.isPlaying,
-                onClick = { app.player.play(tracks, index, "Liked songs") },
+                onClick = { app.player.play(tracks, index, "Liked Songs") },
                 onMenu = { ui.showMenu(TrackMenuRequest(track)) },
             )
         }
@@ -341,39 +468,43 @@ fun PlaylistScreen(library: Library, id: Long) {
         if (fromIndex >= 0 && toIndex >= 0) rows.add(toIndex, rows.removeAt(fromIndex))
     }
 
-    LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = 16.dp)) {
+    CollectionFrame(
+        title = playlist.name,
+        tintFrom = tracks.firstOrNull()?.mediaId,
+        state = listState,
+        actions = {
+            Box {
+                IconButton(onClick = { overflow = true }) {
+                    Icon(Icons.Rounded.MoreVert, contentDescription = "Playlist options")
+                }
+                DropdownMenu(expanded = overflow, onDismissRequest = { overflow = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Rename") },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, null) },
+                        onClick = {
+                            overflow = false
+                            renaming = true
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete playlist") },
+                        leadingIcon = { Icon(Icons.Rounded.Delete, null) },
+                        onClick = {
+                            overflow = false
+                            confirmingDelete = true
+                        },
+                    )
+                }
+            }
+        },
+    ) {
         item(key = "header") {
             CollectionHeader(
                 title = playlist.name,
-                subtitle = summarize(tracks),
-                detail = null,
                 tintFrom = tracks.firstOrNull()?.mediaId,
-                cover = { LargeCover(tracks.firstOrNull()?.mediaId) },
-                actions = {
-                    Box {
-                        IconButton(onClick = { overflow = true }) {
-                            Icon(Icons.Rounded.Edit, contentDescription = "Edit playlist")
-                        }
-                        DropdownMenu(expanded = overflow, onDismissRequest = { overflow = false }) {
-                            DropdownMenuItem(
-                                text = { Text("Rename") },
-                                leadingIcon = { Icon(Icons.Rounded.Edit, null) },
-                                onClick = {
-                                    overflow = false
-                                    renaming = true
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Delete playlist") },
-                                leadingIcon = { Icon(Icons.Rounded.Delete, null) },
-                                onClick = {
-                                    overflow = false
-                                    confirmingDelete = true
-                                },
-                            )
-                        }
-                    }
-                },
+                cover = { MosaicCover(mosaicIds(tracks), Modifier.fillMaxWidth(0.62f)) },
+                subtitle = { PlainSubtitle(summarize(tracks)) },
+                detail = null,
             )
             PlayControls(tracks, playlist.name) {
                 IconButton(onClick = { adding = true }) {
@@ -389,7 +520,7 @@ fun PlaylistScreen(library: Library, id: Long) {
         }
         if (tracks.isEmpty()) {
             item(key = "empty") {
-                EmptyMessage("This playlist is empty", "Tap + above to add songs from your library.")
+                EmptyMessage("Let's find something for your playlist", "Tap the plus above to add songs from your library.")
             }
         }
         items(rows, key = { it.key }) { track ->

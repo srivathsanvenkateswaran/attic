@@ -126,6 +126,11 @@ class PlayerClient(
         c.play()
     }
 
+    /** Changes song without changing whether it's playing, for swiping covers. */
+    fun skipTo(index: Int) = act { c ->
+        if (index in 0 until c.mediaItemCount) c.seekTo(index, 0L)
+    }
+
     fun toggleShuffle() = act { it.shuffleModeEnabled = !it.shuffleModeEnabled }
 
     fun cycleRepeat() = act { c ->

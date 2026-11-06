@@ -1,6 +1,5 @@
 package app.attic.player.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,15 +14,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,23 +32,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.attic.player.data.Library
 import app.attic.player.attic
+import app.attic.player.data.Library
 
 private enum class LibraryFilter(val label: String) {
     Playlists("Playlists"),
     Albums("Albums"),
     Artists("Artists"),
-    Songs("Songs"),
+    Downloaded("Downloaded"),
 }
 
 private enum class SongSort(val label: String) {
     Title("Title"),
     Artist("Artist"),
-    Added("Recently added"),
+    Added("Recently added");
+
+    fun next() = entries[(ordinal + 1) % entries.size]
 }
 
 @Composable
@@ -67,6 +62,7 @@ fun LibraryScreen(library: Library) {
     val player by app.player.state.collectAsStateWithLifecycle()
     val likedKeys by app.userData.likedKeys.collectAsStateWithLifecycle()
     val playlists by app.userData.playlists.collectAsStateWithLifecycle()
+    val bottom = PaddingValues(bottom = LocalBottomPadding.current)
 
     val songs = remember(library, sort) {
         when (sort) {
@@ -80,54 +76,65 @@ fun LibraryScreen(library: Library) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 6.dp),
+                .padding(start = 16.dp, end = 8.dp, top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AtticMark(26.dp)
-            Spacer(Modifier.width(10.dp))
+            ProfileButton()
+            Spacer(Modifier.width(12.dp))
             Text("Your Library", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             IconButton(onClick = { creating = true }) {
-                Icon(Icons.Rounded.Add, contentDescription = "Create playlist")
+                Icon(Icons.Rounded.Add, contentDescription = "Create playlist", modifier = Modifier.size(28.dp))
             }
         }
         LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(LibraryFilter.entries) { option ->
-                AtticChip(option.label, option == filter) { filter = option }
+                PillChip(option.label, option == filter) { filter = option }
             }
         }
 
-        // Each filter keeps its own list, so scrolling Songs doesn't move Albums.
+        // Each filter keeps its own list, so scrolling Downloaded doesn't move Albums.
         when (filter) {
-            LibraryFilter.Playlists -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
+            LibraryFilter.Playlists -> LazyColumn(Modifier.fillMaxSize(), contentPadding = bottom) {
                 item(key = "liked") {
-                    PlaylistRowLiked(likedKeys.size) { ui.openLiked() }
+                    ResultRow(
+                        null,
+                        "Liked Songs",
+                        "Playlist, ${songCount(likedKeys.size)}",
+                        cover = { LikedTile(Modifier.size(56.dp).clip(CoverShape)) },
+                    ) { ui.openLiked() }
                 }
                 items(playlists, key = { "p${it.id}" }) { playlist ->
-                    val cover = playlist.trackKeys.firstNotNullOfOrNull { library.trackByKey[it] }?.mediaId
-                    ResultRow(cover, playlist.name, songCount(playlist.trackKeys.size)) { ui.openPlaylist(playlist.id) }
+                    val tracks = playlist.trackKeys.mapNotNull { library.trackByKey[it] }
+                    ResultRow(
+                        null,
+                        playlist.name,
+                        "Playlist, ${songCount(tracks.size)}",
+                        cover = { MosaicCover(mosaicIds(tracks), Modifier.size(56.dp)) },
+                    ) { ui.openPlaylist(playlist.id) }
                 }
                 items(library.folders, key = { "f${it.name}" }) { folder ->
-                    ResultRow(folder.tracks.first().mediaId, folder.name, "Folder, ${songCount(folder.tracks.size)}") {
-                        ui.openFolder(folder.name)
-                    }
+                    ResultRow(
+                        null,
+                        folder.name,
+                        "Playlist, ${songCount(folder.tracks.size)}",
+                        cover = { MosaicCover(mosaicIds(folder.tracks), Modifier.size(56.dp)) },
+                    ) { ui.openFolder(folder.name) }
                 }
             }
-            LibraryFilter.Albums -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
+            LibraryFilter.Albums -> LazyColumn(Modifier.fillMaxSize(), contentPadding = bottom) {
                 items(library.albums, key = { it.key }) { album ->
-                    ResultRow(album.tracks.first().mediaId, album.name, album.artist) { ui.openAlbum(album.key) }
+                    ResultRow(album.tracks.first().mediaId, album.name, "Album, ${album.artist}") { ui.openAlbum(album.key) }
                 }
             }
-            LibraryFilter.Artists -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
+            LibraryFilter.Artists -> LazyColumn(Modifier.fillMaxSize(), contentPadding = bottom) {
                 items(library.artists, key = { it.key }) { artist ->
-                    ResultRow(artist.tracks.first().mediaId, artist.name, songCount(artist.tracks.size), circle = true) {
-                        ui.openArtist(artist.key)
-                    }
+                    ResultRow(artist.tracks.first().mediaId, artist.name, "Artist", circle = true) { ui.openArtist(artist.key) }
                 }
             }
-            LibraryFilter.Songs -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 12.dp)) {
+            LibraryFilter.Downloaded -> LazyColumn(Modifier.fillMaxSize(), contentPadding = bottom) {
                 item(key = "songs-header") {
                     Row(
                         Modifier
@@ -135,22 +142,18 @@ fun LibraryScreen(library: Library) {
                             .padding(start = 16.dp, end = 8.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            songCount(songs.size),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f),
-                        )
+                        Row(
+                            Modifier
+                                .weight(1f)
+                                .pressable { sort = sort.next() },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.AutoMirrored.Rounded.Sort, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("${sort.label}, ${songCount(songs.size)}", style = MaterialTheme.typography.labelLarge)
+                        }
                         IconButton(onClick = { app.player.shufflePlay(songs, "All songs") }) {
                             Icon(Icons.Rounded.Shuffle, contentDescription = "Shuffle all songs")
-                        }
-                    }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(SongSort.entries) { option ->
-                            AtticChip(option.label, option == sort) { sort = option }
                         }
                     }
                 }
@@ -169,7 +172,7 @@ fun LibraryScreen(library: Library) {
 
     if (creating) {
         PlaylistNameDialog(
-            title = "New playlist",
+            title = "Give your playlist a name",
             confirm = "Create",
             initial = "",
             onDismiss = { creating = false },
@@ -178,40 +181,5 @@ fun LibraryScreen(library: Library) {
                 app.scope.launchCreate(app, name) { id -> ui.openPlaylist(id) }
             },
         )
-    }
-}
-
-@Composable
-private fun AtticChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(label) },
-        shape = RoundedCornerShape(50),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            labelColor = MaterialTheme.colorScheme.onSurface,
-        ),
-        border = null,
-    )
-}
-
-@Composable
-private fun PlaylistRowLiked(count: Int, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        LikedTile(Modifier.size(48.dp).clip(CoverShape))
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text("Liked songs", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(songCount(count), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
     }
 }

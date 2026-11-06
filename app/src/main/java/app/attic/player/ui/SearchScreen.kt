@@ -1,19 +1,24 @@
 package app.attic.player.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -36,17 +41,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.attic
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
-import app.attic.player.attic
 
 private class SearchResults(
     val tracks: List<Track>,
@@ -79,6 +87,13 @@ private fun search(library: Library, query: String): SearchResults {
     )
 }
 
+private val TileColors = listOf(
+    Color(0xFF8D67AB), Color(0xFFE13300), Color(0xFF1E3264), Color(0xFF148A08),
+    Color(0xFFBA5D07), Color(0xFF503750), Color(0xFF0D73EC), Color(0xFFAF2896),
+)
+
+private class BrowseTile(val title: String, val cover: Long?, val onClick: () -> Unit)
+
 @Composable
 fun SearchScreen(library: Library) {
     val app = LocalContext.current.attic
@@ -86,17 +101,23 @@ fun SearchScreen(library: Library) {
     val player by app.player.state.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     val results = remember(query, library) { query.takeIf { it.isNotBlank() }?.let { search(library, it) } }
+    val tiles = remember(library) {
+        library.folders.map { f -> BrowseTile(f.name, f.tracks.first().mediaId) { ui.openFolder(f.name) } } +
+            library.albums.sortedByDescending { it.tracks.size }.take(8).map { a ->
+                BrowseTile(a.name, a.tracks.first().mediaId) { ui.openAlbum(a.key) }
+            }
+    }
 
     Column(Modifier.fillMaxSize().statusBarsPadding().imePadding()) {
-        Text(
-            "Search",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
-        )
+        Row(Modifier.padding(start = 16.dp, top = 10.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            ProfileButton()
+            Spacer(Modifier.width(12.dp))
+            Text("Search", style = MaterialTheme.typography.headlineSmall)
+        }
         TextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = { Text("Songs, artists, albums") },
+            placeholder = { Text("What do you want to listen to?", maxLines = 1) },
             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
             trailingIcon = {
                 if (query.isNotEmpty()) {
@@ -106,11 +127,8 @@ fun SearchScreen(library: Library) {
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-            ),
+            shape = RoundedCornerShape(6.dp),
+            colors = searchFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
@@ -119,51 +137,41 @@ fun SearchScreen(library: Library) {
         when {
             results == null -> LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = LocalBottomPadding.current),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                items(library.folders, key = { it.name }) { folder ->
-                    FolderCrate(folder) { ui.openFolder(folder.name) }
+                item(span = { GridItemSpan(2) }) {
+                    Text(
+                        "Start browsing",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 18.dp, bottom = 2.dp),
+                    )
                 }
+                items(tiles.size) { index -> BrowseCard(tiles[index], TileColors[index % TileColors.size]) }
             }
-            results.isEmpty -> EmptyMessage("No matches", "Nothing in your library matches \"$query\".")
-            else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp)) {
-                if (results.artists.isNotEmpty()) {
-                    item { SectionTitle("Artists") }
-                    items(results.artists.take(5), key = { "artist:${it.key}" }) { artist ->
-                        ResultRow(artist.tracks.first().mediaId, artist.name, songCount(artist.tracks.size), circle = true) {
-                            ui.openArtist(artist.key)
-                        }
-                    }
+            results.isEmpty -> EmptyMessage("No results for \"$query\"", "Check the spelling, or try fewer words.")
+            else -> LazyColumn(
+                Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 8.dp, bottom = LocalBottomPadding.current),
+            ) {
+                items(results.artists.take(5), key = { "artist:${it.key}" }) { artist ->
+                    ResultRow(artist.tracks.first().mediaId, artist.name, "Artist", circle = true) { ui.openArtist(artist.key) }
                 }
-                if (results.folders.isNotEmpty()) {
-                    item { SectionTitle("Folders") }
-                    items(results.folders, key = { "folder:${it.name}" }) { folder ->
-                        ResultRow(folder.tracks.first().mediaId, folder.name, songCount(folder.tracks.size)) {
-                            ui.openFolder(folder.name)
-                        }
-                    }
+                items(results.folders, key = { "folder:${it.name}" }) { folder ->
+                    ResultRow(folder.tracks.first().mediaId, folder.name, "Playlist") { ui.openFolder(folder.name) }
                 }
-                if (results.tracks.isNotEmpty()) {
-                    item { SectionTitle("Songs") }
-                    items(results.tracks, key = { "track:${it.key}" }) { track ->
-                        TrackRow(
-                            track = track,
-                            isCurrent = player.current?.key == track.key,
-                            isPlaying = player.isPlaying,
-                            onClick = {
-                                app.player.play(results.tracks, results.tracks.indexOf(track), "Search results")
-                            },
-                            onMenu = { ui.showMenu(TrackMenuRequest(track)) },
-                        )
-                    }
+                items(results.tracks, key = { "track:${it.key}" }) { track ->
+                    TrackRow(
+                        track = track,
+                        isCurrent = player.current?.key == track.key,
+                        isPlaying = player.isPlaying,
+                        onClick = { app.player.play(results.tracks, results.tracks.indexOf(track), "Search results") },
+                        onMenu = { ui.showMenu(TrackMenuRequest(track)) },
+                    )
                 }
-                if (results.albums.isNotEmpty()) {
-                    item { SectionTitle("Albums") }
-                    items(results.albums.take(10), key = { "album:${it.key}" }) { album ->
-                        ResultRow(album.tracks.first().mediaId, album.name, album.artist) {
-                            ui.openAlbum(album.key)
-                        }
-                    }
+                items(results.albums.take(10), key = { "album:${it.key}" }) { album ->
+                    ResultRow(album.tracks.first().mediaId, album.name, "Album, ${album.artist}") { ui.openAlbum(album.key) }
                 }
             }
         }
@@ -171,15 +179,70 @@ fun SearchScreen(library: Library) {
 }
 
 @Composable
-fun ResultRow(mediaId: Long?, title: String, subtitle: String, circle: Boolean = false, onClick: () -> Unit) {
+fun searchFieldColors() = TextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
+    focusedTextColor = MaterialTheme.colorScheme.inverseOnSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.inverseOnSurface,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.outline,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.outline,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedIndicatorColor = Color.Transparent,
+    unfocusedIndicatorColor = Color.Transparent,
+)
+
+/** Coloured browse tile with its cover tucked into the corner at an angle. */
+@Composable
+private fun BrowseCard(tile: BrowseTile, color: Color) {
+    Box(
+        Modifier
+            .height(100.dp)
+            .fillMaxWidth()
+            .pressable(onClick = tile.onClick)
+            .clip(RoundedCornerShape(6.dp))
+            .background(color),
+    ) {
+        Text(
+            tile.title,
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.White,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 12.dp, top = 12.dp, end = 44.dp),
+        )
+        CoverArt(
+            tile.cover,
+            CoverShape,
+            Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = 14.dp, y = 8.dp)
+                .rotate(25f)
+                .size(68.dp),
+        )
+    }
+}
+
+@Composable
+fun ResultRow(
+    mediaId: Long?,
+    title: String,
+    subtitle: String,
+    circle: Boolean = false,
+    cover: (@Composable () -> Unit)? = null,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .pressable(scale = 0.985f, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CoverArt(mediaId, if (circle) CircleShape else CoverShape, Modifier.size(48.dp))
+        if (cover != null) cover() else CoverArt(mediaId, if (circle) CircleShape else CoverShape, Modifier.size(56.dp))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)

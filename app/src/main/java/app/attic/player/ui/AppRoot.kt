@@ -8,21 +8,26 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,9 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -90,6 +95,7 @@ class UiActions(
     fun openFolder(name: String) = go("folder/${Uri.encode(name)}")
     fun openPlaylist(id: Long) = go("playlist/$id")
     fun openLiked() = go("liked")
+    fun openSettings() = go("settings")
     fun back() = nav.popBackStack()
 }
 
@@ -161,6 +167,7 @@ private fun MainShell(library: Library) {
     val snackbar = remember { SnackbarHostState() }
     var showNowPlaying by rememberSaveable { mutableStateOf(false) }
     var showQueue by rememberSaveable { mutableStateOf(false) }
+    var showLyrics by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf<TrackMenuRequest?>(null) }
     val player by app.player.state.collectAsStateWithLifecycle()
 
@@ -170,6 +177,7 @@ private fun MainShell(library: Library) {
             closeOverlays = {
                 showNowPlaying = false
                 showQueue = false
+                showLyrics = false
             },
             showMenu = { menu = it },
         )
@@ -191,29 +199,37 @@ private fun MainShell(library: Library) {
     CompositionLocalProvider(LocalUi provides ui) {
         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             // Hidden from accessibility services while covered, so they only see the top screen.
-            val covered = showNowPlaying || showQueue
-            Column(Modifier.fillMaxSize().then(if (covered) Modifier.clearAndSetSemantics {} else Modifier)) {
-                Box(Modifier.weight(1f)) {
+            val covered = showNowPlaying || showQueue || showLyrics
+            val bottomBars = (if (player.current != null) MINI_PLAYER_HEIGHT else 0.dp) + TAB_BAR_HEIGHT +
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            Box(Modifier.fillMaxSize().then(if (covered) Modifier.clearAndSetSemantics {} else Modifier)) {
+                CompositionLocalProvider(LocalBottomPadding provides bottomBars + 12.dp) {
                     AppNavHost(nav, library)
-                    SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter)) { data ->
+                }
+                Column(Modifier.align(Alignment.BottomCenter)) {
+                    SnackbarHost(snackbar) { data ->
                         Snackbar(
                             snackbarData = data,
                             containerColor = MaterialTheme.colorScheme.inverseSurface,
                             contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                         )
                     }
-                }
-                if (player.current != null) {
-                    MiniPlayer(player, onOpen = { showNowPlaying = true })
-                }
-                BottomBar(currentTab) { tab ->
-                    if (tab == currentTab) {
-                        nav.popBackStack(tab.route, inclusive = false)
-                    } else {
-                        nav.navigate(tab.route) {
-                            popUpTo(Tab.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    AnimatedVisibility(
+                        visible = player.current != null,
+                        enter = slideInVertically(tween(240)) { it } + fadeIn(tween(240)),
+                        exit = slideOutVertically(tween(180)) { it } + fadeOut(tween(180)),
+                    ) {
+                        MiniPlayer(player, onOpen = { showNowPlaying = true })
+                    }
+                    BottomBar(currentTab) { tab ->
+                        if (tab == currentTab) {
+                            nav.popBackStack(tab.route, inclusive = false)
+                        } else {
+                            nav.navigate(tab.route) {
+                                popUpTo(Tab.Home.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 }
@@ -228,6 +244,7 @@ private fun MainShell(library: Library) {
                     state = player,
                     onClose = { showNowPlaying = false },
                     onOpenQueue = { showQueue = true },
+                    onOpenLyrics = { showLyrics = true },
                 )
             }
             AnimatedVisibility(
@@ -238,8 +255,20 @@ private fun MainShell(library: Library) {
                 QueueScreen(player, onClose = { showQueue = false })
             }
 
-            BackHandler(enabled = showNowPlaying || showQueue) {
-                if (showQueue) showQueue = false else showNowPlaying = false
+            AnimatedVisibility(
+                visible = showLyrics && player.current != null,
+                enter = slideInVertically(tween(260)) { it },
+                exit = slideOutVertically(tween(220)) { it },
+            ) {
+                LyricsScreen(player, onClose = { showLyrics = false })
+            }
+
+            BackHandler(enabled = covered) {
+                when {
+                    showLyrics -> showLyrics = false
+                    showQueue -> showQueue = false
+                    else -> showNowPlaying = false
+                }
             }
 
             menu?.let { request ->
@@ -254,10 +283,15 @@ private fun AppNavHost(nav: NavHostController, library: Library) {
     NavHost(
         navController = nav,
         startDestination = Tab.Home.route,
-        enterTransition = { EnterTransition.None },
-        exitTransition = { ExitTransition.None },
-        popEnterTransition = { EnterTransition.None },
-        popExitTransition = { ExitTransition.None },
+        // A detail screen slides in over its parent. Tab switches are just a quick fade.
+        enterTransition = {
+            if (targetState.destination.route in TabRoutes) fadeIn(tween(120)) else slideInHorizontally(tween(220)) { it / 6 } + fadeIn(tween(180))
+        },
+        exitTransition = { fadeOut(tween(120)) },
+        popEnterTransition = { fadeIn(tween(160)) },
+        popExitTransition = {
+            if (initialState.destination.route in TabRoutes) fadeOut(tween(120)) else slideOutHorizontally(tween(200)) { it / 6 } + fadeOut(tween(160))
+        },
     ) {
         composable(Tab.Home.route) { HomeScreen(library) }
         composable(Tab.Search.route) { SearchScreen(library) }
@@ -275,27 +309,38 @@ private fun AppNavHost(nav: NavHostController, library: Library) {
             PlaylistScreen(library, entry.arguments?.getString("id")?.toLongOrNull() ?: -1L)
         }
         composable("liked") { LikedScreen(library) }
+        composable("settings") { SettingsScreen(library) }
     }
 }
 
+private val TabRoutes = Tab.entries.map { it.route }.toSet()
+private val MINI_PLAYER_HEIGHT = 64.dp
+private val TAB_BAR_HEIGHT = 58.dp
+
+/** Floats over the content and fades it out, rather than sitting on a solid block. */
 @Composable
 private fun BottomBar(current: Tab, onSelect: (Tab) -> Unit) {
+    val background = MaterialTheme.colorScheme.background
     Row(
         Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Brush.verticalGradient(0f to background.copy(alpha = 0.72f), 0.55f to background.copy(alpha = 0.97f), 1f to background))
             .navigationBarsPadding()
-            .height(58.dp),
+            .height(TAB_BAR_HEIGHT),
     ) {
         Tab.entries.forEach { tab ->
             val selected = tab == current
-            val tint = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+            val tint by animateColorAsState(
+                if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                tween(140),
+                label = "tabTint",
+            )
             Column(
                 Modifier
                     .weight(1f)
                     .fillMaxSize()
                     .semantics { this.selected = selected }
-                    .clickable(role = Role.Tab) { onSelect(tab) },
+                    .pressable(scale = 0.9f) { onSelect(tab) },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
