@@ -229,13 +229,6 @@ private fun MainShell(library: Library) {
                     AppNavHost(nav, library)
                 }
                 Column(Modifier.align(Alignment.BottomCenter)) {
-                    SnackbarHost(snackbar) { data ->
-                        Snackbar(
-                            snackbarData = data,
-                            containerColor = MaterialTheme.colorScheme.inverseSurface,
-                            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        )
-                    }
                     AnimatedVisibility(
                         visible = player.current != null,
                         enter = slideInVertically(tween(240)) { it } + fadeIn(tween(240)),
@@ -291,6 +284,20 @@ private fun MainShell(library: Library) {
                     showQueue -> showQueue = false
                     else -> showNowPlaying = false
                 }
+            }
+
+            // Above the player overlays, so messages raised from Now Playing can be seen.
+            SnackbarHost(
+                snackbar,
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = if (covered) 48.dp else bottomBars),
+            ) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                )
             }
 
             menu?.let { request ->
