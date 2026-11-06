@@ -37,6 +37,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -351,7 +353,8 @@ fun ProfileButton() {
             .size(36.dp)
             .pressable(scale = 0.9f) { ui.openSettings() }
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .semantics { contentDescription = "Settings" },
         contentAlignment = Alignment.Center,
     ) {
         AtticMark(18.dp)

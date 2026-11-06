@@ -89,6 +89,17 @@ fun SettingsScreen(library: Library) {
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
             )
         } else {
+            if (bulk.failed > 0) {
+                Text(
+                    if (bulk.gaveUp) {
+                        "Stopped because the connection failed. Check your internet, then download again to continue."
+                    } else {
+                        "${songCount(bulk.failed)} couldn't be checked. Download again to retry them."
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp),
+                )
+            }
             TextButton(
                 onClick = { app.lyrics.downloadAll(library.tracks) },
                 modifier = Modifier.padding(horizontal = 4.dp),

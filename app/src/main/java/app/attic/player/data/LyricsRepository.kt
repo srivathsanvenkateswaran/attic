@@ -16,7 +16,15 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-data class BulkProgress(val done: Int, val total: Int, val found: Int, val running: Boolean)
+data class BulkProgress(
+    val done: Int,
+    val total: Int,
+    val found: Int,
+    val running: Boolean,
+    /** Songs that failed on a connection error. They have no saved row, so a later run retries them. */
+    val failed: Int = 0,
+    val gaveUp: Boolean = false,
+)
 
 enum class LyricsResult { Found, NotFound, Offline }
 
@@ -55,21 +63,33 @@ class LyricsRepository(
         if (match != null) LyricsResult.Found else LyricsResult.NotFound
     }
 
-    /** Fetches lyrics for every song without them. Stops at the first connection failure. */
+    /** Fetches lyrics for every song without them, giving up only if the connection looks gone. */
     fun downloadAll(tracks: List<Track>) {
         if (bulkJob?.isActive == true) return
         bulkJob = scope.launch {
             val have = withContext(Dispatchers.IO) { dao.lyricsCheckedKeys().toSet() }
             val todo = tracks.filter { it.key !in have }
             var found = 0
+            var failed = 0
+            var failuresInARow = 0
             _bulk.value = BulkProgress(0, todo.size, 0, running = true)
             for ((index, track) in todo.withIndex()) {
                 when (download(track)) {
-                    LyricsResult.Found -> found++
-                    LyricsResult.NotFound -> Unit
-                    LyricsResult.Offline -> break
+                    LyricsResult.Found -> {
+                        found++
+                        failuresInARow = 0
+                    }
+                    LyricsResult.NotFound -> failuresInARow = 0
+                    LyricsResult.Offline -> {
+                        failed++
+                        failuresInARow++
+                    }
                 }
-                _bulk.value = BulkProgress(index + 1, todo.size, found, running = true)
+                _bulk.value = BulkProgress(index + 1, todo.size, found, running = true, failed = failed)
+                if (failuresInARow >= MAX_FAILURES_IN_A_ROW) {
+                    _bulk.value = _bulk.value.copy(gaveUp = true)
+                    break
+                }
             }
             _bulk.value = _bulk.value.copy(running = false)
         }
@@ -122,5 +142,6 @@ class LyricsRepository(
     private companion object {
         const val BASE = "https://lrclib.net/api"
         const val TIMEOUT_MS = 12_000
+        const val MAX_FAILURES_IN_A_ROW = 5
     }
 }

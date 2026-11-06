@@ -19,6 +19,16 @@ android {
         versionName = "1.0"
     }
 
+    buildTypes {
+        release {
+            // Personal sideload, so the debug key is enough. Compose only runs smoothly with R8 on.
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
+    }
+
     buildFeatures {
         compose = true
     }
