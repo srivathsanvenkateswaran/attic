@@ -3,7 +3,6 @@ package app.attic.player.ui
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,13 +18,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AddCircleOutline
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DragHandle
@@ -58,6 +57,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Library
@@ -88,7 +88,7 @@ private fun CollapsingBar(title: String, tint: Color, list: LazyListState, actio
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        BackButton({ ui.back() })
+        BackButton({ ui.back() }, scrim = if (collapsed) Color.Transparent else Color.Black.copy(alpha = 0.35f))
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
@@ -189,6 +189,7 @@ private fun PlainSubtitle(text: String) {
 /** Row under every header: the downloaded marker on the left, shuffle and a green play button on the right. */
 @Composable
 private fun PlayControls(tracks: List<Track>, contextName: String, leading: @Composable () -> Unit = {}) {
+    val ui = LocalUi.current
     val app = LocalContext.current.attic
     val player by app.player.state.collectAsStateWithLifecycle()
     val isThisContext = player.contextName == contextName && player.current?.key in tracks.map { it.key }
@@ -199,8 +200,16 @@ private fun PlayControls(tracks: List<Track>, contextName: String, leading: @Com
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Spacer(Modifier.width(4.dp))
-        DownloadedBadge()
-        Spacer(Modifier.width(4.dp))
+        CoverArt(tracks.firstOrNull()?.mediaId, CoverShape, Modifier.size(width = 34.dp, height = 44.dp), iconSize = 16.dp)
+        IconButton(onClick = { ui.addToPlaylist(tracks.map { it.key }) }, enabled = tracks.isNotEmpty()) {
+            Icon(
+                Icons.Rounded.AddCircleOutline,
+                contentDescription = "Add $contextName to a playlist",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(26.dp),
+            )
+        }
+        DownloadedBadge(size = 24.dp)
         leading()
         Spacer(Modifier.weight(1f))
         IconButton(onClick = { app.player.shufflePlay(tracks, contextName) }, enabled = tracks.isNotEmpty()) {
@@ -257,7 +266,7 @@ fun AlbumScreen(library: Library, key: String) {
                         album.artistKey?.let { k -> { ui.openArtist(k) } },
                     )
                 },
-                detail = listOfNotNull("Album", album.year?.toString()).joinToString(", "),
+                detail = listOfNotNull(if (album.tracks.size == 1) "Single" else "Album", album.year?.toString()).joinToString(" • "),
             )
             PlayControls(album.tracks, album.name)
         }
@@ -273,9 +282,8 @@ fun AlbumScreen(library: Library, key: String) {
         }
         item {
             Text(
-                summarize(album.tracks),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                summarize(album.tracks).replace(", ", " • "),
+                style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(16.dp),
             )
         }
@@ -291,7 +299,6 @@ fun ArtistScreen(library: Library, key: String) {
     val recentKeys by app.userData.recentKeys.collectAsStateWithLifecycle(emptyList())
     if (artist == null) return NotFound("This artist")
     val mediaId = artist.tracks.first().mediaId
-    val background = MaterialTheme.colorScheme.background
     // No play counts from a streaming service here, so "Popular" means what you've played most recently.
     val popular = remember(artist, recentKeys) {
         val rank = recentKeys.withIndex().associate { it.value to it.index }
@@ -300,16 +307,17 @@ fun ArtistScreen(library: Library, key: String) {
 
     CollectionFrame(artist.name, mediaId) {
         item {
-            Box(Modifier.fillMaxWidth().aspectRatio(1.15f)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(1.05f)) {
                 CoverArt(mediaId, androidx.compose.ui.graphics.RectangleShape, Modifier.fillMaxSize(), iconSize = 96.dp)
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to background)),
+                        .background(Brush.verticalGradient(0.5f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.72f))),
                 )
                 Text(
                     artist.name,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displaySmall.copy(fontSize = 44.sp, lineHeight = 48.sp),
+                    color = Color.White,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -317,6 +325,7 @@ fun ArtistScreen(library: Library, key: String) {
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
+            Spacer(Modifier.height(12.dp))
             PlainSubtitle(summarize(artist.tracks))
             PlayControls(artist.tracks, artist.name)
             SectionTitle("Popular")
@@ -340,17 +349,14 @@ fun ArtistScreen(library: Library, key: String) {
         }
         if (artist.albums.isNotEmpty()) {
             item {
-                SectionTitle("Discography")
-                LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    items(artist.albums, key = { it.key }) { album ->
-                        ShelfCard(
-                            mediaId = album.tracks.first().mediaId,
-                            title = album.name,
-                            subtitle = listOfNotNull(album.year?.toString(), if (album.tracks.size == 1) "Single" else "Album").joinToString(", "),
-                            onClick = { ui.openAlbum(album.key) },
-                        )
-                    }
-                }
+                SectionTitle("Popular releases")
+            }
+            items(artist.albums, key = { "rel:${it.key}" }) { album ->
+                ResultRow(
+                    album.tracks.first().mediaId,
+                    album.name,
+                    listOfNotNull(album.year?.toString(), if (album.tracks.size == 1) "Single" else "Album").joinToString(" • "),
+                ) { ui.openAlbum(album.key) }
             }
         }
         if (popular.size > POPULAR_COUNT) {

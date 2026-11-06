@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Attic</string>
-    <string name="widget_description">Song playing now with its cover and controls. Resize it for a larger or smaller player.</string>
+    <string name="widget_description">Your song and controls, with your recent albums. Resize it for a smaller player.</string>
     <string name="widget_empty">Tap to open</string>
     <string name="widget_play_pause">Play or pause</string>
     <string name="widget_next">Next</string>
     <string name="widget_previous">Previous</string>
+    <string name="widget_album">Open album</string>
 </resources>

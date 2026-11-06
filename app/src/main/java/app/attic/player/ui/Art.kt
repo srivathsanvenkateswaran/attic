@@ -100,6 +100,19 @@ private const val THUMBNAIL_MAX_PX = 640
 private val artColors = LruCache<Long, Int>(256)
 private const val NO_COLOR = 0
 
+/** The tint for a cover as ARGB, or null if it has no art. Cached. */
+fun coverTint(context: Context, mediaId: Long): Int? {
+    val argb = artColors.get(mediaId) ?: run {
+        val bitmap = loadCover(context, mediaId, 96)
+        val swatch = bitmap?.let { bmp ->
+            val palette = ColorPalette.from(bmp.copy(Bitmap.Config.ARGB_8888, false)).generate()
+            palette.vibrantSwatch ?: palette.mutedSwatch ?: palette.dominantSwatch
+        }
+        (swatch?.let { deepen(it.rgb) } ?: NO_COLOR).also { artColors.put(mediaId, it) }
+    }
+    return argb.takeIf { it != NO_COLOR }
+}
+
 /** A dark tint pulled from the cover, for gradients behind album headers and Now Playing. */
 @Composable
 fun rememberArtColor(mediaId: Long?, fallback: Color = Color(0xFF333333)): Color {
@@ -112,16 +125,8 @@ fun rememberArtColor(mediaId: Long?, fallback: Color = Color(0xFF333333)): Color
             value = fallback
             return@produceState
         }
-        val cached = artColors.get(mediaId)
-        val argb = cached ?: withContext(Dispatchers.IO) {
-            val bitmap = loadCover(context, mediaId, 96)
-            val swatch = bitmap?.let { bmp ->
-                val palette = ColorPalette.from(bmp.copy(Bitmap.Config.ARGB_8888, false)).generate()
-                palette.vibrantSwatch ?: palette.mutedSwatch ?: palette.dominantSwatch
-            }
-            swatch?.let { deepen(it.rgb) } ?: NO_COLOR
-        }.also { artColors.put(mediaId, it) }
-        value = if (argb == NO_COLOR) fallback else Color(argb)
+        val argb = withContext(Dispatchers.IO) { coverTint(context, mediaId) }
+        value = argb?.let { Color(it) } ?: fallback
     }
     return color
 }

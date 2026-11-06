@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -98,13 +101,11 @@ fun LyricsCard(track: Track, isPlaying: Boolean, tint: Color, onOpen: () -> Unit
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color.Black.copy(alpha = 0.3f))
-            .background(tint.copy(alpha = 0.55f))
-            .then(if (hasLyrics) Modifier.pressable(scale = 0.985f, onClick = onOpen) else Modifier)
+            .background(Color.White.copy(alpha = 0.1f).compositeOver(tint))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text("Lyrics", style = MaterialTheme.typography.titleMedium)
+        Text("Lyrics", style = MaterialTheme.typography.titleSmall)
         when {
             hasLyrics && lines.isNotEmpty() -> {
                 val current = LrcParser.lineAt(lines, position).coerceAtLeast(0)
@@ -114,7 +115,7 @@ fun LyricsCard(track: Track, isPlaying: Boolean, tint: Color, onOpen: () -> Unit
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         lineHeight = 28.sp,
-                        color = if (i == 0) SungColor else UpcomingColor,
+                        color = if (i == 0) SungColor else Color.White.copy(alpha = 0.55f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -138,7 +139,36 @@ fun LyricsCard(track: Track, isPlaying: Boolean, tint: Color, onOpen: () -> Unit
                 DownloadLyricsButton(track)
             }
         }
+        if (hasLyrics) {
+            Spacer(Modifier.height(4.dp))
+            Box(
+                Modifier
+                    .pressable(scale = 0.94f, onClick = onOpen)
+                    .clip(CircleShape)
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                Text("Show lyrics", style = MaterialTheme.typography.labelLarge, color = Color.Black)
+            }
+        }
     }
+}
+
+/** The line being sung, shown small under the cover once lyrics are saved. */
+@Composable
+fun CurrentLyricLine(track: Track, isPlaying: Boolean) {
+    val app = LocalContext.current.attic
+    val saved by remember(track.key) { app.lyrics.observe(track.key) }.collectAsStateWithLifecycle(null)
+    val lines = remember(saved) { saved?.synced?.let(LrcParser::parse).orEmpty() }
+    val position = rememberPosition(track.key, isPlaying && lines.isNotEmpty(), 400)
+    val line = lines.getOrNull(LrcParser.lineAt(lines, position))?.text?.takeIf { it.isNotBlank() } ?: return
+    Text(
+        line,
+        style = MaterialTheme.typography.titleSmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(bottom = 12.dp),
+    )
 }
 
 private const val PREVIEW_LINES = 4

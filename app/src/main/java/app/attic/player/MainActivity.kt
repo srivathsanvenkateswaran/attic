@@ -1,5 +1,6 @@
 package app.attic.player
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -12,6 +13,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import app.attic.player.ui.AppRoot
+import app.attic.player.widget.PlayerWidget
 import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
 
@@ -19,6 +21,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        handleWidgetIntent(intent)
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
             AtticTheme(mode) {
@@ -31,6 +34,15 @@ class MainActivity : ComponentActivity() {
                 AppRoot()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleWidgetIntent(intent)
+    }
+
+    private fun handleWidgetIntent(intent: Intent?) {
+        intent?.getStringExtra(PlayerWidget.EXTRA_ALBUM_KEY)?.let { attic.requestedAlbum.value = it }
     }
 
     override fun onStart() {

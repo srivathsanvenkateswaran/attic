@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -200,7 +201,7 @@ fun searchFieldColors() = TextFieldDefaults.colors(
 private fun BrowseCard(tile: BrowseTile, color: Color) {
     Box(
         Modifier
-            .height(100.dp)
+            .height(92.dp)
             .fillMaxWidth()
             .pressable(onClick = tile.onClick)
             .clip(RoundedCornerShape(6.dp))
@@ -208,7 +209,7 @@ private fun BrowseCard(tile: BrowseTile, color: Color) {
     ) {
         Text(
             tile.title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color.White,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

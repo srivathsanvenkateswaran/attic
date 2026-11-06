@@ -21,7 +21,9 @@ import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.LibraryRepository
 import app.attic.player.playback.PlaybackService
+import app.attic.player.ui.coverTint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,6 +73,11 @@ class PlayerWidget : AppWidgetProvider() {
     }
 
     companion object {
+        const val EXTRA_ALBUM_KEY = "app.attic.player.widget.ALBUM"
+        private const val DEFAULT_TINT = 0xFF333333.toInt()
+        private const val TILE_PX = 160
+        private const val TILE_REQUEST_BASE = 100
+        private val TILE_IDS = listOf(R.id.widget_tile1, R.id.widget_tile2, R.id.widget_tile3, R.id.widget_tile4, R.id.widget_tile5)
         private const val ACTION_NEXT = "app.attic.player.widget.NEXT"
         private const val ACTION_PREVIOUS = "app.attic.player.widget.PREVIOUS"
         private const val PREFS = "player_widget"
@@ -105,11 +112,13 @@ class PlayerWidget : AppWidgetProvider() {
             val ids = manager.getAppWidgetIds(ComponentName(context, PlayerWidget::class.java))
             if (ids.isEmpty()) return
             val cover = cover(context, state.mediaId)
+            val tint = state.mediaId?.let { id -> withContext(Dispatchers.IO) { coverTint(context, id) } } ?: DEFAULT_TINT
+            val tiles = recentAlbums(context)
             val views = RemoteViews(
                 mapOf(
-                    SizeF(110f, 110f) to build(context, R.layout.widget_small, state, cover),
-                    SizeF(180f, 50f) to build(context, R.layout.widget_wide, state, cover),
-                    SizeF(250f, 110f) to build(context, R.layout.widget_large, state, cover),
+                    SizeF(110f, 110f) to build(context, R.layout.widget_small, state, cover, tint, tiles),
+                    SizeF(180f, 50f) to build(context, R.layout.widget_wide, state, cover, tint, tiles),
+                    SizeF(250f, 110f) to build(context, R.layout.widget_large, state, cover, tint, tiles),
                 ),
             )
             manager.updateAppWidget(ids, views)
@@ -128,8 +137,47 @@ class PlayerWidget : AppWidgetProvider() {
             return bitmap
         }
 
-        private fun build(context: Context, layout: Int, state: WidgetState, cover: Bitmap?): RemoteViews {
+        /** The albums you played last, topped up with your biggest ones so the row is never empty. */
+        private suspend fun recentAlbums(context: Context): List<Tile> {
+            val app = context.attic
+            val library = app.library.await()
+            val recent = app.userData.recentKeys.first().mapNotNull { library.trackByKey[it]?.albumKey }.distinct()
+            val keys = (recent + library.albums.sortedByDescending { it.tracks.size }.map { it.key }).distinct().take(TILE_IDS.size)
+            return withContext(Dispatchers.IO) {
+                keys.mapNotNull { key ->
+                    val album = library.albumByKey[key] ?: return@mapNotNull null
+                    val art = runCatching {
+                        context.contentResolver.loadThumbnail(LibraryRepository.uriFor(album.tracks.first().mediaId), Size(TILE_PX, TILE_PX), null)
+                    }.getOrNull()
+                    Tile(key, art)
+                }
+            }
+        }
+
+        private class Tile(val albumKey: String, val art: Bitmap?)
+
+        private fun build(context: Context, layout: Int, state: WidgetState, cover: Bitmap?, tint: Int, tiles: List<Tile>): RemoteViews {
             val views = RemoteViews(context.packageName, layout)
+            views.setInt(R.id.widget_bg, "setColorFilter", tint)
+            if (layout == R.layout.widget_large) {
+                TILE_IDS.forEachIndexed { index, id ->
+                    val tile = tiles.getOrNull(index)
+                    if (tile?.art != null) views.setImageViewBitmap(id, tile.art) else views.setImageViewResource(id, R.drawable.widget_placeholder)
+                    if (tile != null) {
+                        views.setOnClickPendingIntent(
+                            id,
+                            PendingIntent.getActivity(
+                                context,
+                                TILE_REQUEST_BASE + index,
+                                Intent(context, MainActivity::class.java)
+                                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                    .putExtra(EXTRA_ALBUM_KEY, tile.albumKey),
+                                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                            ),
+                        )
+                    }
+                }
+            }
             if (layout != R.layout.widget_small) {
                 views.setTextViewText(R.id.widget_title, state.title ?: context.getString(R.string.app_name))
                 views.setTextViewText(R.id.widget_artist, state.artist ?: context.getString(R.string.widget_empty))
@@ -137,7 +185,15 @@ class PlayerWidget : AppWidgetProvider() {
                 views.setOnClickPendingIntent(R.id.widget_next, skip(context, ACTION_NEXT))
             }
             if (cover != null) views.setImageViewBitmap(R.id.widget_art, cover) else views.setImageViewResource(R.id.widget_art, R.drawable.widget_placeholder)
-            views.setImageViewResource(R.id.widget_play, if (state.isPlaying) R.drawable.widget_pause else R.drawable.widget_play)
+            views.setImageViewResource(
+                R.id.widget_play,
+                when {
+                    layout == R.layout.widget_large && state.isPlaying -> R.drawable.widget_pause_black
+                    layout == R.layout.widget_large -> R.drawable.widget_play_black
+                    state.isPlaying -> R.drawable.widget_pause
+                    else -> R.drawable.widget_play
+                },
+            )
             views.setOnClickPendingIntent(R.id.widget_play, mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
             views.setOnClickPendingIntent(
                 R.id.widget_root,

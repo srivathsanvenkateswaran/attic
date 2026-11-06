@@ -293,7 +293,7 @@ fun LikedTile(modifier: Modifier = Modifier) {
 
 @Composable
 fun FolderCard(folder: FolderPlaylist, onClick: () -> Unit) {
-    Column(Modifier.width(150.dp).pressable(onClick = onClick)) {
+    Column(Modifier.width(160.dp).pressable(onClick = onClick)) {
         MosaicCover(mosaicIds(folder.tracks), Modifier.fillMaxWidth(), BigCoverShape)
         Spacer(Modifier.height(8.dp))
         Text(folder.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -313,7 +313,7 @@ fun ShelfCard(
     onClick: () -> Unit,
     highlighted: Boolean = false,
 ) {
-    Column(Modifier.width(150.dp).pressable(onClick = onClick)) {
+    Column(Modifier.width(160.dp).pressable(onClick = onClick)) {
         CoverArt(mediaId, BigCoverShape, Modifier.fillMaxWidth().aspectRatio(1f), iconSize = 40.dp)
         Spacer(Modifier.height(8.dp))
         Text(

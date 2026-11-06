@@ -84,6 +84,8 @@ class UiActions(
     private val nav: NavHostController,
     private val closeOverlays: () -> Unit,
     val showMenu: (TrackMenuRequest) -> Unit,
+    private val pickPlaylist: (List<String>) -> Unit,
+    private val selectTab: (String) -> Unit,
 ) {
     private fun go(route: String) {
         closeOverlays()
@@ -96,6 +98,8 @@ class UiActions(
     fun openPlaylist(id: Long) = go("playlist/$id")
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
+    fun openSearch() = selectTab("search")
+    fun addToPlaylist(keys: List<String>) = pickPlaylist(keys)
     fun back() = nav.popBackStack()
 }
 
@@ -169,6 +173,7 @@ private fun MainShell(library: Library) {
     var showQueue by rememberSaveable { mutableStateOf(false) }
     var showLyrics by rememberSaveable { mutableStateOf(false) }
     var menu by remember { mutableStateOf<TrackMenuRequest?>(null) }
+    var picking by remember { mutableStateOf<List<String>?>(null) }
     val player by app.player.state.collectAsStateWithLifecycle()
 
     val ui = remember(nav) {
@@ -180,6 +185,14 @@ private fun MainShell(library: Library) {
                 showLyrics = false
             },
             showMenu = { menu = it },
+            pickPlaylist = { picking = it },
+            selectTab = { route ->
+                nav.navigate(route) {
+                    popUpTo(Tab.Home.route) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            },
         )
     }
 
@@ -187,6 +200,15 @@ private fun MainShell(library: Library) {
         app.messages.collect { message ->
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message)
+        }
+    }
+
+    // A widget tile asks for an album by its key.
+    val requestedAlbum by app.requestedAlbum.collectAsStateWithLifecycle()
+    LaunchedEffect(requestedAlbum) {
+        requestedAlbum?.let { key ->
+            ui.openAlbum(key)
+            app.requestedAlbum.value = null
         }
     }
 
@@ -273,6 +295,9 @@ private fun MainShell(library: Library) {
 
             menu?.let { request ->
                 TrackMenuSheet(request, library, onDismiss = { menu = null })
+            }
+            picking?.let { keys ->
+                PlaylistPickerSheet(keys, onDismiss = { picking = null })
             }
         }
     }

@@ -8,6 +8,14 @@
     android:clipToOutline="true">
 
     <ImageView
+        android:id="@+id/widget_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_bg" />
+
+    <ImageView
         android:id="@+id/widget_art"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

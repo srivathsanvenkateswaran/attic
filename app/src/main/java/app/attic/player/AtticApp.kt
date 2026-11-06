@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class AtticApp : Application(), SingletonImageLoader.Factory {
@@ -31,6 +32,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val player by lazy { PlayerClient(this, library, scope) }
 
     /** Short confirmations and playback errors, shown as a snackbar. */
+    /** Set when a widget tile opens the app on an album, then cleared once navigated. */
+    val requestedAlbum = MutableStateFlow<String?>(null)
+
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
     override fun onCreate() {

@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -114,10 +115,10 @@ fun PlayingBars(playing: Boolean, modifier: Modifier = Modifier, color: Color = 
 
 /** The green marker for a saved song. Everything here is on the device, so every row carries it. */
 @Composable
-fun DownloadedBadge(modifier: Modifier = Modifier) {
+fun DownloadedBadge(modifier: Modifier = Modifier, size: Dp = 13.dp) {
     Box(
         modifier
-            .size(13.dp)
+            .size(size)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
@@ -126,7 +127,7 @@ fun DownloadedBadge(modifier: Modifier = Modifier) {
             Icons.Rounded.ArrowDownward,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.background,
-            modifier = Modifier.size(10.dp),
+            modifier = Modifier.size(size * 0.78f),
         )
     }
 }
@@ -230,8 +231,13 @@ fun PlayCircle(
 }
 
 @Composable
-fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    IconButton(onClick = onClick, modifier = modifier) {
+fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier, scrim: Color = Color.Transparent) {
+    // The round scrim keeps the arrow readable over any cover colour.
+    IconButton(
+        onClick = onClick,
+        modifier = modifier,
+        colors = IconButtonDefaults.iconButtonColors(containerColor = scrim, contentColor = MaterialTheme.colorScheme.onSurface),
+    ) {
         Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
     }
 }

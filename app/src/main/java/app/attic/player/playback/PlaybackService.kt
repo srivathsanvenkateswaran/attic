@@ -119,7 +119,7 @@ class PlaybackService : MediaSessionService() {
                     .setSessionCommand(SHUFFLE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)
                     .build(),
-                CommandButton.Builder(if (liked) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED)
+                CommandButton.Builder(if (liked) CommandButton.ICON_CHECK_CIRCLE_FILLED else CommandButton.ICON_PLUS_CIRCLE_UNFILLED)
                     .setDisplayName(if (liked) "Remove from liked songs" else "Add to liked songs")
                     .setSessionCommand(LIKE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)

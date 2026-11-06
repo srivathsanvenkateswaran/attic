@@ -1,12 +1,16 @@
 package app.attic.player.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -167,7 +171,7 @@ fun MiniPlayer(state: PlayerUiState, onOpen: () -> Unit) {
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.78f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee(initialDelayMillis = MARQUEE_DELAY_MS),
                     )
                 }
             }
@@ -201,7 +205,7 @@ fun MiniPlayer(state: PlayerUiState, onOpen: () -> Unit) {
     Spacer(Modifier.height(4.dp))
 }
 
-private const val DISMISS_FRACTION = 0.18f
+private const val MARQUEE_DELAY_MS = 2500
 
 /** Always dark, because it sits on the song's colour rather than the app background. */
 @Composable
@@ -262,13 +266,7 @@ private fun NowPlayingContent(state: PlayerUiState, onClose: () -> Unit, onOpenQ
         Modifier
             .fillMaxSize()
             .offset { IntOffset(0, dragOffset.value.roundToInt()) }
-            .background(
-                Brush.verticalGradient(
-                    0f to tint,
-                    0.8f to Color.Black.copy(alpha = 0.55f).compositeOver(tint),
-                    1f to Color.Black.copy(alpha = 0.7f).compositeOver(tint),
-                ),
-            )
+            .background(MaterialTheme.colorScheme.background)
             // Swallows taps so they don't reach the screen underneath.
             .pointerInput(Unit) { detectTapGestures { } }
             .nestedScroll(dismissDrag),
@@ -278,6 +276,7 @@ private fun NowPlayingContent(state: PlayerUiState, onClose: () -> Unit, onOpenQ
             Column(
                 Modifier
                     .height(pageHeight)
+                    .background(Brush.verticalGradient(0f to tint, 0.72f to Color.Black.copy(alpha = 0.72f).compositeOver(tint), 1f to MaterialTheme.colorScheme.background))
                     .statusBarsPadding()
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp),
@@ -286,6 +285,7 @@ private fun NowPlayingContent(state: PlayerUiState, onClose: () -> Unit, onOpenQ
                 Spacer(Modifier.weight(1f))
                 CoverPager(state)
                 Spacer(Modifier.weight(1f))
+                CurrentLyricLine(track, state.isPlaying)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -296,8 +296,8 @@ private fun NowPlayingContent(state: PlayerUiState, onClose: () -> Unit, onOpenQ
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.White.copy(alpha = 0.7f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = track.artistKeys.firstOrNull()?.let { key -> Modifier.pressable { ui.openArtist(key) } } ?: Modifier,
+                            modifier = (track.artistKeys.firstOrNull()?.let { key -> Modifier.pressable { ui.openArtist(key) } } ?: Modifier)
+                                .basicMarquee(initialDelayMillis = MARQUEE_DELAY_MS),
                         )
                     }
                     LikeButton(track.key in liked, Modifier.offset(x = 10.dp), size = 28.dp) { app.userData.toggleLike(track.key) }
@@ -326,10 +326,11 @@ private fun NowPlayingContent(state: PlayerUiState, onClose: () -> Unit, onOpenQ
 
             Column(Modifier.navigationBarsPadding().padding(start = 16.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 LyricsCard(track, state.isPlaying, tint, onOpenLyrics)
-                AboutArtistCard(track, tint)
-                CreditsCard(track, tint)
+                AboutArtistCard(track)
+                CreditsCard(track)
             }
         }
+        StickyMiniHeader(state, track, scroll.value > with(LocalDensity.current) { (pageHeight * 0.55f).toPx() }, tint)
     }
 }
 
@@ -514,10 +515,39 @@ fun SeekBar(fraction: Float, scrubbing: Boolean, onScrub: (Float) -> Unit, onCom
     }
 }
 
-private fun cardColor(tint: Color) = Color.Black.copy(alpha = 0.3f).compositeOver(tint)
+/** Once the controls scroll away, the song and a pause button stay pinned at the top. */
+@Composable
+private fun StickyMiniHeader(state: PlayerUiState, track: Track, visible: Boolean, tint: Color) {
+    val app = LocalContext.current.attic
+    val liked by app.userData.likedSet.collectAsStateWithLifecycle()
+    val position = rememberPosition(track.key, state.isPlaying && visible, 500)
+    AnimatedVisibility(visible, enter = fadeIn(tween(160)), exit = fadeOut(tween(120))) {
+        Column(Modifier.fillMaxWidth().background(Color.Black.copy(alpha = 0.55f).compositeOver(tint)).statusBarsPadding()) {
+            Row(Modifier.padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(track.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(track.artist, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.7f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                LikeButton(track.key in liked) { app.userData.toggleLike(track.key) }
+                IconButton(onClick = { app.player.togglePlayPause() }) {
+                    Icon(
+                        if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                        contentDescription = if (state.isPlaying) "Pause" else "Play",
+                        modifier = Modifier.size(30.dp),
+                    )
+                }
+            }
+            Box(Modifier.fillMaxWidth().height(2.dp).background(Color.White.copy(alpha = 0.2f))) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth((position.toFloat() / track.durationMs.coerceAtLeast(1)).coerceIn(0f, 1f)).background(Color.White))
+            }
+        }
+    }
+}
+
+private val CardColor = Color(0xFF282828)
 
 @Composable
-private fun AboutArtistCard(track: Track, tint: Color) {
+private fun AboutArtistCard(track: Track) {
     val app = LocalContext.current.attic
     val ui = LocalUi.current
     val library by app.library.library.collectAsStateWithLifecycle()
@@ -526,13 +556,14 @@ private fun AboutArtistCard(track: Track, tint: Color) {
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(cardColor(tint))
+            .background(CardColor)
             .pressable(scale = 0.985f) { ui.openArtist(artist.key) },
     ) {
-        CoverArt(artist.tracks.first().mediaId, RoundedCornerShape(0.dp), Modifier.fillMaxWidth().aspectRatio(1.6f), iconSize = 64.dp)
+        Box {
+            CoverArt(artist.tracks.first().mediaId, RoundedCornerShape(0.dp), Modifier.fillMaxWidth().aspectRatio(1.35f), iconSize = 64.dp)
+            Text("About the artist", style = MaterialTheme.typography.titleSmall, color = Color.White, modifier = Modifier.padding(16.dp))
+        }
         Column(Modifier.padding(16.dp)) {
-            Text("About the artist", style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(6.dp))
             Text(artist.name, style = MaterialTheme.typography.titleLarge)
             Text(
                 "${songCount(artist.tracks.size)} in your library",
@@ -544,12 +575,12 @@ private fun AboutArtistCard(track: Track, tint: Color) {
 }
 
 @Composable
-private fun CreditsCard(track: Track, tint: Color) {
+private fun CreditsCard(track: Track) {
     Column(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(cardColor(tint))
+            .background(CardColor)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {

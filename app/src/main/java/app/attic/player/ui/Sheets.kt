@@ -78,7 +78,7 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (pickingPlaylist) {
-        PlaylistPickerSheet(trackKey = track.key, onDismiss = onDismiss)
+        PlaylistPickerSheet(listOf(track.key), onDismiss = onDismiss)
         return
     }
 
@@ -155,7 +155,7 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlaylistPickerSheet(trackKey: String, onDismiss: () -> Unit) {
+fun PlaylistPickerSheet(trackKeys: List<String>, onDismiss: () -> Unit) {
     val app = LocalContext.current.attic
     val playlists by app.userData.playlists.collectAsStateWithLifecycle()
     var creating by remember { mutableStateOf(false) }
@@ -163,7 +163,7 @@ private fun PlaylistPickerSheet(trackKey: String, onDismiss: () -> Unit) {
 
     fun addTo(id: Long, name: String) {
         app.scope.launch {
-            val added = app.userData.addToPlaylist(id, listOf(trackKey))
+            val added = app.userData.addToPlaylist(id, trackKeys)
             app.messages.tryEmit(if (added > 0) "Added to $name" else "Already in $name")
         }
         onDismiss()
@@ -184,7 +184,7 @@ private fun PlaylistPickerSheet(trackKey: String, onDismiss: () -> Unit) {
                 MenuRow(Icons.Rounded.Add, "New playlist") { creating = true }
             }
             items(playlists, key = { it.id }) { playlist ->
-                val alreadyIn = trackKey in playlist.trackKeys
+                val alreadyIn = playlist.trackKeys.containsAll(trackKeys)
                 MenuRow(
                     if (alreadyIn) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.QueueMusic,
                     "${playlist.name} (${songCount(playlist.trackKeys.size)})",
