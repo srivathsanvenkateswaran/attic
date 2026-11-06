@@ -68,8 +68,32 @@ data class SavedQueueEntity(
     val contextName: String?,
 )
 
+/** A row with [found] false records a checked miss, so bulk downloads don't keep asking. */
+@Entity(tableName = "lyrics")
+data class LyricsEntity(
+    @PrimaryKey val trackKey: String,
+    val synced: String?,
+    val plain: String?,
+    val instrumental: Boolean,
+    val found: Boolean,
+    val fetchedAt: Long,
+)
+
 @Dao
 interface MusicDao {
+    @Query("SELECT * FROM lyrics WHERE trackKey = :key")
+    fun lyrics(key: String): Flow<LyricsEntity?>
+
+    @Query("SELECT trackKey FROM lyrics WHERE found = 1")
+    fun lyricsFoundKeys(): Flow<List<String>>
+
+    @Query("SELECT trackKey FROM lyrics")
+    suspend fun lyricsCheckedKeys(): List<String>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLyrics(entity: LyricsEntity)
+
+
     @Query("SELECT trackKey FROM liked ORDER BY likedAt DESC")
     fun likedKeys(): Flow<List<String>>
 
@@ -138,6 +162,7 @@ interface MusicDao {
         PlaylistTrackEntity::class,
         HistoryEntity::class,
         SavedQueueEntity::class,
+        LyricsEntity::class,
     ],
     version = 1,
     exportSchema = true,
