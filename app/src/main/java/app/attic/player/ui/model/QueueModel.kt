@@ -1,0 +1,63 @@
+package app.attic.player.ui.model
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import app.attic.player.attic
+import app.attic.player.data.Track
+import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.LocalUi
+import app.attic.player.ui.TrackMenuRequest
+
+/** [queueIndex] is the position in the player, which stays valid while rows are dragged around it. */
+@Immutable
+data class UpNextRow(val id: String, val track: Track, val queueIndex: Int)
+
+/** The same song can be queued twice, so a row's identity is its key plus which occurrence it is. */
+private fun buildRows(state: PlayerUiState): List<UpNextRow> {
+    val seen = HashMap<String, Int>()
+    return state.queue.mapIndexedNotNull { index, track ->
+        val occurrence = seen.merge(track.key, 1, Int::plus)!!
+        if (index > state.currentIndex) UpNextRow("${track.key}#$occurrence", track, index) else null
+    }
+}
+
+@Immutable
+class QueueState(
+    val current: Track?,
+    val isPlaying: Boolean,
+    /** Everything after the current song, in play order (which is the shuffled order when shuffle is on). */
+    val upNext: List<UpNextRow>,
+)
+
+class QueueActions(
+    val close: () -> Unit,
+    /** Also stops radio, which would otherwise refill it. */
+    val clearUpNext: () -> Unit,
+    val jumpTo: (queueIndex: Int) -> Unit,
+    val remove: (queueIndex: Int) -> Unit,
+    /** A row that was at [fromQueueIndex] was dropped at [toUpNextPosition] in the up-next list. */
+    val move: (fromQueueIndex: Int, toUpNextPosition: Int) -> Unit,
+    val showMenu: (Track) -> Unit,
+)
+
+@Composable
+fun rememberQueueModel(player: PlayerUiState, onClose: () -> Unit): UiModel<QueueState, QueueActions> {
+    val app = LocalContext.current.attic
+    val ui = LocalUi.current
+    val upNext = remember(player.queue, player.currentIndex) { buildRows(player) }
+    val state = QueueState(player.current, player.isPlaying, upNext)
+    val actions = QueueActions(
+        close = onClose,
+        clearUpNext = { app.player.clearUpNext() },
+        jumpTo = { app.player.jumpTo(it) },
+        remove = { app.player.removeFromQueue(it) },
+        move = { from, position ->
+            val target = player.currentIndex + 1 + position
+            if (from >= 0 && from != target) app.player.moveInQueue(from, target)
+        },
+        showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+    )
+    return UiModel(state, actions)
+}
