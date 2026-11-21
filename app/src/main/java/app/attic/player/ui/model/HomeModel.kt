@@ -36,9 +36,18 @@ enum class HomeFilter(val label: String) {
     Folders("Folders"),
 }
 
-/** The way into Wrapped, open all year rather than only in December. */
+/**
+ * The way into Wrapped, open all year rather than only in December. [headline] is Classic's wording;
+ * [year] and [yearEnded] (from 24 December) let a style word it from its own copy.
+ */
 @Immutable
-class WrappedTeaser(val headline: String, val minutes: Long, val mosaicIds: List<Long>)
+class WrappedTeaser(
+    val headline: String,
+    val minutes: Long,
+    val mosaicIds: List<Long>,
+    val year: Int,
+    val yearEnded: Boolean,
+)
 
 @Immutable
 class HomeState(
@@ -59,6 +68,10 @@ class HomeState(
     val spotlight: Artist?,
     val currentKey: String?,
     val isPlaying: Boolean,
+    /** Liked songs that are in the library, the count Favourites shows. */
+    val favouriteCount: Int,
+    /** The song the radio that is playing was started from, if radio is playing. */
+    val radioSeedKey: String?,
 )
 
 class HomeActions(
@@ -81,6 +94,7 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
     val app = LocalContext.current.attic
     val ui = LocalUi.current
     val recentKeys by app.userData.recentKeys.collectAsStateWithLifecycle(emptyList())
+    val liked by app.userData.likedSet.collectAsStateWithLifecycle()
     val player by app.player.state.collectAsStateWithLifecycle()
     var filter by rememberSaveable { mutableStateOf(HomeFilter.All) }
     val speedDial by app.radio.speedDial.collectAsStateWithLifecycle()
@@ -119,6 +133,8 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
         spotlight = spotlight,
         currentKey = player.current?.key,
         isPlaying = player.isPlaying,
+        favouriteCount = remember(library, liked) { library.tracks.count { it.key in liked } },
+        radioSeedKey = app.radio.seedFor(player.contextName),
     )
     val actions = HomeActions(
         setFilter = { filter = it },
@@ -150,7 +166,14 @@ private fun rememberWrappedTeaser(library: Library, recentKeys: List<String>): W
     }
     val loaded = data ?: return null
     if (loaded.recap.isEmpty) return null
-    return WrappedTeaser(loaded.headline, loaded.recap.minutes, loaded.songs.map { it.first }.let(::mosaicIds))
+    val today = java.time.LocalDate.now()
+    return WrappedTeaser(
+        headline = loaded.headline,
+        minutes = loaded.recap.minutes,
+        mosaicIds = loaded.songs.map { it.first }.let(::mosaicIds),
+        year = today.year,
+        yearEnded = today.monthValue == 12 && today.dayOfMonth >= 24,
+    )
 }
 
 /** Liked songs, then whatever you played lately (by album or folder), topped up with the biggest albums. */
