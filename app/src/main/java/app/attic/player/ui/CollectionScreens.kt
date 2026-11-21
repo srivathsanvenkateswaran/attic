@@ -3,6 +3,7 @@ package app.attic.player.ui
 import androidx.compose.runtime.Composable
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
+import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicAlbum
 import app.attic.player.ui.classic.ClassicArtist
 import app.attic.player.ui.classic.ClassicFolder
@@ -18,8 +19,8 @@ import app.attic.player.ui.model.rememberPlaylistModel
 fun AlbumScreen(library: Library, key: String) {
     val (state, actions) = rememberAlbumModel(library, key)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicAlbum(state, actions)
-        UiStyle.Comfort -> ClassicAlbum(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicAlbum(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicAlbum(state, actions) }
         UiStyle.Classic -> ClassicAlbum(state, actions)
     }
 }
@@ -28,8 +29,8 @@ fun AlbumScreen(library: Library, key: String) {
 fun ArtistScreen(library: Library, key: String) {
     val (state, actions) = rememberArtistModel(library, key)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicArtist(state, actions)
-        UiStyle.Comfort -> ClassicArtist(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicArtist(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicArtist(state, actions) }
         UiStyle.Classic -> ClassicArtist(state, actions)
     }
 }
@@ -38,8 +39,8 @@ fun ArtistScreen(library: Library, key: String) {
 fun FolderScreen(library: Library, name: String) {
     val (state, actions) = rememberFolderModel(library, name)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicFolder(state, actions)
-        UiStyle.Comfort -> ClassicFolder(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicFolder(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicFolder(state, actions) }
         UiStyle.Classic -> ClassicFolder(state, actions)
     }
 }
@@ -48,8 +49,8 @@ fun FolderScreen(library: Library, name: String) {
 fun LikedScreen(library: Library) {
     val (state, actions) = rememberLikedModel(library)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicLiked(state, actions)
-        UiStyle.Comfort -> ClassicLiked(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicLiked(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicLiked(state, actions) }
         UiStyle.Classic -> ClassicLiked(state, actions)
     }
 }
@@ -58,8 +59,8 @@ fun LikedScreen(library: Library) {
 fun PlaylistScreen(library: Library, id: Long) {
     val (state, actions) = rememberPlaylistModel(library, id)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicPlaylist(state, actions)
-        UiStyle.Comfort -> ClassicPlaylist(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicPlaylist(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicPlaylist(state, actions) }
         UiStyle.Classic -> ClassicPlaylist(state, actions)
     }
 

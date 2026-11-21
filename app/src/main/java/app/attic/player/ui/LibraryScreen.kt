@@ -3,6 +3,7 @@ package app.attic.player.ui
 import androidx.compose.runtime.Composable
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
+import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLibrary
 import app.attic.player.ui.model.rememberLibraryModel
 
@@ -10,8 +11,8 @@ import app.attic.player.ui.model.rememberLibraryModel
 fun LibraryScreen(library: Library) {
     val (state, actions) = rememberLibraryModel(library)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicLibrary(state, actions)
-        UiStyle.Comfort -> ClassicLibrary(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicLibrary(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicLibrary(state, actions) }
         UiStyle.Classic -> ClassicLibrary(state, actions)
     }
 

@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
+import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicWrapped
 import app.attic.player.ui.classic.ClassicWrappedCard
 import app.attic.player.ui.classic.ClassicWrappedStory
@@ -17,8 +18,8 @@ import app.attic.player.ui.model.rememberWrappedStoryModel
 fun WrappedScreen(library: Library) {
     val (state, actions) = rememberWrappedModel(library)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicWrapped(state, actions)
-        UiStyle.Comfort -> ClassicWrapped(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicWrapped(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicWrapped(state, actions) }
         UiStyle.Classic -> ClassicWrapped(state, actions)
     }
 
@@ -34,8 +35,8 @@ fun WrappedScreen(library: Library) {
 private fun WrappedStory(data: WrappedData, cards: List<WrappedCard>, start: Int, onClose: () -> Unit) {
     val (state, actions) = rememberWrappedStoryModel(data, cards, start, onClose)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicWrappedStory(state, actions)
-        UiStyle.Comfort -> ClassicWrappedStory(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicWrappedStory(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicWrappedStory(state, actions) }
         UiStyle.Classic -> ClassicWrappedStory(state, actions)
     }
 }
@@ -48,8 +49,8 @@ private fun WrappedStory(data: WrappedData, cards: List<WrappedCard>, start: Int
 @Composable
 fun WrappedCardView(card: WrappedCard, data: WrappedData, modifier: Modifier = Modifier, layer: GraphicsLayer? = null, animate: Boolean = false) {
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicWrappedCard(card, data, modifier, layer, animate)
-        UiStyle.Comfort -> ClassicWrappedCard(card, data, modifier, layer, animate)
+        UiStyle.Expressive -> ClassicSurface { ClassicWrappedCard(card, data, modifier, layer, animate) }
+        UiStyle.Comfort -> ClassicSurface { ClassicWrappedCard(card, data, modifier, layer, animate) }
         UiStyle.Classic -> ClassicWrappedCard(card, data, modifier, layer, animate)
     }
 }

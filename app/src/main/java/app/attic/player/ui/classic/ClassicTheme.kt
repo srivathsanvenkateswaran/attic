@@ -1,6 +1,11 @@
 package app.attic.player.ui.classic
 
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
@@ -12,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.LocalIsDark
 
 private fun figtree(weight: FontWeight) = Font(
     R.font.figtree,
@@ -98,3 +104,16 @@ val ClassicLightColors = lightColorScheme(
     inverseSurface = Color(0xFF121212),
     inverseOnSurface = Color.White,
 )
+
+/**
+ * Draws [content] with Classic's colours, type and shapes, whatever the chosen style. A style's branch
+ * wraps a call to Classic drawing in this until that surface has drawing of its own, so switching
+ * style never shows a screen half restyled. Deleted with the rest of ui/classic.
+ */
+@Composable
+fun ClassicSurface(content: @Composable () -> Unit) {
+    val colors = if (LocalIsDark.current) ClassicDarkColors else ClassicLightColors
+    MaterialTheme(colorScheme = colors, typography = ClassicType, shapes = Shapes()) {
+        CompositionLocalProvider(LocalContentColor provides colors.onBackground, content = content)
+    }
+}

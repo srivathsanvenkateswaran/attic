@@ -20,6 +20,7 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLoading
 import app.attic.player.ui.classic.ClassicPermissionScreen
 import app.attic.player.ui.classic.ClassicShell
@@ -90,18 +91,30 @@ class ShellSlots(
     val lyrics: @Composable () -> Unit,
 )
 
+/**
+ * The same slots, each drawn in the style's own theme. A shell still drawn by Classic sits in a
+ * ClassicSurface; this hands its slots back to the style, so a screen with drawing of its own looks right.
+ */
+fun ShellSlots.inStyleSurface() = ShellSlots(
+    content = { transitions -> StyleSurface { content(transitions) } },
+    miniPlayer = { StyleSurface { miniPlayer() } },
+    nowPlaying = { StyleSurface { nowPlaying() } },
+    queue = { StyleSurface { queue() } },
+    lyrics = { StyleSurface { lyrics() } },
+)
+
 @Composable
 fun AppRoot() {
     val (state, actions) = rememberRootModel()
     when (state) {
         is RootState.NeedsAccess -> when (LocalUiStyle.current) {
-            UiStyle.Expressive -> ClassicPermissionScreen(state, actions)
-            UiStyle.Comfort -> ClassicPermissionScreen(state, actions)
+            UiStyle.Expressive -> ClassicSurface { ClassicPermissionScreen(state, actions) }
+            UiStyle.Comfort -> ClassicSurface { ClassicPermissionScreen(state, actions) }
             UiStyle.Classic -> ClassicPermissionScreen(state, actions)
         }
         RootState.Loading -> when (LocalUiStyle.current) {
-            UiStyle.Expressive -> ClassicLoading()
-            UiStyle.Comfort -> ClassicLoading()
+            UiStyle.Expressive -> ClassicSurface { ClassicLoading() }
+            UiStyle.Comfort -> ClassicSurface { ClassicLoading() }
             UiStyle.Classic -> ClassicLoading()
         }
         is RootState.Ready -> MainShell(state.library)
@@ -149,8 +162,8 @@ private fun MainShell(library: Library) {
     val style = LocalUiStyle.current
     CompositionLocalProvider(LocalUi provides shell.ui) {
         when (style) {
-            UiStyle.Expressive -> ClassicShell(state, actions, slots)
-            UiStyle.Comfort -> ClassicShell(state, actions, slots)
+            UiStyle.Expressive -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
+            UiStyle.Comfort -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
             UiStyle.Classic -> ClassicShell(state, actions, slots)
         }
 

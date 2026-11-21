@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import app.attic.player.AtticApp
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
+import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicAddSongs
 import app.attic.player.ui.classic.ClassicDeletePlaylistDialog
 import app.attic.player.ui.classic.ClassicLanguagePicker
@@ -32,8 +33,8 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
         state.pickingPlaylist -> PlaylistPickerSheet(listOf(state.track.key), onDismiss = onDismiss)
         state.pickingLanguage -> LanguagePickerSheet(current = state.language, onChoose = actions.chooseLanguage)
         else -> when (LocalUiStyle.current) {
-            UiStyle.Expressive -> ClassicTrackMenu(state, actions)
-            UiStyle.Comfort -> ClassicTrackMenu(state, actions)
+            UiStyle.Expressive -> ClassicSurface { ClassicTrackMenu(state, actions) }
+            UiStyle.Comfort -> ClassicSurface { ClassicTrackMenu(state, actions) }
             UiStyle.Classic -> ClassicTrackMenu(state, actions)
         }
     }
@@ -44,8 +45,8 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
 private fun LanguagePickerSheet(current: String?, onChoose: (String) -> Unit) {
     val (state, actions) = languagePickerModel(current, onChoose)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicLanguagePicker(state, actions)
-        UiStyle.Comfort -> ClassicLanguagePicker(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicLanguagePicker(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicLanguagePicker(state, actions) }
         UiStyle.Classic -> ClassicLanguagePicker(state, actions)
     }
 }
@@ -54,8 +55,8 @@ private fun LanguagePickerSheet(current: String?, onChoose: (String) -> Unit) {
 fun PlaylistPickerSheet(trackKeys: List<String>, onDismiss: () -> Unit) {
     val (state, actions) = rememberPlaylistPickerModel(trackKeys, onDismiss)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicPlaylistPicker(state, actions)
-        UiStyle.Comfort -> ClassicPlaylistPicker(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicPlaylistPicker(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicPlaylistPicker(state, actions) }
         UiStyle.Classic -> ClassicPlaylistPicker(state, actions)
     }
 
@@ -80,8 +81,8 @@ fun PlaylistNameDialog(
 ) {
     val (state, actions) = rememberPlaylistNameModel(title, confirm, initial, onDismiss, onConfirm)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicPlaylistNameDialog(state, actions)
-        UiStyle.Comfort -> ClassicPlaylistNameDialog(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicPlaylistNameDialog(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicPlaylistNameDialog(state, actions) }
         UiStyle.Classic -> ClassicPlaylistNameDialog(state, actions)
     }
 }
@@ -91,8 +92,8 @@ fun DeletePlaylistDialog(name: String, onDismiss: () -> Unit, onConfirm: () -> U
     val state = DeletePlaylistState(name)
     val actions = DeletePlaylistActions(confirm = onConfirm, dismiss = onDismiss)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicDeletePlaylistDialog(state, actions)
-        UiStyle.Comfort -> ClassicDeletePlaylistDialog(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicDeletePlaylistDialog(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicDeletePlaylistDialog(state, actions) }
         UiStyle.Classic -> ClassicDeletePlaylistDialog(state, actions)
     }
 }
@@ -101,8 +102,8 @@ fun DeletePlaylistDialog(name: String, onDismiss: () -> Unit, onConfirm: () -> U
 fun AddSongsSheet(library: Library, playlistId: Long, existing: Set<String>, onDismiss: () -> Unit) {
     val (state, actions) = rememberAddSongsModel(library, playlistId, existing, onDismiss)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicAddSongs(state, actions)
-        UiStyle.Comfort -> ClassicAddSongs(state, actions)
+        UiStyle.Expressive -> ClassicSurface { ClassicAddSongs(state, actions) }
+        UiStyle.Comfort -> ClassicSurface { ClassicAddSongs(state, actions) }
         UiStyle.Classic -> ClassicAddSongs(state, actions)
     }
 }
