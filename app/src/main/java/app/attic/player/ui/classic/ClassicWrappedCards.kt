@@ -1,4 +1,4 @@
-package app.attic.player.ui
+package app.attic.player.ui.classic
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -51,63 +51,17 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import app.attic.player.data.Artist
 import app.attic.player.data.LanguageLabels
-import app.attic.player.data.Track
-import app.attic.player.ui.classic.*
-import app.attic.player.wrapped.RankedArtist
-import app.attic.player.wrapped.RankedSong
-import app.attic.player.wrapped.Recap
+import app.attic.player.ui.*
+import app.attic.player.ui.model.WrappedCard
+import app.attic.player.ui.model.WrappedData
 import app.attic.player.wrapped.RecapPeriod
 import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle as DateTextStyle
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-
-/** A recap with its songs and artists looked up in the library, ready to draw. */
-class WrappedData(
-    val recap: Recap,
-    val period: RecapPeriod,
-    /** "2026 so far", "November 2026". Printed on every card so a shared image says what it covers. */
-    val periodLabel: String,
-    val headline: String,
-    val songs: List<Pair<Track, RankedSong>>,
-    val artists: List<Pair<Artist, RankedArtist>>,
-    /** The cover shown for each artist: their most played song in this period. */
-    val artistCovers: Map<String, Long>,
-)
-
-enum class WrappedCard(val fileName: String) {
-    Intro("intro"),
-    Minutes("minutes"),
-    TopSong("top-song"),
-    TopSongs("top-songs"),
-    TopArtist("top-artist"),
-    TopArtists("top-artists"),
-    Languages("languages"),
-    Clock("listening-clock"),
-    Highlights("highlights"),
-    Summary("summary"),
-    ;
-
-    companion object {
-        /** The cards this recap has enough data for, in story order. */
-        fun available(data: WrappedData): List<WrappedCard> = entries.filter { card ->
-            when (card) {
-                TopSong -> data.songs.isNotEmpty()
-                TopSongs -> data.songs.size >= 3
-                TopArtist -> data.artists.isNotEmpty()
-                TopArtists -> data.artists.size >= 3
-                Languages -> data.recap.languages.isNotEmpty()
-                Highlights -> data.recap.biggestDay != null
-                else -> true
-            }
-        }
-    }
-}
 
 private val Marigold = Color(0xFFFFB627)
 private val Plum = Color(0xFF2A0E3D)
@@ -142,7 +96,7 @@ private fun plays(count: Int) = if (count == 1) "1 play" else "$count plays"
  * the shared image all match. When [layer] is set, the card draws into it for sharing.
  */
 @Composable
-fun ScaledWrappedCard(card: WrappedCard, data: WrappedData, modifier: Modifier = Modifier, layer: GraphicsLayer? = null, animate: Boolean = false) {
+fun ClassicWrappedCard(card: WrappedCard, data: WrappedData, modifier: Modifier = Modifier, layer: GraphicsLayer? = null, animate: Boolean = false) {
     BoxWithConstraints(modifier.aspectRatio(9f / 16f).clipToBounds(), contentAlignment = Alignment.Center) {
         val scale = maxWidth / CARD_WIDTH
         val density = LocalDensity.current
@@ -492,13 +446,6 @@ private fun ClockCard(data: WrappedData) {
     }
 }
 
-fun hourLabel(hour: Int): String = when {
-    hour == 0 -> "midnight"
-    hour == 12 -> "noon"
-    hour < 12 -> "$hour am"
-    else -> "${hour - 12} pm"
-}
-
 @Composable
 private fun HighlightsCard(data: WrappedData) {
     val recap = data.recap
@@ -601,19 +548,4 @@ private fun SummaryStat(title: String, value: String, modifier: Modifier) {
         Text(title, style = cardType(TextStyle(fontWeight = FontWeight.Medium, fontSize = 14.sp)), color = Paper.copy(alpha = 0.7f))
         Text(value, style = cardType(display(40.sp)), color = Paper, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
-}
-
-/** The label printed on cards, such as "2026 so far" or "November 2026". */
-fun periodLabel(period: RecapPeriod, today: java.time.LocalDate): String = when (period) {
-    RecapPeriod.Week -> "Week of ${today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))}"
-    RecapPeriod.Month -> "${today.month.getDisplayName(DateTextStyle.FULL, Locale.getDefault())} ${today.year}"
-    RecapPeriod.Year -> if (today.monthValue == 12 && today.dayOfMonth >= 24) "${today.year}" else "${today.year} so far"
-    RecapPeriod.AllTime -> "All time"
-}
-
-fun headline(period: RecapPeriod, today: java.time.LocalDate): String = when (period) {
-    RecapPeriod.Week -> "Your week in music"
-    RecapPeriod.Month -> "Your ${today.month.getDisplayName(DateTextStyle.FULL, Locale.getDefault())} in music"
-    RecapPeriod.Year -> if (today.monthValue == 12 && today.dayOfMonth >= 24) "Your ${today.year} Wrapped" else "Your ${today.year} so far"
-    RecapPeriod.AllTime -> "Everything you've played"
 }

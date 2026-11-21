@@ -11,7 +11,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Sends a rendered card to other apps, or keeps it in the phone's Pictures. */
+/** Sends a rendered card to other apps, or keeps it in the phone's Pictures. The bitmap is what [WrappedCardView] drew for the current style. */
 object ShareImage {
     /** Story size, which Instagram and WhatsApp status show without cropping. */
     private const val WIDTH = 1080

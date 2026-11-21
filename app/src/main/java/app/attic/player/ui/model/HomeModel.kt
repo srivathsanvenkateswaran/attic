@@ -19,9 +19,8 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
-import app.attic.player.ui.WrappedData
+import app.attic.player.ui.model.WrappedData
 import app.attic.player.ui.mosaicIds
-import app.attic.player.ui.wrappedData
 import app.attic.player.wrapped.RecapPeriod
 
 sealed interface Shortcut {

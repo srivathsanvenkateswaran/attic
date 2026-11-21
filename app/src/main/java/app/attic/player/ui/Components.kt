@@ -67,3 +67,11 @@ fun rememberPosition(clock: PlaybackClock, trackKey: String?, active: Boolean, i
     }
     return position
 }
+
+/** "midnight", "9 am", "noon", "3 pm". */
+fun hourLabel(hour: Int): String = when {
+    hour == 0 -> "midnight"
+    hour == 12 -> "noon"
+    hour < 12 -> "$hour am"
+    else -> "${hour - 12} pm"
+}
