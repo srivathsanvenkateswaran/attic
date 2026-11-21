@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Artist
+import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.LocalUi
@@ -53,6 +54,8 @@ class NowPlayingState(
     val track: Track?,
     /** Shown under "Playing from". Null means the whole library. */
     val contextName: String?,
+    /** What [contextName] names, for a style that marks it with a glyph. */
+    val contextKind: ContextKind,
     val isPlaying: Boolean,
     val shuffle: Boolean,
     /** A media3 `Player.REPEAT_MODE_*` value. */
@@ -99,6 +102,7 @@ fun rememberNowPlayingModel(
     val ui = LocalUi.current
     val liked by app.userData.likedSet.collectAsStateWithLifecycle()
     val library by app.library.library.collectAsStateWithLifecycle()
+    val playlists by app.userData.playlists.collectAsStateWithLifecycle()
     val track = player.current
     val lyrics = rememberLyricsModel(track)
     val clock = remember(app) { PlaybackClock(app.player::positionMs) }
@@ -107,6 +111,9 @@ fun rememberNowPlayingModel(
     val state = NowPlayingState(
         track = track,
         contextName = player.contextName,
+        contextKind = remember(player.contextName, track, library, playlists) {
+            contextKindOf(player.contextName, track, library, playlists.map { it.name })
+        },
         isPlaying = player.isPlaying,
         shuffle = player.shuffle,
         repeatMode = player.repeatMode,
@@ -136,3 +143,35 @@ fun rememberNowPlayingModel(
     )
     return UiModel(state, actions)
 }
+
+/** What started playback, as far as its name tells. */
+enum class ContextKind { Album, Artist, Folder, Playlist, Favourites, Radio, Other }
+
+/**
+ * Works out what kind of collection [name] is: the player only keeps the name. A name the song itself
+ * belongs to wins (its album, one of its artists, its folder), then the user's playlists, then anything
+ * else in the library by that name. The fixed names (Recently played, Search results, ...) are [ContextKind.Other].
+ */
+fun contextKindOf(name: String?, track: Track?, library: Library?, playlists: List<String>): ContextKind {
+    if (name == null) return ContextKind.Other
+    if (name.startsWith(RADIO_PREFIX)) return ContextKind.Radio
+    if (name == FAVOURITES) return ContextKind.Favourites
+    if (name in FIXED_CONTEXTS) return ContextKind.Other
+    if (track != null) {
+        val album = track.albumKey?.let { library?.albumByKey?.get(it)?.name } ?: track.album
+        if (album == name) return ContextKind.Album
+        if (track.artistKeys.any { library?.artistByKey?.get(it)?.name == name }) return ContextKind.Artist
+        if (track.folder == name) return ContextKind.Folder
+    }
+    if (name in playlists) return ContextKind.Playlist
+    if (library != null) {
+        if (library.albums.any { it.name == name }) return ContextKind.Album
+        if (library.artists.any { it.name == name }) return ContextKind.Artist
+        if (library.folders.any { it.name == name }) return ContextKind.Folder
+    }
+    return ContextKind.Other
+}
+
+private const val RADIO_PREFIX = "Radio · "
+private const val FAVOURITES = "Liked Songs"
+private val FIXED_CONTEXTS = setOf("Recently played", "Start listening", "Search results", "All songs", "Your top songs")
