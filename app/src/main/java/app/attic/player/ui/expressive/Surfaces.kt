@@ -251,6 +251,8 @@ fun StaticSnackbar(text: String, modifier: Modifier = Modifier) {
 /**
  * An empty state (`.empty`): a 112dp rounded square on the secondary container holding a symbol (or
  * [art], e.g. the Attic mark), the title in the emphasised headline, the body, and an optional action.
+ * [clover] draws the picture as the 128dp clover instead (`.empty-art.clover`), for "nothing here yet":
+ * the empty library.
  */
 @Composable
 fun EmptyState(
@@ -259,13 +261,17 @@ fun EmptyState(
     modifier: Modifier = Modifier,
     symbol: Symbol? = null,
     art: (@Composable () -> Unit)? = null,
+    clover: Boolean = false,
     action: (@Composable () -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (symbol != null || art != null) {
             Box(
-                Modifier.size(112.dp).clip(RoundedCornerShape(36.dp)).background(colors.secondaryContainer),
+                Modifier
+                    .size(if (clover) 128.dp else 112.dp)
+                    .clip(if (clover) CloverShape else RoundedCornerShape(36.dp))
+                    .background(colors.secondaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 CompositionLocalProvider(LocalContentColor provides colors.onSecondaryContainer) {
