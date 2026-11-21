@@ -5,7 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -13,6 +18,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
 import app.attic.player.data.Track
+import app.attic.player.ui.model.PlaybackClock
+import kotlinx.coroutines.delay
 
 /** Space lists leave at the bottom so their last row clears the floating mini player and tab bar. */
 val LocalBottomPadding = compositionLocalOf { 0.dp }
@@ -46,3 +53,17 @@ fun AtticMark(size: Dp, modifier: Modifier = Modifier) {
 /** Covers from different albums, so a mosaic doesn't repeat the same picture four times. */
 fun mosaicIds(tracks: List<Track>): List<Long> =
     tracks.distinctBy { it.albumKey ?: it.key }.map { it.mediaId }
+
+/** Polls [clock] every [intervalMs] while [active], since position isn't pushed as state. */
+@Composable
+fun rememberPosition(clock: PlaybackClock, trackKey: String?, active: Boolean, intervalMs: Long): Long {
+    var position by remember { mutableLongStateOf(clock.positionMs()) }
+    LaunchedEffect(trackKey, active) {
+        position = clock.positionMs()
+        while (active) {
+            delay(intervalMs)
+            position = clock.positionMs()
+        }
+    }
+    return position
+}
