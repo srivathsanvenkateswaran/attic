@@ -52,6 +52,13 @@
     <string name="home_filter_albums">Albums</string>
     <string name="home_filter_artists">Artists</string>
     <string name="home_filter_folders">Folders</string>
+    <!-- Under the Favourites pill's count: "31" over "songs" -->
+    <plurals name="home_favourites_unit">
+        <item quantity="one">song</item>
+        <item quantity="other">songs</item>
+    </plurals>
+    <!-- The carousel's caption under an album: "Shashwat Sachdev, 2026" -->
+    <string name="home_hero_album_subtitle">%1$s, %2$s</string>
     <string name="home_recap_title_so_far">Your %1$s so far</string>
     <string name="home_recap_title_year">Your %1$s Recap</string>
     <string name="home_recap_body">%1$s minutes. See your top songs and cards to share.</string>
