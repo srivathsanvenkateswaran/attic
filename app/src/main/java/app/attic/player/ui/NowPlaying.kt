@@ -90,6 +90,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import app.attic.player.attic
 import app.attic.player.data.ThemeMode
+import app.attic.player.data.UiStyle
 import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
 import kotlinx.coroutines.delay
@@ -210,7 +211,7 @@ private const val MARQUEE_DELAY_MS = 2500
 /** Always dark, because it sits on the song's colour rather than the app background. */
 @Composable
 fun NowPlayingScreen(state: PlayerUiState, onClose: () -> Unit, onOpenQueue: () -> Unit, onOpenLyrics: () -> Unit) {
-    AtticTheme(ThemeMode.Dark) {
+    AtticTheme(ThemeMode.Dark, UiStyle.Classic) {
         NowPlayingContent(state, onClose, onOpenQueue, onOpenLyrics)
     }
 }

@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
@@ -16,6 +17,7 @@ import app.attic.player.ui.AppRoot
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
+import app.attic.player.ui.LocalUiStyle
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,14 +26,17 @@ class MainActivity : ComponentActivity() {
         handleWidgetIntent(intent)
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
-            AtticTheme(mode) {
-                val dark = LocalIsDark.current
-                LaunchedEffect(dark) {
-                    val clear = Color.Transparent.toArgb()
-                    val style = if (dark) SystemBarStyle.dark(clear) else SystemBarStyle.light(clear, clear)
-                    enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            val uiStyle by attic.settings.uiStyle.collectAsStateWithLifecycle()
+            CompositionLocalProvider(LocalUiStyle provides uiStyle) {
+                AtticTheme(mode, uiStyle) {
+                    val dark = LocalIsDark.current
+                    LaunchedEffect(dark) {
+                        val clear = Color.Transparent.toArgb()
+                        val style = if (dark) SystemBarStyle.dark(clear) else SystemBarStyle.light(clear, clear)
+                        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+                    }
+                    AppRoot()
                 }
-                AppRoot()
             }
         }
     }

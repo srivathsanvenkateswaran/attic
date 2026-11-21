@@ -52,6 +52,7 @@ import app.attic.player.data.LyricLine
 import app.attic.player.data.LyricsEntity
 import app.attic.player.data.LyricsResult
 import app.attic.player.data.ThemeMode
+import app.attic.player.data.UiStyle
 import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
 import kotlinx.coroutines.launch
@@ -176,7 +177,7 @@ private const val PREVIEW_LINES = 4
 /** Full-screen lyrics on the song's colour. The line being sung stays in view and tapping a line seeks. */
 @Composable
 fun LyricsScreen(state: PlayerUiState, onClose: () -> Unit) {
-    AtticTheme(ThemeMode.Dark) {
+    AtticTheme(ThemeMode.Dark, UiStyle.Classic) {
         val track = state.current ?: return@AtticTheme
         val app = LocalContext.current.attic
         val rawTint = rememberArtColor(track.mediaId)
