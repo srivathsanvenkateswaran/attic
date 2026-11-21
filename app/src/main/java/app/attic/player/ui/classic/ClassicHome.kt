@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.attic.player.data.Album
 import app.attic.player.data.Track
 import app.attic.player.ui.*
 import app.attic.player.ui.model.HomeActions

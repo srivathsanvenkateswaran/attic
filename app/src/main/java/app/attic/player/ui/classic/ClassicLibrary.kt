@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.attic.player.data.Library
 import app.attic.player.ui.*
 import app.attic.player.ui.model.LibraryActions
 import app.attic.player.ui.model.LibraryFilter
