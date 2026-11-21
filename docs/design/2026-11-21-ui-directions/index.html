@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Attic · UI directions · 2026-11-21</title>
+<link rel="stylesheet" href="shared/page.css">
+<style>
+  body{padding:0 0 120px}
+  [hidden]{display:none!important}
+  .wrap{max-width:1500px;margin:0 auto;padding:0 28px}
+  header.top{padding:44px 0 8px}
+  header.top h1{color:#fff;font-size:30px;font-weight:700;letter-spacing:-.5px;margin:0 0 6px}
+  header.top .date{color:#7d8894;font-size:13px;font-weight:600;margin:0 0 18px}
+  header.top p{max-width:820px;font-size:14.5px;line-height:1.62;margin:0 0 12px}
+  header.top p b{color:#fff}
+  blockquote{margin:18px 0 20px;padding:2px 0 2px 16px;border-left:3px solid #3a4150;max-width:820px;
+             font-size:14px;line-height:1.62;color:#aeb6c0}
+  a{color:#8ab4f8}
+
+  h2.sec{color:#fff;font-size:19px;font-weight:700;margin:46px 0 6px}
+  p.lead{max-width:820px;font-size:14px;line-height:1.62;margin:0 0 16px}
+  p.lead b{color:#fff}
+
+  /* ── the four options ── */
+  .options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:20px}
+  @media (max-width:1180px){.options{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .opt{all:unset;box-sizing:border-box;display:flex;flex-direction:column;cursor:pointer;border-radius:20px;padding:16px 16px 18px;
+       background:#1c1f25;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transition:background .15s}
+  .opt:hover{background:#21252c}
+  .opt:focus-visible{outline:2px solid #8ab4f8;outline-offset:3px}
+  .opt[aria-pressed="true"]{background:#242a35;box-shadow:inset 0 0 0 2px #8ab4f8}
+  .opt .shots{display:flex;gap:10px;margin-bottom:14px}
+  .opt .shots img{width:calc(50% - 5px);aspect-ratio:390/844;border-radius:14px;display:block;background:#0c0d10;
+                  box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+  .opt .row1{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .opt .name{color:#fff;font-size:18px;font-weight:700}
+  .opt .desc{font-size:13px;line-height:1.55;color:#aeb6c0;margin:0 0 12px;flex:1}
+  .opt .meta{font-size:12px;color:#7d8894;line-height:1.5}
+  .opt .meta b{color:#c9d1da;font-weight:600}
+  .opt .sws{display:flex;gap:5px;margin:0 0 10px}
+  .opt .sws i{width:22px;height:22px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+
+  /* ── view controls ── */
+  .bar{position:sticky;top:0;z-index:20;background:rgba(21,23,27,.92);backdrop-filter:blur(10px);
+       border-bottom:1px solid rgba(255,255,255,.08);margin-top:34px}
+  .bar .wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding-top:12px;padding-bottom:12px}
+  .seg{display:inline-flex;background:#1c1f25;border-radius:11px;padding:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+  .seg button{all:unset;cursor:pointer;font-size:13px;font-weight:600;color:#98a2ad;padding:7px 13px;border-radius:8px;white-space:nowrap}
+  .seg button:hover{color:#fff}
+  .seg button[aria-pressed="true"]{background:#343b48;color:#fff}
+  .seg button:focus-visible{outline:2px solid #8ab4f8;outline-offset:1px}
+  .bar .lbl{font-size:12.5px;color:#7d8894;font-weight:600;margin-right:-8px}
+
+  /* ── sheets ── */
+  .sheet{margin:26px 0 0}
+  .sheet .head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .sheet h3{color:#fff;font-size:17px;font-weight:700;margin:0}
+  .sheet .what{font-size:13px;color:#98a2ad}
+  .sheet .open{margin-left:auto;font-size:13px;font-weight:600;text-decoration:none;border-radius:20px;padding:6px 14px;
+               background:#1d3a5f;color:#cfe2ff}
+  .sheet .open:hover{background:#25497a}
+  .sheet iframe{width:100%;height:1010px;border:0;border-radius:16px;background:#15171b;display:block;
+                box-shadow:0 0 0 1px rgba(255,255,255,.09)}
+  .sheet.missing iframe{display:none}
+  .sheet .gone{display:none;font-size:13px;color:#7d8894;padding:18px;border:1px dashed #343a43;border-radius:14px}
+  .sheet.missing .gone{display:block}
+
+  /* ── tables and notes ── */
+  table.t{border-collapse:collapse;width:100%;max-width:980px;font-size:13px;margin-top:6px}
+  table.t th,table.t td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid rgba(255,255,255,.09);vertical-align:top;line-height:1.5}
+  table.t th{color:#fff;font-weight:700}
+  table.t td:first-child{color:#98a2ad}
+  table.t td:nth-child(2){color:#fff;font-weight:600}
+  .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:8px}
+  @media (max-width:1100px){.cols{grid-template-columns:1fr}}
+  .note{background:#1c1f25;border-radius:16px;padding:16px 18px;font-size:13px;line-height:1.6}
+  .note h4{color:#fff;font-size:14.5px;margin:0 0 8px}
+  .note ul{margin:0;padding-left:18px}
+  .note li{margin-bottom:6px}
+  .files{font-size:13.5px;line-height:1.9}
+  .files code{background:rgba(255,255,255,.1);padding:1px 6px;border-radius:5px;font-size:12.5px}
+  ol.next{max-width:820px;font-size:14px;line-height:1.62;padding-left:20px}
+  ol.next li{margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Attic · UI directions</h1>
+    <div class="date">Design round · 2026-11-21 · branch <code>ui-redesign</code> · mocks only, nothing in the app has changed</div>
+    <blockquote>
+      Right now, the UI is a rip off of Spotify. While it is good to use, I don't think we can publish it
+      without inviting copyright strikes or something. […] It should follow Google's Material standards and it
+      should look like as if we build an offline music player for Google Pixel Devices, with Pixel UI
+      Experience. […] Also propose another style of UI, like the OneUI style of UI and Apple Music Style of UI.
+    </blockquote>
+    <p>The current app was first extracted screen by screen into <a href="CURRENT-UI.md">CURRENT-UI.md</a>, then
+       drawn four times: once as it ships today, and as three proposals. Every folder has the same eleven sheets
+       with the same frames and the same library, so any screen can be compared across all four.</p>
+    <p>Each proposal borrows a platform's <b>design language</b> and gives Attic its own accent, an
+       open-licence typeface and its own icons. None of them is meant to pass for Samsung's, Apple's or Google's
+       own music app; swapping one copied product for another would not solve the problem.</p>
+  </header>
+
+  <h2 class="sec">The four directions</h2>
+  <p class="lead">Pick one to browse its sheets below. The previews are Home and Now Playing.</p>
+
+  <div class="options" id="options">
+    <button class="opt" data-style="pixel" aria-pressed="true">
+      <div class="shots"><img src="previews/pixel-home.png" alt="Pixel direction, Home"><img src="previews/pixel-now-playing.png" alt="Pixel direction, Now Playing"></div>
+      <div class="row1"><span class="name">Pixel</span><span class="tag proposal">proposal</span><span class="tag">your brief</span></div>
+      <p class="desc">Material 3 Expressive as Google ships it on Pixel. Colour comes from the wallpaper, and from the cover on anything that belongs to the playing song. Playing has a shape: a squared-off control and a wavy line. Paused is round and flat. Artists are a cookie shape and lists are grouped containers.</p>
+      <div class="sws"><i style="background:#0d0e12"></i><i style="background:#18191f"></i><i style="background:#455274"></i><i style="background:#b9c6ee"></i><i style="background:#e2c8f8"></i><i style="background:#faf8fe"></i></div>
+      <div class="meta"><b>Type</b> Google Sans Flex · <b>Icons</b> Material Symbols Rounded</div>
+    </button>
+    <button class="opt" data-style="oneui" aria-pressed="false">
+      <div class="shots"><img src="previews/oneui-home.png" alt="One UI direction, Home"><img src="previews/oneui-now-playing.png" alt="One UI direction, Now Playing"></div>
+      <div class="row1"><span class="name">One UI</span><span class="tag proposal">proposal</span></div>
+      <p class="desc">Samsung's split between a viewing area and an interaction area. A large title rests in the upper third and everything you touch sits within thumb reach, in grouped cards on a black ground. Art is a superellipse. Progress is a thick fill in the cover's colour, and the mini player and tab bar are one dock.</p>
+      <div class="sws"><i style="background:#000000"></i><i style="background:#171716"></i><i style="background:#2c2b29"></i><i style="background:#ffb347"></i><i style="background:#f2f1ee"></i><i style="background:#ffffff"></i></div>
+      <div class="meta"><b>Type</b> Onest · <b>Icons</b> drawn for the kit</div>
+    </button>
+    <button class="opt" data-style="apple" aria-pressed="false">
+      <div class="shots"><img src="previews/apple-home.png" alt="Apple Music direction, Home"><img src="previews/apple-now-playing.png" alt="Apple Music direction, Now Playing"></div>
+      <div class="row1"><span class="name">Apple Music</span><span class="tag proposal">proposal</span></div>
+      <p class="desc">Type leads: large titles, hairlines instead of boxes, a warm near-monochrome chrome with one ember accent. The tab bar and mini player are floating glass with content passing beneath. The playing cover is the only other colour, and it floods Now Playing and the lyrics.</p>
+      <div class="sws"><i style="background:#0f0e0d"></i><i style="background:#1c1a18"></i><i style="background:#272522"></i><i style="background:#ff8055"></i><i style="background:#bf3f17"></i><i style="background:#fbfaf8"></i></div>
+      <div class="meta"><b>Type</b> Instrument Sans · <b>Icons</b> drawn for the kit</div>
+    </button>
+    <button class="opt" data-style="spotify" aria-pressed="false">
+      <div class="shots"><img src="previews/spotify-home.png" alt="Current UI, Home"><img src="previews/spotify-now-playing.png" alt="Current UI, Now Playing"></div>
+      <div class="row1"><span class="name">Spotify</span><span class="tag today">today</span></div>
+      <p class="desc">What ships now, redrawn from the Compose code with its real measurements, strings and colours. It is the baseline the proposals are judged against, and its direction sheet lists every cue that makes the app read as Spotify.</p>
+      <div class="sws"><i style="background:#121212"></i><i style="background:#181818"></i><i style="background:#282828"></i><i style="background:#b3b3b3"></i><i style="background:#1ed760"></i><i style="background:#ffffff"></i></div>
+      <div class="meta"><b>Type</b> Figtree · <b>Icons</b> Material Icons</div>
+    </button>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="lbl">Show</span>
+    <div class="seg" id="view">
+      <button data-view="style" aria-pressed="true">One direction, every screen</button>
+      <button data-view="screen" aria-pressed="false">One screen, every direction</button>
+    </div>
+    <span class="lbl" id="pickLbl">Direction</span>
+    <div class="seg" id="stylePick"></div>
+    <div class="seg" id="screenPick" hidden></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="sheets"></div>
+
+  <h2 class="sec" id="logo">Logo</h2>
+  <p class="lead">Asked for alongside the UI: the current mark reads as a "home" button and says nothing about
+     music. Twelve concepts from three territories are on their own sheet. The UI mocks still show the old
+     house as a stand-in wherever the mark appears, so choosing a logo does not depend on choosing a direction.</p>
+  <div class="sheet">
+    <div class="head"><h3>Logo concepts</h3><span class="what">attic architecture · the letter A · records and sound</span>
+      <a class="open" href="logo/index.html" target="_blank" rel="noopener">Open sheet</a></div>
+    <iframe loading="lazy" src="logo/index.html" title="Logo concepts"></iframe>
+  </div>
+
+  <h2 class="sec">Names the three proposals share</h2>
+  <p class="lead">Part of the resemblance is vocabulary. The proposals all use this one replacement set, so naming
+     is a decision you make once, separately from style. The baseline keeps today's strings. Overrule any row
+     and it changes in all three.</p>
+  <table class="t">
+    <tr><th>Today</th><th>In the proposals</th><th>Why</th></tr>
+    <tr><td>"Your Library"</td><td>"Library"</td><td></td></tr>
+    <tr><td>"Liked Songs"</td><td>"Favourites"</td><td></td></tr>
+    <tr><td>Plus in a circle that becomes a green check</td><td>A heart, outline to filled</td><td>The most Spotify-specific control in the app</td></tr>
+    <tr><td>"Wrapped", "Your {year} Wrapped", "Play your story"</td><td>"Recap", "Your {year} Recap", "Play recap"</td><td></td></tr>
+    <tr><td>"Downloaded" (the filter that shows all songs)</td><td>"Songs"</td><td>Every song is a local file</td></tr>
+    <tr><td>Green downloaded badge on every row</td><td>Removed</td><td>It never changes state</td></tr>
+    <tr><td>"What do you want to listen to?"</td><td>"Search your music"</td><td></td></tr>
+    <tr><td>"Start browsing"</td><td>"Browse"</td><td></td></tr>
+    <tr><td>"Speed dial"</td><td>"Instant mixes"</td><td>Tapping one starts radio from that song</td></tr>
+    <tr><td>"Popular" / "Popular releases"</td><td>"Top songs" / "Albums"</td><td>Offline, "popular" means most played by you</td></tr>
+    <tr><td>"Your top artists"</td><td>"Top artists"</td><td></td></tr>
+    <tr><td>"Show lyrics"</td><td>"Open lyrics"</td><td></td></tr>
+    <tr><td>"Let's find something for your playlist"</td><td>"Add songs to this playlist"</td><td></td></tr>
+    <tr><td>"Give your playlist a name"</td><td>"Name this playlist"</td><td></td></tr>
+  </table>
+
+  <h2 class="sec">What each proposal asks you to decide</h2>
+  <p class="lead">Questions the designers left open. Each sheet's closing notes carry the detail.</p>
+  <div class="cols" id="questions">
+    <div class="note"><h4>Pixel</h4><ul>
+      <li>Home's shortcut carousel shows Favourites and about one and a half covers at a time. Today's grid shows all six. The fallback is two rows of three.</li>
+      <li>The heart moved from beside the song title to the tools row under the transport.</li>
+      <li>Now Playing follows the light theme. Today it is always dark.</li>
+      <li>Artists are a nine-lobed cookie everywhere. A rounder square is the quiet alternative.</li>
+      <li>A phone without dynamic colour needs one fixed fallback scheme. None is chosen yet.</li>
+    </ul></div>
+    <div class="note"><h4>One UI</h4><ul>
+      <li>"127 songs on this phone" under the Home title is the one string that is not on Home today.</li>
+      <li>Instant mixes are paged rows of three, so seeing all nine takes two swipes.</li>
+      <li>The heart sits in the control deck, one row lower than today.</li>
+      <li>The amber accent is close to the Recap palette's marigold and to Plex's brand colour. It is two tokens per theme to change.</li>
+      <li>The typeface has no Indic scripts; Tamil or Devanagari titles would fall back to Noto Sans.</li>
+      <li>The floating dock follows One UI 8.5 and would look a release ahead on One UI 7.</li>
+    </ul></div>
+    <div class="note"><h4>Apple Music</h4><ul>
+      <li>The ember accent sits between orange and red. One token changes it.</li>
+      <li>Now Playing follows the light theme with a pale field. Today it is always dark.</li>
+      <li>Settings is a gear on the title row, so the mark no longer sits where a profile picture would.</li>
+      <li>Instant mixes are rows in columns: three visible, six a swipe away.</li>
+      <li>Home still has four shelves of covers under bold headings, which is on the Spotify cue list.</li>
+      <li>Glass needs backdrop blur, which Android only does well from Android 12 and not in widgets.</li>
+    </ul></div>
+  </div>
+
+  <h2 class="sec">Source documents</h2>
+  <p class="files">
+    <a href="CURRENT-UI.md"><code>CURRENT-UI.md</code></a> the current UI, extracted: every screen, state, label, measurement and token, the feature list a redesign must keep, and the Spotify cues with file and line.<br>
+    <a href="BRIEF.md"><code>BRIEF.md</code></a> the rules for this round: what may be borrowed, the sheet list, the fixture library.<br>
+    <a href="shared/fixtures.html"><code>shared/fixtures.html</code></a> the generated covers every mock uses. No real artwork appears anywhere.<br>
+    <code>{pixel,oneui,apple,spotify}/KIT.md</code> each direction's component reference.
+  </p>
+
+  <h2 class="sec">After you pick</h2>
+  <ol class="next">
+    <li>Say which direction, which rows of the naming table to overrule, and your answers to that direction's open questions. Mixing is fine: a screen from one direction can be redrawn in another's language.</li>
+    <li>Pick a logo, or name the two you want pushed further.</li>
+    <li>The chosen direction gets one correction round on its mocks, then becomes the spec: tokens into <code>Theme.kt</code>, then screen by screen in Compose, starting with the shell, Home and Now Playing.</li>
+    <li>The uncommitted song-radio and Wrapped work is sitting on this branch. It should be committed before the Compose work starts, so the restyle has something stable to change.</li>
+  </ol>
+</div>
+
+<script>
+const STYLES = [
+  {id:'pixel',   name:'Pixel'},
+  {id:'oneui',   name:'One UI'},
+  {id:'apple',   name:'Apple Music'},
+  {id:'spotify', name:'Spotify (today)'},
+];
+const SHEETS = [
+  ['00-direction',       'Direction',            'palette, type, shape, icons, the component kit'],
+  ['01-home',            'Home',                 'top, full length, a filter, light'],
+  ['02-search',          'Search',               'browse, results, no results'],
+  ['03-library',         'Library',              'list, grid, all songs, create playlist'],
+  ['04-collections',     'Album, artist, playlist', 'plus Favourites, reorder mode, collapsed bar'],
+  ['05-now-playing',     'Now Playing',          'playing, scrolled, paused and radio, light, mini player'],
+  ['06-queue-lyrics',    'Queue and lyrics',     'queue, radio queue, full-screen lyrics, lyrics card states'],
+  ['07-sheets',          'Menus and dialogs',    'track menu, pickers, add songs, dialogs, messages'],
+  ['08-settings-states', 'Settings and states',  'settings, permission, loading, empty, missing'],
+  ['09-recap',           'Recap',                'page, story cards, save and share'],
+  ['10-system',          'Widget and system',    'widget sizes, notification, lock screen, launcher icon'],
+];
+const state = {view:'style', style:'pixel', screen:'01-home'};
+
+function readHash(){
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (p.get('view') === 'screen' || p.get('view') === 'style') state.view = p.get('view');
+  if (STYLES.some(s => s.id === p.get('style'))) state.style = p.get('style');
+  if (SHEETS.some(s => s[0] === p.get('screen'))) state.screen = p.get('screen');
+}
+function writeHash(){
+  history.replaceState(null, '', '#view=' + state.view + '&style=' + state.style + '&screen=' + state.screen);
+}
+function sheetBlock(style, sheet, title, what){
+  const src = style + '/' + sheet + '.html';
+  const d = document.createElement('div');
+  d.className = 'sheet';
+  d.innerHTML = '<div class="head"><h3></h3><span class="what"></span>' +
+    '<a class="open" target="_blank" rel="noopener">Open sheet</a></div>' +
+    '<iframe loading="lazy"></iframe>';
+  d.querySelector('h3').textContent = title;
+  d.querySelector('.what').textContent = what;
+  d.querySelector('a').href = src;
+  const f = d.querySelector('iframe');
+  f.title = title; f.src = src;
+  return d;
+}
+function seg(el, items, current, onPick){
+  el.innerHTML = '';
+  for (const [id, label] of items){
+    const b = document.createElement('button');
+    b.textContent = label; b.setAttribute('aria-pressed', String(id === current));
+    b.addEventListener('click', () => onPick(id));
+    el.appendChild(b);
+  }
+}
+function render(){
+  document.querySelectorAll('#options .opt').forEach(o => o.setAttribute('aria-pressed', String(o.dataset.style === state.style)));
+  document.querySelectorAll('#view button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
+  const stylePick = document.getElementById('stylePick'), screenPick = document.getElementById('screenPick');
+  stylePick.hidden = state.view !== 'style'; screenPick.hidden = state.view !== 'screen';
+  document.getElementById('pickLbl').textContent = state.view === 'style' ? 'Direction' : 'Screen';
+  seg(stylePick, STYLES.map(s => [s.id, s.name]), state.style, id => { state.style = id; render(); });
+  seg(screenPick, SHEETS.map(s => [s[0], s[1]]), state.screen, id => { state.screen = id; render(); });
+  const out = document.getElementById('sheets'); out.innerHTML = '';
+  if (state.view === 'style'){
+    for (const [file, title, what] of SHEETS) out.appendChild(sheetBlock(state.style, file, file.slice(0,2) + ' · ' + title, what));
+  } else {
+    const [file, title, what] = SHEETS.find(s => s[0] === state.screen);
+    for (const s of STYLES) out.appendChild(sheetBlock(s.id, file, s.name + ' · ' + title, what));
+  }
+  writeHash();
+}
+document.querySelectorAll('#options .opt').forEach(o => o.addEventListener('click', () => {
+  state.style = o.dataset.style; state.view = 'style'; render();
+  document.querySelector('.bar').scrollIntoView({behavior:'smooth', block:'start'});
+}));
+document.querySelectorAll('#view button').forEach(b => b.addEventListener('click', () => { state.view = b.dataset.view; render(); }));
+readHash(); render();
+</script>
+</body>
+</html>

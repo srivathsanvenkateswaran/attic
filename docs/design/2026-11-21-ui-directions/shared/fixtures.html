@@ -1,0 +1,79 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic mocks - shared covers and device frame</title>
+<link rel="stylesheet" href="page.css">
+<link rel="stylesheet" href="covers.css">
+<style>
+  .grid{display:grid;grid-template-columns:repeat(8,150px);gap:16px;margin-top:20px}
+  .grid figure{margin:0}
+  .grid .cv{width:150px;border-radius:6px}
+  .grid figcaption{font-size:11.5px;color:#98a2ad;margin-top:6px;line-height:1.4}
+  .grid figcaption b{color:#fff;display:block}
+  .sizes{display:flex;gap:14px;align-items:flex-end;margin-top:26px}
+  .tints{display:flex;gap:10px;margin-top:26px}
+  .tints div{width:120px;border-radius:12px;overflow:hidden;font-size:11px;font-weight:600}
+  .tints span{display:block;padding:10px}
+  .demo{background:#101114;color:#fff}
+</style>
+
+<div class="intro">
+  <h1>Shared covers and device frame</h1>
+  <div class="date">2026-11-21 · UI directions · shared fixtures</div>
+  <p>Every style folder draws the same library with these covers, so a difference between two
+     sheets is a difference in design and not in content. Class names are under each cover.</p>
+</div>
+
+<div class="grid">
+  <figure><div class="cv art-revenge"></div><figcaption><b>art-revenge</b>Dhurandhar: The Revenge</figcaption></figure>
+  <figure><div class="cv art-dhurandhar"></div><figcaption><b>art-dhurandhar</b>Dhurandhar</figcaption></figure>
+  <figure><div class="cv art-yjhd"></div><figcaption><b>art-yjhd</b>Yeh Jawaani Hai Deewani</figcaption></figure>
+  <figure><div class="cv art-premam"></div><figcaption><b>art-premam</b>Premam</figcaption></figure>
+  <figure><div class="cv art-rockstar"></div><figcaption><b>art-rockstar</b>Rockstar</figcaption></figure>
+  <figure><div class="cv art-viva"></div><figcaption><b>art-viva</b>Viva la Vida</figcaption></figure>
+  <figure><div class="cv art-lootera"></div><figcaption><b>art-lootera</b>Lootera</figcaption></figure>
+  <figure><div class="cv art-raanjhanaa"></div><figcaption><b>art-raanjhanaa</b>Raanjhanaa</figcaption></figure>
+  <figure><div class="cv art-anbe"></div><figcaption><b>art-anbe</b>Anbe Aaruyire</figcaption></figure>
+  <figure><div class="cv art-oso"></div><figcaption><b>art-oso</b>Om Shanti Om</figcaption></figure>
+  <figure><div class="cv art-uddgaye"></div><figcaption><b>art-uddgaye</b>Udd Gaye (single)</figcaption></figure>
+  <figure><div class="cv art-manmarziyaan"></div><figcaption><b>art-manmarziyaan</b>Manmarziyaan</figcaption></figure>
+  <figure><div class="cv art-ghost"></div><figcaption><b>art-ghost</b>GHOST! (single)</figcaption></figure>
+  <figure><div class="cv art-dreams"></div><figcaption><b>art-dreams</b>A Head Full of Dreams</figcaption></figure>
+  <figure><div class="cv art-jodhaa"></div><figcaption><b>art-jodhaa</b>Jodhaa Akbar</figcaption></figure>
+  <figure><div class="cv art-troubadour"></div><figcaption><b>art-troubadour</b>Troubadour</figcaption></figure>
+</div>
+
+<div class="sizes">
+  <div class="cv art-revenge" style="width:300px;border-radius:10px"></div>
+  <div class="cv art-premam" style="width:160px;border-radius:8px"></div>
+  <div class="cv art-viva" style="width:56px;border-radius:4px"></div>
+  <div class="cv art-rockstar plain" style="width:40px;border-radius:4px"></div>
+  <div class="cv art-raanjhanaa round" style="width:120px"></div>
+  <div class="mosaic" style="width:160px;border-radius:8px">
+    <div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div>
+  </div>
+</div>
+
+<div class="tints">
+  <div class="art-revenge"><span style="background:var(--tint);color:#fff">--tint</span><span style="background:var(--tint-deep);color:#fff">--tint-deep</span><span style="background:var(--tint-soft);color:#111">--tint-soft</span></div>
+  <div class="art-viva"><span style="background:var(--tint);color:#fff">--tint</span><span style="background:var(--tint-deep);color:#fff">--tint-deep</span><span style="background:var(--tint-soft);color:#111">--tint-soft</span></div>
+  <div class="art-anbe"><span style="background:var(--tint);color:#fff">--tint</span><span style="background:var(--tint-deep);color:#fff">--tint-deep</span><span style="background:var(--tint-soft);color:#111">--tint-soft</span></div>
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag state">frame</span></div>
+    <p class="cap">The device frame</p>
+    <p class="why">390 × 844, status bar and gesture pill from <code>page.css</code>. Copy the status-bar markup from this file.</p>
+    <div class="phone demo">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+</div>

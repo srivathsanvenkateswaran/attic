@@ -1,0 +1,630 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Wrapped · today</title>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .why{min-height:6.32em}
+  .sublabel{color:#98a2ad;font-size:11.5px;font-weight:600;margin:14px 0 6px 2px}
+  .sublabel:first-of-type{margin-top:0}
+
+  /* Sheet-only parts. KIT.md lists these as not in the kit: the ten story cards, the listening
+     clock and the card thumbnails (ui/WrappedCards.kt), plus the story screen's layout. */
+  .phone, .strip {
+    --wc-track: #2A2A2A;                 /* clock tracks on the black card (ui/WrappedCards.kt:481) */
+
+    /* ── Wrapped page: sheet-only layout ──────────────────────────────────── */
+    .thumbs { display: flex; gap: 10px; padding: 0 16px; overflow: hidden; }          /* ui/WrappedScreen.kt:171-181 */
+    .when { display: flex; align-items: center; gap: 18px; padding: 0 16px; }          /* ui/WrappedScreen.kt:353-365 */
+    .when .t-title-l { margin-bottom: 4px; }
+    .when .wclock { width: 132px; height: 132px; }
+    .since { padding-top: 28px; }
+
+    /* ── listening clock (ui/WrappedCards.kt:454-471), viewBox 100 ────────── */
+    .wclock { display: block; flex: none; }
+    .wclock line { stroke-width: 4.2; stroke-linecap: round; }
+    .wclock .tk { stroke: var(--ct); }
+    .wclock .br { stroke: var(--cb); }
+    .wclock circle { fill: none; stroke: var(--cb); stroke-width: 2.52; }
+    .wclock.on-page { --cb: var(--primary); --ct: var(--sc-highest); }
+    .wclock.on-card { --cb: var(--marigold); --ct: var(--wc-track); width: 312px; height: 312px; }
+
+    /* ── story screen (ui/WrappedScreen.kt:413-469) ───────────────────────── */
+    .screen.story { background: var(--black); color: var(--white); display: flex; flex-direction: column;
+                    padding-bottom: var(--nav); }
+    .story-mid { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+    .story-acts { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+    &.cut { width: 390px; background: var(--black); padding-bottom: 19px; }           /* a story page without the system bars and buttons */
+    &.cut .wc { margin: 19px 12px 0; }
+    &.entry { width: 390px; padding-bottom: 16px; }
+    &.entry.ban { padding: 8px 0; }
+
+    /* ── a card: 360 x 640 canvas, scaled by --k (ui/WrappedCards.kt:143-172) ─ */
+    .wc { --k: 1; position: relative; flex: none; overflow: hidden;
+          width: calc(360px * var(--k)); height: calc(640px * var(--k)); }
+    .wc.r8 { border-radius: 8px; }       /* thumbnail */
+    .wc.r10 { border-radius: 10px; }     /* story */
+    .wc-in { position: absolute; left: 0; top: 0; width: 360px; height: 640px; overflow: hidden;
+             transform: scale(var(--k)); transform-origin: 0 0;
+             background: var(--wbg); color: var(--wink);
+             font: 400 16px/1.2 'Figtree', sans-serif; letter-spacing: 0; }
+    .wc-plum     { --wbg: var(--plum);     --wink: var(--white); }
+    .wc-cobalt   { --wbg: var(--cobalt);   --wink: var(--white); }
+    .wc-marigold { --wbg: var(--marigold); --wink: var(--plum); }
+    .wc-paper    { --wbg: var(--white);    --wink: var(--plum); }
+    .wc-pink     { --wbg: var(--pink);     --wink: var(--plum); }
+    .wc-mint     { --wbg: var(--mint);     --wink: var(--plum); }
+    .wc-tape     { --wbg: var(--black);    --wink: var(--white); }
+    .wc-c-marigold { color: var(--marigold); } .wc-c-mint { color: var(--mint); } .wc-c-pink { color: var(--pink); }
+    .wc-a70 { color: color-mix(in srgb, var(--wink) 70%, transparent); }
+    .wc-a80 { color: color-mix(in srgb, var(--wink) 80%, transparent); }
+    .wc-a85 { color: color-mix(in srgb, var(--wink) 85%, transparent); }
+    .wc-a90 { color: color-mix(in srgb, var(--wink) 90%, transparent); }
+
+    /* Text. Compose trims line height above the first line and below the last, so a text block is
+       (lines - 1) x line height + the font's own 1.2em (Figtree: ascent .95, descent .25).
+       Single lines use line-height 1.2; wrapping text gets the difference as block margin. */
+    .wc-body { position: absolute; left: 0; right: 0; top: 0; padding: var(--pt, 48px) 24px 0;
+               display: flex; flex-direction: column; }
+    .wc-body.wc-bot { top: auto; bottom: 0; padding: 0 24px 84px; }
+    .wc-body.wc-gap26 { gap: 26px; }
+    .wc-sp { display: block; flex: none; }
+    .wc-d { font-weight: 800; letter-spacing: -.04em; font-size: var(--z);
+            line-height: calc(var(--z) * var(--lh, .92));
+            padding-block: calc(var(--z) * (1.2 - var(--lh, .92)) / 2); }                /* display() */
+    .wc-x { font-weight: 500; font-size: var(--z); line-height: var(--l);
+            margin-block: calc((var(--z) * 1.2 - var(--l)) / 2); }
+    .wc-nw { white-space: nowrap; }
+    .wc-1 { white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+    .wc-lab { font-weight: 600; font-size: 17px; }                                      /* Label() */
+
+    /* footer on every card (ui/WrappedCards.kt:196-217) */
+    .wc-foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; padding: 20px 24px; }
+    .wc-disc { width: 22px; height: 22px; border-radius: 50%; background: var(--black); margin-right: 8px; flex: none;
+               display: flex; align-items: center; justify-content: center; }
+    .wc-disc .mark { --s: 12px; }
+    .wc-foot b { font-weight: 700; font-size: 14px; }
+    .wc-per { margin-left: auto; font-weight: 500; font-size: 13px; color: color-mix(in srgb, var(--wink) 75%, transparent); }
+
+    /* 1 intro · 2 minutes · 3 top song */
+    .wc-big { position: absolute; left: -8px; bottom: 10px; font-weight: 800; font-size: 148px; line-height: 1.2;
+              letter-spacing: -.04em; white-space: nowrap; color: var(--marigold); }
+    .wc-orb { position: absolute; left: 144px; top: -146.4px; width: 446.4px; height: 446.4px; border-radius: 50%; background: var(--mint); }
+    .wc-tilt { width: 268.32px; border-radius: 4px; align-self: flex-start; transform: rotate(-4deg); }
+    .wc-art { font-weight: 600; font-size: 18px; }
+    .wc-pill { align-self: flex-start; padding: 7px 14px; border-radius: 999px; background: var(--plum); color: var(--marigold);
+               font-weight: 700; font-size: 15px; }
+
+    /* 4 and 6: RankedRows */
+    .wc-rows { display: flex; flex-direction: column; gap: 16px; }
+    .wc-rr { display: flex; align-items: center; }
+    .wc-rk { width: 38px; flex: none; }
+    .wc-rr > .cv { width: 58px; border-radius: 3px; margin-right: 14px; }
+    .wc-rr > .cv.round { border-radius: 50%; }
+    .wc-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .wc-rtt { font-weight: 700; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    .wc-rd { font-weight: 500; font-size: 14px; }
+    .wc-tr { margin-left: 10px; font-weight: 700; font-size: 15px; }
+
+    /* 5 top artist */
+    .wc-face { position: absolute; left: 100px; top: 60px; width: 330px; }
+
+    /* 7 languages */
+    .wc-bands { display: flex; flex-direction: column; gap: 10px; }
+    .wc-band { display: flex; align-items: center; }
+    .wc-band i { flex: none; width: calc(312px * var(--f)); height: 34px; border-radius: 0 17px 17px 0; }
+    .wc-band b { margin-left: 10px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+
+    /* 9 highlights */
+    .wc-hl { display: flex; flex-direction: column; }
+    .wc-hl .wc-x { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+    /* 10 summary */
+    .wc-sumtop { display: flex; align-items: flex-end; }
+    .wc-sumtop .cv { width: 176px; border-radius: 4px; margin-right: 16px; }
+    .wc-sumtop .wc-d { flex: 1; min-width: 0; overflow-wrap: anywhere; }      /* Android breaks a word wider than its column */
+    .wc-two { display: flex; gap: 14px; }
+    .wc-two > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .wc-cap { font-weight: 500; font-size: 14px; }
+    .wc-nm { font-weight: 700; font-size: 17px; }
+    .wc-reels { display: flex; align-items: center; gap: 12px; }
+    .wc-reels > i { flex: 1; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--pink) 50%, transparent); }
+    .wc-reel { width: 34px; height: 34px; flex: none; overflow: visible; fill: none; }
+    .wc-reel circle { stroke-width: 4.76; }
+    .wc-reel line { stroke-width: 3.4; stroke-linecap: round; }
+    .wc-s-pink { stroke: var(--pink); } .wc-s-mint { stroke: var(--mint); }
+  }
+</style>
+
+<div class="intro">
+  <h1>Wrapped</h1>
+  <div class="date">2026-11-21 · UI directions · spotify · sheet 09</div>
+  <p>Wrapped as it ships today: the page, the story and its ten cards, and the card on Home that opens it. Redrawn
+     from <code>ui/WrappedScreen.kt</code>, <code>ui/WrappedCards.kt</code> and <code>ui/HomeScreen.kt</code>. The file
+     is called <code>09-recap</code> so the four folders share file names; in this folder the feature keeps its
+     current name.</p>
+  <p>No screenshot of Wrapped exists. Every frame here is built from the code's measurements, colours and strings,
+     filled with the round's fixture numbers. The cards have a fixed palette of their own and follow neither the app
+     theme nor the cover art.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · Wrapped page, top, "This year"</p>
+  <p class="why">The page opens on the year. The banner is the intro card's plum and marigold, and its pill is the only pink outside the cards. On an 844dp screen the mini player cuts across the "Share a card" row, and the thumbnails show through the tab bar.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="backbar"><span class="ib"><i class="ic">arrow_back</i></span><h1>Wrapped</h1></div>
+<div class="chips wrapped"><span class="chip">This week</span><span class="chip">This month</span><span class="chip on">This year</span><span class="chip">All time</span></div>
+<div class="banner">
+  <h2>Your 2026 so far</h2>
+  <p>18,460 minutes of music, told in 10 cards you can share.</p>
+  <span class="go"><i class="ic">play_arrow</i>Play your story</span>
+</div>
+<div class="stats">
+  <div class="stat"><b>18,460</b><span>Minutes</span></div>
+  <div class="stat"><b>6,212</b><span>Plays</span></div>
+  <div class="stat"><b>412</b><span>Songs</span></div>
+  <div class="stat"><b>96</b><span>Artists</span></div>
+  <div class="stat"><b>251</b><span>Days with music</span></div>
+  <div class="stat"><b>34 days</b><span>Longest streak</span></div>
+</div>
+<h2 class="sec">Share a card</h2>
+<div class="thumbs">
+<div class="wc wc-plum r8" style="--k:0.32778"><div class="wc-in"><div class="wc-big">2026</div><div class="wc-body" style="--pt:56px"><div class="wc-d" style="--z:54px">Your year so far</div><i class="wc-sp" style="height:18px"></i><div class="wc-x wc-a85" style="--z:18px;--l:24px">18,460 minutes across 412 songs. Here's what you played.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-cobalt r8" style="--k:0.32778"><div class="wc-in"><div class="wc-orb"></div><div class="wc-body" style="--pt:210px"><div class="wc-lab">You listened for</div><i class="wc-sp" style="height:6px"></i><div class="wc-d wc-nw" style="--z:92px">18,460</div><div class="wc-d wc-c-mint" style="--z:44px">minutes</div><i class="wc-sp" style="height:24px"></i><div class="wc-x wc-a90" style="--z:18px;--l:24px">That's about 307 hours across 251 days.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-marigold r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:40px"><div class="wc-lab">Your top song</div><i class="wc-sp" style="height:22px"></i><div class="cv art-revenge wc-tilt"></div><i class="wc-sp" style="height:30px"></i><div class="wc-d" style="--z:40px">Jaan Se Guzarte Hain</div><i class="wc-sp" style="height:8px"></i><div class="wc-art wc-1 wc-a80">Khan Saab, Shashwat Sachdev</div><i class="wc-sp" style="height:14px"></i><span class="wc-pill">Played 214 times</span></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-paper r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-d" style="--z:46px">Songs you<br>kept coming<br>back to</div><i class="wc-sp" style="height:30px"></i><div class="wc-rows"><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">1</span><div class="cv art-revenge"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Jaan Se Guzarte Hain</div><div class="wc-rd wc-1 wc-a70">Khan Saab, Shashwat Sachdev</div></div><span class="wc-tr wc-c-pink">214×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">2</span><div class="cv art-rockstar"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Kun Faya Kun</div><div class="wc-rd wc-1 wc-a70">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="wc-tr wc-c-pink">187×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">3</span><div class="cv art-premam"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Malare</div><div class="wc-rd wc-1 wc-a70">Vijay Yesudas</div></div><span class="wc-tr wc-c-pink">163×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">4</span><div class="cv art-viva"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Viva La Vida</div><div class="wc-rd wc-1 wc-a70">Coldplay</div></div><span class="wc-tr wc-c-pink">151×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">5</span><div class="cv art-uddgaye"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Udd Gaye</div><div class="wc-rd wc-1 wc-a70">Ritviz</div></div><span class="wc-tr wc-c-pink">140×</span></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+</div>
+<div class="sec-row"><h2 class="sec">Top songs</h2><span class="playc"></span></div>
+<div class="toprow cur"><span class="rk">1</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s">Khan Saab, Shashwat Sachdev</div></div><span class="v">214 plays</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-rockstar plain"></div><div class="tx"><div class="t">Kun Faya Kun</div><div class="s">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="v">187 plays</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-premam plain"></div><div class="tx"><div class="t">Malare</div><div class="s">Vijay Yesudas</div></div><span class="v">163 plays</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-viva plain"></div><div class="tx"><div class="t">Viva La Vida</div><div class="s">Coldplay</div></div><span class="v">151 plays</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye plain"></div><div class="tx"><div class="t">Udd Gaye</div><div class="s">Ritviz</div></div><span class="v">140 plays</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-manmarziyaan plain"></div><div class="tx"><div class="t">Naina Da Kya Kasoor</div><div class="s">Amit Trivedi &amp; Raftaar</div></div><span class="v">128 plays</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Aari Aari</div><div class="s">Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</div></div><span class="v">117 plays</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-troubadour plain"></div><div class="tx"><div class="t">Wavin' Flag</div><div class="s">K'NAAN</div></div><span class="v">104 plays</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-jodhaa plain"></div><div class="tx"><div class="t">Khwaja Mere Khwaja</div><div class="s">A. R. Rahman</div></div><span class="v">96 plays</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost plain"></div><div class="tx"><div class="t">GHOST!</div><div class="s">phonk.me, KIIXSHI</div></div><span class="v">88 plays</span></div>
+<h2 class="sec">Top artists</h2>
+<div class="toprow"><span class="rk">1</span><div class="cv art-rockstar round"></div><div class="tx"><div class="t">A. R. Rahman</div></div><span class="v">3,120 min</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div></div><span class="v">2,480 min</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-viva round"></div><div class="tx"><div class="t">Coldplay</div></div><span class="v">1,905 min</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-manmarziyaan round"></div><div class="tx"><div class="t">Amit Trivedi</div></div><span class="v">1,310 min</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye round"></div><div class="tx"><div class="t">Ritviz</div></div><span class="v">870 min</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-yjhd round"></div><div class="tx"><div class="t">Pritam</div></div><span class="v">742 min</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-troubadour round"></div><div class="tx"><div class="t">K'NAAN</div></div><span class="v">615 min</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-premam round"></div><div class="tx"><div class="t">Vijay Yesudas</div></div><span class="v">548 min</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-oso round"></div><div class="tx"><div class="t">Vishal-Shekhar</div></div><span class="v">431 min</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost round"></div><div class="tx"><div class="t">phonk.me</div></div><span class="v">312 min</span></div>
+<h2 class="sec">Languages</h2>
+<div class="langbar"><i class="lg-hindi" style="flex:46"></i><i class="lg-tamil" style="flex:27"></i><i class="lg-english" style="flex:18"></i><i class="lg-malayalam" style="flex:6"></i><i class="lg-novocals" style="flex:3"></i></div>
+<div class="langrow"><i class="lg-hindi"></i><span>Hindi</span><em>46%</em></div>
+<div class="langrow"><i class="lg-tamil"></i><span>Tamil</span><em>27%</em></div>
+<div class="langrow"><i class="lg-english"></i><span>English</span><em>18%</em></div>
+<div class="langrow"><i class="lg-malayalam"></i><span>Malayalam</span><em>6%</em></div>
+<div class="langrow"><i class="lg-novocals"></i><span>No vocals</span><em>3%</em></div>
+<h2 class="sec">When you listen</h2>
+<div class="when"><svg class="wclock on-page" viewBox="0 0 100 100"><line class="tk" x1="50.00" y1="32.00" x2="50.00" y2="2.00"/><line class="br" x1="50.00" y1="32.00" x2="50.00" y2="19.95"/><line class="tk" x1="54.66" y1="32.61" x2="62.42" y2="3.64"/><line class="br" x1="54.66" y1="32.61" x2="56.46" y2="25.89"/><line class="tk" x1="59.00" y1="34.41" x2="74.00" y2="8.43"/><line class="br" x1="59.00" y1="34.41" x2="60.41" y2="31.98"/><line class="tk" x1="62.73" y1="37.27" x2="83.94" y2="16.06"/><line class="br" x1="62.73" y1="37.27" x2="63.30" y2="36.70"/><line class="tk" x1="65.59" y1="41.00" x2="91.57" y2="26.00"/><line class="tk" x1="67.39" y1="45.34" x2="96.36" y2="37.58"/><line class="tk" x1="68.00" y1="50.00" x2="98.00" y2="50.00"/><line class="br" x1="68.00" y1="50.00" x2="69.21" y2="50.00"/><line class="tk" x1="67.39" y1="54.66" x2="96.36" y2="62.42"/><line class="br" x1="67.39" y1="54.66" x2="72.30" y2="55.98"/><line class="tk" x1="65.59" y1="59.00" x2="91.57" y2="74.00"/><line class="br" x1="65.59" y1="59.00" x2="72.78" y2="63.15"/><line class="tk" x1="62.73" y1="62.73" x2="83.94" y2="83.94"/><line class="br" x1="62.73" y1="62.73" x2="67.84" y2="67.84"/><line class="tk" x1="59.00" y1="65.59" x2="74.00" y2="91.57"/><line class="br" x1="59.00" y1="65.59" x2="61.88" y2="70.58"/><line class="tk" x1="54.66" y1="67.39" x2="62.42" y2="96.36"/><line class="br" x1="54.66" y1="67.39" x2="55.98" y2="72.30"/><line class="tk" x1="50.00" y1="68.00" x2="50.00" y2="98.00"/><line class="br" x1="50.00" y1="68.00" x2="50.00" y2="74.03"/><line class="tk" x1="45.34" y1="67.39" x2="37.58" y2="96.36"/><line class="br" x1="45.34" y1="67.39" x2="43.54" y2="74.11"/><line class="tk" x1="41.00" y1="65.59" x2="26.00" y2="91.57"/><line class="br" x1="41.00" y1="65.59" x2="38.25" y2="70.34"/><line class="tk" x1="37.27" y1="62.73" x2="16.06" y2="83.94"/><line class="br" x1="37.27" y1="62.73" x2="33.86" y2="66.14"/><line class="tk" x1="34.41" y1="59.00" x2="8.43" y2="74.00"/><line class="br" x1="34.41" y1="59.00" x2="28.84" y2="62.21"/><line class="tk" x1="32.61" y1="54.66" x2="3.64" y2="62.42"/><line class="br" x1="32.61" y1="54.66" x2="22.78" y2="57.29"/><line class="tk" x1="32.00" y1="50.00" x2="2.00" y2="50.00"/><line class="br" x1="32.00" y1="50.00" x2="18.88" y2="50.00"/><line class="tk" x1="32.61" y1="45.34" x2="3.64" y2="37.58"/><line class="br" x1="32.61" y1="45.34" x2="17.74" y2="41.35"/><line class="tk" x1="34.41" y1="41.00" x2="8.43" y2="26.00"/><line class="br" x1="34.41" y1="41.00" x2="17.94" y2="31.49"/><line class="tk" x1="37.27" y1="37.27" x2="16.06" y2="16.06"/><line class="br" x1="37.27" y1="37.27" x2="19.37" y2="19.37"/><line class="tk" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="br" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="tk" x1="45.34" y1="32.61" x2="37.58" y2="3.64"/><line class="br" x1="45.34" y1="32.61" x2="39.55" y2="11.01"/><circle cx="50" cy="50" r="9.9"/></svg><div><div class="t-title-l">Night owl</div><div class="t-body-m c-variant">Most of your listening happens after dark. Your busiest hour starts at 10 pm.</div></div></div>
+<p class="para small since">Counted from Attic's listening log, which began on 3 January 2026. A song counts as a play after 30 seconds.</p>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab on"><i class="ic">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab"><i class="ic o">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">B · Wrapped page, full length</p>
+  <p class="why">Every section a period with data shows, in the code's order. "Top songs" and "Top artists" run to ten rows each. The "No vocals" segment of the language bar is plum on <code>#121212</code> and all but disappears.</p>
+<div class="phone long">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="backbar"><span class="ib"><i class="ic">arrow_back</i></span><h1>Wrapped</h1></div>
+<div class="chips wrapped"><span class="chip">This week</span><span class="chip">This month</span><span class="chip on">This year</span><span class="chip">All time</span></div>
+<div class="banner">
+  <h2>Your 2026 so far</h2>
+  <p>18,460 minutes of music, told in 10 cards you can share.</p>
+  <span class="go"><i class="ic">play_arrow</i>Play your story</span>
+</div>
+<div class="stats">
+  <div class="stat"><b>18,460</b><span>Minutes</span></div>
+  <div class="stat"><b>6,212</b><span>Plays</span></div>
+  <div class="stat"><b>412</b><span>Songs</span></div>
+  <div class="stat"><b>96</b><span>Artists</span></div>
+  <div class="stat"><b>251</b><span>Days with music</span></div>
+  <div class="stat"><b>34 days</b><span>Longest streak</span></div>
+</div>
+<h2 class="sec">Share a card</h2>
+<div class="thumbs">
+<div class="wc wc-plum r8" style="--k:0.32778"><div class="wc-in"><div class="wc-big">2026</div><div class="wc-body" style="--pt:56px"><div class="wc-d" style="--z:54px">Your year so far</div><i class="wc-sp" style="height:18px"></i><div class="wc-x wc-a85" style="--z:18px;--l:24px">18,460 minutes across 412 songs. Here's what you played.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-cobalt r8" style="--k:0.32778"><div class="wc-in"><div class="wc-orb"></div><div class="wc-body" style="--pt:210px"><div class="wc-lab">You listened for</div><i class="wc-sp" style="height:6px"></i><div class="wc-d wc-nw" style="--z:92px">18,460</div><div class="wc-d wc-c-mint" style="--z:44px">minutes</div><i class="wc-sp" style="height:24px"></i><div class="wc-x wc-a90" style="--z:18px;--l:24px">That's about 307 hours across 251 days.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-marigold r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:40px"><div class="wc-lab">Your top song</div><i class="wc-sp" style="height:22px"></i><div class="cv art-revenge wc-tilt"></div><i class="wc-sp" style="height:30px"></i><div class="wc-d" style="--z:40px">Jaan Se Guzarte Hain</div><i class="wc-sp" style="height:8px"></i><div class="wc-art wc-1 wc-a80">Khan Saab, Shashwat Sachdev</div><i class="wc-sp" style="height:14px"></i><span class="wc-pill">Played 214 times</span></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-paper r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-d" style="--z:46px">Songs you<br>kept coming<br>back to</div><i class="wc-sp" style="height:30px"></i><div class="wc-rows"><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">1</span><div class="cv art-revenge"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Jaan Se Guzarte Hain</div><div class="wc-rd wc-1 wc-a70">Khan Saab, Shashwat Sachdev</div></div><span class="wc-tr wc-c-pink">214×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">2</span><div class="cv art-rockstar"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Kun Faya Kun</div><div class="wc-rd wc-1 wc-a70">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="wc-tr wc-c-pink">187×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">3</span><div class="cv art-premam"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Malare</div><div class="wc-rd wc-1 wc-a70">Vijay Yesudas</div></div><span class="wc-tr wc-c-pink">163×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">4</span><div class="cv art-viva"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Viva La Vida</div><div class="wc-rd wc-1 wc-a70">Coldplay</div></div><span class="wc-tr wc-c-pink">151×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">5</span><div class="cv art-uddgaye"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Udd Gaye</div><div class="wc-rd wc-1 wc-a70">Ritviz</div></div><span class="wc-tr wc-c-pink">140×</span></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+</div>
+<div class="sec-row"><h2 class="sec">Top songs</h2><span class="playc"></span></div>
+<div class="toprow cur"><span class="rk">1</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s">Khan Saab, Shashwat Sachdev</div></div><span class="v">214 plays</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-rockstar plain"></div><div class="tx"><div class="t">Kun Faya Kun</div><div class="s">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="v">187 plays</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-premam plain"></div><div class="tx"><div class="t">Malare</div><div class="s">Vijay Yesudas</div></div><span class="v">163 plays</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-viva plain"></div><div class="tx"><div class="t">Viva La Vida</div><div class="s">Coldplay</div></div><span class="v">151 plays</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye plain"></div><div class="tx"><div class="t">Udd Gaye</div><div class="s">Ritviz</div></div><span class="v">140 plays</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-manmarziyaan plain"></div><div class="tx"><div class="t">Naina Da Kya Kasoor</div><div class="s">Amit Trivedi &amp; Raftaar</div></div><span class="v">128 plays</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Aari Aari</div><div class="s">Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</div></div><span class="v">117 plays</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-troubadour plain"></div><div class="tx"><div class="t">Wavin' Flag</div><div class="s">K'NAAN</div></div><span class="v">104 plays</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-jodhaa plain"></div><div class="tx"><div class="t">Khwaja Mere Khwaja</div><div class="s">A. R. Rahman</div></div><span class="v">96 plays</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost plain"></div><div class="tx"><div class="t">GHOST!</div><div class="s">phonk.me, KIIXSHI</div></div><span class="v">88 plays</span></div>
+<h2 class="sec">Top artists</h2>
+<div class="toprow"><span class="rk">1</span><div class="cv art-rockstar round"></div><div class="tx"><div class="t">A. R. Rahman</div></div><span class="v">3,120 min</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div></div><span class="v">2,480 min</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-viva round"></div><div class="tx"><div class="t">Coldplay</div></div><span class="v">1,905 min</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-manmarziyaan round"></div><div class="tx"><div class="t">Amit Trivedi</div></div><span class="v">1,310 min</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye round"></div><div class="tx"><div class="t">Ritviz</div></div><span class="v">870 min</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-yjhd round"></div><div class="tx"><div class="t">Pritam</div></div><span class="v">742 min</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-troubadour round"></div><div class="tx"><div class="t">K'NAAN</div></div><span class="v">615 min</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-premam round"></div><div class="tx"><div class="t">Vijay Yesudas</div></div><span class="v">548 min</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-oso round"></div><div class="tx"><div class="t">Vishal-Shekhar</div></div><span class="v">431 min</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost round"></div><div class="tx"><div class="t">phonk.me</div></div><span class="v">312 min</span></div>
+<h2 class="sec">Languages</h2>
+<div class="langbar"><i class="lg-hindi" style="flex:46"></i><i class="lg-tamil" style="flex:27"></i><i class="lg-english" style="flex:18"></i><i class="lg-malayalam" style="flex:6"></i><i class="lg-novocals" style="flex:3"></i></div>
+<div class="langrow"><i class="lg-hindi"></i><span>Hindi</span><em>46%</em></div>
+<div class="langrow"><i class="lg-tamil"></i><span>Tamil</span><em>27%</em></div>
+<div class="langrow"><i class="lg-english"></i><span>English</span><em>18%</em></div>
+<div class="langrow"><i class="lg-malayalam"></i><span>Malayalam</span><em>6%</em></div>
+<div class="langrow"><i class="lg-novocals"></i><span>No vocals</span><em>3%</em></div>
+<h2 class="sec">When you listen</h2>
+<div class="when"><svg class="wclock on-page" viewBox="0 0 100 100"><line class="tk" x1="50.00" y1="32.00" x2="50.00" y2="2.00"/><line class="br" x1="50.00" y1="32.00" x2="50.00" y2="19.95"/><line class="tk" x1="54.66" y1="32.61" x2="62.42" y2="3.64"/><line class="br" x1="54.66" y1="32.61" x2="56.46" y2="25.89"/><line class="tk" x1="59.00" y1="34.41" x2="74.00" y2="8.43"/><line class="br" x1="59.00" y1="34.41" x2="60.41" y2="31.98"/><line class="tk" x1="62.73" y1="37.27" x2="83.94" y2="16.06"/><line class="br" x1="62.73" y1="37.27" x2="63.30" y2="36.70"/><line class="tk" x1="65.59" y1="41.00" x2="91.57" y2="26.00"/><line class="tk" x1="67.39" y1="45.34" x2="96.36" y2="37.58"/><line class="tk" x1="68.00" y1="50.00" x2="98.00" y2="50.00"/><line class="br" x1="68.00" y1="50.00" x2="69.21" y2="50.00"/><line class="tk" x1="67.39" y1="54.66" x2="96.36" y2="62.42"/><line class="br" x1="67.39" y1="54.66" x2="72.30" y2="55.98"/><line class="tk" x1="65.59" y1="59.00" x2="91.57" y2="74.00"/><line class="br" x1="65.59" y1="59.00" x2="72.78" y2="63.15"/><line class="tk" x1="62.73" y1="62.73" x2="83.94" y2="83.94"/><line class="br" x1="62.73" y1="62.73" x2="67.84" y2="67.84"/><line class="tk" x1="59.00" y1="65.59" x2="74.00" y2="91.57"/><line class="br" x1="59.00" y1="65.59" x2="61.88" y2="70.58"/><line class="tk" x1="54.66" y1="67.39" x2="62.42" y2="96.36"/><line class="br" x1="54.66" y1="67.39" x2="55.98" y2="72.30"/><line class="tk" x1="50.00" y1="68.00" x2="50.00" y2="98.00"/><line class="br" x1="50.00" y1="68.00" x2="50.00" y2="74.03"/><line class="tk" x1="45.34" y1="67.39" x2="37.58" y2="96.36"/><line class="br" x1="45.34" y1="67.39" x2="43.54" y2="74.11"/><line class="tk" x1="41.00" y1="65.59" x2="26.00" y2="91.57"/><line class="br" x1="41.00" y1="65.59" x2="38.25" y2="70.34"/><line class="tk" x1="37.27" y1="62.73" x2="16.06" y2="83.94"/><line class="br" x1="37.27" y1="62.73" x2="33.86" y2="66.14"/><line class="tk" x1="34.41" y1="59.00" x2="8.43" y2="74.00"/><line class="br" x1="34.41" y1="59.00" x2="28.84" y2="62.21"/><line class="tk" x1="32.61" y1="54.66" x2="3.64" y2="62.42"/><line class="br" x1="32.61" y1="54.66" x2="22.78" y2="57.29"/><line class="tk" x1="32.00" y1="50.00" x2="2.00" y2="50.00"/><line class="br" x1="32.00" y1="50.00" x2="18.88" y2="50.00"/><line class="tk" x1="32.61" y1="45.34" x2="3.64" y2="37.58"/><line class="br" x1="32.61" y1="45.34" x2="17.74" y2="41.35"/><line class="tk" x1="34.41" y1="41.00" x2="8.43" y2="26.00"/><line class="br" x1="34.41" y1="41.00" x2="17.94" y2="31.49"/><line class="tk" x1="37.27" y1="37.27" x2="16.06" y2="16.06"/><line class="br" x1="37.27" y1="37.27" x2="19.37" y2="19.37"/><line class="tk" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="br" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="tk" x1="45.34" y1="32.61" x2="37.58" y2="3.64"/><line class="br" x1="45.34" y1="32.61" x2="39.55" y2="11.01"/><circle cx="50" cy="50" r="9.9"/></svg><div><div class="t-title-l">Night owl</div><div class="t-body-m c-variant">Most of your listening happens after dark. Your busiest hour starts at 10 pm.</div></div></div>
+<p class="para small since">Counted from Attic's listening log, which began on 3 January 2026. A song counts as a play after 30 seconds.</p>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab on"><i class="ic">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab"><i class="ic o">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C1 · Story, intro</p>
+  <p class="why">Plum, white ink. The year is one 148sp word resting on the footer row. The line above reads "Your year so far" all year, including after 24 December.</p>
+<div class="strip cut"><div class="segs"><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="wc wc-plum r10" style="--k:1.01667"><div class="wc-in"><div class="wc-big">2026</div><div class="wc-body" style="--pt:56px"><div class="wc-d" style="--z:54px">Your year so far</div><i class="wc-sp" style="height:18px"></i><div class="wc-x wc-a85" style="--z:18px;--l:24px">18,460 minutes across 412 songs. Here's what you played.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C2 · Story, minutes</p>
+  <p class="why">Cobalt with a mint circle hung off the top-right corner. Six characters drop the count from 116sp to 92sp. In the story the number counts up from zero over 1.6 seconds; this is its final frame.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="wc wc-cobalt r10" style="--k:1.01667"><div class="wc-in"><div class="wc-orb"></div><div class="wc-body" style="--pt:210px"><div class="wc-lab">You listened for</div><i class="wc-sp" style="height:6px"></i><div class="wc-d wc-nw" style="--z:92px">18,460</div><div class="wc-d wc-c-mint" style="--z:44px">minutes</div><i class="wc-sp" style="height:24px"></i><div class="wc-x wc-a90" style="--z:18px;--l:24px">That's about 307 hours across 251 days.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C3 · Story, top song</p>
+  <p class="why">Marigold, plum ink. The cover is 86% of the column wide and turned 4° anticlockwise. The plum pill is the only filled shape on the card.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="wc wc-marigold r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:40px"><div class="wc-lab">Your top song</div><i class="wc-sp" style="height:22px"></i><div class="cv art-revenge wc-tilt"></div><i class="wc-sp" style="height:30px"></i><div class="wc-d" style="--z:40px">Jaan Se Guzarte Hain</div><i class="wc-sp" style="height:8px"></i><div class="wc-art wc-1 wc-a80">Khan Saab, Shashwat Sachdev</div><i class="wc-sp" style="height:14px"></i><span class="wc-pill">Played 214 times</span></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C4 · Story, top songs</p>
+  <p class="why">The only white card. Five rows, pink ranks and pink play counts. A title takes up to two lines, so the first row is taller than the rest.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="wc wc-paper r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-d" style="--z:46px">Songs you<br>kept coming<br>back to</div><i class="wc-sp" style="height:30px"></i><div class="wc-rows"><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">1</span><div class="cv art-revenge"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Jaan Se Guzarte Hain</div><div class="wc-rd wc-1 wc-a70">Khan Saab, Shashwat Sachdev</div></div><span class="wc-tr wc-c-pink">214×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">2</span><div class="cv art-rockstar"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Kun Faya Kun</div><div class="wc-rd wc-1 wc-a70">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="wc-tr wc-c-pink">187×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">3</span><div class="cv art-premam"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Malare</div><div class="wc-rd wc-1 wc-a70">Vijay Yesudas</div></div><span class="wc-tr wc-c-pink">163×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">4</span><div class="cv art-viva"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Viva La Vida</div><div class="wc-rd wc-1 wc-a70">Coldplay</div></div><span class="wc-tr wc-c-pink">151×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">5</span><div class="cv art-uddgaye"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Udd Gaye</div><div class="wc-rd wc-1 wc-a70">Ritviz</div></div><span class="wc-tr wc-c-pink">140×</span></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C5 · Story, top artist</p>
+  <p class="why">Pink. The artist image is the cover of their most played song, cropped to a 330dp circle and pushed 70dp past the right edge. The label sits on the image.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i><i></i></div><div class="wc wc-pink r10" style="--k:1.01667"><div class="wc-in"><div class="cv art-rockstar round wc-face"></div><div class="wc-body wc-bot"><div class="wc-lab">Your top artist</div><i class="wc-sp" style="height:8px"></i><div class="wc-d" style="--z:64px">A. R. Rahman</div><i class="wc-sp" style="height:14px"></i><div class="wc-x" style="--z:17px;--l:23px">3,120 minutes over 742 plays. Number one of the 96 artists you played.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C6 · Story, top artists</p>
+  <p class="why">Plum with a mint headline and mint ranks. Same rows as card 4 with round covers and minutes; no value on the right.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i><i></i></div><div class="wc wc-plum r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-d wc-c-mint" style="--z:50px">The artists<br>on repeat</div><i class="wc-sp" style="height:34px"></i><div class="wc-rows"><div class="wc-rr"><span class="wc-d wc-rk wc-c-mint" style="--z:40px">1</span><div class="cv art-rockstar round"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">A. R. Rahman</div><div class="wc-rd wc-1 wc-a70">3,120 minutes</div></div></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-mint" style="--z:40px">2</span><div class="cv art-revenge round"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Shashwat Sachdev</div><div class="wc-rd wc-1 wc-a70">2,480 minutes</div></div></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-mint" style="--z:40px">3</span><div class="cv art-viva round"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Coldplay</div><div class="wc-rd wc-1 wc-a70">1,905 minutes</div></div></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-mint" style="--z:40px">4</span><div class="cv art-manmarziyaan round"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Amit Trivedi</div><div class="wc-rd wc-1 wc-a70">1,310 minutes</div></div></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-mint" style="--z:40px">5</span><div class="cv art-uddgaye round"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Ritviz</div><div class="wc-rd wc-1 wc-a70">870 minutes</div></div></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C7 · Story, languages</p>
+  <p class="why">Mint, plum ink. Each band is 12% of the column plus 62% of it times the share, so 3% still draws a 43dp band. "No vocals" uses the card's own ink colour.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i><i></i></div><div class="wc wc-mint r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-lab">What you listened in</div><i class="wc-sp" style="height:6px"></i><div class="wc-d" style="--z:128px;--lh:.85">46%</div><div class="wc-d" style="--z:48px">Hindi</div><i class="wc-sp" style="height:30px"></i><div class="wc-bands"><div class="wc-band"><i class="lg-hindi" style="--f:0.4052"></i><b>Hindi 46%</b></div><div class="wc-band"><i class="lg-tamil" style="--f:0.2874"></i><b>Tamil 27%</b></div><div class="wc-band"><i class="lg-english" style="--f:0.2316"></i><b>English 18%</b></div><div class="wc-band"><i class="lg-malayalam" style="--f:0.1572"></i><b>Malayalam 6%</b></div><div class="wc-band"><i class="lg-novocals" style="--f:0.1386"></i><b>No vocals 3%</b></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C8 · Story, listening clock</p>
+  <p class="why">Black. Twenty-four bars, midnight at the top, each as long as that hour's share of the busiest hour (10 pm). Tracks are <code>#2A2A2A</code>.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i><i></i></div><div class="wc wc-tape r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-lab wc-c-marigold">Your listening clock</div><i class="wc-sp" style="height:20px"></i><svg class="wclock on-card" viewBox="0 0 100 100"><line class="tk" x1="50.00" y1="32.00" x2="50.00" y2="2.00"/><line class="br" x1="50.00" y1="32.00" x2="50.00" y2="19.95"/><line class="tk" x1="54.66" y1="32.61" x2="62.42" y2="3.64"/><line class="br" x1="54.66" y1="32.61" x2="56.46" y2="25.89"/><line class="tk" x1="59.00" y1="34.41" x2="74.00" y2="8.43"/><line class="br" x1="59.00" y1="34.41" x2="60.41" y2="31.98"/><line class="tk" x1="62.73" y1="37.27" x2="83.94" y2="16.06"/><line class="br" x1="62.73" y1="37.27" x2="63.30" y2="36.70"/><line class="tk" x1="65.59" y1="41.00" x2="91.57" y2="26.00"/><line class="tk" x1="67.39" y1="45.34" x2="96.36" y2="37.58"/><line class="tk" x1="68.00" y1="50.00" x2="98.00" y2="50.00"/><line class="br" x1="68.00" y1="50.00" x2="69.21" y2="50.00"/><line class="tk" x1="67.39" y1="54.66" x2="96.36" y2="62.42"/><line class="br" x1="67.39" y1="54.66" x2="72.30" y2="55.98"/><line class="tk" x1="65.59" y1="59.00" x2="91.57" y2="74.00"/><line class="br" x1="65.59" y1="59.00" x2="72.78" y2="63.15"/><line class="tk" x1="62.73" y1="62.73" x2="83.94" y2="83.94"/><line class="br" x1="62.73" y1="62.73" x2="67.84" y2="67.84"/><line class="tk" x1="59.00" y1="65.59" x2="74.00" y2="91.57"/><line class="br" x1="59.00" y1="65.59" x2="61.88" y2="70.58"/><line class="tk" x1="54.66" y1="67.39" x2="62.42" y2="96.36"/><line class="br" x1="54.66" y1="67.39" x2="55.98" y2="72.30"/><line class="tk" x1="50.00" y1="68.00" x2="50.00" y2="98.00"/><line class="br" x1="50.00" y1="68.00" x2="50.00" y2="74.03"/><line class="tk" x1="45.34" y1="67.39" x2="37.58" y2="96.36"/><line class="br" x1="45.34" y1="67.39" x2="43.54" y2="74.11"/><line class="tk" x1="41.00" y1="65.59" x2="26.00" y2="91.57"/><line class="br" x1="41.00" y1="65.59" x2="38.25" y2="70.34"/><line class="tk" x1="37.27" y1="62.73" x2="16.06" y2="83.94"/><line class="br" x1="37.27" y1="62.73" x2="33.86" y2="66.14"/><line class="tk" x1="34.41" y1="59.00" x2="8.43" y2="74.00"/><line class="br" x1="34.41" y1="59.00" x2="28.84" y2="62.21"/><line class="tk" x1="32.61" y1="54.66" x2="3.64" y2="62.42"/><line class="br" x1="32.61" y1="54.66" x2="22.78" y2="57.29"/><line class="tk" x1="32.00" y1="50.00" x2="2.00" y2="50.00"/><line class="br" x1="32.00" y1="50.00" x2="18.88" y2="50.00"/><line class="tk" x1="32.61" y1="45.34" x2="3.64" y2="37.58"/><line class="br" x1="32.61" y1="45.34" x2="17.74" y2="41.35"/><line class="tk" x1="34.41" y1="41.00" x2="8.43" y2="26.00"/><line class="br" x1="34.41" y1="41.00" x2="17.94" y2="31.49"/><line class="tk" x1="37.27" y1="37.27" x2="16.06" y2="16.06"/><line class="br" x1="37.27" y1="37.27" x2="19.37" y2="19.37"/><line class="tk" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="br" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="tk" x1="45.34" y1="32.61" x2="37.58" y2="3.64"/><line class="br" x1="45.34" y1="32.61" x2="39.55" y2="11.01"/><circle cx="50" cy="50" r="9.9"/></svg><i class="wc-sp" style="height:24px"></i><div class="wc-d" style="--z:52px">Night owl</div><i class="wc-sp" style="height:10px"></i><div class="wc-x wc-a80" style="--z:17px;--l:23px">Most of your listening happens after dark. Your busiest hour starts at 10 pm.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C9 · Story, highlights</p>
+  <p class="why">Cobalt again, marigold headline. Up to four items from a fixed list of five; radio's share is the one that does not make the cut here.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i><i></i></div><div class="wc wc-cobalt r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body wc-gap26" style="--pt:48px"><div class="wc-d wc-c-marigold" style="--z:52px">The good bits</div><div class="wc-hl"><div class="wc-d wc-nw" style="--z:44px">312 min</div><div class="wc-x wc-a85" style="--z:17px;--l:22px">on Saturday 15 August, your biggest day</div></div><div class="wc-hl"><div class="wc-d wc-nw" style="--z:44px">11×</div><div class="wc-x wc-a85" style="--z:17px;--l:22px">Jaan Se Guzarte Hain in a single day</div></div><div class="wc-hl"><div class="wc-d wc-nw" style="--z:44px">34 days</div><div class="wc-x wc-a85" style="--z:17px;--l:22px">in a row with music</div></div><div class="wc-hl"><div class="wc-d wc-nw" style="--z:44px">412</div><div class="wc-x wc-a85" style="--z:17px;--l:22px">songs played for the first time</div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">C10 · Story, summary</p>
+  <p class="why">Plum. The card built to be shared: top song cover, the period headline, five artists, five songs, two numbers and a cassette-reel ornament. Long names are cut with an ellipsis.</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now" style="--p:40%"></i></div><div class="wc wc-plum r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:36px"><div class="wc-sumtop"><div class="cv art-revenge"></div><div class="wc-d wc-c-marigold" style="--z:34px">Your 2026 so far</div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Top artists</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  A. R. Rahman</div><div class="wc-nm wc-1">2  Shashwat Sachdev</div><div class="wc-nm wc-1">3  Coldplay</div><div class="wc-nm wc-1">4  Amit Trivedi</div><div class="wc-nm wc-1">5  Ritviz</div></div><div><div class="wc-cap wc-a70">Top songs</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  Jaan Se Guzarte Hain</div><div class="wc-nm wc-1">2  Kun Faya Kun</div><div class="wc-nm wc-1">3  Malare</div><div class="wc-nm wc-1">4  Viva La Vida</div><div class="wc-nm wc-1">5  Udd Gaye</div></div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Minutes</div><div class="wc-d wc-1" style="--z:40px">18,460</div></div><div><div class="wc-cap wc-a70">Mostly in</div><div class="wc-d wc-1" style="--z:40px">Hindi</div></div></div><i class="wc-sp" style="height:40px"></i><div class="wc-reels"><svg class="wc-reel wc-s-pink" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg><i></i><svg class="wc-reel wc-s-mint" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">D · Story screen, Save and Share</p>
+  <p class="why">The whole story screen on its last card, which does not advance. "Close" sits left; "Save" and "Share" sit right, under the card and outside it. Only "Share" is filled. Both export the card alone at 1080 × 1920.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen theme-dark story">
+<div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i></div><div class="story-mid"><div class="wc wc-plum r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:36px"><div class="wc-sumtop"><div class="cv art-revenge"></div><div class="wc-d wc-c-marigold" style="--z:34px">Your 2026 so far</div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Top artists</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  A. R. Rahman</div><div class="wc-nm wc-1">2  Shashwat Sachdev</div><div class="wc-nm wc-1">3  Coldplay</div><div class="wc-nm wc-1">4  Amit Trivedi</div><div class="wc-nm wc-1">5  Ritviz</div></div><div><div class="wc-cap wc-a70">Top songs</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  Jaan Se Guzarte Hain</div><div class="wc-nm wc-1">2  Kun Faya Kun</div><div class="wc-nm wc-1">3  Malare</div><div class="wc-nm wc-1">4  Viva La Vida</div><div class="wc-nm wc-1">5  Udd Gaye</div></div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Minutes</div><div class="wc-d wc-1" style="--z:40px">18,460</div></div><div><div class="wc-cap wc-a70">Mostly in</div><div class="wc-d wc-1" style="--z:40px">Hindi</div></div></div><i class="wc-sp" style="height:40px"></i><div class="wc-reels"><svg class="wc-reel wc-s-pink" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg><i></i><svg class="wc-reel wc-s-mint" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div></div>
+<div class="story-acts"><span class="spill"><i class="ic">close</i>Close</span><span class="grow"></span><span class="spill"><i class="ic">download</i>Save</span><span class="spill solid"><i class="ic">ios_share</i>Share</span></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag state">state</span></div>
+  <p class="cap">E · Home entry card</p>
+  <p class="why">The only way into Wrapped. It sits under the Home shortcuts whenever the year has a logged play. From 24 December the headline changes; nothing else on the card does. The same switch renames the banner and drops "so far" from every card's footer.</p>
+<p class="sublabel">1 January to 23 December</p>
+<div class="strip entry"><div class="wrapcard">
+  <div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div>
+  <div class="tx"><div class="t">Your 2026 so far</div><div class="s">18,460 minutes. See your top songs and cards to share.</div></div>
+</div></div>
+<p class="sublabel">From 24 December</p>
+<div class="strip entry"><div class="wrapcard">
+  <div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div>
+  <div class="tx"><div class="t">Your 2026 Wrapped</div><div class="s">18,460 minutes. See your top songs and cards to share.</div></div>
+</div></div>
+<p class="sublabel">The page banner from 24 December</p>
+<div class="strip entry ban"><div class="banner">
+  <h2>Your 2026 Wrapped</h2>
+  <p>18,460 minutes of music, told in 10 cards you can share.</p>
+  <span class="go"><i class="ic">play_arrow</i>Play your story</span>
+</div></div>
+<p class="sublabel">The summary card from 24 December</p>
+<div class="strip cut"><div class="segs"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i></div><div class="wc wc-plum r10" style="--k:1.01667"><div class="wc-in"><div class="wc-body" style="--pt:36px"><div class="wc-sumtop"><div class="cv art-revenge"></div><div class="wc-d wc-c-marigold" style="--z:34px">Your 2026 Wrapped</div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Top artists</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  A. R. Rahman</div><div class="wc-nm wc-1">2  Shashwat Sachdev</div><div class="wc-nm wc-1">3  Coldplay</div><div class="wc-nm wc-1">4  Amit Trivedi</div><div class="wc-nm wc-1">5  Ritviz</div></div><div><div class="wc-cap wc-a70">Top songs</div><i class="wc-sp" style="height:8px"></i><div class="wc-nm wc-1">1  Jaan Se Guzarte Hain</div><div class="wc-nm wc-1">2  Kun Faya Kun</div><div class="wc-nm wc-1">3  Malare</div><div class="wc-nm wc-1">4  Viva La Vida</div><div class="wc-nm wc-1">5  Udd Gaye</div></div></div><i class="wc-sp" style="height:34px"></i><div class="wc-two"><div><div class="wc-cap wc-a70">Minutes</div><div class="wc-d wc-1" style="--z:40px">18,460</div></div><div><div class="wc-cap wc-a70">Mostly in</div><div class="wc-d wc-1" style="--z:40px">Hindi</div></div></div><i class="wc-sp" style="height:40px"></i><div class="wc-reels"><svg class="wc-reel wc-s-pink" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg><i></i><svg class="wc-reel wc-s-mint" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17"/><line x1="17" y1="17" x2="29.24" y2="17.00"/><line x1="17" y1="17" x2="10.88" y2="27.60"/><line x1="17" y1="17" x2="10.88" y2="6.40"/></svg></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026</span></div></div></div></div>
+</div>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag light">light</span></div>
+  <p class="cap">F · Frame A, light</p>
+  <p class="why">Chips, tiles and text take the light scheme and the selected chip darkens to <code>#12A84A</code>. The banner, the thumbnails and the mini player are the same pixels as in dark.</p>
+<div class="phone light">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="backbar"><span class="ib"><i class="ic">arrow_back</i></span><h1>Wrapped</h1></div>
+<div class="chips wrapped"><span class="chip">This week</span><span class="chip">This month</span><span class="chip on">This year</span><span class="chip">All time</span></div>
+<div class="banner">
+  <h2>Your 2026 so far</h2>
+  <p>18,460 minutes of music, told in 10 cards you can share.</p>
+  <span class="go"><i class="ic">play_arrow</i>Play your story</span>
+</div>
+<div class="stats">
+  <div class="stat"><b>18,460</b><span>Minutes</span></div>
+  <div class="stat"><b>6,212</b><span>Plays</span></div>
+  <div class="stat"><b>412</b><span>Songs</span></div>
+  <div class="stat"><b>96</b><span>Artists</span></div>
+  <div class="stat"><b>251</b><span>Days with music</span></div>
+  <div class="stat"><b>34 days</b><span>Longest streak</span></div>
+</div>
+<h2 class="sec">Share a card</h2>
+<div class="thumbs">
+<div class="wc wc-plum r8" style="--k:0.32778"><div class="wc-in"><div class="wc-big">2026</div><div class="wc-body" style="--pt:56px"><div class="wc-d" style="--z:54px">Your year so far</div><i class="wc-sp" style="height:18px"></i><div class="wc-x wc-a85" style="--z:18px;--l:24px">18,460 minutes across 412 songs. Here's what you played.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-cobalt r8" style="--k:0.32778"><div class="wc-in"><div class="wc-orb"></div><div class="wc-body" style="--pt:210px"><div class="wc-lab">You listened for</div><i class="wc-sp" style="height:6px"></i><div class="wc-d wc-nw" style="--z:92px">18,460</div><div class="wc-d wc-c-mint" style="--z:44px">minutes</div><i class="wc-sp" style="height:24px"></i><div class="wc-x wc-a90" style="--z:18px;--l:24px">That's about 307 hours across 251 days.</div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-marigold r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:40px"><div class="wc-lab">Your top song</div><i class="wc-sp" style="height:22px"></i><div class="cv art-revenge wc-tilt"></div><i class="wc-sp" style="height:30px"></i><div class="wc-d" style="--z:40px">Jaan Se Guzarte Hain</div><i class="wc-sp" style="height:8px"></i><div class="wc-art wc-1 wc-a80">Khan Saab, Shashwat Sachdev</div><i class="wc-sp" style="height:14px"></i><span class="wc-pill">Played 214 times</span></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+<div class="wc wc-paper r8" style="--k:0.32778"><div class="wc-in"><div class="wc-body" style="--pt:48px"><div class="wc-d" style="--z:46px">Songs you<br>kept coming<br>back to</div><i class="wc-sp" style="height:30px"></i><div class="wc-rows"><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">1</span><div class="cv art-revenge"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Jaan Se Guzarte Hain</div><div class="wc-rd wc-1 wc-a70">Khan Saab, Shashwat Sachdev</div></div><span class="wc-tr wc-c-pink">214×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">2</span><div class="cv art-rockstar"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Kun Faya Kun</div><div class="wc-rd wc-1 wc-a70">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="wc-tr wc-c-pink">187×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">3</span><div class="cv art-premam"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Malare</div><div class="wc-rd wc-1 wc-a70">Vijay Yesudas</div></div><span class="wc-tr wc-c-pink">163×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">4</span><div class="cv art-viva"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Viva La Vida</div><div class="wc-rd wc-1 wc-a70">Coldplay</div></div><span class="wc-tr wc-c-pink">151×</span></div><div class="wc-rr"><span class="wc-d wc-rk wc-c-pink" style="--z:40px">5</span><div class="cv art-uddgaye"></div><div class="wc-rt"><div class="wc-x wc-rtt" style="--z:18px;--l:21px">Udd Gaye</div><div class="wc-rd wc-1 wc-a70">Ritviz</div></div><span class="wc-tr wc-c-pink">140×</span></div></div></div><div class="wc-foot"><span class="wc-disc"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><b>Attic</b><span class="wc-per">2026 so far</span></div></div></div>
+</div>
+<div class="sec-row"><h2 class="sec">Top songs</h2><span class="playc"></span></div>
+<div class="toprow cur"><span class="rk">1</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s">Khan Saab, Shashwat Sachdev</div></div><span class="v">214 plays</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-rockstar plain"></div><div class="tx"><div class="t">Kun Faya Kun</div><div class="s">A. R. Rahman, Javed Ali, Mohit Chauhan</div></div><span class="v">187 plays</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-premam plain"></div><div class="tx"><div class="t">Malare</div><div class="s">Vijay Yesudas</div></div><span class="v">163 plays</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-viva plain"></div><div class="tx"><div class="t">Viva La Vida</div><div class="s">Coldplay</div></div><span class="v">151 plays</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye plain"></div><div class="tx"><div class="t">Udd Gaye</div><div class="s">Ritviz</div></div><span class="v">140 plays</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-manmarziyaan plain"></div><div class="tx"><div class="t">Naina Da Kya Kasoor</div><div class="s">Amit Trivedi &amp; Raftaar</div></div><span class="v">128 plays</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-revenge plain"></div><div class="tx"><div class="t">Aari Aari</div><div class="s">Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</div></div><span class="v">117 plays</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-troubadour plain"></div><div class="tx"><div class="t">Wavin' Flag</div><div class="s">K'NAAN</div></div><span class="v">104 plays</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-jodhaa plain"></div><div class="tx"><div class="t">Khwaja Mere Khwaja</div><div class="s">A. R. Rahman</div></div><span class="v">96 plays</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost plain"></div><div class="tx"><div class="t">GHOST!</div><div class="s">phonk.me, KIIXSHI</div></div><span class="v">88 plays</span></div>
+<h2 class="sec">Top artists</h2>
+<div class="toprow"><span class="rk">1</span><div class="cv art-rockstar round"></div><div class="tx"><div class="t">A. R. Rahman</div></div><span class="v">3,120 min</span></div>
+<div class="toprow"><span class="rk">2</span><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div></div><span class="v">2,480 min</span></div>
+<div class="toprow"><span class="rk">3</span><div class="cv art-viva round"></div><div class="tx"><div class="t">Coldplay</div></div><span class="v">1,905 min</span></div>
+<div class="toprow"><span class="rk">4</span><div class="cv art-manmarziyaan round"></div><div class="tx"><div class="t">Amit Trivedi</div></div><span class="v">1,310 min</span></div>
+<div class="toprow"><span class="rk">5</span><div class="cv art-uddgaye round"></div><div class="tx"><div class="t">Ritviz</div></div><span class="v">870 min</span></div>
+<div class="toprow"><span class="rk">6</span><div class="cv art-yjhd round"></div><div class="tx"><div class="t">Pritam</div></div><span class="v">742 min</span></div>
+<div class="toprow"><span class="rk">7</span><div class="cv art-troubadour round"></div><div class="tx"><div class="t">K'NAAN</div></div><span class="v">615 min</span></div>
+<div class="toprow"><span class="rk">8</span><div class="cv art-premam round"></div><div class="tx"><div class="t">Vijay Yesudas</div></div><span class="v">548 min</span></div>
+<div class="toprow"><span class="rk">9</span><div class="cv art-oso round"></div><div class="tx"><div class="t">Vishal-Shekhar</div></div><span class="v">431 min</span></div>
+<div class="toprow"><span class="rk">10</span><div class="cv art-ghost round"></div><div class="tx"><div class="t">phonk.me</div></div><span class="v">312 min</span></div>
+<h2 class="sec">Languages</h2>
+<div class="langbar"><i class="lg-hindi" style="flex:46"></i><i class="lg-tamil" style="flex:27"></i><i class="lg-english" style="flex:18"></i><i class="lg-malayalam" style="flex:6"></i><i class="lg-novocals" style="flex:3"></i></div>
+<div class="langrow"><i class="lg-hindi"></i><span>Hindi</span><em>46%</em></div>
+<div class="langrow"><i class="lg-tamil"></i><span>Tamil</span><em>27%</em></div>
+<div class="langrow"><i class="lg-english"></i><span>English</span><em>18%</em></div>
+<div class="langrow"><i class="lg-malayalam"></i><span>Malayalam</span><em>6%</em></div>
+<div class="langrow"><i class="lg-novocals"></i><span>No vocals</span><em>3%</em></div>
+<h2 class="sec">When you listen</h2>
+<div class="when"><svg class="wclock on-page" viewBox="0 0 100 100"><line class="tk" x1="50.00" y1="32.00" x2="50.00" y2="2.00"/><line class="br" x1="50.00" y1="32.00" x2="50.00" y2="19.95"/><line class="tk" x1="54.66" y1="32.61" x2="62.42" y2="3.64"/><line class="br" x1="54.66" y1="32.61" x2="56.46" y2="25.89"/><line class="tk" x1="59.00" y1="34.41" x2="74.00" y2="8.43"/><line class="br" x1="59.00" y1="34.41" x2="60.41" y2="31.98"/><line class="tk" x1="62.73" y1="37.27" x2="83.94" y2="16.06"/><line class="br" x1="62.73" y1="37.27" x2="63.30" y2="36.70"/><line class="tk" x1="65.59" y1="41.00" x2="91.57" y2="26.00"/><line class="tk" x1="67.39" y1="45.34" x2="96.36" y2="37.58"/><line class="tk" x1="68.00" y1="50.00" x2="98.00" y2="50.00"/><line class="br" x1="68.00" y1="50.00" x2="69.21" y2="50.00"/><line class="tk" x1="67.39" y1="54.66" x2="96.36" y2="62.42"/><line class="br" x1="67.39" y1="54.66" x2="72.30" y2="55.98"/><line class="tk" x1="65.59" y1="59.00" x2="91.57" y2="74.00"/><line class="br" x1="65.59" y1="59.00" x2="72.78" y2="63.15"/><line class="tk" x1="62.73" y1="62.73" x2="83.94" y2="83.94"/><line class="br" x1="62.73" y1="62.73" x2="67.84" y2="67.84"/><line class="tk" x1="59.00" y1="65.59" x2="74.00" y2="91.57"/><line class="br" x1="59.00" y1="65.59" x2="61.88" y2="70.58"/><line class="tk" x1="54.66" y1="67.39" x2="62.42" y2="96.36"/><line class="br" x1="54.66" y1="67.39" x2="55.98" y2="72.30"/><line class="tk" x1="50.00" y1="68.00" x2="50.00" y2="98.00"/><line class="br" x1="50.00" y1="68.00" x2="50.00" y2="74.03"/><line class="tk" x1="45.34" y1="67.39" x2="37.58" y2="96.36"/><line class="br" x1="45.34" y1="67.39" x2="43.54" y2="74.11"/><line class="tk" x1="41.00" y1="65.59" x2="26.00" y2="91.57"/><line class="br" x1="41.00" y1="65.59" x2="38.25" y2="70.34"/><line class="tk" x1="37.27" y1="62.73" x2="16.06" y2="83.94"/><line class="br" x1="37.27" y1="62.73" x2="33.86" y2="66.14"/><line class="tk" x1="34.41" y1="59.00" x2="8.43" y2="74.00"/><line class="br" x1="34.41" y1="59.00" x2="28.84" y2="62.21"/><line class="tk" x1="32.61" y1="54.66" x2="3.64" y2="62.42"/><line class="br" x1="32.61" y1="54.66" x2="22.78" y2="57.29"/><line class="tk" x1="32.00" y1="50.00" x2="2.00" y2="50.00"/><line class="br" x1="32.00" y1="50.00" x2="18.88" y2="50.00"/><line class="tk" x1="32.61" y1="45.34" x2="3.64" y2="37.58"/><line class="br" x1="32.61" y1="45.34" x2="17.74" y2="41.35"/><line class="tk" x1="34.41" y1="41.00" x2="8.43" y2="26.00"/><line class="br" x1="34.41" y1="41.00" x2="17.94" y2="31.49"/><line class="tk" x1="37.27" y1="37.27" x2="16.06" y2="16.06"/><line class="br" x1="37.27" y1="37.27" x2="19.37" y2="19.37"/><line class="tk" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="br" x1="41.00" y1="34.41" x2="26.00" y2="8.43"/><line class="tk" x1="45.34" y1="32.61" x2="37.58" y2="3.64"/><line class="br" x1="45.34" y1="32.61" x2="39.55" y2="11.01"/><circle cx="50" cy="50" r="9.9"/></svg><div><div class="t-title-l">Night owl</div><div class="t-body-m c-variant">Most of your listening happens after dark. Your busiest hour starts at 10 pm.</div></div></div>
+<p class="para small since">Counted from Attic's listening log, which began on 3 January 2026. A song counts as a play after 30 seconds.</p>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab on"><i class="ic">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab"><i class="ic o">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">G · A period with no plays</p>
+  <p class="why">A period with nothing logged replaces the whole page with the app's empty message. A song is logged when it ends or is skipped, so the first song of a week can be playing while the week reads empty.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="backbar"><span class="ib"><i class="ic">arrow_back</i></span><h1>Wrapped</h1></div>
+<div class="chips wrapped"><span class="chip on">This week</span><span class="chip">This month</span><span class="chip">This year</span><span class="chip">All time</span></div>
+<div class="empty"><h2>Nothing played this week yet</h2><p>Any song you play for 30 seconds or more counts. Your top songs, artists and listening clock build up from there.</p></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab on"><i class="ic">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab"><i class="ic o">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What is on this sheet</h2>
+  <p>The page is one scrolling list under a back bar and four period chips: the banner, six stat tiles, "Share a
+     card" (118dp thumbnails of the same cards), "Top songs" with a play circle, "Top artists", "Languages", "When you
+     listen" and a footnote. The tab bar and mini player stay. The story is a full-screen black dialog over
+     everything: one progress segment per card, the card at 9:16 with 12dp side margins and 10dp corners, and three
+     pill buttons. A card stays 7 seconds; a tap on its left third goes back, a tap elsewhere goes on, a hold pauses.</p>
+  <p>Frames C1 to C10 are the story cut down to the segments and the card, at the size the story draws it on this
+     phone: 366 × 651dp, the 360 × 640 canvas scaled by 1.017. Frame D is the uncut screen.</p>
+
+  <h2>Spotify cues on this sheet</h2>
+  <table>
+    <tr><th>Cue (<code>CURRENT-UI.md</code> section 5)</th><th>Where it shows here</th></tr>
+    <tr><td>"Wrapped" as the feature name</td><td>Page title in A, B, F and G (<code>ui/WrappedScreen.kt:113</code>)</td></tr>
+    <tr><td>"Your {year} Wrapped"</td><td>Frame E: Home card, banner and summary card from 24 December (<code>ui/WrappedCards.kt:616</code>)</td></tr>
+    <tr><td>"Play your story"</td><td>Banner pill in A, B, F (<code>ui/WrappedScreen.kt:234</code>)</td></tr>
+    <tr><td>A tap-through story with segmented progress bars and 7-second cards</td><td>C1 to C10 and D (<code>ui/WrappedScreen.kt:369-470</code>)</td></tr>
+    <tr><td>Bold flat-colour 9:16 cards made for sharing</td><td>All ten cards; "Save" and "Share" in D</td></tr>
+    <tr><td>A top-five summary card</td><td>C10, D</td></tr>
+    <tr><td>A listener-type label</td><td>"Night owl" in "When you listen" (B) and on card 8</td></tr>
+    <tr><td>Accent green on the near-black ramp</td><td>Selected period chip, the play circle, the current song's title, the clock bars on the page</td></tr>
+    <tr><td>Pill filter chips, the selected one green</td><td>The period row, which reuses Home's chip</td></tr>
+    <tr><td>Large green play circle</td><td>Right of "Top songs"</td></tr>
+    <tr><td>Current song's title in green</td><td>"Top songs" row 1</td></tr>
+    <tr><td>Circular artist images</td><td>"Top artists" rows, cards 5 and 6</td></tr>
+    <tr><td>4dp cover corners, Figtree bold tight headings</td><td>Every row and section title</td></tr>
+    <tr><td>Mini player filled with the cover's colour; fading tab bar; "Your Library"; plus-in-circle</td><td>The bars under the page in A, B, F, G</td></tr>
+  </table>
+  <p>The card palette (plum, marigold, pink, cobalt, mint) and the cassette-reel ornament are Attic's own and are
+     not on the section 5 list. The form of the cards is.</p>
+
+  <h2>Things that look odd and are correct</h2>
+  <ul>
+    <li>Card 5 reads "3,120 minutes over 742 plays". Minutes are grouped with a comma and play counts are not
+        (<code>ui/WrappedCards.kt:137</code>), so a count over 999 would print as "1048 plays".</li>
+    <li>On card 5 "Your top artist" is printed over the lower edge of the artist image. The text block is anchored
+        84dp above the card's bottom and grows upwards.</li>
+    <li>On card 2 the mint circle reaches behind the last digits of the count.</li>
+    <li>Card 9 shows "412 songs played for the first time", the same number as the year's song count. The log began
+        on 3 January 2026, so every song's first play falls in this year.</li>
+    <li>"No vocals" is drawn in plum <code>#2A0E3D</code> on the page's language bar and legend dot, against
+        <code>#121212</code> in dark mode.</li>
+    <li>The artist image in "Top artists" and on cards 5 and 6 is the cover of that artist's most played song this
+        period, skipping covers a higher-ranked artist already has (<code>ui/WrappedScreen.kt:85-93</code>). A. R.
+        Rahman therefore shows <em>Rockstar</em> here; the round's fixture gives him <em>Anbe Aaruyire</em> on the other sheets.</li>
+    <li>Card 10's footer and headline say the same thing twice on the year: "Your 2026 so far" above, "2026 so far"
+        below.</li>
+    <li>From 24 December the headline on card 10 becomes "Your 2026 Wrapped". Its column is 120dp wide and
+        "Wrapped" at 34sp is about 133dp, so Android breaks the word in two (frame E, last strip). This is worked out
+        from the font's widths and has not been seen on a device.</li>
+    <li>The same headline on the page banner wraps to two lines from 24 December (frame E, third strip).</li>
+    <li>The banner, the Home card and every story card ignore the light theme (frame F).</li>
+    <li>"Save" reports through the app's snackbar ("Saved to Pictures/Attic"). The snackbar belongs to the main
+        window and the story is a dialog window above it, so by the code the message is covered until the story
+        closes. It is not drawn in frame D.</li>
+  </ul>
+
+  <h2>Guessed, not measured</h2>
+  <ul>
+    <li><b>Vertical positions inside the cards.</b> Computed from Figtree's metrics (ascent 0.95em, descent 0.25em)
+        on the reading that card text uses Compose's default line-height trimming, since the styles in
+        <code>ui/Theme.kt</code> set none. Under that reading "2026" on card 1 stops 10dp above the bottom edge and
+        does not run off it, though the code comment says it should. A device screenshot would settle it.</li>
+    <li><b>Line breaks</b> are the browser's. Android may break "Your year so far", "A. R. Rahman" or the summary
+        headline differently.</li>
+    <li><b>Numbers the fixture does not give.</b> Ranks 6 to 10 of both lists; A. R. Rahman's 742 plays; card 9's
+        "312 min on Saturday 15 August" and "11×"; the hour-by-hour spread behind the clock, which was made to peak
+        at 10 pm with its busiest three hours from 9 pm.</li>
+    <li><b>Segment progress.</b> The current segment is drawn 40% full in C1 to C10.</li>
+    <li><b>Late-December numbers.</b> Frame E keeps the 21 November figures so that only the wording differs.</li>
+  </ul>
+
+  <h2>Not drawn here</h2>
+  <p>The loading spinner between periods, the other three periods' wording ("Your week in music", "Your November in
+     music", "Everything you've played") and the system share sheet. Their strings are in <code>CURRENT-UI.md</code>
+     section 2.16.</p>
+</div>

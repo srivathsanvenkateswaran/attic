@@ -1,0 +1,386 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Pixel · 05 · Now Playing and the mini player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+.lbl{color:#98a2ad;font-size:12px;line-height:1.5;margin:14px 2px 6px}
+.lbl:first-of-type{margin-top:0}
+</style>
+
+<div class="intro">
+  <h1>05 · Now Playing and the mini player</h1>
+  <div class="date">2026-11-21 · UI directions · Pixel · sheet 05</div>
+  <p>The player takes a full colour scheme from the cover, the way the Pixel media player does, instead of fading the
+     cover's colour into black. Every component on it is the same one the rest of the app uses, drawn with roles that
+     <code>.from-art</code> rebuilds from the cover's tint.</p>
+  <p>This sheet settles how playing and paused look, and where the controls go now that the plus-in-a-circle, the
+     white play circle and the green dots are gone.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · Now Playing, playing</p>
+  <p class="why">A solid tonal surface in the cover's hue, no gradient to black. <b>Playing shows in form</b>: a wavy seek line, a rounded-square play button, the cover at full size. The next song in the queue shows as a sliver, so the swipe is visible.</p>
+  <div class="phone from-art art-revenge">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <header class="np-top">
+      <button class="ib"><span class="ms">keyboard_arrow_down</span></button>
+      <div class="np-ctx"><small>Playing from</small><b><span class="ms">album</span>Dhurandhar: The Revenge</b></div>
+      <button class="ib"><span class="ms">more_vert</span></button>
+    </header>
+    <div class="np-pager">
+      <div class="np-cover"><div class="cv art-revenge"></div></div>
+      <div class="np-next"><div class="cv art-revenge plain"></div></div>
+    </div>
+    <div class="np-info">
+      <p class="np-lyric"><span class="ms s18">lyrics</span><span>I carry the lamp you left alight</span></p>
+      <h1 class="np-title">Jaan Se Guzarte Hain</h1>
+      <a class="np-artist">Khan Saab, Shashwat Sachdev</a>
+    </div>
+    <div class="seek" style="--p:32.3%"><i class="seek-on"></i><i class="seek-thumb"></i><i class="seek-off"></i></div>
+    <div class="seek-times"><span>1:47</span><span>5:31</span></div>
+    <div class="transport">
+      <button class="skip"><span class="ms">skip_previous</span></button>
+      <button class="pp xl playing"><span class="ms">pause</span></button>
+      <button class="skip"><span class="ms">skip_next</span></button>
+    </div>
+    <div class="np-tools">
+      <button class="ib"><span class="ms">shuffle</span></button>
+      <button class="ib"><span class="ms">repeat</span></button>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="ib"><span class="ms">queue_music</span></button>
+    </div>
+    <section class="np-card">
+      <h4><span class="ms">lyrics</span>Lyrics</h4>
+      <div class="lyrics">
+        <p class="now">I carry the lamp you left alight</p>
+        <p>Every window on this street is yours</p>
+        <p>I pass them all and count the doors</p>
+        <p>♪</p>
+      </div>
+      <button class="btn tonal">Open lyrics<span class="ms">open_in_full</span></button>
+    </section>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">B · Scrolled, full length</p>
+  <p class="why">The current lyric line sits above the title. Below the player: the lyrics card, “About the artist” with the artist in the cookie shape, and “Credits”. They are containers on the same tonal surface, not a different colour each.</p>
+  <div class="phone from-art art-revenge long">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <header class="np-top">
+      <button class="ib"><span class="ms">keyboard_arrow_down</span></button>
+      <div class="np-ctx"><small>Playing from</small><b><span class="ms">album</span>Dhurandhar: The Revenge</b></div>
+      <button class="ib"><span class="ms">more_vert</span></button>
+    </header>
+    <div class="np-pager">
+      <div class="np-cover"><div class="cv art-revenge"></div></div>
+      <div class="np-next"><div class="cv art-revenge plain"></div></div>
+    </div>
+    <div class="np-info">
+      <p class="np-lyric"><span class="ms s18">lyrics</span><span>I carry the lamp you left alight</span></p>
+      <h1 class="np-title">Jaan Se Guzarte Hain</h1>
+      <a class="np-artist">Khan Saab, Shashwat Sachdev</a>
+    </div>
+    <div class="seek" style="--p:32.3%"><i class="seek-on"></i><i class="seek-thumb"></i><i class="seek-off"></i></div>
+    <div class="seek-times"><span>1:47</span><span>5:31</span></div>
+    <div class="transport">
+      <button class="skip"><span class="ms">skip_previous</span></button>
+      <button class="pp xl playing"><span class="ms">pause</span></button>
+      <button class="skip"><span class="ms">skip_next</span></button>
+    </div>
+    <div class="np-tools">
+      <button class="ib"><span class="ms">shuffle</span></button>
+      <button class="ib"><span class="ms">repeat</span></button>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="ib"><span class="ms">queue_music</span></button>
+    </div>
+    <section class="np-card">
+      <h4><span class="ms">lyrics</span>Lyrics</h4>
+      <div class="lyrics">
+        <p class="now">I carry the lamp you left alight</p>
+        <p>Every window on this street is yours</p>
+        <p>I pass them all and count the doors</p>
+        <p>♪</p>
+      </div>
+      <button class="btn tonal">Open lyrics<span class="ms">open_in_full</span></button>
+    </section>
+    <a class="np-card artist-card">
+      <div class="cv art-revenge plain cookie"></div>
+      <div><small>About the artist</small><b>Khan Saab</b><span>2 songs in your library</span></div>
+      <span class="ms">arrow_forward</span>
+    </a>
+    <section class="np-card">
+      <h4>Credits</h4>
+      <div class="kv"><small>Performed by</small><b>Khan Saab, Shashwat Sachdev</b></div>
+      <div class="kv"><small>Album</small><b>Dhurandhar: The Revenge</b></div>
+      <div class="kv"><small>Year</small><b>2026</b></div>
+    </section>
+    <div style="height:28px"></div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">paused · radio</span></div>
+  <p class="cap">C · Paused, radio, shuffle on, repeat one</p>
+  <p class="why">Paused: the wave goes flat, the button widens into a pill, the cover steps back and rounds off. A selected toggle <b>squares off and fills</b>, so shuffle and repeat need no dot and no second colour. Radio puts its own glyph in the context line.</p>
+  <div class="phone from-art art-revenge">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <header class="np-top">
+      <button class="ib"><span class="ms">keyboard_arrow_down</span></button>
+      <div class="np-ctx"><small>Playing from</small><b><span class="ms">sensors</span>Radio · Jaan Se Guzarte Hain</b></div>
+      <button class="ib"><span class="ms">more_vert</span></button>
+    </header>
+    <div class="np-pager paused">
+      <div class="np-cover"><div class="cv art-revenge"></div></div>
+      <div class="np-next"><div class="cv art-rockstar plain"></div></div>
+    </div>
+    <div class="np-info">
+      <p class="np-lyric"><span class="ms s18">lyrics</span><span>I carry the lamp you left alight</span></p>
+      <h1 class="np-title">Jaan Se Guzarte Hain</h1>
+      <a class="np-artist">Khan Saab, Shashwat Sachdev</a>
+    </div>
+    <div class="seek paused" style="--p:32.3%"><i class="seek-on"></i><i class="seek-thumb"></i><i class="seek-off"></i></div>
+    <div class="seek-times"><span>1:47</span><span>5:31</span></div>
+    <div class="transport">
+      <button class="skip"><span class="ms">skip_previous</span></button>
+      <button class="pp xl"><span class="ms">play_arrow</span></button>
+      <button class="skip"><span class="ms">skip_next</span></button>
+    </div>
+    <div class="np-tools">
+      <button class="ib on"><span class="ms">shuffle</span></button>
+      <button class="ib on"><span class="ms">repeat_one</span></button>
+      <button class="ib heart on"><span class="ms">favorite</span></button>
+      <button class="ib"><span class="ms">queue_music</span></button>
+    </div>
+    <section class="np-card">
+      <h4><span class="ms">lyrics</span>Lyrics</h4>
+      <div class="lyrics">
+        <p class="now">I carry the lamp you left alight</p>
+        <p>Every window on this street is yours</p>
+        <p>I pass them all and count the doors</p>
+        <p>♪</p>
+      </div>
+      <button class="btn tonal">Open lyrics<span class="ms">open_in_full</span></button>
+    </section>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+  <p class="cap">D · Now Playing, light</p>
+  <p class="why">Today's player is always dark. This one follows the theme the way the system media player does, with the light roles built from the same cover.</p>
+  <div class="phone from-art art-revenge light">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <header class="np-top">
+      <button class="ib"><span class="ms">keyboard_arrow_down</span></button>
+      <div class="np-ctx"><small>Playing from</small><b><span class="ms">album</span>Dhurandhar: The Revenge</b></div>
+      <button class="ib"><span class="ms">more_vert</span></button>
+    </header>
+    <div class="np-pager">
+      <div class="np-cover"><div class="cv art-revenge"></div></div>
+      <div class="np-next"><div class="cv art-revenge plain"></div></div>
+    </div>
+    <div class="np-info">
+      <p class="np-lyric"><span class="ms s18">lyrics</span><span>I carry the lamp you left alight</span></p>
+      <h1 class="np-title">Jaan Se Guzarte Hain</h1>
+      <a class="np-artist">Khan Saab, Shashwat Sachdev</a>
+    </div>
+    <div class="seek" style="--p:32.3%"><i class="seek-on"></i><i class="seek-thumb"></i><i class="seek-off"></i></div>
+    <div class="seek-times"><span>1:47</span><span>5:31</span></div>
+    <div class="transport">
+      <button class="skip"><span class="ms">skip_previous</span></button>
+      <button class="pp xl playing"><span class="ms">pause</span></button>
+      <button class="skip"><span class="ms">skip_next</span></button>
+    </div>
+    <div class="np-tools">
+      <button class="ib"><span class="ms">shuffle</span></button>
+      <button class="ib"><span class="ms">repeat</span></button>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="ib"><span class="ms">queue_music</span></button>
+    </div>
+    <section class="np-card">
+      <h4><span class="ms">lyrics</span>Lyrics</h4>
+      <div class="lyrics">
+        <p class="now">I carry the lamp you left alight</p>
+        <p>Every window on this street is yours</p>
+        <p>I pass them all and count the doors</p>
+        <p>♪</p>
+      </div>
+      <button class="btn tonal">Open lyrics<span class="ms">open_in_full</span></button>
+    </section>
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">mini player</span></div>
+  <p class="cap">E · Mini player states</p>
+  <p class="why">One pill in the cover's container colour. Progress is the ring around the play control, so there is no line along the bottom edge.</p>
+  <p class="lbl">Playing. The control is a rounded square and the ring shows the position.</p>
+  <div class="strip" style="padding:12px">
+    <div class="mini from-art art-revenge">
+      <div class="cv art-revenge plain"></div>
+      <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="pp ring playing"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <p class="lbl">Paused. The control is round.</p>
+  <div class="strip" style="padding:12px">
+    <div class="mini from-art art-revenge">
+      <div class="cv art-revenge plain"></div>
+      <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="pp ring"><span class="ms">play_arrow</span></button>
+    </div>
+  </div>
+  <p class="lbl">Long title and artist, favourite on. The title ends in an ellipsis; the artist line scrolls.</p>
+  <div class="strip" style="padding:12px">
+    <div class="mini from-art art-dhurandhar">
+      <div class="cv art-dhurandhar plain"></div>
+      <div class="mini-meta"><b>Dhurandhar Title Track (From “Dhurandhar”)</b><span class="marquee">Shashwat Sachdev, Jasmine Sandlas, Reble, Bombay Rockers</span></div>
+      <button class="ib heart on"><span class="ms">favorite</span></button>
+      <button class="pp ring playing"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <p class="lbl">Light.</p>
+  <div class="strip light" style="padding:12px">
+    <div class="mini from-art art-revenge">
+      <div class="cv art-revenge plain"></div>
+      <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="pp ring playing"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <p class="lbl">Another cover, light, paused.</p>
+  <div class="strip light" style="padding:12px">
+    <div class="mini from-art art-viva">
+      <div class="cv art-viva plain"></div>
+      <div class="mini-meta"><b>Viva La Vida</b><span>Coldplay</span></div>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="pp ring"><span class="ms">play_arrow</span></button>
+    </div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">scrolled</span></div>
+  <p class="cap">F · Scrolled past the player</p>
+  <p class="why">The compact header: title, artist, favourite, and the same play control with its ring that the mini player uses.</p>
+  <div class="phone from-art art-revenge">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <header class="np-sticky">
+      <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart"><span class="ms">favorite</span></button>
+      <button class="pp ring playing"><span class="ms">pause</span></button>
+    </header>
+    <div style="height:84px"></div>
+    <section class="np-card">
+      <h4><span class="ms">lyrics</span>Lyrics</h4>
+      <div class="lyrics">
+        <p class="now">I carry the lamp you left alight</p>
+        <p>Every window on this street is yours</p>
+        <p>I pass them all and count the doors</p>
+        <p>♪</p>
+      </div>
+      <button class="btn tonal">Open lyrics<span class="ms">open_in_full</span></button>
+    </section>
+    <a class="np-card artist-card">
+      <div class="cv art-revenge plain cookie"></div>
+      <div><small>About the artist</small><b>Khan Saab</b><span>2 songs in your library</span></div>
+      <span class="ms">arrow_forward</span>
+    </a>
+    <section class="np-card">
+      <h4>Credits</h4>
+      <div class="kv"><small>Performed by</small><b>Khan Saab, Shashwat Sachdev</b></div>
+      <div class="kv"><small>Album</small><b>Dhurandhar: The Revenge</b></div>
+      <div class="kv"><small>Year</small><b>2026</b></div>
+    </section>
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Cue removed</th></tr>
+    <tr><td>Gradient from the cover colour down to <code>#121212</code>, always dark</td><td>One tonal surface from the cover's scheme. Follows light and dark.</td><td>The cover-to-black gradient (<code>NowPlaying.kt:279</code>)</td></tr>
+    <tr><td>Chevron, centred “Playing from” and context, kebab</td><td>A start-aligned bar: close, then “Playing from” over the context with a glyph for its kind (album, radio), then the menu.</td><td>The centred three-part header (<code>NowPlaying.kt:337-357</code>)</td></tr>
+    <tr><td>One centred cover; shrinks 14dp when paused</td><td>A hero pager: the cover plus a sliver of the next queue entry. Paused, the cover scales to 86% and its corners go from 28 to 48.</td><td>The single centred cover</td></tr>
+    <tr><td>Title and artist left, plus-in-circle right</td><td>The title block has the full width. Favourite is a heart in the tools row.</td><td>The plus-to-check control beside the title (<code>NowPlaying.kt:290-304</code>)</td></tr>
+    <tr><td>Thin white line with a round handle; green while dragging</td><td>The wavy track Pixel's media player uses, 4dp thick, with a bar handle. Flat when paused.</td><td>The thin seek line and round handle (<code>NowPlaying.kt:471-516</code>)</td></tr>
+    <tr><td>Shuffle, previous, white play circle, next, repeat in one row; green icon and dot when on</td><td>Transport is a button group: previous, play or pause, next. Shuffle, repeat, favourite and queue are a toolbar under it. A toggle that is on squares off and fills with <code>primary</code>.</td><td>The five-control row, the white circle, the green dot (<code>NowPlaying.kt:395-439</code>)</td></tr>
+    <tr><td>Green badge and “Downloaded”, queue icon bottom right</td><td>Removed, per the naming table. Queue is in the toolbar.</td><td>The “Downloaded” label</td></tr>
+    <tr><td>Lyrics card in a lighter cover colour with a white “Show lyrics” pill; artist image with a caption over it; grey Credits card</td><td>Containers on <code>surfaceContainer</code>. “Open lyrics” is a tonal button. The artist is a cookie beside the text.</td><td>The coloured lyrics card and white pill; text over the artist image</td></tr>
+    <tr><td>Mini player: tinted bar, progress line on its bottom edge, plus and play icons</td><td>A pill; heart; the play control carries progress as a ring.</td><td>The mini player's bar and line (<code>NowPlaying.kt:128-204</code>)</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>“Playing from” and every context name, including “Radio · {song title}”.</li>
+    <li>Close button and swipe down to dismiss; the track menu; swipe the cover sideways to change song; tap the artist to open the artist.</li>
+    <li>Tap and drag to seek, elapsed and total time (not time remaining).</li>
+    <li>Shuffle on and off; repeat off, all, one; previous, play or pause, next; open queue.</li>
+    <li>The inline lyric line, shown only when the song has synced lyrics; the lyrics card; “About the artist”; “Credits” with “Performed by”, “Album”, “Year”; the compact header once scrolled.</li>
+    <li>The first page is one screen tall, with the top of the lyrics card showing above the gesture bar as the cue to scroll.</li>
+  </ul>
+
+  <h2>Motion on this screen</h2>
+  <ul>
+    <li><b>Play and pause.</b> The button morphs between pill (paused, 152 wide, fully round) and rounded square (playing, 128 wide, 28 corners) on the fast spatial spring; the previous and next buttons give way and settle. The glyph cross-fades on the fast effects spring.</li>
+    <li><b>The wave.</b> While playing the wave travels toward the handle at one wavelength a second. On pause its amplitude springs to zero over about 300 ms; on play it grows back. While dragging, it flattens so the position is easy to read.</li>
+    <li><b>The cover.</b> Scale and corner radius follow the same spring as the button. Changing song slides the pager one item; the sliver grows into the large slot.</li>
+    <li><b>Open and close.</b> The mini player's cover is a shared element: it grows into the pager while the pill's container expands into the full surface. Predictive back plays the same transition in reverse under the finger.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Favourite has moved</b> from beside the title to the tools row, next to queue. It is closer to the thumb and it frees the title, but it is no longer next to the song name. The alternative keeps it at the end of the title line.</li>
+    <li><b>Light Now Playing.</b> Frame D follows the theme. If the player should stay dark at all times, as today, the dark art scheme can be forced on this screen alone.</li>
+    <li><b>The sliver of the next song.</b> When the queue is one album, the sliver is a strip of the same cover (frame A). It still marks the swipe; frame C shows it with a different cover.</li>
+  </ul>
+</div>

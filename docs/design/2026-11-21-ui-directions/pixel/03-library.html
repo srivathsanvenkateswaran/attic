@@ -1,0 +1,452 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Pixel · 03 · Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+/* The FAB floats 12dp above the mini player. */
+.phone .fab.lib{position:absolute;right:16px;bottom:172px;z-index:6}
+/* Chips pinned under a collapsed bar share its container colour. */
+.phone .pinned{position:relative;z-index:4;padding:0 0 12px;background:var(--surface-container)}
+/* The first block of a scrolled page, cut off by the bar above it. */
+.phone .under{overflow:hidden}
+.phone .under.list > .group > :first-child{margin-top:-40px}
+.phone .under.tiles > .grid{margin-top:-96px}
+/* Small label over a block of the grid. */
+.phone .glabel{padding:20px 20px 8px;font-size:14px;line-height:20px;font-weight:600;color:var(--on-surface-variant)}
+/* Songs filter: the filled action, then the count with the sort control beside it. */
+.phone .songs-act{display:flex;padding:16px 16px 0}
+.phone .lhead{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 8px 32px;
+  font-size:14px;line-height:20px;font-weight:600;color:var(--on-surface-variant)}
+/* a menu row with no tick keeps the tick's space */
+.phone .menu-item .ms:empty{visibility:hidden}
+
+/* The system keyboard, up whenever a text field has focus. Not app UI: a stand-in drawn from the scheme,
+   the same one sheet 07 draws. */
+.phone .kbd{position:absolute;left:0;right:0;bottom:0;z-index:13;height:264px;padding:10px 4px 0;background:var(--surface-container-low)}
+.phone .kbd .kr{display:flex;gap:6px;margin-bottom:8px}
+.phone .kbd .kr.in{padding:0 19px}
+.phone .kbd .kr b{flex:1;display:grid;place-items:center;height:46px;border-radius:var(--r-s);background:var(--surface-container-highest);
+  font-size:20px;line-height:1;font-weight:400;color:var(--on-surface)}
+.phone .kbd .kr b.fn{flex:1.55;background:var(--secondary-container);color:var(--on-secondary-container);font-size:14px}
+.phone .kbd .kr b.sp{flex:5.2}
+.phone .kbd .kr b.go{flex:1.55;border-radius:var(--r-full);background:var(--primary);color:var(--on-primary)}
+.phone .kbd .kr b .ms{font-size:20px}
+.phone .kbd i{position:absolute;left:50%;bottom:8px;width:108px;height:4px;margin-left:-54px;border-radius:2px;background:var(--on-surface);opacity:.9}
+</style>
+
+<div class="intro">
+  <h1>03 · Library</h1>
+  <div class="date">2026-11-21 · UI directions · Pixel · sheet 03</div>
+  <p>Library keeps its contents and its four filters and changes how each control is made. Today's header is a title
+     row with search and plus, a row of pill chips, then a “Recents” label with a grid icon. Here creating a playlist is
+     a floating action button, the grid switch is a toggle in the app bar, the fixed “Recents” label is gone, and the
+     list is three grouped containers: playlists and folders, artists, albums.</p>
+  <p>The fourth filter reads “Songs”. It was “Downloaded”, which described nothing, since every song is a local file.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · List, no filter</p>
+  <p class="why">No chip is selected at first and tapping the selected one clears it, as today. The first group is Favourites, your playlists, then folders, and <b>the shape says the kind</b>: heart, mosaic, cookie, cover. Creating a playlist is the extended FAB above the mini player.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip">Songs</a></div><div style="height:16px"></div><div class="group">
+        <a class="row coll"><span class="lead"><div class="fav-art"><span class="ms fill">favorite</span></div></span><div class="row-text"><b>Favourites</b><span>31 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Late drive</b><span>Playlist, 12 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div><div class="cv art-anbe"></div></div></span><div class="row-text"><b>Rahman, slow</b><span>Playlist, 9 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span><div class="row-text"><b>English</b><span>Folder, 24 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Hindi</b><span>Folder, 46 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><div class="row-text"><b>Phonk</b><span>Folder, 38 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span><div class="row-text"><b>Tamil</b><span>Folder, 19 songs</span></div></a>
+      </div><p class="list-label">Artists</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Khan Saab</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Shashwat Sachdev</b><span>6 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-anbe plain cookie"></div></span><div class="row-text"><b>A. R. Rahman</b><span>14 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Javed Ali</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Mohit Chauhan</b><span>1 song</span></div></a>
+      </div><p class="list-label">Albums</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain"></div></span><div class="row-text"><b>Rockstar</b><span>A. R. Rahman</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-ghost plain"></div></span><div class="row-text"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-premam plain"></div></span><div class="row-text"><b>Premam</b><span>Rajesh Murugesan</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-dreams plain"></div></span><div class="row-text"><b>A Head Full of Dreams</b><span>Coldplay</span></div></a>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <button class="fab ext lib"><span class="ms">add</span>New playlist</button>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">grid</span></div>
+  <p class="cap">B · Grid view</p>
+  <p class="why">Three columns in the same three groups. The grid toggle in the bar is squared off and filled because it is on. This page has scrolled: the bar is small, the chips stay pinned under it and the FAB has shrunk to its icon.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root scrolled"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib on"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div class="pinned"><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip">Songs</a></div></div><div class="under tiles"><div class="grid c3"><a class="tile s"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><b>English</b><span>Folder, 24 songs</span></a><a class="tile s"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><b>Hindi</b><span>Folder, 46 songs</span></a><a class="tile s"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b>Phonk</b><span>Folder, 38 songs</span></a><a class="tile s"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><b>Tamil</b><span>Folder, 19 songs</span></a></div></div><p class="glabel">Artists</p><div class="grid c3"><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b>Khan Saab</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b style="font-stretch:66%">Shashwat Sachdev</b><span>6 songs</span></a><a class="tile s artist"><div class="cv art-anbe plain cookie"></div><b>A. R. Rahman</b><span>14 songs</span></a><a class="tile s artist"><div class="cv art-rockstar plain cookie"></div><b>Javed Ali</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-rockstar plain cookie"></div><b>Mohit Chauhan</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-ghost plain cookie"></div><b>KIIXSHI</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-ghost plain cookie"></div><b>phonk.me</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-premam plain cookie"></div><b>Vijay Yesudas</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-lootera plain cookie"></div><b>Amit Trivedi</b><span>7 songs</span></a></div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <button class="fab lib"><span class="ms">add</span></button>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">songs</span></div>
+  <p class="cap">C · “Songs”</p>
+  <p class="why">All 127 songs. “Shuffle all songs” is the one filled button. Sort is a split button: its left part cycles Title, Artist, Recently added as today, and its arrow lists the same three. The grid toggle is disabled here and the FAB is hidden.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib off"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip on"><span class="ms">check</span>Songs</a></div><div class="songs-act"><button class="btn filled m wide"><span class="ms">shuffle</span>Shuffle all songs</button></div><div class="lhead"><span>127 songs</span><span class="split"><span><span class="ms">sort</span>Title</span><span><span class="ms">keyboard_arrow_down</span></span></span></div><div class="group">
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-anbe plain"></div></span><div class="row-text"><b>Aaruyire</b><span>A. R. Rahman</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-dreams plain"></div></span><div class="row-text"><b>Adventure of a Lifetime</b><span>Coldplay</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-oso plain"></div></span><div class="row-text"><b>Ajab Si</b><span>Vishal-Shekhar</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-premam plain"></div></span><div class="row-text"><b>Aluva Puzha</b><span>Rajesh Murugesan</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-yjhd plain"></div></span><div class="row-text"><b>Badtameez Dil</b><span>Pritam</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-yjhd plain"></div></span><div class="row-text"><b>Balam Pichkari</b><span>Pritam</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-raanjhanaa plain"></div></span><div class="row-text"><b>Banarasiya</b><span>A. R. Rahman</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">dialog</span></div>
+  <p class="cap">D · Create playlist</p>
+  <p class="why">The FAB opens an M3 dialog. The field has focus on open, so its label sits on the outline and the keyboard is up. “Create” is disabled until a name is typed. Confirming creates the playlist and opens it.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip">Songs</a></div><div style="height:16px"></div><div class="group">
+        <a class="row coll"><span class="lead"><div class="fav-art"><span class="ms fill">favorite</span></div></span><div class="row-text"><b>Favourites</b><span>31 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Late drive</b><span>Playlist, 12 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div><div class="cv art-anbe"></div></div></span><div class="row-text"><b>Rahman, slow</b><span>Playlist, 9 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span><div class="row-text"><b>English</b><span>Folder, 24 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Hindi</b><span>Folder, 46 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><div class="row-text"><b>Phonk</b><span>Folder, 38 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span><div class="row-text"><b>Tamil</b><span>Folder, 19 songs</span></div></a>
+      </div><p class="list-label">Artists</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Khan Saab</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Shashwat Sachdev</b><span>6 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-anbe plain cookie"></div></span><div class="row-text"><b>A. R. Rahman</b><span>14 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Javed Ali</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Mohit Chauhan</b><span>1 song</span></div></a>
+      </div><p class="list-label">Albums</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain"></div></span><div class="row-text"><b>Rockstar</b><span>A. R. Rahman</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-ghost plain"></div></span><div class="row-text"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-premam plain"></div></span><div class="row-text"><b>Premam</b><span>Rajesh Murugesan</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-dreams plain"></div></span><div class="row-text"><b>A Head Full of Dreams</b><span>Coldplay</span></div></a>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <button class="fab ext lib"><span class="ms">add</span>New playlist</button><div class="scrim"></div><div class="dialog" style="top:312px"><h2>Name this playlist</h2><div class="field focus"><label>Playlist name</label><span class="val"></span></div><div class="dialog-actions"><button class="btn text">Cancel</button><button class="btn text off">Create</button></div></div><div class="kbd">
+      <div class="kr"><b>q</b><b>w</b><b>e</b><b>r</b><b>t</b><b>y</b><b>u</b><b>i</b><b>o</b><b>p</b></div>
+      <div class="kr in"><b>a</b><b>s</b><b>d</b><b>f</b><b>g</b><b>h</b><b>j</b><b>k</b><b>l</b></div>
+      <div class="kr"><b class="fn"><span class="ms">shift</span></b><b>z</b><b>x</b><b>c</b><b>v</b><b>b</b><b>n</b><b>m</b><b class="fn"><span class="ms">backspace</span></b></div>
+      <div class="kr"><b class="fn">?123</b><b>,</b><b class="sp"></b><b>.</b><b class="go"><span class="ms">check</span></b></div>
+      <i></i>
+    </div>
+    
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">scrolled</span></div>
+  <p class="cap">E · List, scrolled</p>
+  <p class="why">Artists and albums are groups under small labels, so a row no longer needs “Artist” or “Album,” in front of its subtitle. Both keep today's order, most recently played first.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root scrolled"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div class="pinned"><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip">Songs</a></div></div><div class="under list"><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-lootera plain cookie"></div></span><div class="row-text"><b>Amit Trivedi</b><span>7 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-lootera plain cookie"></div></span><div class="row-text"><b>Amitabh Bhattacharya</b><span>1 song</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Arijit Singh</b><span>3 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Bombay Rockers</b><span>1 song</span></div></a>
+      </div></div><p class="list-label">Albums</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain"></div></span><div class="row-text"><b>Rockstar</b><span>A. R. Rahman</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-ghost plain"></div></span><div class="row-text"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-premam plain"></div></span><div class="row-text"><b>Premam</b><span>Rajesh Murugesan</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-dreams plain"></div></span><div class="row-text"><b>A Head Full of Dreams</b><span>Coldplay</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-anbe plain"></div></span><div class="row-text"><b>Anbe Aaruyire</b><span>A. R. Rahman</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-dhurandhar plain"></div></span><div class="row-text"><b>Dhurandhar</b><span>Shashwat Sachdev</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-jodhaa plain"></div></span><div class="row-text"><b>Jodhaa Akbar</b><span>A. R. Rahman</span></div></a>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <button class="fab lib"><span class="ms">add</span></button>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">artists</span></div>
+  <p class="cap">F · “Artists”, grid</p>
+  <p class="why">One kind on the page, so no labels. Every artist is the cookie, with the name centred under it. The FAB shows only while playlists are in the list: with no filter and with “Playlists”.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib on"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip on"><span class="ms">check</span>Artists</a><a class="chip">Songs</a></div><div style="height:16px"></div><div class="grid c3"><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b>Khan Saab</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b style="font-stretch:66%">Shashwat Sachdev</b><span>6 songs</span></a><a class="tile s artist"><div class="cv art-anbe plain cookie"></div><b>A. R. Rahman</b><span>14 songs</span></a><a class="tile s artist"><div class="cv art-rockstar plain cookie"></div><b>Javed Ali</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-rockstar plain cookie"></div><b>Mohit Chauhan</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-ghost plain cookie"></div><b>KIIXSHI</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-ghost plain cookie"></div><b>phonk.me</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-premam plain cookie"></div><b>Vijay Yesudas</b><span>2 songs</span></a><a class="tile s artist"><div class="cv art-lootera plain cookie"></div><b>Amit Trivedi</b><span>7 songs</span></a><a class="tile s artist"><div class="cv art-lootera plain cookie"></div><b class="w50">Amitabh Bhattacharya</b><span>1 song</span></a><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b>Arijit Singh</b><span>3 songs</span></a><a class="tile s artist"><div class="cv art-revenge plain cookie"></div><b class="w75">Bombay Rockers</b><span>1 song</span></a></div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+  <p class="cap">G · List, light</p>
+  <p class="why">Frame A in the light scheme. Favourites keeps <code>tertiaryContainer</code> and the mini player keeps the cover's hue; everything else is the wallpaper's.</p>
+  <div class="phone light">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip">Songs</a></div><div style="height:16px"></div><div class="group">
+        <a class="row coll"><span class="lead"><div class="fav-art"><span class="ms fill">favorite</span></div></span><div class="row-text"><b>Favourites</b><span>31 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Late drive</b><span>Playlist, 12 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div><div class="cv art-anbe"></div></div></span><div class="row-text"><b>Rahman, slow</b><span>Playlist, 9 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span><div class="row-text"><b>English</b><span>Folder, 24 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><div class="row-text"><b>Hindi</b><span>Folder, 46 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><div class="row-text"><b>Phonk</b><span>Folder, 38 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span><div class="row-text"><b>Tamil</b><span>Folder, 19 songs</span></div></a>
+      </div><p class="list-label">Artists</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Khan Saab</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain cookie"></div></span><div class="row-text"><b>Shashwat Sachdev</b><span>6 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-anbe plain cookie"></div></span><div class="row-text"><b>A. R. Rahman</b><span>14 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Javed Ali</b><span>2 songs</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain cookie"></div></span><div class="row-text"><b>Mohit Chauhan</b><span>1 song</span></div></a>
+      </div><p class="list-label">Albums</p><div class="group">
+        <a class="row coll"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-rockstar plain"></div></span><div class="row-text"><b>Rockstar</b><span>A. R. Rahman</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-ghost plain"></div></span><div class="row-text"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-premam plain"></div></span><div class="row-text"><b>Premam</b><span>Rajesh Murugesan</span></div></a>
+        <a class="row coll"><span class="lead"><div class="cv art-dreams plain"></div></span><div class="row-text"><b>A Head Full of Dreams</b><span>Coldplay</span></div></a>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <button class="fab ext lib"><span class="ms">add</span>New playlist</button>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">sort menu</span></div>
+  <p class="cap">H · “Songs”, sort menu open</p>
+  <p class="why">The arrow half of the split button lists the three sorts and ticks the current one. Sorted by Recently added, the song that is playing is in view: a tonal row with the wave over its cover.</p>
+  <div class="phone light">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="page clear-dock">
+      <header class="appbar root"><h1 class="title">Library</h1><button class="ib"><span class="ms">search</span></button><button class="ib off"><span class="ms">grid_view</span></button><button class="ib"><span class="ms">settings</span></button></header><div style="height:4px"></div><div class="chips"><a class="chip">Playlists</a><a class="chip">Albums</a><a class="chip">Artists</a><a class="chip on"><span class="ms">check</span>Songs</a></div><div class="songs-act"><button class="btn filled m wide"><span class="ms">shuffle</span>Shuffle all songs</button></div><div class="lhead"><span>127 songs</span><span class="split"><span><span class="ms">sort</span>Recently added</span><span><span class="ms">keyboard_arrow_down</span></span></span></div><div class="group">
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row now"><span class="lead"><div class="cv art-revenge plain"></div><i class="wave"></i></span><div class="row-text"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-revenge plain"></div></span><div class="row-text"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-dhurandhar plain"></div></span><div class="row-text"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-dhurandhar plain"></div></span><div class="row-text"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+        <div class="row"><span class="lead"><div class="cv art-dhurandhar plain"></div></span><div class="row-text"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini from-art art-revenge">
+        <div class="cv art-revenge plain"></div>
+        <div class="mini-meta"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart"><span class="ms">favorite</span></button>
+        <button class="pp ring playing"><span class="ms">pause</span></button>
+      </div>
+      <nav class="nav">
+        <a class="nav-item"><span class="ind"><span class="ms">home</span></span>Home</a>
+        <a class="nav-item"><span class="ind"><span class="ms">search</span></span>Search</a>
+        <a class="nav-item on"><span class="ind"><span class="ms">library_music</span></span>Library</a>
+      </nav>
+    </div>
+    <div class="menu" style="right:16px;top:300px"><a class="menu-item"><span class="ms"></span>Title</a><a class="menu-item"><span class="ms"></span>Artist</a><a class="menu-item"><span class="ms">check</span>Recently added</a></div>
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Cue removed</th></tr>
+    <tr><td>Round Attic-mark button, “Your Library”, then search and plus icons</td><td>Root app bar: “Library” in the large rounded title, then search, the grid toggle and the settings gear.</td><td>The avatar-style button; “Your Library”; the title row with search and plus (<code>LibraryScreen.kt:126-202</code>)</td></tr>
+    <tr><td>Plus icon in the title row</td><td>An extended FAB, “New playlist”, 12dp above the mini player. It shrinks to its icon once the list scrolls and is hidden under “Albums”, “Artists” and “Songs”.</td><td>The plus beside the title</td></tr>
+    <tr><td>Pill chips, the selected one green; the fourth is “Downloaded”</td><td>M3 filter chips: outlined, and filled with <code>secondaryContainer</code> plus a tick when selected. The fourth is “Songs”.</td><td>Green pill chips; “Downloaded”</td></tr>
+    <tr><td>A sort glyph and “Recents”, with a grid icon at the far end of the row</td><td>The row is gone. The order is unchanged. The view switch is a toggle icon button in the bar that squares off and fills while the grid is on.</td><td>“Recents” with a sort glyph (<code>:192-194</code>)</td></tr>
+    <tr><td>One flat list; every subtitle starts with “Playlist,”, “Artist” or “Album,”</td><td>Grouped containers: playlists and folders, then “Artists”, then “Albums”. Subtitles carry a song count or the album's artist. Folders read “Folder”.</td><td>Rows mixing kinds with a type prefix; folders passing as playlists</td></tr>
+    <tr><td>Circular artist images</td><td>The cookie, in rows and in the grid.</td><td>Round artists</td></tr>
+    <tr><td>Liked Songs on a violet-to-mint gradient</td><td>“Favourites”: a heart on <code>tertiaryContainer</code>.</td><td>The gradient tile and the name</td></tr>
+    <tr><td>“Downloaded”: a sort glyph with “Title, 127 songs” and a shuffle icon</td><td>“Songs”: a filled “Shuffle all songs”, then “127 songs” with the sort as a split button.</td><td>The label that doubles as a hidden control</td></tr>
+    <tr><td>Dialog titled “Give your playlist a name”</td><td>“Name this playlist”, in an M3 dialog with 28dp corners and an outlined field.</td><td>The phrase</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>The four filters, none selected at first, each clearing on a second tap, and what each one leaves on the page.</li>
+    <li>The contents and their order: Favourites, your playlists, folders, the 40 most recently played artists, every album. Artists and albums most recently played first, then by name.</li>
+    <li>A list view and a three-column grid view, with artist tiles centred. No grid in the song list.</li>
+    <li>The shortcut to the Search tab. It does not filter this screen, as today.</li>
+    <li>Create playlist: a name dialog whose field has focus, a confirm that is disabled while the field is blank, and the new playlist opening straight away.</li>
+    <li>The song list: 127 songs, the sort cycling “Title”, “Artist”, “Recently added”, “Shuffle all songs” with the context “All songs”, and a tap playing the whole list from that row.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>An FAB above a mini player above a navigation bar.</b> It is Material's way to create and it frees the title row, but it is a third floating layer at the bottom. The alternative is a “New playlist” row at the head of the first group, which is how the playlist picker already offers it.</li>
+    <li><b>The FAB is hidden under three of the four filters.</b> Today's plus is always there. Hiding it keeps it off the song rows' menus and ties it to the lists that hold playlists. Clearing the filter brings it back.</li>
+    <li><b>Nothing on screen says “Recents” any more.</b> The label was not a control. If the order needs naming, the group labels can say it: “Artists, most recent first”.</li>
+    <li><b>The sort menu.</b> The arrow half of the split button is a second way to reach the same three sorts. If cycling is enough, the control becomes a plain tonal button and the arrow goes.</li>
+    <li><b>“Playlist, 12 songs” against “Folder, 46 songs”.</b> Both sit in one group with the same mosaic shape, so the word still does the telling. A small folder glyph on the mosaic would be the other way.</li>
+    <li><b>Song counts on artists.</b> Today an artist row says only “Artist”. The count is new on this screen; the artist page already shows it.</li>
+  </ul>
+</div>

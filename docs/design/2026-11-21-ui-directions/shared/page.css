@@ -1,0 +1,78 @@
+/* Review-page chrome for the 2026-11-21 UI directions round.
+   The dark page the phone frames sit on, the caption and rationale type, the
+   tags, and the device frame. Shared by all four style folders so the sheets
+   differ only in what is inside the phones.
+
+   Nothing in here styles app content. Each style's kit.css owns everything
+   inside .phone and .strip. */
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#15171b;padding:30px 28px 90px;color:#c9d1da;
+     font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+     -webkit-font-smoothing:antialiased}
+
+/* the sheet's own header */
+.intro{max-width:880px;font-size:14px;line-height:1.62;margin:0 0 10px}
+.intro h1{color:#fff;font-size:26px;font-weight:700;letter-spacing:-.4px;margin:0 0 4px}
+.intro .date{color:#7d8894;font-size:12.5px;font-weight:600;margin:0 0 14px}
+.intro p{margin:0 0 11px}
+.intro b{color:#fff}
+.intro a{color:#8ab4f8}
+.intro code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px;font-size:12.5px}
+
+/* tags: what a frame is */
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 7px 2px}
+.tag{font-size:11px;font-weight:650;padding:3px 8px;border-radius:6px;white-space:nowrap;
+     background:rgba(255,255,255,.09);color:#c9d1da}
+.tag.today{background:transparent;color:#98a2ad;border:1px dashed #454c56}   /* a drawing of what ships now */
+.tag.proposal{background:#1d3a5f;color:#cfe2ff}
+.tag.dark{background:#000;color:#aeb6c0;box-shadow:inset 0 0 0 1px #343a43}
+.tag.light{background:#e9edf2;color:#1b1f25}
+.tag.state{background:rgba(255,255,255,.06);color:#98a2ad}
+.tag.new{background:#3d2466;color:#e3d4ff}
+
+/* rows of frames */
+.rowset{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;margin-top:24px}
+.col{width:390px}
+.col.wide{width:808px}
+.cap{color:#fff;font-size:14.5px;font-weight:700;margin:0 0 5px 2px}
+.why{color:#98a2ad;font-size:12.5px;line-height:1.58;margin:0 0 12px 2px;min-height:7.9em}   /* five lines, so phone tops stay level across a row */
+.why b{color:#dfe4ea}
+.why code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px;font-size:11.5px}
+
+/* the device: 390 x 844 CSS px, one px per dp */
+.phone{width:390px;height:844px;border-radius:36px;overflow:hidden;position:relative;
+       box-shadow:0 0 0 1px rgba(255,255,255,.09),0 24px 60px rgba(0,0,0,.6);isolation:isolate}
+.phone.long{height:auto;min-height:844px}          /* a scrolled page shown at full length */
+
+/* Android status bar and gesture pill. Colour follows the content (currentColor). */
+.sbar{height:44px;padding:0 24px 0 26px;display:flex;align-items:center;justify-content:space-between;
+      font-size:14px;font-weight:600;letter-spacing:.1px;position:relative;z-index:5}
+.sbar .sys{display:flex;align-items:center;gap:6px}
+.sbar svg{display:block;fill:currentColor}
+.gpill{position:absolute;left:50%;bottom:8px;width:108px;height:4px;margin-left:-54px;border-radius:2px;
+       background:currentColor;opacity:.9;z-index:9}
+
+/* a component shown on its own (a tab bar, one row, a widget) */
+.strip{border-radius:18px;overflow:hidden;position:relative;
+       box-shadow:0 0 0 1px rgba(255,255,255,.09),0 16px 40px rgba(0,0,0,.45)}
+
+/* prose under a row of frames */
+.spec{max-width:880px;font-size:13.5px;line-height:1.68;margin:34px 0 0}
+.spec h2{color:#fff;font-size:17px;font-weight:700;margin:28px 0 9px}
+.spec h3{color:#fff;font-size:14px;font-weight:700;margin:18px 0 6px}
+.spec p{margin:0 0 10px}
+.spec b{color:#fff}
+.spec a{color:#8ab4f8}
+.spec ul{margin:8px 0 12px;padding-left:20px}
+.spec li{margin-bottom:6px}
+.spec code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px;font-size:12px}
+.spec table{border-collapse:collapse;width:100%;margin-top:8px;font-size:12.5px}
+.spec th,.spec td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.09);
+                  vertical-align:top;line-height:1.55}
+.spec th{color:#fff;font-weight:700}
+.spec td:first-child{color:#fff;font-weight:600}
+
+/* a colour swatch, for palette rows */
+.sw{display:inline-flex;align-items:center;gap:7px;margin:0 12px 8px 0;font-size:11.5px;font-weight:600}
+.sw i{width:22px;height:22px;border-radius:7px;display:block;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}

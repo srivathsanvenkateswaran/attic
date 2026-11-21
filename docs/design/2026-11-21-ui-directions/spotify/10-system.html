@@ -1,0 +1,360 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Widget, notifications, icon · today</title>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=block');
+  .why{min-height:6.32em}
+  .sublabel{color:#98a2ad;font-size:11.5px;font-weight:600;margin:14px 0 6px 2px}
+  .sublabel:first-of-type{margin-top:0}
+
+  /* Sheet-only parts. KIT.md lists these as not in the kit: the widget, the media notification,
+     the lock screen, the analysis notification and the launcher icon. Android draws most of them. */
+  .phone, .strip {
+    --sys-font: 'Roboto', system-ui, sans-serif;   /* the widget and the system surfaces use the system font */
+    --wg-grey: #B3B3B3;        /* layout/widget_wide.xml: artist line */
+    --icon-bg: #121212;        /* values/themes.xml splash_bg: the adaptive icon's background layer */
+    /* everything below is the phone's, not Attic's: a plain wallpaper and stand-ins for system colours */
+    --wall: radial-gradient(70% 46% at 96% 66%, #cbb7ac 0, #7a68b4 30%, transparent 70%),
+            radial-gradient(80% 50% at 0 22%, #3c22b8 0, transparent 68%),
+            linear-gradient(165deg, #0b0a24 0, #171472 52%, #0b0b40 100%);
+    --shade: #14151B;
+    --shade-tile: #2B2C35;
+    --shade-card: #1F2028;
+    --sys-accent: #C9C5FA;
+    --sys-on-accent: #2A2760;
+    --sys-text: #E6E4EE;
+    --sys-dim: #C5C3CF;
+    --themed-bg: #2E3154;  --themed-fg: #C4C8FF;       /* themed icon, dark */
+    --themed-bg-l: #DFE1FF; --themed-fg-l: #3A3F8C;    /* themed icon, light */
+
+    /* ── home-screen backdrop ─────────────────────────────────────────────── */
+    .screen.hs { background: var(--wall); color: var(--white); font-family: var(--sys-font); }
+    .hs-date { padding: 22px 28px 18px; font: 400 22px/28px var(--sys-font); }
+    .hs .wg { margin: 0 24px 16px; }
+    .hs-row { display: flex; align-items: flex-start; }
+    .hs-row .wg { margin-right: 16px; }
+    .li { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 78px;
+          font: 400 13px/16px var(--sys-font); color: var(--white); text-align: center; }
+    .hs-row .li { margin-top: 20px; }
+    &.wgs { width: 390px; background: var(--wall); padding: 20px 24px; }
+    &.wgs.pair { display: flex; gap: 16px; }
+
+    /* ── widget (layout/widget_large.xml, widget_wide.xml, widget_small.xml) ─ */
+    .wg { position: relative; overflow: hidden; border-radius: 24px; background: var(--art); color: var(--white);
+          font-family: var(--sys-font); flex: none; }
+    .wg-b { width: 44px; height: 44px; flex: none; display: flex; align-items: center; justify-content: center; }
+    .wg-b svg { width: 24px; height: 24px; fill: var(--white); }
+    .wg-tx { flex: 1; min-width: 0; }
+    .wg-t, .wg-a { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wg-t { font-weight: 700; font-size: 16px; line-height: 21px; }
+    .wg-a { font-size: 13px; line-height: 17px; color: var(--w80); }
+    /* widget_placeholder.xml: #333333 with the launcher foreground over it */
+    .wg-ph { background: var(--tint-fallback); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .wg-phm { fill: var(--mark); flex: none; }
+
+    /* large, 4x2 and up */
+    .wg-large { width: 342px; height: 212px; display: flex; flex-direction: column; }
+    .wg-top { flex: 1; min-height: 0; display: flex; align-items: center; padding: 10px 14px; }
+    .wg-top > .cv, .wg-top > .wg-ph { width: 84px; height: 84px; border-radius: 6px; flex: none; }
+    .wg-top > .wg-ph .wg-phm { width: 84px; height: 84px; }
+    .wg-top .wg-tx { margin-left: 14px; }
+    .wg-ctl { display: flex; align-items: center; margin-top: 4px; }
+    .wg-play { width: 38px; height: 38px; margin: 0 12px; border-radius: 50%; background: var(--white); }
+    .wg-play svg { fill: var(--black); }
+    .wg-mk { width: 22px; height: 22px; flex: none; align-self: flex-start; fill: var(--white); }
+    .wg-tiles { display: flex; padding: 8px 10px; background: var(--k15); }
+    .wg-tile { flex: 1; height: 44px; margin: 0 4px; border-radius: 6px; overflow: hidden; position: relative; background: var(--tint-fallback); }
+    .wg-tile .cv { position: absolute; left: 0; top: 50%; width: 100%; transform: translateY(-50%); }
+
+    /* wide, about 4x1 */
+    .wg-wide { width: 342px; height: 100px; display: flex; align-items: center; }
+    .wg-art { width: 72px; align-self: stretch; flex: none; position: relative; overflow: hidden; }
+    .wg-art .cv { position: absolute; top: 0; left: 50%; width: 100px; transform: translateX(-50%); }
+    .wg-wide .wg-tx { margin-left: 12px; }
+    .wg-wide .wg-t { font-size: 15px; line-height: 20px; }
+    .wg-wide .wg-a { color: var(--wg-grey); }
+
+    /* small, about 2x2 */
+    .wg-small { width: 163px; height: 212px; }
+    .wg-small > .cv { position: absolute; top: 0; left: 50%; width: 212px; transform: translateX(-50%); }
+    .wg-small > .wg-ph { position: absolute; inset: 0; }
+    .wg-small > .wg-ph .wg-phm { width: 212px; height: 212px; }
+    .wg-fab { position: absolute; right: 8px; bottom: 8px; border-radius: 50%; background: var(--k80); }
+
+    /* ── launcher icon (mipmap-anydpi-v26/ic_launcher.xml) ────────────────── */
+    .li-ic { width: 60px; height: 60px; border-radius: 50%; display: block; flex: none; }
+    .li-ic .bg { fill: var(--icon-bg); }
+    .li-ic .fg { fill: var(--mark); }
+    .li-ic.themed .bg { fill: var(--themed-bg); }      .li-ic.themed .fg { fill: var(--themed-fg); }
+    .li-ic.themed-l .bg { fill: var(--themed-bg-l); }  .li-ic.themed-l .fg { fill: var(--themed-fg-l); }
+    &.icons { width: 390px; background: var(--wall); padding: 26px 24px 22px; display: flex; justify-content: space-around; }
+    &.iconlab { width: 390px; background: var(--sc-high); padding: 22px 18px 18px; display: flex; gap: 14px; justify-content: space-between; }
+    .lab { width: 108px; font: var(--f-body-s); color: var(--on-surface-variant); }
+    .lab b { display: block; margin-top: 8px; font: var(--f-title-s); color: var(--on-surface); }
+    .lab svg { display: block; width: 108px; height: 108px; }
+    .lab .bg { fill: var(--icon-bg); } .lab .fg { fill: var(--mark); }
+    .lab .mono { fill: var(--white); }
+    .lab .guide { fill: none; stroke: var(--pink); stroke-width: 1; }
+    .lab .guide.dash { stroke: var(--marigold); stroke-dasharray: 3 3; }
+    .lab .dim { fill: var(--k55); }
+
+    /* ── notification shade and lock screen: Android's own chrome, simplified ─ */
+    .screen.shade { background: var(--shade); color: var(--sys-text); font-family: var(--sys-font); }
+    .screen.lock { background: var(--wall); color: var(--white); font-family: var(--sys-font); }
+    .qs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 16px 0; }
+    .qs.three { grid-template-columns: 84px 1fr 84px; padding-top: 8px; }
+    .qs-t { height: 72px; border-radius: 36px; background: var(--shade-tile); display: flex; align-items: center; gap: 8px;
+            padding: 8px; font: 500 14px/18px var(--sys-font); min-width: 0; }
+    .qs-t.solo { justify-content: center; }
+    .qs-t small { display: block; font: 400 12px/16px var(--sys-font); color: var(--sys-dim); white-space: nowrap; }
+    .qs-i { width: 56px; height: 56px; border-radius: 20px; flex: none; display: flex; align-items: center; justify-content: center;
+            background: var(--sys-accent); color: var(--sys-on-accent); }
+    .qs-i.off { border-radius: 50%; background: var(--w10); color: var(--sys-text); }
+    .sh-sec { padding: 26px 32px 14px; font: 500 14px/18px var(--sys-font); }
+    .lk-clock { padding: 34px 30px 0; font: 300 88px/88px var(--sys-font); letter-spacing: -.01em; color: var(--themed-bg-l); }
+    .lk-date { padding: 18px 30px 0; font: 400 22px/28px var(--sys-font); }
+    .lock .mc { margin-top: 52px; }
+    .lk-lock { position: absolute; left: 0; right: 0; bottom: 78px; display: flex; justify-content: center; }
+
+    /* media card as Android 14 and later draw it; the app supplies the text, the icon and the two extra buttons */
+    .mc { position: relative; height: 184px; margin: 8px 16px 0; border-radius: 28px; overflow: hidden; color: var(--white);
+          font-family: var(--sys-font); background: var(--tint-deep); }
+    .mc > .cv { position: absolute; left: 0; top: 50%; width: 100%; transform: translateY(-50%); }
+    .mc::before { content: ""; position: absolute; inset: 0; z-index: 1;
+                  background: linear-gradient(90deg, var(--k60), var(--k35)), linear-gradient(180deg, transparent 40%, var(--k35)); }
+    .mc > :not(.cv) { z-index: 2; }
+    .mc-ic { position: absolute; left: 16px; top: 16px; width: 24px; height: 24px; fill: var(--tint-soft); }
+    .mc-out { position: absolute; right: 16px; top: 16px; height: 26px; padding: 0 11px 0 8px; border-radius: 13px;
+              display: flex; align-items: center; gap: 5px; background: var(--tint-soft); color: var(--tint-deep);
+              font: 500 13px/26px var(--sys-font); }
+    .mc-out .ic { --s: 15px; }
+    .mc-t, .mc-a { position: absolute; left: 16px; right: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mc-t { top: 76px; font: 500 16px/20px var(--sys-font); }
+    .mc-a { top: 99px; font: 400 14px/18px var(--sys-font); }
+    .mc-pp { position: absolute; right: 16px; top: 72px; width: 48px; height: 48px; border-radius: 16px; background: var(--tint-soft);
+             display: flex; align-items: center; justify-content: center; }
+    .mc-pp svg { width: 24px; height: 24px; fill: var(--tint-deep); }
+    .mc-row { position: absolute; left: 0; right: 0; bottom: 0; height: 48px; display: flex; align-items: center; }
+    .mc-b { width: 48px; height: 48px; flex: none; display: flex; align-items: center; justify-content: center; }
+    .mc-b svg { width: 24px; height: 24px; fill: var(--white); }
+    .mc-b .ol { fill: none; stroke: var(--white); stroke-width: 2; stroke-linejoin: round; }
+    .mc-b.off { color: var(--w30); }
+    .mc-seek { flex: 1; min-width: 0; height: 48px; margin: 0 15px 0 16px; fill: var(--white); }
+    .mc-seek path { fill: none; stroke-width: 2; stroke-linecap: round; }
+    .mc-seek .done { stroke: var(--white); }
+    .mc-seek .rest { stroke: var(--w30); }
+
+    /* a standard notification: icon, header, title, text, progress, actions */
+    &.shadecut { width: 390px; background: var(--shade); padding: 16px; }
+    .nt { display: flex; gap: 14px; padding: 16px; border-radius: 28px; background: var(--shade-card); color: var(--sys-text);
+          font-family: var(--sys-font); }
+    .shade .nt { margin: 0 16px; }
+    .nt-ic { width: 40px; height: 40px; border-radius: 50%; flex: none; background: var(--sys-accent);
+             display: flex; align-items: center; justify-content: center; }
+    .nt-ic svg { width: 20px; height: 20px; fill: var(--sys-on-accent); }
+    .nt-b { flex: 1; min-width: 0; }
+    .nt-h { display: flex; align-items: center; gap: 5px; font: 400 12.5px/18px var(--sys-font); color: var(--sys-dim); }
+    .nt-h .ic { margin-left: auto; }
+    .nt-t { margin-top: 2px; font: 500 15px/20px var(--sys-font); }
+    .nt-x { font: 400 14px/20px var(--sys-font); color: var(--sys-dim); }
+    .nt-p { height: 4px; margin-top: 10px; border-radius: 2px; background: var(--w20); overflow: hidden; }
+    .nt-p i { display: block; width: 66.1%; height: 100%; border-radius: 2px; background: var(--sys-accent); }
+    .nt-acts { margin-top: 16px; font: 500 14px/20px var(--sys-font); color: var(--sys-accent); }
+  }
+</style>
+
+<div class="intro">
+  <h1>Widget, notifications and launcher icon</h1>
+  <div class="date">2026-11-21 · UI directions · spotify · sheet 10</div>
+  <p>Attic outside its own window, as it ships today: the home-screen widget in its three layouts, the media
+     notification and lock-screen player, the "Analysing your songs" notification, and the launcher icon. Redrawn
+     from <code>widget/PlayerWidget.kt</code>, the three <code>layout/widget_*.xml</code> files,
+     <code>playback/PlaybackService.kt</code>, <code>analysis/AnalysisWorker.kt</code> and
+     <code>docs/logo.svg</code>, and checked against <code>widget.png</code>, <code>notification.png</code> and
+     <code>lock_screen.png</code>.</p>
+  <p>Android draws most of this. The wallpaper, quick-settings tiles, clock and notification chrome are plain
+     stand-ins for the phone's own; what Attic supplies is named in each caption. These surfaces use the system font
+     (Roboto here), not Figtree.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · Widget, three layouts</p>
+  <p class="why">One widget that swaps layout as it is resized: 4×2 (the default), 4×1 and 2×2. All three are filled with the cover's tint, the same colour as the mini player. Only the large one has the white play circle and the Attic mark.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen hs">
+<div class="hs-date">Sat, 21 Nov</div>
+<div class="wg wg-large art-revenge"><div class="wg-top"><div class="cv art-revenge"></div><div class="wg-tx"><div class="wg-t">Jaan Se Guzarte Hain</div><div class="wg-a">Khan Saab, Shashwat Sachdev</div><div class="wg-ctl"><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,6h2v12H6zM9.5,12l8.5,6V6z"/></svg></span><span class="wg-b wg-play"><svg viewBox="0 0 24 24"><path d="M6,19h4V5H6v14zM14,5v14h4V5h-4z"/></svg></span><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z"/></svg></span></div></div><svg class="wg-mk" viewBox="0 0 108 108"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></div><div class="wg-tiles"><div class="wg-tile"><div class="cv art-revenge"></div></div><div class="wg-tile"><div class="cv art-rockstar"></div></div><div class="wg-tile"><div class="cv art-ghost"></div></div><div class="wg-tile"><div class="cv art-premam"></div></div><div class="wg-tile"><div class="cv art-dhurandhar"></div></div></div></div>
+<div class="wg wg-wide art-revenge"><div class="wg-art"><div class="cv art-revenge"></div></div><div class="wg-tx"><div class="wg-t">Jaan Se Guzarte Hain</div><div class="wg-a">Khan Saab, Shashwat Sachdev</div></div><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,6h2v12H6zM9.5,12l8.5,6V6z"/></svg></span><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,19h4V5H6v14zM14,5v14h4V5h-4z"/></svg></span><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z"/></svg></span></div>
+<div class="hs-row"><div class="wg wg-small art-revenge"><div class="cv art-revenge"></div><span class="wg-b wg-fab"><svg viewBox="0 0 24 24"><path d="M6,19h4V5H6v14zM14,5v14h4V5h-4z"/></svg></span></div><div class="li"><svg class="li-ic colour" viewBox="18 18 72 72"><rect class="bg" x="18" y="18" width="72" height="72"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg>Attic</div></div>
+</div>
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">B1 · Media notification</p>
+  <p class="why">Android's media card with the cover behind it. Attic supplies the text, the mark top-left and two buttons after "next": shuffle, dim while off, and the plus-in-circle like. The seek line and the rounded pause button are the system's, coloured from the cover.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41 &nbsp; Sat, 21 Nov</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen shade">
+<div class="qs"><div class="qs-t"><span class="qs-i"><i class="ic">wifi</i></span>Internet</div><div class="qs-t"><span class="qs-i"><i class="ic">bluetooth</i></span>Bluetooth</div></div>
+<div class="qs three"><div class="qs-t solo"><i class="ic">flashlight_on</i></div><div class="qs-t"><span class="qs-i off"><i class="ic">do_not_disturb_on</i></span><div>Modes<small>No active modes</small></div></div><div class="qs-t solo"><i class="ic">alarm</i></div></div>
+<div class="mc art-revenge"><div class="cv art-revenge plain"></div><svg class="mc-ic" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2L22,11.3L22,20.5Q22,22 20.5,22L3.5,22Q2,22 2,20.5L2,11.3ZM8.6,13.6a3.4,3.4 0 1,0 6.8,0a3.4,3.4 0 1,0 -6.8,0Z"/></svg><span class="mc-out"><i class="ic">smartphone</i>This phone</span><div class="mc-t">Jaan Se Guzarte Hain</div><div class="mc-a">Khan Saab, Shashwat Sachdev</div><span class="mc-pp"><svg viewBox="0 0 24 24"><path d="M6,19h4V5H6v14zM14,5v14h4V5h-4z"/></svg></span><div class="mc-row"><span class="mc-b"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6z"/><path class="ol" d="M17.5 7v10L10.5 12z"/></svg></span><svg class="mc-seek" viewBox="0 0 135 48"><path class="rest" d="M43.6,24H135"/><path class="done" d="M0.0,24.00 L1.0,24.74 L2.0,25.32 L3.0,25.59 L4.0,25.50 L5.0,25.06 L6.0,24.38 L7.0,23.62 L8.0,22.94 L9.0,22.50 L10.0,22.41 L11.0,22.68 L12.0,23.26 L13.0,24.00 L14.0,24.74 L15.0,25.32 L16.0,25.59 L17.0,25.50 L18.0,25.06 L19.0,24.38 L20.0,23.62 L21.0,22.94 L22.0,22.50 L23.0,22.41 L24.0,22.68 L25.0,23.26 L26.0,24.00 L27.0,24.74 L28.0,25.32 L29.0,25.59 L30.0,25.50 L31.0,25.06 L32.0,24.38 L33.0,23.62 L34.0,22.94 L35.0,22.50 L36.0,22.41 L37.0,22.68 L38.0,23.26 L39.0,24.00 L40.0,24.74 L41.0,25.32 L42.0,25.59 L43.0,25.50"/><rect x="41.6" y="16" width="4" height="16" rx="2"/></svg><span class="mc-b"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2z"/><path class="ol" d="M6.500 7v10L13.500 12z"/></svg></span><span class="mc-b off"><i class="ic">shuffle</i></span><span class="mc-b"><i class="ic">add_circle_outline</i></span></div></div>
+<div class="sh-sec">Silent</div>
+<div class="nt"><span class="nt-ic"><svg viewBox="0 0 24 24"><path d="M4,10h2v4H4zM8,6h2v12H8zM12,3h2v18h-2zM16,7h2v10h-2zM20,10h2v4h-2z"/></svg></span><div class="nt-b"><div class="nt-h">Attic<span>•</span>now<i class="ic s18">keyboard_arrow_down</i></div><div class="nt-t">Analysing your songs</div><div class="nt-x">84 of 127</div><div class="nt-p"><i></i></div></div></div>
+</div>
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">B2 · Lock screen</p>
+  <p class="why">The same card on the lock screen, with the same five controls. Nothing here is drawn by Attic; a redesign changes it only through the icon and the two custom buttons it hands to the media session.</p>
+<div class="phone">
+<div class="sbar">
+<span></span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen lock">
+<div class="lk-clock">9:41</div><div class="lk-date">Sat, 21 Nov</div>
+<div class="mc art-revenge"><div class="cv art-revenge plain"></div><svg class="mc-ic" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2L22,11.3L22,20.5Q22,22 20.5,22L3.5,22Q2,22 2,20.5L2,11.3ZM8.6,13.6a3.4,3.4 0 1,0 6.8,0a3.4,3.4 0 1,0 -6.8,0Z"/></svg><span class="mc-out"><i class="ic">smartphone</i>This phone</span><div class="mc-t">Jaan Se Guzarte Hain</div><div class="mc-a">Khan Saab, Shashwat Sachdev</div><span class="mc-pp"><svg viewBox="0 0 24 24"><path d="M6,19h4V5H6v14zM14,5v14h4V5h-4z"/></svg></span><div class="mc-row"><span class="mc-b"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6z"/><path class="ol" d="M17.5 7v10L10.5 12z"/></svg></span><svg class="mc-seek" viewBox="0 0 135 48"><path class="rest" d="M43.6,24H135"/><path class="done" d="M0.0,24.00 L1.0,24.74 L2.0,25.32 L3.0,25.59 L4.0,25.50 L5.0,25.06 L6.0,24.38 L7.0,23.62 L8.0,22.94 L9.0,22.50 L10.0,22.41 L11.0,22.68 L12.0,23.26 L13.0,24.00 L14.0,24.74 L15.0,25.32 L16.0,25.59 L17.0,25.50 L18.0,25.06 L19.0,24.38 L20.0,23.62 L21.0,22.94 L22.0,22.50 L23.0,22.41 L24.0,22.68 L25.0,23.26 L26.0,24.00 L27.0,24.74 L28.0,25.32 L29.0,25.59 L30.0,25.50 L31.0,25.06 L32.0,24.38 L33.0,23.62 L34.0,22.94 L35.0,22.50 L36.0,22.41 L37.0,22.68 L38.0,23.26 L39.0,24.00 L40.0,24.74 L41.0,25.32 L42.0,25.59 L43.0,25.50"/><rect x="41.6" y="16" width="4" height="16" rx="2"/></svg><span class="mc-b"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2z"/><path class="ol" d="M6.500 7v10L13.500 12z"/></svg></span><span class="mc-b off"><i class="ic">shuffle</i></span><span class="mc-b"><i class="ic">add_circle_outline</i></span></div></div>
+<div class="lk-lock"><i class="ic">lock</i></div>
+</div>
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">C · Analysis notification</p>
+  <p class="why">Shown while radio analysis runs: an equaliser-bars icon, "Analysing your songs", "{done} of {total}", a progress bar and one action, "Stop". It is silent and ongoing. The app sets no colour on it, so the icon, bar and action take the system accent, not green.</p>
+<p class="sublabel">Collapsed, as in the shade of B1</p>
+<div class="strip shadecut"><div class="nt"><span class="nt-ic"><svg viewBox="0 0 24 24"><path d="M4,10h2v4H4zM8,6h2v12H8zM12,3h2v18h-2zM16,7h2v10h-2zM20,10h2v4h-2z"/></svg></span><div class="nt-b"><div class="nt-h">Attic<span>•</span>now<i class="ic s18">keyboard_arrow_down</i></div><div class="nt-t">Analysing your songs</div><div class="nt-x">84 of 127</div><div class="nt-p"><i></i></div></div></div></div>
+<p class="sublabel">Expanded, with its action</p>
+<div class="strip shadecut"><div class="nt"><span class="nt-ic"><svg viewBox="0 0 24 24"><path d="M4,10h2v4H4zM8,6h2v12H8zM12,3h2v18h-2zM16,7h2v10h-2zM20,10h2v4h-2z"/></svg></span><div class="nt-b"><div class="nt-h">Attic<span>•</span>now<i class="ic s18">keyboard_arrow_up</i></div><div class="nt-t">Analysing your songs</div><div class="nt-x">84 of 127</div><div class="nt-p"><i></i></div><div class="nt-acts"><span>Stop</span></div></div></div></div>
+</div>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span></div>
+  <p class="cap">D · Launcher icon, colour and themed</p>
+  <p class="why">The green mark on <code>#121212</code>, and the monochrome layer a launcher tints when themed icons are on. The mark is 60 × 58dp on the 108dp canvas. Its lower corners reach past the 66dp safe circle and past the 72dp mask, so a circular launcher cuts them off.</p>
+<p class="sublabel">At launcher size, 60dp: colour, themed dark, themed light</p>
+<div class="strip icons"><div class="li"><svg class="li-ic colour" viewBox="18 18 72 72"><rect class="bg" x="18" y="18" width="72" height="72"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg>Attic</div><div class="li"><svg class="li-ic themed" viewBox="18 18 72 72"><rect class="bg" x="18" y="18" width="72" height="72"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg>Attic</div><div class="li"><svg class="li-ic themed-l" viewBox="18 18 72 72"><rect class="bg" x="18" y="18" width="72" height="72"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg>Attic</div></div>
+<p class="sublabel">The layers at 108dp</p>
+<div class="strip iconlab"><div class="lab"><svg viewBox="0 0 108 108"><rect class="bg" width="108" height="108" rx="24"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg><b>docs/logo.svg</b>The README logo: the icon's two layers on a 24-radius square.</div><div class="lab"><svg viewBox="0 0 108 108"><rect class="bg" width="108" height="108"/><path class="fg" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/><path class="dim" fill-rule="evenodd" d="M0,0H108V108H0ZM18,54a36,36 0 1,0 72,0a36,36 0 1,0 -72,0Z"/><circle class="guide" cx="54" cy="54" r="36"/><circle class="guide dash" cx="54" cy="54" r="33"/></svg><b>Adaptive, colour</b>108dp canvas. Pink: the 72dp circle a Pixel shows. Dashed: the 66dp safe zone.</div><div class="lab"><svg viewBox="0 0 108 108"><rect class="bg" width="108" height="108"/><path class="mono" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/><path class="dim" fill-rule="evenodd" d="M0,0H108V108H0ZM18,54a36,36 0 1,0 72,0a36,36 0 1,0 -72,0Z"/><circle class="guide" cx="54" cy="54" r="36"/><circle class="guide dash" cx="54" cy="54" r="33"/></svg><b>Monochrome layer</b>The same path in white. The launcher tints it.</div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag state">state</span></div>
+  <p class="cap">E · Widget, other states</p>
+  <p class="why">Paused, the large layout is what <code>widget.png</code> shows. Before anything has been played the tint falls back to <code>#333333</code>, the art slot holds the green mark, and the text reads "Attic" and "Tap to open". The tiles are then the albums with the most songs.</p>
+<p class="sublabel">Large, paused</p>
+<div class="strip wgs"><div class="wg wg-large art-revenge"><div class="wg-top"><div class="cv art-revenge"></div><div class="wg-tx"><div class="wg-t">Jaan Se Guzarte Hain</div><div class="wg-a">Khan Saab, Shashwat Sachdev</div><div class="wg-ctl"><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,6h2v12H6zM9.5,12l8.5,6V6z"/></svg></span><span class="wg-b wg-play"><svg viewBox="0 0 24 24"><path d="M8,5v14l11,-7z"/></svg></span><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z"/></svg></span></div></div><svg class="wg-mk" viewBox="0 0 108 108"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></div><div class="wg-tiles"><div class="wg-tile"><div class="cv art-revenge"></div></div><div class="wg-tile"><div class="cv art-rockstar"></div></div><div class="wg-tile"><div class="cv art-ghost"></div></div><div class="wg-tile"><div class="cv art-premam"></div></div><div class="wg-tile"><div class="cv art-dhurandhar"></div></div></div></div></div>
+<p class="sublabel">Large, nothing played yet</p>
+<div class="strip wgs"><div class="wg wg-large"><div class="wg-top"><div class="wg-ph"><svg class="wg-phm" viewBox="0 0 108 108"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></div><div class="wg-tx"><div class="wg-t">Attic</div><div class="wg-a">Tap to open</div><div class="wg-ctl"><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,6h2v12H6zM9.5,12l8.5,6V6z"/></svg></span><span class="wg-b wg-play"><svg viewBox="0 0 24 24"><path d="M8,5v14l11,-7z"/></svg></span><span class="wg-b"><svg viewBox="0 0 24 24"><path d="M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z"/></svg></span></div></div><svg class="wg-mk" viewBox="0 0 108 108"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></div><div class="wg-tiles"><div class="wg-tile"><div class="cv art-revenge"></div></div><div class="wg-tile"><div class="cv art-dhurandhar"></div></div><div class="wg-tile"><div class="cv art-rockstar"></div></div><div class="wg-tile"><div class="cv art-viva"></div></div><div class="wg-tile"><div class="cv art-yjhd"></div></div></div></div></div>
+<p class="sublabel">Small: paused, and nothing played yet</p>
+<div class="strip wgs pair"><div class="wg wg-small art-revenge"><div class="cv art-revenge"></div><span class="wg-b wg-fab"><svg viewBox="0 0 24 24"><path d="M8,5v14l11,-7z"/></svg></span></div><div class="wg wg-small"><div class="wg-ph"><svg class="wg-phm" viewBox="0 0 108 108"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></div><span class="wg-b wg-fab"><svg viewBox="0 0 24 24"><path d="M8,5v14l11,-7z"/></svg></span></div></div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What Attic draws and what Android draws</h2>
+  <table>
+    <tr><th>Surface</th><th>From the app</th><th>From the phone</th></tr>
+    <tr><td>Widget</td><td>Everything inside the 24dp-corner shape: the tint, the cover, the text, the glyphs, the white mark, the five album tiles</td><td>Its size in cells and the wallpaper behind it</td></tr>
+    <tr><td>Media notification, lock screen</td><td>Title, artist, the white mark as the small icon, and two extra buttons: shuffle ("Turn shuffle on" / "Turn shuffle off") and like ("Add to liked songs" / "Remove from liked songs")</td><td>The card, the cover as its background, the "This phone" chip, the play/pause button, previous, next, the seek line, and every colour on it</td></tr>
+    <tr><td>Analysis notification</td><td>The bars icon, "Analysing your songs", "{done} of {total}", the progress value, "Stop", the channel name "Song analysis"</td><td>The layout, the accent colour, where it is filed ("Silent")</td></tr>
+    <tr><td>Launcher icon</td><td>Three layers: <code>#121212</code> background, green foreground, white monochrome</td><td>The mask shape, the size, the themed colours</td></tr>
+  </table>
+
+  <h2>Widget measurements</h2>
+  <ul>
+    <li><b>Large</b> (250 × 110dp and up). Top area padded 14 and 10: an 84dp cover with 6dp corners, 14dp, then bold
+        16sp title, 13sp artist at white 80%, and 4dp below them previous (44dp), a 38dp white circle with a black
+        glyph and 12dp side margins, and next (44dp). A 22dp mark box sits top-right; the glyph inside it is 12dp.
+        Below, a black 15% band padded 10 and 8 holds five 44dp-tall tiles with 6dp corners and 4dp side margins.</li>
+    <li><b>Wide</b> (180 × 50dp and up). A 72dp-wide slice of the cover at full height, 12dp, bold 15sp title over a
+        13sp artist in <code>#B3B3B3</code>, then three 44dp buttons with white glyphs. The row has no end padding:
+        "next" stops at the widget's edge.</li>
+    <li><b>Small</b> (110 × 110dp and up). The cover fills the widget, cropped to its shape. A 44dp black 80% circle
+        with a white glyph sits 8dp from the bottom-right corner.</li>
+    <li>Glyphs are the four vectors in <code>res/drawable/widget_*.xml</code>: the sharp Material shapes, not the
+        rounded set the app uses.</li>
+  </ul>
+
+  <h2>Spotify cues on this sheet</h2>
+  <table>
+    <tr><th>Cue (<code>CURRENT-UI.md</code> section 5, "Outside the app")</th><th>Where it shows here</th></tr>
+    <tr><td>The plus-in-circle and check-in-circle like icons in the media notification</td><td>B1 and B2, last button of the card (<code>playback/PlaybackService.kt:129</code>). Drawn in its unliked state.</td></tr>
+    <tr><td>A widget filled with the cover colour with a white play circle</td><td>A and E (<code>layout/widget_large.xml:85-92</code>, <code>widget/PlayerWidget.kt:165</code>)</td></tr>
+    <tr><td>The launcher icon: a green glyph on <code>#121212</code></td><td>D, and beside the small widget in A</td></tr>
+    <tr><td>"Liked Songs" as a name</td><td>The like button's two descriptions, read out by a screen reader; not visible</td></tr>
+  </table>
+  <p>The analysis notification carries no Spotify cue. The card, chip, seek line and pause button in B are Android's
+     and look the same for any player.</p>
+
+  <h2>Things that look odd and are correct</h2>
+  <ul>
+    <li>A circular launcher mask cuts the house's two lower corners (D). The foreground comment says the mark is
+        "centred in the adaptive safe zone"; it is centred, but its lower corners sit 42dp from the
+        centre and the mask's radius is 36dp.</li>
+    <li>The 22dp mark on the large widget reuses the 108-unit launcher drawing, so the visible glyph is 12dp with
+        5dp of empty box around it.</li>
+    <li>The widget's album tiles crop each cover to a 44dp-tall strip, which cuts through the artwork's lettering
+        (visible in <code>widget.png</code> too).</li>
+    <li>The small layout at 2 × 2 cells is taller than wide, so the cover loses its left and right edges.</li>
+    <li>The wide layout's artist line is grey <code>#B3B3B3</code>; the large layout's is white at 80%.</li>
+    <li>In the notification the like button is a plus in a circle with no label. Liked, it becomes a filled check
+        in a circle.</li>
+    <li>The analysis notification is not green. No colour is set in <code>AnalysisWorker.kt:118-128</code>.</li>
+  </ul>
+
+  <h2>Where the drawing departs from the screenshots</h2>
+  <table>
+    <tr><th>Screenshot</th><th>Drawn here</th><th>Why</th></tr>
+    <tr><td><code>widget.png</code></td><td>Pause glyph in frame A; "Jaan Se Guzarte Hain"</td><td>The round's fixture is playing. The screenshot's paused state is the first strip of E.</td></tr>
+    <tr><td><code>widget.png</code>, <code>notification.png</code>, <code>lock_screen.png</code></td><td>Roboto</td><td>The screenshots are from a Pixel, whose system font is not openly licensed.</td></tr>
+    <tr><td><code>notification.png</code>, <code>lock_screen.png</code></td><td>No page dots under the card</td><td>The dots page between media sessions on the phone. They are not part of Attic's card.</td></tr>
+    <tr><td>All</td><td>390dp-wide frame; the screenshots are 411dp</td><td>The round's frame size. The 4 × 2 widget is 342 × 212 here against 360 × 223 in the screenshot; the media card is 358 × 184 against 379 × 184.</td></tr>
+  </table>
+
+  <h2>Guessed, not measured</h2>
+  <ul>
+    <li><b>Small and wide widget sizes.</b> No screenshot shows them. They are drawn at 2 × 2 and 4 × 1 of the same
+        cell grid as the large one (163 × 212 and 342 × 100).</li>
+    <li><b>Analysis notification chrome.</b> No screenshot. The 40dp icon circle and the header line follow the
+        "Android System" row in <code>notification.png</code>; the placement of the title, bar and action follows
+        the standard template and will differ by Android version.</li>
+    <li><b>Themed icon colours.</b> The launcher takes them from the wallpaper. The two pairs here are stand-ins that
+        match this sheet's wallpaper.</li>
+    <li><b>Media card colours.</b> Android derives the chip and button colours from the cover. Here they are the
+        fixture cover's pale and deep shades.</li>
+    <li><b>Widget tiles.</b> The five albums follow the "Recently played" shelf on sheet 01, topped up with the next
+        biggest album; with nothing played, the five albums with the most songs.</li>
+    <li><b>Seek line.</b> The wave on the played part is one frame of the system's animation.</li>
+  </ul>
+</div>
