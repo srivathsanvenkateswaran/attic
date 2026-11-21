@@ -1,68 +1,22 @@
 package app.attic.player.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Album
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.PersonOutline
-import androidx.compose.material.icons.rounded.Radio
-import androidx.compose.material.icons.rounded.RemoveCircleOutline
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.AtticApp
-import app.attic.player.attic
-import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
-import app.attic.player.data.TitleCleaner
-import app.attic.player.ui.classic.*
+import app.attic.player.data.UiStyle
+import app.attic.player.ui.classic.ClassicAddSongs
+import app.attic.player.ui.classic.ClassicDeletePlaylistDialog
+import app.attic.player.ui.classic.ClassicLanguagePicker
+import app.attic.player.ui.classic.ClassicPlaylistNameDialog
+import app.attic.player.ui.classic.ClassicPlaylistPicker
+import app.attic.player.ui.classic.ClassicTrackMenu
+import app.attic.player.ui.model.DeletePlaylistActions
+import app.attic.player.ui.model.DeletePlaylistState
+import app.attic.player.ui.model.languagePickerModel
+import app.attic.player.ui.model.rememberAddSongsModel
+import app.attic.player.ui.model.rememberPlaylistNameModel
+import app.attic.player.ui.model.rememberPlaylistPickerModel
+import app.attic.player.ui.model.rememberTrackMenuModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -71,182 +25,47 @@ fun CoroutineScope.launchCreate(app: AtticApp, name: String, then: (Long) -> Uni
     launch { then(app.userData.createPlaylist(name)) }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () -> Unit) {
-    val app = LocalContext.current.attic
-    val ui = LocalUi.current
-    val track = request.track
-    val liked by app.userData.likedSet.collectAsStateWithLifecycle()
-    var pickingPlaylist by remember { mutableStateOf(false) }
-    var pickingLanguage by remember { mutableStateOf(false) }
-    val language by remember(track.key) { app.radio.languageFlow(track) }.collectAsStateWithLifecycle(null)
-    val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    if (pickingPlaylist) {
-        PlaylistPickerSheet(listOf(track.key), onDismiss = onDismiss)
-        return
-    }
-
-    if (pickingLanguage) {
-        LanguagePickerSheet(current = language) { choice ->
-            app.radio.setLanguage(track.key, choice)
-            onDismiss()
+    val (state, actions) = rememberTrackMenuModel(request, library, onDismiss)
+    when {
+        state.pickingPlaylist -> PlaylistPickerSheet(listOf(state.track.key), onDismiss = onDismiss)
+        state.pickingLanguage -> LanguagePickerSheet(current = state.language, onChoose = actions.chooseLanguage)
+        else -> when (LocalUiStyle.current) {
+            UiStyle.Expressive -> ClassicTrackMenu(state, actions)
+            UiStyle.Comfort -> ClassicTrackMenu(state, actions)
+            UiStyle.Classic -> ClassicTrackMenu(state, actions)
         }
-        return
-    }
-
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheet, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-        Column(Modifier.navigationBarsPadding().padding(bottom = 8.dp)) {
-            Row(Modifier.padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                CoverArt(track.mediaId, CoverShape, Modifier.size(48.dp))
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(track.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        track.artist,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-            HorizontalDivider(Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
-
-            MenuRow(Icons.Rounded.Radio, "Start radio") {
-                app.radio.start(track)
-                onDismiss()
-            }
-            val isLiked = track.key in liked
-            MenuRow(if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, if (isLiked) "Remove from liked songs" else "Add to liked songs") {
-                app.userData.toggleLike(track.key)
-                onDismiss()
-            }
-            MenuRow(Icons.AutoMirrored.Rounded.PlaylistPlay, "Play next") {
-                app.player.playNext(listOf(track))
-                app.messages.tryEmit("Playing next")
-                onDismiss()
-            }
-            MenuRow(Icons.AutoMirrored.Rounded.QueueMusic, "Add to queue") {
-                app.player.addToQueue(listOf(track))
-                app.messages.tryEmit("Added to queue")
-                onDismiss()
-            }
-            MenuRow(Icons.AutoMirrored.Rounded.PlaylistAdd, "Add to playlist") { pickingPlaylist = true }
-            MenuRow(Icons.Rounded.Language, "Language: ${LanguageLabels.displayName(language)}") { pickingLanguage = true }
-            request.playlistId?.let { id ->
-                MenuRow(Icons.Rounded.RemoveCircleOutline, "Remove from this playlist") {
-                    app.userData.removeFromPlaylist(id, track.key)
-                    onDismiss()
-                }
-            }
-            track.albumKey?.takeIf { it in library.albumByKey }?.let { key ->
-                MenuRow(Icons.Rounded.Album, "Go to album") {
-                    onDismiss()
-                    ui.openAlbum(key)
-                }
-            }
-            track.artistKeys.firstOrNull { it in library.artistByKey }?.let { key ->
-                MenuRow(Icons.Rounded.PersonOutline, "Go to artist") {
-                    onDismiss()
-                    ui.openArtist(key)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
 /** Corrects what radio believes about a song. Your choice is never overwritten. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguagePickerSheet(current: String?, onChoose: (String) -> Unit) {
-    ModalBottomSheet(
-        onDismissRequest = { onChoose("") },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Text(
-            "Song language",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-        )
-        LazyColumn(Modifier.navigationBarsPadding()) {
-            items(LanguageLabels.CHOICES, key = { it.first }) { (code, name) ->
-                MenuRow(if (code == current) Icons.Rounded.Check else Icons.Rounded.Language, name) { onChoose(code) }
-            }
-        }
+    val (state, actions) = languagePickerModel(current, onChoose)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ClassicLanguagePicker(state, actions)
+        UiStyle.Comfort -> ClassicLanguagePicker(state, actions)
+        UiStyle.Classic -> ClassicLanguagePicker(state, actions)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistPickerSheet(trackKeys: List<String>, onDismiss: () -> Unit) {
-    val app = LocalContext.current.attic
-    val playlists by app.userData.playlists.collectAsStateWithLifecycle()
-    var creating by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-
-    fun addTo(id: Long, name: String) {
-        app.scope.launch {
-            val added = app.userData.addToPlaylist(id, trackKeys)
-            app.messages.tryEmit(if (added > 0) "Added to $name" else "Already in $name")
-        }
-        onDismiss()
+    val (state, actions) = rememberPlaylistPickerModel(trackKeys, onDismiss)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ClassicPlaylistPicker(state, actions)
+        UiStyle.Comfort -> ClassicPlaylistPicker(state, actions)
+        UiStyle.Classic -> ClassicPlaylistPicker(state, actions)
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Text(
-            "Add to playlist",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-        )
-        LazyColumn(Modifier.navigationBarsPadding()) {
-            item {
-                MenuRow(Icons.Rounded.Add, "New playlist") { creating = true }
-            }
-            items(playlists, key = { it.id }) { playlist ->
-                val alreadyIn = playlist.trackKeys.containsAll(trackKeys)
-                MenuRow(
-                    if (alreadyIn) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.QueueMusic,
-                    "${playlist.name} (${songCount(playlist.trackKeys.size)})",
-                ) { addTo(playlist.id, playlist.name) }
-            }
-        }
-    }
-
-    if (creating) {
+    if (state.creating) {
         PlaylistNameDialog(
             title = "New playlist",
             confirm = "Create",
             initial = "",
-            onDismiss = { creating = false },
-            onConfirm = { name ->
-                creating = false
-                scope.launch {
-                    val id = app.userData.createPlaylist(name)
-                    addTo(id, name.trim())
-                }
-            },
+            onDismiss = actions.dismissCreating,
+            onConfirm = actions.create,
         )
     }
 }
@@ -259,117 +78,31 @@ fun PlaylistNameDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
-    var name by remember { mutableStateOf(initial) }
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                label = { Text("Playlist name") },
-                modifier = Modifier.focusRequester(focus),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) { Text(confirm) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
-        },
-    )
+    val (state, actions) = rememberPlaylistNameModel(title, confirm, initial, onDismiss, onConfirm)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ClassicPlaylistNameDialog(state, actions)
+        UiStyle.Comfort -> ClassicPlaylistNameDialog(state, actions)
+        UiStyle.Classic -> ClassicPlaylistNameDialog(state, actions)
+    }
 }
 
 @Composable
 fun DeletePlaylistDialog(name: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        title = { Text("Delete $name?", style = MaterialTheme.typography.titleLarge) },
-        text = { Text("The playlist goes away. The songs stay in your library.") },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Delete playlist") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
-    )
+    val state = DeletePlaylistState(name)
+    val actions = DeletePlaylistActions(confirm = onConfirm, dismiss = onDismiss)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ClassicDeletePlaylistDialog(state, actions)
+        UiStyle.Comfort -> ClassicDeletePlaylistDialog(state, actions)
+        UiStyle.Classic -> ClassicDeletePlaylistDialog(state, actions)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSongsSheet(library: Library, playlistId: Long, existing: Set<String>, onDismiss: () -> Unit) {
-    val app = LocalContext.current.attic
-    var query by remember { mutableStateOf("") }
-    val matches = remember(query, library) {
-        val q = TitleCleaner.searchable(query)
-        if (q.isEmpty()) {
-            library.tracks
-        } else {
-            library.tracks.filter { TitleCleaner.searchable("${it.title} ${it.artist}").contains(q) }
-        }
-    }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(Modifier.fillMaxHeight(0.92f)) {
-            Text(
-                "Add songs",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            TextField(
-                value = query,
-                onValueChange = { query = it },
-                placeholder = { Text("Find a song") },
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                singleLine = true,
-                shape = RoundedCornerShape(8.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-            LazyColumn(Modifier.weight(1f).navigationBarsPadding()) {
-                items(matches, key = { it.key }) { track ->
-                    val added = track.key in existing
-                    TrackRow(
-                        track = track,
-                        isCurrent = false,
-                        isPlaying = false,
-                        onClick = {
-                            if (added) {
-                                app.userData.removeFromPlaylist(playlistId, track.key)
-                            } else {
-                                app.scope.launch { app.userData.addToPlaylist(playlistId, listOf(track.key)) }
-                            }
-                        },
-                        onMenu = {},
-                        trailing = {
-                            IconButton(
-                                onClick = {
-                                    if (added) {
-                                        app.userData.removeFromPlaylist(playlistId, track.key)
-                                    } else {
-                                        app.scope.launch { app.userData.addToPlaylist(playlistId, listOf(track.key)) }
-                                    }
-                                },
-                            ) {
-                                Icon(
-                                    if (added) Icons.Rounded.Check else Icons.Rounded.Add,
-                                    contentDescription = if (added) "Remove ${track.title}" else "Add ${track.title}",
-                                    tint = if (added) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                )
-                            }
-                        },
-                    )
-                }
-            }
-        }
+    val (state, actions) = rememberAddSongsModel(library, playlistId, existing, onDismiss)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ClassicAddSongs(state, actions)
+        UiStyle.Comfort -> ClassicAddSongs(state, actions)
+        UiStyle.Classic -> ClassicAddSongs(state, actions)
     }
 }
