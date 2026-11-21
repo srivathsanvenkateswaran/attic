@@ -420,7 +420,7 @@ enum class LyricState { Sung, Current, Upcoming, Plain }
  * on-surface-variant, the current one on-surface, those to come outline; plain (unsynced) text is on-surface.
  */
 @Composable
-fun LyricLine(text: String, state: LyricState, modifier: Modifier = Modifier, large: Boolean = false) {
+fun LyricLine(text: String, state: LyricState, modifier: Modifier = Modifier, large: Boolean = false, maxLines: Int = Int.MAX_VALUE) {
     val colors = MaterialTheme.colorScheme
     val color = when (state) {
         LyricState.Sung -> colors.onSurfaceVariant
@@ -429,5 +429,12 @@ fun LyricLine(text: String, state: LyricState, modifier: Modifier = Modifier, la
     }
     val base = Expressive.type.titleLargeEmphasized
     val style = if (large) base.copy(fontSize = 28.sp, lineHeight = 36.sp) else base
-    Text(text, style = style, color = color, modifier = modifier.padding(bottom = if (large) 16.dp else 10.dp))
+    Text(
+        text,
+        style = style,
+        color = color,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.padding(bottom = if (large) 16.dp else 10.dp),
+    )
 }

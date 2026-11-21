@@ -124,7 +124,7 @@ for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("At
 | `.pp`, `.pp.l`, `.pp.xl`, `.pp.ring`, `.pp.tonal` | `PlayButton(playing, onClick, modifier, size = Small/Large/ExtraLarge, tonal, progress = { fraction })` | ring only when `progress` is given; describes itself "Play"/"Pause" |
 | `.skip`, `.transport` | `SkipButton(symbol, contentDescription, onClick)`, `Transport(playing, onPrevious, onPlayPause, onNext)` | |
 | `.wave` / `.wave.still` | `NowPlayingWave(playing)` | 20×10dp |
-| `.seek`, `.seek.paused`, `.seek-times` | `SeekBar(progress, playing, onSeek, contentDescription)`, `SeekTimes(elapsed, total)` | tap or drag; `onSeek(fraction)` on release; flat while paused or dragging |
+| `.seek`, `.seek.paused`, `.seek-times` | `SeekBar(progress, playing, onSeek, contentDescription, onScrub)`, `SeekTimes(elapsed, total)` | tap or drag; `onSeek(fraction)` on release; `onScrub(fraction)` while dragging and `onScrub(null)` on release, so the elapsed time can follow the finger; flat while paused or dragging |
 | `.nav` | `ExpressiveNavigationBar(items: List<NavItem>, selectedIndex, onSelect)` | Material ShortNavigationBar; pads for the gesture bar itself |
 | `.appbar.root` (+ `.scrolled`) | `RootAppBar(title, modifier, scrolled = 0f..1f, titleLeading, actions)` | `scrolled = listState.scrolledFraction()`; Home passes the mark as `titleLeading`; settings is the last action |
 | `.appbar`, `.scrolled`, `.over` | `DetailAppBar(title, onBack, modifier, surface = Plain/Scrolled/OverArt, actions)` | OverArt hides the title and puts scrims behind the buttons; inside `FromArt` for a collection |
@@ -159,7 +159,7 @@ for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("At
 | `.spinner`, `.spinner.busy`, `.spinner.s` | `CircularProgress(progress = null or { fraction }, small)` | |
 | `.loader`, `.loader.contained` | `LoadingIndicator(contained)` | library scan, downloading lyrics |
 | `.np-card`, `.kv` | `InfoCard(title, symbol) { … }`, `KeyValue(label, value)` | lyrics and credits cards |
-| `.lyrics p` (`.past`, `.now`, `.plain`, `.l`) | `LyricLine(text, LyricState.Sung/Current/Upcoming/Plain, large)` | |
+| `.lyrics p` (`.past`, `.now`, `.plain`, `.l`) | `LyricLine(text, LyricState.Sung/Current/Upcoming/Plain, large, maxLines)` | `maxLines` ends in an ellipsis (the card's preview: two per synced line, four for plain text) |
 
 Not in the kit, as in pixel/KIT.md: the mini player, Now Playing, the collection header block and
 Recap's charts are screen work, composed from the parts above (the gallery shows a mini player and

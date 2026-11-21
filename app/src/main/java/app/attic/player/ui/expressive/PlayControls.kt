@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -252,7 +253,8 @@ fun NowPlayingWave(playing: Boolean, modifier: Modifier = Modifier, color: Color
 /**
  * The seek bar (`.seek`): a wavy active track while [playing], flat when paused or while dragging; a
  * 4×28dp bar handle with 6dp clear either side; the rest of the track in outline variant. Tap to jump,
- * drag to scrub; [onSeek] gets the fraction on release. 44dp tall.
+ * drag to scrub; [onSeek] gets the fraction on release. [onScrub] hears the fraction under the finger
+ * while dragging and null once it lifts, so the elapsed time can follow the drag. 44dp tall.
  */
 @Composable
 fun SeekBar(
@@ -261,6 +263,7 @@ fun SeekBar(
     onSeek: (Float) -> Unit,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    onScrub: (Float?) -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     var dragging by remember { mutableStateOf(false) }
@@ -270,6 +273,8 @@ fun SeekBar(
     val amplitude by animateFloatAsState(if (waving) 1f else 0f, ExpressiveMotion.defaultSpatial(), label = "seekAmp")
     val phase by rememberWavePhase(waving)
     val path = remember { Path() }
+    val seek by rememberUpdatedState(onSeek)
+    val scrub by rememberUpdatedState(onScrub)
     Canvas(
         modifier
             .fillMaxWidth()
@@ -278,27 +283,33 @@ fun SeekBar(
                 this.contentDescription = contentDescription
                 progressBarRangeInfo = ProgressBarRangeInfo(shown, 0f..1f)
                 setProgress { target ->
-                    onSeek(target.coerceIn(0f, 1f))
+                    seek(target.coerceIn(0f, 1f))
                     true
                 }
             }
             .pointerInput(Unit) {
-                detectTapGestures { offset -> onSeek((offset.x / size.width).coerceIn(0f, 1f)) }
+                detectTapGestures { offset -> seek((offset.x / size.width).coerceIn(0f, 1f)) }
             }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
                     onDragStart = { offset ->
                         dragging = true
                         dragFraction = (offset.x / size.width).coerceIn(0f, 1f)
+                        scrub(dragFraction)
                     },
                     onDragEnd = {
-                        onSeek(dragFraction)
+                        seek(dragFraction)
                         dragging = false
+                        scrub(null)
                     },
-                    onDragCancel = { dragging = false },
+                    onDragCancel = {
+                        dragging = false
+                        scrub(null)
+                    },
                     onHorizontalDrag = { change, _ ->
                         change.consume()
                         dragFraction = (change.position.x / size.width).coerceIn(0f, 1f)
+                        scrub(dragFraction)
                     },
                 )
             },
