@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            Debug builds only: the Expressive kit laid out as strips, for checking against the mocks.
+            The adb command that opens it is in app/src/main/java/app/attic/player/ui/expressive/KIT.md.
+        -->
+        <activity
+            android:name=".debug.KitGalleryActivity"
+            android:exported="true"
+            android:label="Expressive kit"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Attic" />
+    </application>
+</manifest>
