@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -241,7 +242,8 @@ private fun Places(state: HomeState, actions: HomeActions) {
             is Shortcut.ForFolder -> place.folder.name
             Shortcut.Liked -> ""
         }
-        val art = Modifier.fillMaxSize().semantics { contentDescription = name }
+        // Every slot is as tall as the carousel; the picture fills that height and the slot crops its sides.
+        val art = Modifier.requiredSize(HERO_HEIGHT).semantics { contentDescription = name }
         when (place) {
             is Shortcut.ForAlbum -> Cover(Art.of(place.album.tracks.firstOrNull()?.mediaId), art, shape = RoundedCornerShape(0.dp))
             is Shortcut.ForFolder -> Mosaic(mosaicIds(place.folder.tracks).map(Art::Song), art, shape = RoundedCornerShape(0.dp))
@@ -249,6 +251,8 @@ private fun Places(state: HomeState, actions: HomeActions) {
         }
     }
 }
+
+private val HERO_HEIGHT = 200.dp
 
 @Composable
 private fun albumCaption(album: Album): String =
