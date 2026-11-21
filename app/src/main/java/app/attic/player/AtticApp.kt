@@ -13,6 +13,7 @@ import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
+import app.attic.player.wrapped.WrappedRepository
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -35,6 +36,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val settings by lazy { AppSettings(this) }
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
+    val wrapped by lazy { WrappedRepository(this) }
 
     /** Short confirmations and playback errors, shown as a snackbar. */
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */

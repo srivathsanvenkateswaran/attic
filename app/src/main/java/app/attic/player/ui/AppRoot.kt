@@ -98,6 +98,7 @@ class UiActions(
     fun openPlaylist(id: Long) = go("playlist/$id")
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
+    fun openWrapped() = go("wrapped")
     fun openSearch() = selectTab("search")
     fun addToPlaylist(keys: List<String>) = pickPlaylist(keys)
     fun back() = nav.popBackStack()
@@ -342,6 +343,7 @@ private fun AppNavHost(nav: NavHostController, library: Library) {
         }
         composable("liked") { LikedScreen(library) }
         composable("settings") { SettingsScreen(library) }
+        composable("wrapped") { WrappedScreen(library) }
     }
 }
 

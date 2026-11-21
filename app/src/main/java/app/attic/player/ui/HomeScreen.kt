@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -48,6 +49,7 @@ import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
+import app.attic.player.wrapped.RecapPeriod
 import app.attic.player.data.Track
 
 private sealed interface Shortcut {
@@ -71,6 +73,7 @@ fun HomeScreen(library: Library) {
     val player by app.player.state.collectAsStateWithLifecycle()
     var filter by rememberSaveable { mutableStateOf(HomeFilter.All) }
     val speedDial by app.radio.speedDial.collectAsStateWithLifecycle()
+    val listenCount by app.wrapped.listenCount().collectAsStateWithLifecycle(0)
     val analyzed by app.radio.analyzedKeys().collectAsStateWithLifecycle(emptyList())
     // Refreshes as you play and as analysis reaches more songs, in steps so it isn't constantly redone.
     LaunchedEffect(library, recentKeys, analyzed.size / SPEED_DIAL_REFRESH_STEP) { app.radio.refreshSpeedDial() }
@@ -123,6 +126,9 @@ fun HomeScreen(library: Library) {
                         }
                     }
                 }
+            }
+            if (listenCount > 0) {
+                item { WrappedEntry(library) }
             }
             if (speedDial.isNotEmpty()) {
                 item {
@@ -266,6 +272,40 @@ private fun buildShortcuts(recent: List<Track>, library: Library): List<Shortcut
 
 private const val SHORTCUT_COUNT = 6
 
+/** The way into Wrapped, open all year rather than only in December. */
+@Composable
+private fun WrappedEntry(library: Library) {
+    val app = LocalContext.current.attic
+    val ui = LocalUi.current
+    val recentKeys by app.userData.recentKeys.collectAsStateWithLifecycle(emptyList())
+    val data by produceState<WrappedData?>(null, recentKeys, library) {
+        value = wrappedData(app.wrapped.recap(RecapPeriod.Year), RecapPeriod.Year, library)
+    }
+    val loaded = data ?: return
+    if (loaded.recap.isEmpty) return
+    Row(
+        Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFF2A0E3D))
+            .pressable(scale = 0.98f) { ui.openWrapped() }
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MosaicCover(loaded.songs.map { it.first }.let(::mosaicIds), Modifier.size(64.dp), RoundedCornerShape(4.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(loaded.headline, style = MaterialTheme.typography.titleLarge, color = Color(0xFFFFB627), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                "${java.text.NumberFormat.getIntegerInstance().format(loaded.recap.minutes)} minutes. See your top songs and cards to share.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.85f),
+                maxLines = 2,
+            )
+        }
+    }
+}
 private const val SPEED_DIAL_COLUMNS = 3
 private const val SPEED_DIAL_REFRESH_STEP = 25
 
