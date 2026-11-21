@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Android-13%2B-1ED760?logo=android&logoColor=white" alt="Android 13 or newer">
   <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-1ED760?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
-  <img src="https://img.shields.io/badge/APK-4.7%20MB-1ED760" alt="APK size 4.7 MB">
+  <img src="https://img.shields.io/badge/APK-53%20MB-1ED760" alt="APK size 53 MB">
 </p>
 
 <p align="center">
@@ -36,6 +36,13 @@ It was built for one phone and one library of 279 songs, and every number below 
 - Shuffle, repeat, and a queue with drag to reorder and swipe to remove
 - Liked songs and your own playlists, stored on the device
 - Dark and light themes, or match the phone
+
+**Finds what to play next, offline**
+- Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
+- Speed dial on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
+- Stays in the language you're listening to, with about one song in ten from another language when the match is strong
+- Plays one version of a song, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both
+- Learns from skips, finishes and likes in a listening log kept on the phone
 
 **Keeps playing outside the app**
 - Background playback with notification and lock-screen controls, including shuffle and like
@@ -80,6 +87,10 @@ Measured on a POCO M4 Pro 4G running Android 16, scrolling the full song list.
 | Cold start | 0.7 s | 1.8 s |
 | APK size | 4.7 MB | 75 MB |
 
+Those numbers predate song radio. The release APK is now 53 MB because it carries the analysis model and its runtime, and only runs on 64-bit ARM phones.
+
+Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.
+
 Install the release build for everyday use. Compose runs far slower in a debug build.
 
 ## Install
@@ -121,15 +132,22 @@ Worth reading if you open the code:
 - **Shuffle reorders the real playlist** instead of keeping a separate play order, so the queue screen always shows what will actually play. See [`PhysicalShuffle.kt`](app/src/main/java/app/attic/player/playback/PhysicalShuffle.kt).
 - **Saved data points at file paths, not MediaStore IDs**, so likes and playlists survive a media rescan.
 
+## How radio works
+
+Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
+
+Language comes from the folder or album name, or from Tamil or Devanagari script in saved lyrics. You can correct any song from its menu, and your choice is kept. To label many songs at once, place `language-labels.tsv` in `Android/data/app.attic.player/files/`, with one `Music/Offline/path/to/song.m4a<TAB>ta` per line.
+
 ## Privacy
 
-Attic has no account, analytics or ads, and playback never touches the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
+Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
 
 | Permission | Used for |
 |---|---|
 | `READ_MEDIA_AUDIO` | Reading your music |
 | `POST_NOTIFICATIONS` | Playback controls |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK` | Playing with the screen off |
+| `FOREGROUND_SERVICE_DATA_SYNC` | Keeping song analysis running with its progress notification |
 | `INTERNET` | Lyrics downloads only |
 
 ## Known limits
@@ -138,12 +156,16 @@ Attic has no account, analytics or ads, and playback never touches the network. 
 - Artists use cover art because there are no artist photos, and "Popular" means what you played recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
 - Lyrics depend on what LRCLIB has, and found them for 236 of the 279 songs tested.
+- Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
+- Radio doesn't yet match tempo or energy between neighbouring songs.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
 
 ## Credits and legal
 
 Attic is an independent personal project, and it is not affiliated with or endorsed by Spotify. Spotify is a trademark of Spotify AB. Attic contains no Spotify code, logos or assets.
 
+Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra (Alonso-Jiménez et al., ISMIR 2022), licensed for non-commercial use, and [ONNX Runtime](https://onnxruntime.ai) under the MIT License. See [`third_party/discogs-effnet-NOTICE.txt`](third_party/discogs-effnet-NOTICE.txt).
+
 Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Figtree](https://github.com/erikdkennedy/figtree) font is bundled under the [SIL Open Font License](third_party/OFL-figtree.txt).
 
-Cover art in the screenshots belongs to its respective owners. No license has been chosen for this code yet, so all rights are reserved.
+Cover art in the screenshots belongs to its respective owners. Attic's code is licensed under the [GNU General Public License v3.0 or later](LICENSE). The song analysis model and the Figtree font keep their own licences, listed above.
