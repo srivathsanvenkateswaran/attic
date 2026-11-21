@@ -7,4 +7,401 @@
     <string name="widget_next">Next</string>
     <string name="widget_previous">Previous</string>
     <string name="widget_album">Open album</string>
+
+    <!--
+        Shared copy for the Expressive and Comfort styles (Classic keeps its own literal strings).
+        Every label of every surface in docs/design/2026-11-21-ui-directions/CURRENT-UI.md section 2,
+        with BRIEF.md's naming table applied. Names are <surface>_<what>; a content description ends
+        in _cd. Numbers that can pass 999 are %s, formatted by the caller with grouping ("18,460").
+        ui/expressive/KIT.md has the conventions.
+    -->
+
+    <!-- Shared building blocks (2.0) -->
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="settings">Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="create">Create</string>
+    <string name="rename">Rename</string>
+    <string name="close">Close</string>
+    <string name="more_options_for_cd">More options for %1$s</string>
+    <string name="favourite_add">Add to favourites</string>
+    <string name="favourite_remove">Remove from favourites</string>
+    <string name="favourites">Favourites</string>
+    <string name="lyric_blank_line">♪</string>
+    <plurals name="song_count">
+        <item quantity="one">%1$s song</item>
+        <item quantity="other">%1$s songs</item>
+    </plurals>
+    <!-- "1 hr 2 min", "18 min": a total duration -->
+    <string name="duration_hours_minutes">%1$d hr %2$d min</string>
+    <string name="duration_minutes">%1$d min</string>
+    <!-- "17 songs, 1 hr 2 min": the song count, then the duration -->
+    <string name="songs_and_duration">%1$s, %2$s</string>
+
+    <!-- Tab bar (2.1) -->
+    <string name="tab_home">Home</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_library">Library</string>
+
+    <!-- Home (2.3) -->
+    <string name="home_filter_all">All</string>
+    <string name="home_filter_albums">Albums</string>
+    <string name="home_filter_artists">Artists</string>
+    <string name="home_filter_folders">Folders</string>
+    <string name="home_recap_title_so_far">Your %1$s so far</string>
+    <string name="home_recap_title_year">Your %1$s Recap</string>
+    <string name="home_recap_body">%1$s minutes. See your top songs and cards to share.</string>
+    <string name="home_instant_mixes">Instant mixes</string>
+    <string name="home_recently_played">Recently played</string>
+    <string name="home_start_listening_overline">Picked at random from your songs</string>
+    <string name="home_start_listening">Start listening</string>
+    <string name="home_your_folders">Your folders</string>
+    <string name="home_albums">Albums</string>
+    <string name="home_more_from">More from</string>
+    <string name="home_album_no_year">Album</string>
+    <string name="home_top_artists">Top artists</string>
+    <string name="home_empty_title">No songs in Music/Offline</string>
+    <string name="home_empty_body">Copy MP3s into Music/Offline on this phone and they will show up here.</string>
+
+    <!-- Search (2.4) -->
+    <string name="search_title">Search</string>
+    <string name="search_placeholder">Search your music</string>
+    <string name="search_clear_cd">Clear search</string>
+    <string name="search_browse">Browse</string>
+    <string name="search_result_artist">Artist</string>
+    <string name="search_result_playlist">Playlist</string>
+    <string name="search_result_album">Album, %1$s</string>
+    <string name="search_no_results_title">No results for “%1$s”</string>
+    <string name="search_no_results_body">Check the spelling, or try fewer words.</string>
+
+    <!-- Library (2.5) -->
+    <string name="library_title">Library</string>
+    <string name="library_search_cd">Search your library</string>
+    <string name="library_create_playlist_cd">Create playlist</string>
+    <string name="library_filter_playlists">Playlists</string>
+    <string name="library_filter_albums">Albums</string>
+    <string name="library_filter_artists">Artists</string>
+    <string name="library_filter_songs">Songs</string>
+    <string name="library_recents">Recents</string>
+    <string name="library_show_grid_cd">Show as grid</string>
+    <string name="library_show_list_cd">Show as list</string>
+    <plurals name="library_playlist_subtitle">
+        <item quantity="one">Playlist, %1$s song</item>
+        <item quantity="other">Playlist, %1$s songs</item>
+    </plurals>
+    <string name="library_artist_subtitle">Artist</string>
+    <string name="library_album_subtitle">Album, %1$s</string>
+    <string name="library_sort_title">Title</string>
+    <string name="library_sort_artist">Artist</string>
+    <string name="library_sort_recently_added">Recently added</string>
+    <!-- "Title, 279 songs": the sort label, then the song count -->
+    <plurals name="library_sort_header">
+        <item quantity="one">%1$s, %2$s song</item>
+        <item quantity="other">%1$s, %2$s songs</item>
+    </plurals>
+    <string name="library_shuffle_all_cd">Shuffle all songs</string>
+
+    <!-- Collection screens: shared frame (2.6) -->
+    <string name="collection_add_to_playlist_cd">Add %1$s to a playlist</string>
+    <string name="collection_shuffle_cd">Shuffle %1$s</string>
+    <string name="collection_options_cd">Playlist options</string>
+    <string name="collection_album_gone">This album is gone</string>
+    <string name="collection_artist_gone">This artist is gone</string>
+    <string name="collection_playlist_gone">This playlist is gone</string>
+    <string name="collection_gone_body">It may have been removed from Music/Offline.</string>
+
+    <!-- Album (2.7) -->
+    <string name="album_kind_album">Album</string>
+    <string name="album_kind_single">Single</string>
+    <!-- "Album • 2025" -->
+    <string name="album_kind_year">%1$s • %2$s</string>
+    <!-- "17 songs • 1 hr 2 min" -->
+    <string name="album_footer">%1$s • %2$s</string>
+
+    <!-- Artist (2.8) -->
+    <string name="artist_top_songs">Top songs</string>
+    <string name="artist_albums">Albums</string>
+    <string name="artist_all_songs">All songs</string>
+    <!-- "2013 • Album" -->
+    <string name="artist_album_year_kind">%1$s • %2$s</string>
+
+    <!-- Folder, Favourites and Playlist (2.9) -->
+    <string name="folder_subtitle">Playlist from your Music/Offline folder</string>
+    <string name="favourites_empty_title">Songs you like will appear here</string>
+    <string name="favourites_empty_body">Tap the heart on a song to save it.</string>
+    <string name="playlist_rename">Rename</string>
+    <string name="playlist_delete">Delete playlist</string>
+    <string name="playlist_add_songs_cd">Add songs</string>
+    <string name="playlist_reorder_cd">Reorder songs</string>
+    <string name="playlist_reorder_done_cd">Done reordering</string>
+    <string name="drag_to_reorder_cd">Drag %1$s to reorder</string>
+    <string name="playlist_empty_title">Add songs to this playlist</string>
+    <string name="playlist_empty_body">Tap the plus above to add songs from your library.</string>
+
+    <!-- Now Playing (2.10) -->
+    <string name="now_playing_close_cd">Close player</string>
+    <string name="now_playing_playing_from">Playing from</string>
+    <string name="now_playing_seek_cd">Seek in %1$s</string>
+    <string name="now_playing_shuffle_on_cd">Turn shuffle on</string>
+    <string name="now_playing_shuffle_off_cd">Turn shuffle off</string>
+    <string name="now_playing_repeat_off_cd">Repeat off, tap to repeat all</string>
+    <string name="now_playing_repeat_all_cd">Repeat all, tap to repeat one</string>
+    <string name="now_playing_repeat_one_cd">Repeat one, tap to turn off</string>
+    <string name="now_playing_open_queue_cd">Open queue</string>
+    <string name="now_playing_about_artist">About the artist</string>
+    <plurals name="now_playing_artist_songs">
+        <item quantity="one">%1$s song in your library</item>
+        <item quantity="other">%1$s songs in your library</item>
+    </plurals>
+    <string name="now_playing_credits">Credits</string>
+    <string name="now_playing_performed_by">Performed by</string>
+    <string name="now_playing_album">Album</string>
+    <string name="now_playing_year">Year</string>
+    <!-- Context names shown under "Playing from" -->
+    <string name="context_favourites">Favourites</string>
+    <string name="context_recently_played">Recently played</string>
+    <string name="context_start_listening">Start listening</string>
+    <string name="context_search_results">Search results</string>
+    <string name="context_all_songs">All songs</string>
+    <string name="context_your_top_songs">Your top songs</string>
+    <string name="context_radio">Radio · %1$s</string>
+    <string name="context_your_library">Your library</string>
+
+    <!-- Queue (2.11) -->
+    <string name="queue_close_cd">Close queue</string>
+    <string name="queue_title">Queue</string>
+    <string name="queue_clear">Clear</string>
+    <string name="queue_now_playing">Now playing</string>
+    <plurals name="queue_up_next">
+        <item quantity="one">Up next, %1$s song</item>
+        <item quantity="other">Up next, %1$s songs</item>
+    </plurals>
+    <string name="queue_nothing_up_next">Nothing up next</string>
+    <string name="queue_remove">Remove</string>
+
+    <!-- Lyrics: card, inline line and full screen (2.12) -->
+    <string name="lyrics_title">Lyrics</string>
+    <string name="lyrics_open">Open lyrics</string>
+    <string name="lyrics_instrumental">This song is instrumental.</string>
+    <string name="lyrics_not_downloaded">Download once and they stay on this phone.</string>
+    <string name="lyrics_download">Download lyrics</string>
+    <string name="lyrics_not_found">No lyrics were found for this song.</string>
+    <string name="lyrics_close_cd">Close lyrics</string>
+
+    <!-- Bottom sheets (2.13) -->
+    <string name="menu_start_radio">Start radio</string>
+    <string name="menu_play_next">Play next</string>
+    <string name="menu_add_to_queue">Add to queue</string>
+    <string name="menu_add_to_playlist">Add to playlist</string>
+    <string name="menu_language">Language: %1$s</string>
+    <string name="menu_remove_from_playlist">Remove from this playlist</string>
+    <string name="menu_go_to_album">Go to album</string>
+    <string name="menu_go_to_artist">Go to artist</string>
+    <string name="language_picker_title">Song language</string>
+    <string name="language_tamil">Tamil</string>
+    <string name="language_hindi">Hindi</string>
+    <string name="language_telugu">Telugu</string>
+    <string name="language_malayalam">Malayalam</string>
+    <string name="language_kannada">Kannada</string>
+    <string name="language_english">English</string>
+    <string name="language_no_vocals">No vocals</string>
+    <string name="language_unknown">Unknown</string>
+    <string name="playlist_picker_title">Add to playlist</string>
+    <string name="playlist_picker_new">New playlist</string>
+    <!-- "Late drive (12 songs)" -->
+    <plurals name="playlist_picker_row">
+        <item quantity="one">%1$s (%2$s song)</item>
+        <item quantity="other">%1$s (%2$s songs)</item>
+    </plurals>
+    <string name="add_songs_title">Add songs</string>
+    <string name="add_songs_placeholder">Find a song</string>
+    <string name="add_songs_add_cd">Add %1$s</string>
+    <string name="add_songs_remove_cd">Remove %1$s</string>
+
+    <!-- Dialogs and menus (2.14) -->
+    <string name="dialog_playlist_name_label">Playlist name</string>
+    <string name="dialog_name_playlist_title">Name this playlist</string>
+    <string name="dialog_new_playlist_title">New playlist</string>
+    <string name="dialog_rename_playlist_title">Rename playlist</string>
+    <string name="dialog_delete_playlist_title">Delete %1$s?</string>
+    <string name="dialog_delete_playlist_body">The playlist goes away. The songs stay in your library.</string>
+    <string name="dialog_delete_playlist_confirm">Delete playlist</string>
+
+    <!-- Settings (2.15) -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme_system">Match phone</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <!-- The style picker: the one addition to today's copy -->
+    <string name="settings_style">Style</string>
+    <string name="settings_style_expressive">Expressive</string>
+    <string name="settings_style_comfort">Comfort</string>
+    <string name="settings_lyrics">Lyrics</string>
+    <string name="settings_lyrics_saved">%1$s of %2$s songs have lyrics saved on this phone. Saved lyrics work offline.</string>
+    <string name="settings_lyrics_privacy">Downloading sends each song\'s title, artist, album and length to lrclib.net. Your music files are never sent.</string>
+    <string name="settings_lyrics_download_all">Download lyrics for all songs</string>
+    <string name="settings_lyrics_progress">Checked %1$s of %2$s, found %3$s</string>
+    <plurals name="settings_lyrics_failed">
+        <item quantity="one">%1$s song couldn\'t be checked. Download again to retry them.</item>
+        <item quantity="other">%1$s songs couldn\'t be checked. Download again to retry them.</item>
+    </plurals>
+    <string name="settings_lyrics_gave_up">Stopped because the connection failed. Check your internet, then download again to continue.</string>
+    <string name="settings_song_radio">Song radio</string>
+    <string name="settings_autoplay">Autoplay</string>
+    <string name="settings_autoplay_body">When a queue reaches its last song, radio keeps going with similar songs.</string>
+    <string name="settings_radio_privacy">Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</string>
+    <string name="settings_analysis_running">Analysing songs: %1$s of %2$s</string>
+    <string name="settings_analysis_done">All %1$s songs analysed.</string>
+    <string name="settings_analysis_partial">%1$s of %2$s songs analysed. The rest continue next time the phone charges.</string>
+    <string name="settings_analyse_now">Analyse now without a charger</string>
+    <string name="settings_about">About</string>
+    <!-- %1$s is the song count with its noun, from song_count: "127 songs" -->
+    <string name="settings_about_body">Attic plays the music in Music/Offline. It has no account and no streaming. %1$s on this phone.</string>
+
+    <!-- Recap page (2.16) -->
+    <string name="recap_title">Recap</string>
+    <string name="recap_period_week">This week</string>
+    <string name="recap_period_month">This month</string>
+    <string name="recap_period_year">This year</string>
+    <string name="recap_period_all_time">All time</string>
+    <string name="recap_empty_week">Nothing played this week yet</string>
+    <string name="recap_empty_month">Nothing played this month yet</string>
+    <string name="recap_empty_year">Nothing played this year yet</string>
+    <string name="recap_empty_all_time">Nothing played all time yet</string>
+    <string name="recap_empty_body">Any song you play for 30 seconds or more counts. Your top songs, artists and listening clock build up from there.</string>
+    <string name="recap_headline_week">Your week in music</string>
+    <string name="recap_headline_month">Your %1$s in music</string>
+    <string name="recap_headline_year_so_far">Your %1$s so far</string>
+    <string name="recap_headline_year">Your %1$s Recap</string>
+    <string name="recap_headline_all_time">Everything you\'ve played</string>
+    <string name="recap_banner_body">%1$s minutes of music, told in %2$d cards you can share.</string>
+    <string name="recap_play">Play recap</string>
+    <string name="recap_stat_minutes">Minutes</string>
+    <string name="recap_stat_plays">Plays</string>
+    <string name="recap_stat_songs">Songs</string>
+    <string name="recap_stat_artists">Artists</string>
+    <string name="recap_stat_days">Days with music</string>
+    <string name="recap_stat_longest_streak">Longest streak</string>
+    <plurals name="recap_days">
+        <item quantity="one">%1$s day</item>
+        <item quantity="other">%1$s days</item>
+    </plurals>
+    <string name="recap_share_a_card">Share a card</string>
+    <string name="recap_top_songs">Top songs</string>
+    <plurals name="recap_plays">
+        <item quantity="one">%1$s play</item>
+        <item quantity="other">%1$s plays</item>
+    </plurals>
+    <string name="recap_top_artists">Top artists</string>
+    <string name="recap_minutes_short">%1$s min</string>
+    <string name="recap_languages">Languages</string>
+    <string name="recap_percent">%1$d%%</string>
+    <string name="recap_when_you_listen">When you listen</string>
+    <!-- "{listener type line} Your busiest hour starts at {hour}." -->
+    <string name="recap_busiest_hour">%1$s Your busiest hour starts at %2$s.</string>
+    <string name="hour_midnight">midnight</string>
+    <string name="hour_noon">noon</string>
+    <string name="hour_am">%1$d am</string>
+    <string name="hour_pm">%1$d pm</string>
+    <string name="listener_night_owl">Night owl</string>
+    <string name="listener_night_owl_line">Most of your listening happens after dark.</string>
+    <string name="listener_early_riser">Early riser</string>
+    <string name="listener_early_riser_line">You start the day with music.</string>
+    <string name="listener_daytime">Daytime listener</string>
+    <string name="listener_daytime_line">Music keeps your days going.</string>
+    <string name="listener_evening">Evening unwinder</string>
+    <string name="listener_evening_line">Your evenings have a soundtrack.</string>
+    <!-- %1$s is the log's first day, "3 January 2026" -->
+    <string name="recap_footnote">Counted from Attic\'s listening log, which began on %1$s. A song counts as a play after 30 seconds.</string>
+
+    <!-- Recap story and cards (2.16) -->
+    <string name="story_close">Close</string>
+    <string name="story_save">Save</string>
+    <string name="story_share">Share</string>
+    <string name="card_intro_week">Your week in music</string>
+    <string name="card_intro_month">Your month in music</string>
+    <string name="card_intro_year">Your year so far</string>
+    <string name="card_intro_all_time">Everything you\'ve played</string>
+    <string name="card_intro_body">%1$s minutes across %2$s songs. Here\'s what you played.</string>
+    <string name="card_intro_word_week">Week</string>
+    <string name="card_intro_word_all">All</string>
+    <string name="card_minutes_lead">You listened for</string>
+    <string name="card_minutes_unit">minutes</string>
+    <!-- "That's about 307 hours across 251 days." -->
+    <string name="card_minutes_hours_days">That\'s about %1$s across %2$s.</string>
+    <plurals name="card_hours">
+        <item quantity="one">%1$s hour</item>
+        <item quantity="other">%1$s hours</item>
+    </plurals>
+    <string name="card_minutes_starting">Just getting started across %1$s.</string>
+    <string name="card_top_song">Your top song</string>
+    <string name="card_played_once">Played once</string>
+    <string name="card_played_times">Played %1$s times</string>
+    <string name="card_top_songs_headline">Songs you\nkept coming\nback to</string>
+    <string name="card_times">%1$s×</string>
+    <string name="card_top_artist">Your top artist</string>
+    <!-- "3,120 minutes over 412 plays. Number one of the 96 artists you played." -->
+    <string name="card_top_artist_body">%1$s minutes over %2$s. Number one of the %3$s artists you played.</string>
+    <string name="card_top_artists_headline">The artists\non repeat</string>
+    <string name="card_minutes">%1$s minutes</string>
+    <string name="card_languages_label">What you listened in</string>
+    <string name="card_language_share">%1$s %2$d%%</string>
+    <string name="card_clock_label">Your listening clock</string>
+    <string name="card_highlights_headline">The good bits</string>
+    <string name="card_highlight_biggest_day_value">%1$s min</string>
+    <string name="card_highlight_biggest_day">on %1$s, your biggest day</string>
+    <string name="card_highlight_repeat">%1$s in a single day</string>
+    <string name="card_highlight_streak">in a row with music</string>
+    <plurals name="card_highlight_first_plays">
+        <item quantity="one">song played for the first time</item>
+        <item quantity="other">songs played for the first time</item>
+    </plurals>
+    <string name="card_highlight_radio">of your listening picked by radio</string>
+    <string name="card_summary_top_artists">Top artists</string>
+    <string name="card_summary_top_songs">Top songs</string>
+    <string name="card_summary_minutes">Minutes</string>
+    <string name="card_summary_mostly_in">Mostly in</string>
+    <!-- "1  A. R. Rahman" -->
+    <string name="card_summary_rank">%1$d  %2$s</string>
+    <string name="card_period_week">Week of %1$s</string>
+    <string name="card_period_month">%1$s %2$s</string>
+    <string name="card_period_year_so_far">%1$s so far</string>
+    <string name="card_period_all_time">All time</string>
+    <string name="card_footer_name">Attic</string>
+
+    <!-- Snackbar messages (2.17) -->
+    <string name="message_playing_next">Playing next</string>
+    <string name="message_added_to_queue">Added to queue</string>
+    <string name="message_added_to_playlist">Added to %1$s</string>
+    <string name="message_already_in_playlist">Already in %1$s</string>
+    <string name="message_no_lyrics_found">No lyrics found for %1$s</string>
+    <string name="message_lyrics_offline">Connect to the internet to download lyrics</string>
+    <string name="message_saved_image">Saved to Pictures/Attic</string>
+    <string name="message_save_failed">Couldn\'t save the image</string>
+    <string name="message_radio_unreadable">Radio couldn\'t read this song</string>
+    <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
+    <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
+
+    <!-- Permission, loading and empty states (2.18) -->
+    <string name="permission_title">Attic plays the music on this phone</string>
+    <string name="permission_body">Allow audio access so it can read your songs in Music/Offline. Notifications show the playback controls.</string>
+    <string name="permission_body_refused">Audio access is off, so Attic can\'t see your songs. Turn on Music and audio in the app\'s permissions.</string>
+    <string name="permission_allow">Allow access</string>
+    <string name="permission_open_settings">Open app permissions</string>
+
+    <!-- Media notification and lock screen (2.20) -->
+    <string name="notification_shuffle_on">Turn shuffle on</string>
+    <string name="notification_shuffle_off">Turn shuffle off</string>
+    <string name="notification_favourite_add">Add to favourites</string>
+    <string name="notification_favourite_remove">Remove from favourites</string>
+    <string name="analysis_channel">Song analysis</string>
+    <string name="analysis_channel_description">Progress while Attic analyses your songs for radio</string>
+    <string name="analysis_notification_title">Analysing your songs</string>
+    <string name="analysis_notification_progress">%1$s of %2$s</string>
+    <string name="analysis_notification_stop">Stop</string>
 </resources>
