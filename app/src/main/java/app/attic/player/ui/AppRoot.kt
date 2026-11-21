@@ -24,6 +24,7 @@ import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLoading
 import app.attic.player.ui.classic.ClassicPermissionScreen
 import app.attic.player.ui.classic.ClassicShell
+import app.attic.player.ui.expressive.ExpressiveShell
 import app.attic.player.ui.model.RootState
 import app.attic.player.ui.model.rememberRootModel
 import app.attic.player.ui.model.rememberShellModel
@@ -162,7 +163,7 @@ private fun MainShell(library: Library) {
     val style = LocalUiStyle.current
     CompositionLocalProvider(LocalUi provides shell.ui) {
         when (style) {
-            UiStyle.Expressive -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
+            UiStyle.Expressive -> ExpressiveShell(state, actions, slots)
             UiStyle.Comfort -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
             UiStyle.Classic -> ClassicShell(state, actions, slots)
         }

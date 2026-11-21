@@ -41,10 +41,25 @@ Every Expressive (and Comfort) branch that still calls Classic drawing is wrappe
 `ClassicSurface { }` (ui/classic/ClassicTheme.kt), which provides Classic's colours, type and shapes.
 When you build a surface, replace `ClassicSurface { ClassicX(state, actions) }` with your drawing.
 
-The shell is still Classic, so AppRoot calls `ClassicShell(state, actions, slots.inStyleSurface())`:
-each slot (the NavHost, mini player, Now Playing, queue, lyrics) is drawn in `StyleSurface { }`,
-which restores the style's own theme. A screen you build therefore gets the Expressive theme even
-inside the Classic shell. Whoever builds the Expressive shell drops both wrappers there.
+The Expressive shell is built: AppRoot calls `ExpressiveShell(state, actions, slots)` with no
+wrappers, so every slot is in the Expressive theme and an unbuilt screen brings its own
+`ClassicSurface`. Comfort still uses `ClassicShell(state, actions, slots.inStyleSurface())`, where
+each slot is drawn in `StyleSurface { }` to get the style's theme back.
+
+### The shell, for screens inside it (ExpressiveShell.kt)
+
+- Destinations fill the screen and scroll under the dock: the navigation bar, with the mini player
+  8dp above it and 12dp in from the edges while a song is queued. Pad a scrolling screen's end by
+  `LocalBottomPadding.current` (ui/Components.kt): the dock's height plus 24dp, the kit's
+  `.page.clear-dock`. A FAB sits 12dp above the dock: `padding(bottom = LocalBottomPadding.current - 12.dp)`.
+- A tab root takes the status bar itself (`RootAppBar`, `DetailAppBar` do); the shell adds no top inset.
+- Destinations move with `ExpressiveNavTransitions`: tab roots fade through, detail screens use the
+  shared X axis. Now Playing, the queue and lyrics rise from the bottom over the dock.
+- While the keyboard is up the mini player rides above it and the navigation bar stays under it.
+- The snackbar (`ExpressiveSnackbar`) sits 16dp above the dock, or near the bottom edge while an
+  overlay is open, and draws above the overlays.
+- System bar icons follow the theme (MainActivity). Art surfaces take the same light or dark as the
+  theme, so the icons stay readable over them without a change per surface.
 
 ## Colour from the cover: `FromArt`
 
@@ -93,6 +108,7 @@ FontFamily for other combinations; each style already sets an optical size near 
 | `.cookie` | `CookieShape` (the kit's polygon, Material's Cookie9Sided) |
 | squared off means on | `ExpressiveShapes.onCorner(height)` |
 | group cell | `ExpressiveShapes.groupItemShape(index, count)`, `GroupGap` 2dp, `GroupSpacing` 12dp |
+| `--shape-clover` (sheets 06, 08) | `CloverShape` (Material's Clover4Leaf), for "nothing here yet" |
 
 ## Icons
 
@@ -152,7 +168,7 @@ for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("At
 | `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
 | `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | |
 | `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | |
-| `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | |
+| `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |
 | `.switch`, `.radio` | `ExpressiveSwitch(checked, onCheckedChange)`, `ExpressiveRadio(selected, onClick)` | Material's |
 | `.progress`, `.progress.wavy` | `LinearProgress { fraction }`, `WavyLinearProgress({ fraction }, running)` | wavy for long running jobs (analysis) |
@@ -163,7 +179,8 @@ for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("At
 
 Not in the kit, as in pixel/KIT.md: the mini player, Now Playing, the collection header block and
 Recap's charts are screen work, composed from the parts above (the gallery shows a mini player and
-both headers built that way).
+both headers built that way). The shell and the mini player are `ExpressiveShell` and
+`ExpressiveMiniPlayer` (ExpressiveShell.kt); the `.dock` and `.nav` placement is there.
 
 ## Shared copy (strings)
 
