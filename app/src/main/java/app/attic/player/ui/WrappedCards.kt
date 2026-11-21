@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import app.attic.player.data.Artist
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Track
+import app.attic.player.ui.classic.*
 import app.attic.player.wrapped.RankedArtist
 import app.attic.player.wrapped.RankedSong
 import app.attic.player.wrapped.Recap

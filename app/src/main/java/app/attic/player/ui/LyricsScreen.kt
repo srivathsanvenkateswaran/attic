@@ -52,9 +52,10 @@ import app.attic.player.data.LyricLine
 import app.attic.player.data.LyricsEntity
 import app.attic.player.data.LyricsResult
 import app.attic.player.data.ThemeMode
-import app.attic.player.data.UiStyle
 import app.attic.player.data.Track
+import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.classic.*
 import kotlinx.coroutines.launch
 
 private val SungColor = Color.White

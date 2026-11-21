@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.Track
+import app.attic.player.ui.classic.*
 
 private enum class LibraryFilter(val label: String) {
     Playlists("Playlists"),
@@ -129,7 +130,7 @@ fun LibraryScreen(library: Library) {
                 .padding(start = 16.dp, end = 8.dp, top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ProfileButton()
+            ProfileButton { ui.openSettings() }
             Spacer(Modifier.width(12.dp))
             Text("Your Library", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             IconButton(onClick = { ui.openSearch() }) {

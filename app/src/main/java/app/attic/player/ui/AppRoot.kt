@@ -13,8 +13,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -74,9 +74,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.Track
-import app.attic.player.attic
+import app.attic.player.ui.classic.*
 import kotlinx.coroutines.launch
 
 /** App-wide UI actions, handed down instead of threading a dozen lambdas through every screen. */

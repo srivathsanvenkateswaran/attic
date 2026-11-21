@@ -90,14 +90,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.Player
 import app.attic.player.attic
 import app.attic.player.data.ThemeMode
-import app.attic.player.data.UiStyle
 import app.attic.player.data.Track
+import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.classic.*
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 /** Polls the player while [active], since position isn't pushed as state. */
 @Composable

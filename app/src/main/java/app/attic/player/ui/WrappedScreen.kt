@@ -23,8 +23,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -68,15 +68,16 @@ import androidx.lifecycle.compose.currentStateAsState
 import app.attic.player.attic
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
+import app.attic.player.ui.classic.*
 import app.attic.player.wrapped.Recap
 import app.attic.player.wrapped.RecapPeriod
-import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 /** Looks up a recap's songs and artists so the cards can show names and covers. */
 fun wrappedData(recap: Recap, period: RecapPeriod, library: Library, today: LocalDate = LocalDate.now()): WrappedData {

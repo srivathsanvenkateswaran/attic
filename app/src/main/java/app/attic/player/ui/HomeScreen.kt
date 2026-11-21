@@ -20,9 +20,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,18 +36,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Album
-import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
-import app.attic.player.wrapped.RecapPeriod
 import app.attic.player.data.Track
+import app.attic.player.ui.classic.*
+import app.attic.player.wrapped.RecapPeriod
 
 private sealed interface Shortcut {
     data object Liked : Shortcut
@@ -107,7 +102,7 @@ fun HomeScreen(library: Library) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ProfileButton()
+                ProfileButton { ui.openSettings() }
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(end = 16.dp)) {
                     items(HomeFilter.entries) { option ->
                         PillChip(option.label, option == filter) { filter = option }
@@ -373,102 +368,6 @@ private fun ShortcutTile(shortcut: Shortcut, modifier: Modifier = Modifier) {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 10.dp),
-        )
-    }
-}
-
-/** Violet-to-pale gradient tile with a white heart for Liked Songs. */
-@Composable
-fun LikedTile(modifier: Modifier = Modifier) {
-    Box(
-        modifier.background(Brush.linearGradient(listOf(Color(0xFF4A17E0), Color(0xFFC4EFD9)))),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(Icons.Rounded.Favorite, contentDescription = null, tint = Color.White, modifier = Modifier.fillMaxSize(0.46f))
-    }
-}
-
-@Composable
-fun FolderCard(folder: FolderPlaylist, onClick: () -> Unit) {
-    Column(Modifier.width(160.dp).pressable(onClick = onClick)) {
-        MosaicCover(mosaicIds(folder.tracks), Modifier.fillMaxWidth(), BigCoverShape)
-        Spacer(Modifier.height(8.dp))
-        Text(folder.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(
-            songCount(folder.tracks.size),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-fun ShelfCard(
-    mediaId: Long?,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    highlighted: Boolean = false,
-) {
-    Column(Modifier.width(160.dp).pressable(onClick = onClick)) {
-        CoverArt(mediaId, BigCoverShape, Modifier.fillMaxWidth().aspectRatio(1f), iconSize = 40.dp)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
-fun ArtistCircle(artist: Artist, onClick: () -> Unit) {
-    Column(Modifier.width(130.dp).pressable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally) {
-        CoverArt(artist.tracks.first().mediaId, CircleShape, Modifier.size(130.dp), iconSize = 36.dp)
-        Spacer(Modifier.height(8.dp))
-        Text(artist.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-/** Small round button that opens Settings, in the spot where a streaming app shows your profile. */
-@Composable
-fun ProfileButton() {
-    val ui = LocalUi.current
-    Box(
-        Modifier
-            .size(36.dp)
-            .pressable(scale = 0.9f) { ui.openSettings() }
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .semantics { contentDescription = "Settings" },
-        contentAlignment = Alignment.Center,
-    ) {
-        AtticMark(18.dp)
-    }
-}
-
-@Composable
-fun PillChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .pressable(scale = 0.94f, onClick = onClick)
-            .clip(CircleShape)
-            .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
         )
     }
 }

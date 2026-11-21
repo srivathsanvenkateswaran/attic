@@ -37,9 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import app.attic.player.data.Track
 import app.attic.player.attic
+import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.classic.*
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 

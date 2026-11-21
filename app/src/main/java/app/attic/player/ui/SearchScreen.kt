@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -32,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +54,7 @@ import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
+import app.attic.player.ui.classic.*
 
 private class SearchResults(
     val tracks: List<Track>,
@@ -111,7 +110,7 @@ fun SearchScreen(library: Library) {
 
     Column(Modifier.fillMaxSize().statusBarsPadding().imePadding()) {
         Row(Modifier.padding(start = 16.dp, top = 10.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            ProfileButton()
+            ProfileButton { ui.openSettings() }
             Spacer(Modifier.width(12.dp))
             Text("Search", style = MaterialTheme.typography.headlineSmall)
         }
@@ -179,23 +178,6 @@ fun SearchScreen(library: Library) {
     }
 }
 
-@Composable
-fun searchFieldColors() = TextFieldDefaults.colors(
-    focusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
-    unfocusedContainerColor = MaterialTheme.colorScheme.inverseSurface,
-    focusedTextColor = MaterialTheme.colorScheme.inverseOnSurface,
-    unfocusedTextColor = MaterialTheme.colorScheme.inverseOnSurface,
-    focusedPlaceholderColor = MaterialTheme.colorScheme.outline,
-    unfocusedPlaceholderColor = MaterialTheme.colorScheme.outline,
-    focusedLeadingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
-    unfocusedLeadingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
-    focusedTrailingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
-    unfocusedTrailingIconColor = MaterialTheme.colorScheme.inverseOnSurface,
-    cursorColor = MaterialTheme.colorScheme.primary,
-    focusedIndicatorColor = Color.Transparent,
-    unfocusedIndicatorColor = Color.Transparent,
-)
-
 /** Coloured browse tile with its cover tucked into the corner at an angle. */
 @Composable
 private fun BrowseCard(tile: BrowseTile, color: Color) {
@@ -224,36 +206,5 @@ private fun BrowseCard(tile: BrowseTile, color: Color) {
                 .rotate(25f)
                 .size(68.dp),
         )
-    }
-}
-
-@Composable
-fun ResultRow(
-    mediaId: Long?,
-    title: String,
-    subtitle: String,
-    circle: Boolean = false,
-    cover: (@Composable () -> Unit)? = null,
-    onClick: () -> Unit,
-) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .pressable(scale = 0.985f, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (cover != null) cover() else CoverArt(mediaId, if (circle) CircleShape else CoverShape, Modifier.size(56.dp))
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
     }
 }

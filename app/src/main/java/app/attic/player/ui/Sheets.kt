@@ -58,10 +58,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.AtticApp
+import app.attic.player.attic
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
-import app.attic.player.attic
+import app.attic.player.ui.classic.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

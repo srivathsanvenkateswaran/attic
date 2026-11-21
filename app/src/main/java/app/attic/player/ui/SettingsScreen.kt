@@ -29,6 +29,7 @@ import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.ThemeMode
+import app.attic.player.ui.classic.*
 
 @Composable
 fun SettingsScreen(library: Library) {
