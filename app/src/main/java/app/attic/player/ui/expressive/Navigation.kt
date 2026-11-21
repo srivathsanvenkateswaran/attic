@@ -14,7 +14,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.selection.selectable
@@ -124,6 +125,7 @@ fun RootAppBar(
     modifier: Modifier = Modifier,
     scrolled: Float = 0f,
     titleLeading: (@Composable () -> Unit)? = null,
+    windowInsets: WindowInsets = WindowInsets.statusBars,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -143,7 +145,7 @@ fun RootAppBar(
         lineHeight = lerp(big.lineHeight, small.lineHeight, fraction),
         letterSpacing = lerp(big.letterSpacing, 0.sp, fraction),
     )
-    Box(modifier.fillMaxWidth().background(container).statusBarsPadding()) {
+    Box(modifier.fillMaxWidth().background(container).windowInsetsPadding(windowInsets)) {
         Row(
             Modifier.fillMaxWidth().height(lerp(72.dp, 64.dp, fraction)).padding(start = 16.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -174,6 +176,7 @@ fun DetailAppBar(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     surface: AppBarSurface = AppBarSurface.Plain,
+    windowInsets: WindowInsets = WindowInsets.statusBars,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -183,7 +186,7 @@ fun DetailAppBar(
         label = "detailBar",
     )
     val over = surface == AppBarSurface.OverArt
-    Box(modifier.fillMaxWidth().background(container).statusBarsPadding()) {
+    Box(modifier.fillMaxWidth().background(container).windowInsetsPadding(windowInsets)) {
         Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             OverArtScrim(over) {
                 ExpressiveIconButton(Symbol.ArrowBack, stringResource(R.string.back), onBack, tint = if (over) colors.onSurface else Color.Unspecified)

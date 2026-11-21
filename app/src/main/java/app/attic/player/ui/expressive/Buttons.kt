@@ -235,7 +235,7 @@ fun ExpressiveToggleButton(
         when {
             checked -> colors.onPrimary
             tonalWhenOff -> colors.onSecondaryContainer
-            else -> colors.onSurfaceVariant
+            else -> LocalStandardIconTint.current.takeOrElse { colors.onSurfaceVariant }
         },
         ExpressiveMotion.fastEffects(),
         label = "toggleContent",
@@ -291,7 +291,7 @@ fun HeartButton(favourite: Boolean, onToggle: () -> Unit, modifier: Modifier = M
         SymbolIcon(
             Symbol.Favorite,
             filled = favourite,
-            tint = if (favourite) colors.primary else colors.onSurfaceVariant,
+            tint = if (favourite) colors.primary else LocalStandardIconTint.current.takeOrElse { colors.onSurfaceVariant },
             modifier = Modifier.scale(scale.value),
         )
     }
@@ -361,7 +361,7 @@ fun ExpressiveExtendedFab(text: String, symbol: Symbol, onClick: () -> Unit, mod
         containerColor = colors.primaryContainer,
         contentColor = colors.onPrimaryContainer,
         icon = { SymbolIcon(symbol) },
-        text = { Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)) },
+        text = { Text(text, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold), maxLines = 1) },
     )
 }
 
