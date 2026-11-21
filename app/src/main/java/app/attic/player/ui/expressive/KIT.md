@@ -118,7 +118,11 @@ enum named after the ligature in CamelCase (`queue_music` → `Symbol.QueueMusic
 `Symbol.named("queue_music")`). Filled is the selected state and the transport glyphs. Sizes 18–40.
 `weight = 300` for Comfort. A name not in the enum is not in the font: add it (see the enum's doc
 and third_party/fonts-NOTICE.txt). Describe the button, not the icon; pass `contentDescription` only
-for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("Attic", style)`.
+for a standalone icon. The mark: `AtticMarkIcon(size, tint)`, `AtticWordmark("Attic", style)`. It is
+"Headroom" (logo/marks/sound-2-headroom.svg, the owner's choice), not the sheets' house stand-in: one
+even-odd path cropped to its bounding box, drawn [size] tall and about 0.7 of that wide, in the tint
+you give it. The launcher icon, its monochrome layer and the notification icon still use the old
+house until they are redrawn.
 
 ## Components, by kit class
 
