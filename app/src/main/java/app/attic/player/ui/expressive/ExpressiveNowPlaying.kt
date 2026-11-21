@@ -158,8 +158,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             }
         }
     }
-    // Where the controls end on the first page, so the compact header can take over once the play control has gone.
-    var controlsBottom by remember { mutableIntStateOf(Int.MAX_VALUE) }
+    // Where the title block ends on the first page, so the compact header can take over once it has gone.
+    var controlsTop by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
+    var titleEnd by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
 
     BoxWithConstraints(
         Modifier
@@ -182,10 +183,13 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             ) {
                 Header(state, actions, track)
                 CoverPager(state, actions, cover, Modifier.padding(top = 4.dp))
-                Column(
-                    Modifier.onPlaced { controlsBottom = (it.positionInParent().y + it.size.height).roundToInt() },
-                ) {
-                    TitleBlock(state, actions, track)
+                Column(Modifier.onPlaced { controlsTop = it.positionInParent().y.roundToInt() }) {
+                    TitleBlock(
+                        state,
+                        actions,
+                        track,
+                        Modifier.onPlaced { titleEnd = (it.positionInParent().y + it.size.height).roundToInt() },
+                    )
                     SeekSection(state, track, actions.seekTo)
                     Transport(
                         playing = state.isPlaying,
@@ -209,10 +213,10 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                 CreditsCard(track)
             }
         }
-        // The play control ends 100dp above the controls' bottom (tools row and its margins); the header
-        // comes in once it has slid under the header's 72dp.
-        val handover = with(density) { (100.dp + 72.dp).toPx() }
-        CompactHeader(state, actions, track, visible = scroll.value > controlsBottom - handover)
+        // Positions are below the status bar, as the header's 72dp are. The page is too short to scroll the
+        // transport away, so the header follows the title: it carries the title once that has gone.
+        val handover = with(density) { 72.dp.toPx() }
+        CompactHeader(state, actions, track, visible = scroll.value > controlsTop + titleEnd - handover)
     }
 }
 
@@ -314,8 +318,10 @@ private fun CoverPager(state: NowPlayingState, actions: NowPlayingActions, cover
     }
     HorizontalPager(
         state = pager,
-        modifier = modifier.fillMaxWidth().height(cover),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp + 8.dp + SliverWidth),
+        // Inset 20 each side and clipped there, so the song before stays out of sight and the next one
+        // shows exactly its sliver.
+        modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp).height(cover),
+        contentPadding = PaddingValues(end = 8.dp + SliverWidth),
         pageSpacing = 8.dp,
         beyondViewportPageCount = 1,
         key = { "$it:${state.queue[it].key}" },
@@ -374,9 +380,9 @@ private fun lerp(start: Float, stop: Float, fraction: Float) = start + (stop - s
 
 /** The current lyric line (only with synced lyrics), the title, and the artist, which opens the artist. */
 @Composable
-private fun TitleBlock(state: NowPlayingState, actions: NowPlayingActions, track: Track) {
+private fun TitleBlock(state: NowPlayingState, actions: NowPlayingActions, track: Track, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
-    Column(Modifier.fillMaxWidth().padding(start = SideMargin, end = SideMargin, top = 26.dp)) {
+    Column(modifier.fillMaxWidth().padding(start = SideMargin, end = SideMargin, top = 26.dp)) {
         InlineLyric(state.lyrics, state.clock, track, state.isPlaying)
         NarrowingText(
             track.title,
