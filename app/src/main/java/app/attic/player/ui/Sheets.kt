@@ -22,7 +22,9 @@ import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.PersonOutline
+import androidx.compose.material.icons.rounded.Radio
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
@@ -56,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.AtticApp
+import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
 import app.attic.player.attic
@@ -75,10 +78,20 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
     val track = request.track
     val liked by app.userData.likedSet.collectAsStateWithLifecycle()
     var pickingPlaylist by remember { mutableStateOf(false) }
+    var pickingLanguage by remember { mutableStateOf(false) }
+    val language by remember(track.key) { app.radio.languageFlow(track) }.collectAsStateWithLifecycle(null)
     val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (pickingPlaylist) {
         PlaylistPickerSheet(listOf(track.key), onDismiss = onDismiss)
+        return
+    }
+
+    if (pickingLanguage) {
+        LanguagePickerSheet(current = language) { choice ->
+            app.radio.setLanguage(track.key, choice)
+            onDismiss()
+        }
         return
     }
 
@@ -100,6 +113,10 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
             }
             HorizontalDivider(Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
 
+            MenuRow(Icons.Rounded.Radio, "Start radio") {
+                app.radio.start(track)
+                onDismiss()
+            }
             val isLiked = track.key in liked
             MenuRow(if (isLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder, if (isLiked) "Remove from liked songs" else "Add to liked songs") {
                 app.userData.toggleLike(track.key)
@@ -116,6 +133,7 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
                 onDismiss()
             }
             MenuRow(Icons.AutoMirrored.Rounded.PlaylistAdd, "Add to playlist") { pickingPlaylist = true }
+            MenuRow(Icons.Rounded.Language, "Language: ${LanguageLabels.displayName(language)}") { pickingLanguage = true }
             request.playlistId?.let { id ->
                 MenuRow(Icons.Rounded.RemoveCircleOutline, "Remove from this playlist") {
                     app.userData.removeFromPlaylist(id, track.key)
@@ -150,6 +168,28 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(16.dp))
         Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+/** Corrects what radio believes about a song. Your choice is never overwritten. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguagePickerSheet(current: String?, onChoose: (String) -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = { onChoose("") },
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Text(
+            "Song language",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+        )
+        LazyColumn(Modifier.navigationBarsPadding()) {
+            items(LanguageLabels.CHOICES, key = { it.first }) { (code, name) ->
+                MenuRow(if (code == current) Icons.Rounded.Check else Icons.Rounded.Language, name) { onChoose(code) }
+            }
+        }
     }
 }
 

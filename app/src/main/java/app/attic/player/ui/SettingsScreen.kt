@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -23,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.analysis.AnalysisProgress
+import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.ThemeMode
@@ -32,9 +35,13 @@ fun SettingsScreen(library: Library) {
     val app = LocalContext.current.attic
     val ui = LocalUi.current
     val mode by app.settings.themeMode.collectAsStateWithLifecycle()
+    val autoplay by app.settings.autoplay.collectAsStateWithLifecycle()
     val bulk by app.lyrics.bulk.collectAsStateWithLifecycle()
     val saved by app.lyrics.savedKeys().collectAsStateWithLifecycle(emptyList())
     val savedCount = saved.count { it in library.trackByKey }
+    val analyzed by app.radio.analyzedKeys().collectAsStateWithLifecycle(emptyList())
+    val analyzing by AnalysisWorker.running(app).collectAsStateWithLifecycle(false)
+    val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)
 
     Column(
         Modifier
@@ -105,6 +112,50 @@ fun SettingsScreen(library: Library) {
                 modifier = Modifier.padding(horizontal = 4.dp),
             ) {
                 Text("Download lyrics for all songs")
+            }
+        }
+
+        SectionTitle("Song radio")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .pressable(scale = 0.985f) { app.settings.setAutoplay(!autoplay) }
+                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("Autoplay", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    "When a queue reaches its last song, radio keeps going with similar songs.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(checked = autoplay, onCheckedChange = app.settings::setAutoplay)
+        }
+        Text(
+            "Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        LinearProgressIndicator(
+            progress = { analysis.fraction },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        )
+        Text(
+            analysis.status,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp),
+        )
+        if (analysis.canStart) {
+            TextButton(
+                onClick = { AnalysisWorker.startNow(app) },
+                modifier = Modifier.padding(horizontal = 4.dp),
+            ) {
+                Text("Analyse now without a charger")
             }
         }
 

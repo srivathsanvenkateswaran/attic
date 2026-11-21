@@ -17,6 +17,10 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        // The song analysis model ships as native code for phones only, which keeps the APK from tripling.
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {
@@ -25,7 +29,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -67,6 +71,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coroutines.guava)
     implementation(libs.reorderable)
+    implementation(libs.onnxruntime.android)
+    implementation(libs.work.runtime)
 
     testImplementation(libs.junit)
 }

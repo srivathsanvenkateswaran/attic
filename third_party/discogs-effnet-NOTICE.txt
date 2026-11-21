@@ -1,0 +1,10 @@
+app/src/main/assets/discogs-effnet-bsdynamic-1.onnx is the unmodified Discogs-EffNet model
+from https://essentia.upf.edu/models.html, created by the Music Technology Group,
+Universitat Pompeu Fabra.
+
+Essentia's models page licenses it under CC BY-NC-SA 4.0, while MTG's licensing page names
+CC BY-NC-ND 4.0. Both allow non-commercial use with attribution only. Commercial use needs a
+proprietary licence from MTG.
+
+Reference: Alonso-Jiménez, Serra and Bogdanov, "Music Representation Learning Based on Editorial
+Metadata from Discogs", ISMIR 2022.

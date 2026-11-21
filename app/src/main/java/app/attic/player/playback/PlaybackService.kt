@@ -23,6 +23,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.attic.player.MainActivity
+import app.attic.player.data.ListeningEventEntity
 import app.attic.player.data.SavedQueueEntity
 import app.attic.player.attic
 import app.attic.player.widget.PlayerWidget
@@ -32,6 +33,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -55,6 +57,10 @@ class PlaybackService : MediaSessionService() {
     private lateinit var shuffledPlayer: Player
     private var session: MediaSession? = null
     private var lastRecordedKey: String? = null
+    private val listens = ListenTracker()
+    private var upcomingKeys: List<String> = emptyList()
+    private var upcomingAfter: String? = null
+    private var radioFill: Job? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
@@ -99,6 +105,7 @@ class PlaybackService : MediaSessionService() {
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
+        logListen(automatic = false)
         saveNow()
         scope.cancel()
         mainHandler.removeCallbacksAndMessages(null)
@@ -225,6 +232,7 @@ class PlaybackService : MediaSessionService() {
         player.repeatMode = entity.repeatMode
         shuffle.restore(entity.shuffle, entity.baseKeys?.split('\n')?.filter { it.isNotEmpty() })
         player.playlistMetadata = MediaMetadata.Builder().setTitle(entity.contextName).build()
+        if (entity.radioSeed != null && entity.contextName != null) attic.radio.resume(entity.radioSeed, entity.contextName)
         player.setMediaItems(saved.items, saved.index, saved.positionMs)
     }
 
@@ -252,12 +260,26 @@ class PlaybackService : MediaSessionService() {
             shuffle = player.shuffleModeEnabled,
             baseKeys = shuffle.baseOrder?.joinToString("\n"),
             contextName = player.playlistMetadata.title?.toString(),
+            radioSeed = attic.radio.seedFor(player.playlistMetadata.title?.toString()),
         )
         // Uses the app's scope so the write still finishes while this service is being destroyed.
         attic.scope.launch { attic.database.dao().saveQueue(entity) }
     }
 
     private inner class PlayerEvents : Player.Listener {
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            logListen(
+                automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+            )
+            if (mediaItem != null) {
+                listens.start(mediaItem.mediaId, mediaItem.mediaMetadata.durationMs ?: 0L)
+                listens.playing(player.isPlaying)
+            }
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) = listens.playing(isPlaying)
+
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.containsAny(
                     Player.EVENT_TIMELINE_CHANGED,
@@ -279,6 +301,10 @@ class PlaybackService : MediaSessionService() {
             if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_TIMELINE_CHANGED)) {
                 publishToWidgets()
             }
+            if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_TIMELINE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED, Player.EVENT_PLAYLIST_METADATA_CHANGED)) {
+                noticeRemovals()
+                fillRadioQueue()
+            }
         }
 
         // A file deleted or corrupted mid-queue: drop it and carry on rather than stopping the music.
@@ -297,6 +323,94 @@ class PlaybackService : MediaSessionService() {
                 }
             }
         }
+    }
+
+    private fun logListen(automatic: Boolean) {
+        val listen = listens.finish(automatic) ?: return
+        val context = player.playlistMetadata.title?.toString()
+        val cross = attic.radio.isCrossPick(listen.key)
+        if (listen.outcome == ListenTracker.SKIPPED) attic.radio.skipped(listen.key)
+        attic.scope.launch {
+            attic.database.dao().insertEvent(
+                ListeningEventEntity(
+                    trackKey = listen.key,
+                    startedAt = listen.startedAt,
+                    listenedMs = listen.listenedMs,
+                    durationMs = listen.durationMs,
+                    outcome = listen.outcome,
+                    contextName = context,
+                    radioCross = cross,
+                ),
+            )
+        }
+    }
+
+    /** One song swiped out of Up next means "less like this". Clearing the list means stop filling it. */
+    private fun noticeRemovals() {
+        val index = player.currentMediaItemIndex
+        val current = player.currentMediaItem?.mediaId
+        val upcoming = (index + 1 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+        if (current != null && current == upcomingAfter) {
+            val removed = upcomingKeys - upcoming.toSet()
+            if (removed.size == 1) {
+                val key = removed.single()
+                attic.radio.skipped(key)
+                val context = player.playlistMetadata.title?.toString()
+                val now = System.currentTimeMillis()
+                attic.scope.launch {
+                    attic.database.dao().insertEvent(
+                        ListeningEventEntity(
+                            trackKey = key,
+                            startedAt = now,
+                            listenedMs = 0,
+                            durationMs = 0,
+                            outcome = ListenTracker.REMOVED,
+                            contextName = context,
+                            radioCross = attic.radio.isCrossPick(key),
+                        ),
+                    )
+                }
+            } else if (removed.size > 1 && upcoming.isEmpty()) {
+                attic.radio.stop(player.playlistMetadata.title?.toString())
+            }
+        }
+        upcomingAfter = current
+        upcomingKeys = upcoming
+    }
+
+    /** Keeps ten songs visible in a radio queue. New songs only ever go on the end, so your order stands. */
+    private fun fillRadioQueue() {
+        val context = player.playlistMetadata.title?.toString()
+        if (!attic.radio.isActive(context) || context == null) {
+            mainHandler.post(::startAutoplay)
+            return
+        }
+        val upcoming = player.mediaItemCount - player.currentMediaItemIndex - 1
+        if (upcoming >= RADIO_UP_NEXT || !player.playWhenReady || radioFill?.isActive == true) return
+        val inQueue = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+        radioFill = scope.launch {
+            val tracks = attic.radio.pick(context, inQueue, RADIO_UP_NEXT - upcoming, queueWouldEnd = upcoming == 0)
+            if (tracks.isNotEmpty() && attic.radio.isActive(player.playlistMetadata.title?.toString())) {
+                player.addMediaItems(tracks.map { it.toMediaItem() })
+                // The last song may have ended while radio was still choosing.
+                if (player.playbackState == Player.STATE_ENDED) player.seekToNextMediaItem()
+            }
+        }
+    }
+
+    /**
+     * Once an ordinary queue is on its last song, radio takes over from that song so Next has somewhere
+     * to go. Posted rather than run inside the listener, so the context change lands as its own event.
+     */
+    private fun startAutoplay() {
+        val current = player.currentMediaItem ?: return
+        val context = player.playlistMetadata.title?.toString()
+        if (attic.radio.isActive(context)) return
+        if (player.currentMediaItemIndex < player.mediaItemCount - 1) return
+        if (player.repeatMode != Player.REPEAT_MODE_OFF || !player.playWhenReady || !attic.settings.autoplay.value) return
+        val track = attic.library.library.value?.trackByKey?.get(current.mediaId) ?: return
+        val name = attic.radio.continueFrom(track, context) ?: return
+        player.playlistMetadata = MediaMetadata.Builder().setTitle(name).build()
     }
 
     private fun publishToWidgets() {
@@ -328,5 +442,6 @@ class PlaybackService : MediaSessionService() {
         val LIKE_COMMAND = SessionCommand("app.attic.player.LIKE", Bundle.EMPTY)
         const val SAVE_DEBOUNCE_MS = 400L
         const val SAVE_INTERVAL_MS = 15_000L
+        const val RADIO_UP_NEXT = 10
     }
 }

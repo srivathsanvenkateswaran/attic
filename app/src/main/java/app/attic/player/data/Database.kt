@@ -1,6 +1,8 @@
 package app.attic.player.data
 
 import android.content.Context
+import androidx.room.AutoMigration
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
 import androidx.room.Entity
@@ -66,6 +68,7 @@ data class SavedQueueEntity(
     val shuffle: Boolean,
     val baseKeys: String?,
     val contextName: String?,
+    @ColumnInfo(defaultValue = "NULL") val radioSeed: String? = null,
 )
 
 /** A row with [found] false records a checked miss, so bulk downloads don't keep asking. */
@@ -78,6 +81,49 @@ data class LyricsEntity(
     val found: Boolean,
     val fetchedAt: Long,
 )
+
+/** One row per listen, kept for good: radio learns from it and it can answer "what did I play this year?". */
+@Entity(tableName = "listening_events", indices = [Index("trackKey"), Index("startedAt")])
+data class ListeningEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val trackKey: String,
+    val startedAt: Long,
+    val listenedMs: Long,
+    val durationMs: Long,
+    val outcome: String,
+    val contextName: String?,
+    val radioCross: Boolean,
+)
+
+/** What analysis learned from a file. A null [embedding] records a file that couldn't be read. */
+@Entity(tableName = "song_analysis")
+class SongAnalysisEntity(
+    @PrimaryKey val trackKey: String,
+    val modelVersion: Int,
+    val embedding: ByteArray?,
+    val chroma: ByteArray?,
+    val analyzedAt: Long,
+)
+
+/** A language from your own correction or an imported file. Everything else is worked out on load. */
+@Entity(tableName = "song_language")
+data class SongLanguageEntity(
+    @PrimaryKey val trackKey: String,
+    val language: String,
+    val source: String,
+)
+
+class EmbeddingRow(val trackKey: String, val embedding: ByteArray)
+
+class LyricsTextRow(val trackKey: String, val plain: String?, val synced: String?, val instrumental: Boolean)
+
+class OutcomeCount(val trackKey: String, val outcome: String, val total: Int)
+
+class CrossCount(val outcome: String, val total: Int)
+
+class PlayCount(val trackKey: String, val playCount: Int)
+
+class ListenRow(val trackKey: String, val startedAt: Long, val listenedMs: Long, val outcome: String, val contextName: String?)
 
 @Dao
 interface MusicDao {
@@ -153,6 +199,57 @@ interface MusicDao {
 
     @Query("SELECT * FROM saved_queue WHERE id = 1")
     suspend fun savedQueue(): SavedQueueEntity?
+
+    @Insert
+    suspend fun insertEvent(entity: ListeningEventEntity)
+
+    @Query("SELECT trackKey, outcome, COUNT(*) AS total FROM listening_events GROUP BY trackKey, outcome")
+    suspend fun outcomeCounts(): List<OutcomeCount>
+
+    @Query("SELECT outcome, COUNT(*) AS total FROM listening_events WHERE radioCross = 1 GROUP BY outcome")
+    suspend fun crossCounts(): List<CrossCount>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveAnalysis(entity: SongAnalysisEntity)
+
+    @Query("SELECT trackKey FROM song_analysis WHERE modelVersion = :version")
+    fun analyzedKeys(version: Int): Flow<List<String>>
+
+    @Query("SELECT trackKey FROM song_analysis WHERE modelVersion = :version")
+    suspend fun analyzedKeysNow(version: Int): List<String>
+
+    @Query("SELECT trackKey, embedding FROM song_analysis WHERE modelVersion = :version AND embedding IS NOT NULL")
+    suspend fun embeddings(version: Int): List<EmbeddingRow>
+
+    @Query("SELECT chroma FROM song_analysis WHERE trackKey = :key")
+    suspend fun chroma(key: String): ByteArray?
+
+    @Query("SELECT * FROM song_language")
+    suspend fun storedLanguages(): List<SongLanguageEntity>
+
+    @Query("SELECT language FROM song_language WHERE trackKey = :key")
+    fun storedLanguage(key: String): Flow<String?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLanguage(entity: SongLanguageEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLanguages(entities: List<SongLanguageEntity>)
+
+    @Query("SELECT trackKey, plain, synced, instrumental FROM lyrics WHERE found = 1")
+    suspend fun lyricsTexts(): List<LyricsTextRow>
+
+    @Query("SELECT trackKey, playCount FROM history")
+    suspend fun playCounts(): List<PlayCount>
+
+    @Query("SELECT trackKey FROM history ORDER BY lastPlayedAt DESC LIMIT :limit")
+    suspend fun recentKeys(limit: Int): List<String>
+
+    @Query("SELECT trackKey, startedAt, listenedMs, outcome, contextName FROM listening_events WHERE listenedMs > 0 ORDER BY startedAt")
+    suspend fun listens(): List<ListenRow>
+
+    @Query("SELECT COUNT(*) FROM listening_events WHERE listenedMs > 0")
+    fun listenCount(): Flow<Int>
 }
 
 @Database(
@@ -163,9 +260,13 @@ interface MusicDao {
         HistoryEntity::class,
         SavedQueueEntity::class,
         LyricsEntity::class,
+        ListeningEventEntity::class,
+        SongAnalysisEntity::class,
+        SongLanguageEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class AtticDatabase : RoomDatabase() {
     abstract fun dao(): MusicDao

@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +70,10 @@ fun HomeScreen(library: Library) {
     val recentKeys by app.userData.recentKeys.collectAsStateWithLifecycle(emptyList())
     val player by app.player.state.collectAsStateWithLifecycle()
     var filter by rememberSaveable { mutableStateOf(HomeFilter.All) }
+    val speedDial by app.radio.speedDial.collectAsStateWithLifecycle()
+    val analyzed by app.radio.analyzedKeys().collectAsStateWithLifecycle(emptyList())
+    // Refreshes as you play and as analysis reaches more songs, in steps so it isn't constantly redone.
+    LaunchedEffect(library, recentKeys, analyzed.size / SPEED_DIAL_REFRESH_STEP) { app.radio.refreshSpeedDial() }
 
     val recentTracks = remember(recentKeys, library) {
         recentKeys.mapNotNull { library.trackByKey[it] }.take(12)
@@ -115,6 +120,27 @@ fun HomeScreen(library: Library) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             row.forEach { ShortcutTile(it, Modifier.weight(1f)) }
                             if (row.size == 1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+            if (speedDial.isNotEmpty()) {
+                item {
+                    SectionTitle("Speed dial")
+                    Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        speedDial.chunked(SPEED_DIAL_COLUMNS).forEach { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                row.forEach { track ->
+                                    SpeedDialTile(
+                                        track,
+                                        isCurrent = player.current?.key == track.key,
+                                        modifier = Modifier.weight(1f),
+                                        onClick = { app.radio.start(track) },
+                                        onLongClick = { ui.showMenu(TrackMenuRequest(track)) },
+                                    )
+                                }
+                                repeat(SPEED_DIAL_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
+                            }
                         }
                     }
                 }
@@ -239,6 +265,35 @@ private fun buildShortcuts(recent: List<Track>, library: Library): List<Shortcut
 }
 
 private const val SHORTCUT_COUNT = 6
+
+private const val SPEED_DIAL_COLUMNS = 3
+private const val SPEED_DIAL_REFRESH_STEP = 25
+
+/** A square cover with the title over it. Tapping starts radio from the song; holding opens its menu. */
+@Composable
+private fun SpeedDialTile(track: Track, isCurrent: Boolean, modifier: Modifier, onClick: () -> Unit, onLongClick: () -> Unit) {
+    Box(
+        modifier
+            .aspectRatio(1f)
+            .pressable(onLongClick = onLongClick, onClick = onClick)
+            .clip(RoundedCornerShape(6.dp)),
+    ) {
+        CoverArt(track.mediaId, RoundedCornerShape(0.dp), Modifier.fillMaxSize(), iconSize = 32.dp)
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(0.45f to Color.Transparent, 1f to Color.Black.copy(alpha = 0.8f))),
+        )
+        Text(
+            track.title,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (isCurrent) MaterialTheme.colorScheme.primary else Color.White,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
+        )
+    }
+}
 
 @Composable
 private fun ShortcutTile(shortcut: Shortcut, modifier: Modifier = Modifier) {

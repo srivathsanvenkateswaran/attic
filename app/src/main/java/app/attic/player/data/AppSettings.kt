@@ -24,7 +24,18 @@ class AppSettings(context: Context) {
         _themeMode.value = mode
     }
 
+    private val _autoplay = MutableStateFlow(prefs.getBoolean(KEY_AUTOPLAY, true))
+
+    /** Whether radio carries on from the last song of a queue instead of letting the music stop. */
+    val autoplay: StateFlow<Boolean> = _autoplay.asStateFlow()
+
+    fun setAutoplay(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTOPLAY, enabled).apply()
+        _autoplay.value = enabled
+    }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_AUTOPLAY = "autoplay"
     }
 }

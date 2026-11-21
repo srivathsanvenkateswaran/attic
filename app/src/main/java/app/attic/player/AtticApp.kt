@@ -2,12 +2,15 @@ package app.attic.player
 
 import android.app.Application
 import android.content.Context
+import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.data.AppSettings
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
 import app.attic.player.data.UserData
 import app.attic.player.playback.PlayerClient
+import app.attic.player.radio.LanguageImport
+import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
 import coil3.ImageLoader
@@ -19,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 class AtticApp : Application(), SingletonImageLoader.Factory {
@@ -30,6 +34,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val lyrics by lazy { LyricsRepository(database.dao(), scope) }
     val settings by lazy { AppSettings(this) }
     val player by lazy { PlayerClient(this, library, scope) }
+    val radio by lazy { RadioController(this) }
 
     /** Short confirmations and playback errors, shown as a snackbar. */
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */
@@ -40,6 +45,11 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         scope.launch { library.refresh() }
+        scope.launch { LanguageImport.run(this@AtticApp) }
+        // New files get analysed the next time the phone charges.
+        scope.launch {
+            library.library.filterNotNull().collect { if (it.tracks.isNotEmpty()) AnalysisWorker.scheduleWhileCharging(this@AtticApp) }
+        }
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader =
