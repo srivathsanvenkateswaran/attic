@@ -21,8 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.attic.player.R
 import app.attic.player.data.ThemeMode
+import app.attic.player.data.UiStyle
 import app.attic.player.ui.*
 import app.attic.player.ui.model.SettingsActions
 import app.attic.player.ui.model.SettingsState
@@ -58,6 +61,26 @@ fun ClassicSettings(state: SettingsState, actions: SettingsActions) {
             ) {
                 Text(option.label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                 RadioButton(selected = option == mode, onClick = { actions.setThemeMode(option) })
+            }
+        }
+        // The style picker, until each style draws its own Settings.
+        Text(
+            stringResource(R.string.settings_style),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
+        )
+        UiStyle.choices.forEach { option ->
+            val label = stringResource(if (option == UiStyle.Comfort) R.string.settings_style_comfort else R.string.settings_style_expressive)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .pressable(scale = 0.985f) { actions.setUiStyle(option) }
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                RadioButton(selected = option == state.uiStyle, onClick = { actions.setUiStyle(option) })
             }
         }
 
