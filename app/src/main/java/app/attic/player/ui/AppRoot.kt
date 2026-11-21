@@ -8,6 +8,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -145,15 +146,20 @@ private fun MainShell(library: Library) {
         lyrics = { lyrics(player) },
     )
 
+    val style = LocalUiStyle.current
     CompositionLocalProvider(LocalUi provides shell.ui) {
-        when (LocalUiStyle.current) {
+        when (style) {
             UiStyle.Expressive -> ClassicShell(state, actions, slots)
             UiStyle.Comfort -> ClassicShell(state, actions, slots)
             UiStyle.Classic -> ClassicShell(state, actions, slots)
         }
 
-        // Registered after the shell's NavHost, so while an overlay is up back closes it instead of popping.
-        BackHandler(enabled = state.covered) { actions.closeTopOverlay() }
+        // While an overlay is up, back closes it instead of popping the NavHost. The last callback registered
+        // wins, and moving the NavHost into another style's shell registers its callback again, so this one is
+        // registered again on every style change to stay on top.
+        key(style) {
+            BackHandler(enabled = state.covered) { actions.closeTopOverlay() }
+        }
 
         state.menu?.let { request ->
             TrackMenuSheet(request, library, onDismiss = actions.dismissMenu)
