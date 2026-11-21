@@ -215,6 +215,8 @@ private fun Places(state: HomeState, actions: HomeActions) {
             unit = pluralStringResource(R.plurals.home_favourites_unit, count),
             description = stringResource(R.string.favourites),
             onClick = { actions.openShortcut(Shortcut.Liked) },
+            // As tall as the covers and their caption, as `.hero-fav` stretches in its row.
+            height = if (places.isEmpty()) 200.dp else 248.dp,
         )
     }
     if (places.isEmpty()) {
