@@ -144,7 +144,6 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
                         width = 112.dp,
                         now = track.key == state.currentKey,
                         playing = state.isPlaying,
-                        onLongClick = { actions.showMenu(track) },
                     )
                 }
             }
