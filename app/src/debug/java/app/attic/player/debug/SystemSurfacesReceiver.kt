@@ -27,7 +27,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  * "analysis" posts the analysis progress notification as the worker builds it (84 of 127) without
  * analysing anything, and "analysis-clear" (or its Stop) removes it. "release" lets go of the
  * controller "prepare" holds. "widget-shot" (--ez night, --es name, and optionally --es song <title>
- * --ez playing) saves the widget drawn off screen (see WidgetSnapshot).
+ * --ez playing) saves the widget drawn off screen (see WidgetSnapshot); "icon-shot" saves the
+ * launcher icon (see IconSnapshot).
  *
  * adb shell am broadcast -n app.attic.player/.debug.SystemSurfacesReceiver -a prepare
  * adb shell am broadcast -n app.attic.player/.debug.SystemSurfacesReceiver -a like
@@ -52,6 +53,10 @@ class SystemSurfacesReceiver : BroadcastReceiver() {
                 notifications.cancel(PREVIEW_ID)
                 return
             }
+        }
+        if (intent.action == "icon-shot") {
+            IconSnapshot.take(app)
+            return
         }
         if (intent.action == "widget-shot") {
             val pending = goAsync()
