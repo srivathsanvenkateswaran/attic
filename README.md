@@ -5,14 +5,14 @@
 <h1 align="center">Attic</h1>
 
 <p align="center">
-  <b>A Spotify-style player for the MP3s already on your phone.</b><br>
+  <b>A music player for the MP3s already on your phone.</b><br>
   No account, no streaming, no ads. It plays in airplane mode.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Android-13%2B-1ED760?logo=android&logoColor=white" alt="Android 13 or newer">
-  <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-1ED760?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
-  <img src="https://img.shields.io/badge/APK-53%20MB-1ED760" alt="APK size 53 MB">
+  <img src="https://img.shields.io/badge/Android-13%2B-C6533A?logo=android&logoColor=white" alt="Android 13 or newer">
+  <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C6533A?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
+  <img src="https://img.shields.io/badge/APK-53%20MB-C6533A" alt="APK size 53 MB">
 </p>
 
 <p align="center">
@@ -24,22 +24,23 @@
 
 ## Why it exists
 
-Local music players tend to look like file managers. Attic gives a folder of MP3s the layout and navigation of a modern streaming app: tinted album headers, a floating mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
+Local music players tend to look like file managers. Attic gives a folder of MP3s album and artist pages tinted from their covers, a mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
 
 It was built for one phone and one library of 279 songs, and every number below was measured on that phone.
 
 ## What it does
 
 **Plays your library**
-- Home, Search and Your Library tabs, with album, artist and playlist screens
+- Home, Search and Library tabs, with album, artist and playlist screens
 - A mini player and a full Now Playing screen, tinted from the cover art
 - Shuffle, repeat, and a queue with drag to reorder and swipe to remove
-- Liked songs and your own playlists, stored on the device
+- Favourites and your own playlists, stored on the device
 - Dark and light themes, or match the phone
+- Two styles to pick from in Settings, Expressive and Comfort. Samsung phones start in Comfort, other phones in Expressive
 
 **Finds what to play next, offline**
 - Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
-- Speed dial on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
+- Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
 - Stays in the language you're listening to, with about one song in ten from another language when the match is strong
 - Plays one version of a song, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both
 - Learns from skips, finishes and likes in a listening log kept on the phone
@@ -153,7 +154,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 ## Known limits
 
 - It reads `Music/Offline` only, and the release build has been tested on one phone.
-- Artists use cover art because there are no artist photos, and "Popular" means what you played recently.
+- Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
 - Lyrics depend on what LRCLIB has, and found them for 236 of the 279 songs tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
@@ -162,10 +163,8 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 
 ## Credits and legal
 
-Attic is an independent personal project, and it is not affiliated with or endorsed by Spotify. Spotify is a trademark of Spotify AB. Attic contains no Spotify code, logos or assets.
-
 Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra (Alonso-Jiménez et al., ISMIR 2022), licensed for non-commercial use, and [ONNX Runtime](https://onnxruntime.ai) under the MIT License. See [`third_party/discogs-effnet-NOTICE.txt`](third_party/discogs-effnet-NOTICE.txt).
 
-Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Figtree](https://github.com/erikdkennedy/figtree), [Google Sans Flex](https://github.com/googlefonts/googlesans-flex) and [Onest](https://github.com/simpals/onest) fonts are bundled under the SIL Open Font License ([Figtree](third_party/OFL-figtree.txt), [Google Sans Flex](third_party/OFL-google-sans-flex.txt), [Onest](third_party/OFL-onest.txt)), and a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) under the [Apache License 2.0](third_party/LICENSE-material-symbols.txt). See [`third_party/fonts-NOTICE.txt`](third_party/fonts-NOTICE.txt).
+Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Google Sans Flex](https://github.com/googlefonts/googlesans-flex) and [Onest](https://github.com/simpals/onest) fonts are bundled under the SIL Open Font License ([Google Sans Flex](third_party/OFL-google-sans-flex.txt), [Onest](third_party/OFL-onest.txt)), and a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) under the [Apache License 2.0](third_party/LICENSE-material-symbols.txt). See [`third_party/fonts-NOTICE.txt`](third_party/fonts-NOTICE.txt).
 
 Cover art in the screenshots belongs to its respective owners. Attic's code is licensed under the [GNU General Public License v3.0 or later](LICENSE). The song analysis model, the fonts and the icons keep their own licences, listed above.
