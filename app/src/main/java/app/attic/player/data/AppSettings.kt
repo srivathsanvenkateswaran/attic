@@ -6,16 +6,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class ThemeMode(val label: String) {
-    System("Match phone"),
-    Dark("Dark"),
-    Light("Light"),
-}
+enum class ThemeMode { System, Dark, Light }
 
 /** How the app is drawn. Expressive is Pixel-like, Comfort is One UI-like. */
-enum class UiStyle(val label: String) {
-    Expressive("Expressive"),
-    Comfort("Comfort");
+enum class UiStyle {
+    Expressive,
+    Comfort;
 
     companion object {
         /** The styles a user can pick, in the order they are offered. */

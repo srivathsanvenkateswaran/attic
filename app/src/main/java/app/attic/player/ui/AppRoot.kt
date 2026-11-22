@@ -64,10 +64,10 @@ val LocalUi = staticCompositionLocalOf<UiActions> { error("No UiActions") }
 /** True while Now Playing, the queue or lyrics covers the destinations, so a screen's own back handling stands aside. */
 val LocalOverlayCovered = compositionLocalOf { false }
 
-enum class Tab(val route: String, val label: String) {
-    Home("home", "Home"),
-    Search("search", "Search"),
-    Library("library", "Your Library"),
+enum class Tab(val route: String) {
+    Home("home"),
+    Search("search"),
+    Library("library"),
 }
 
 private val TabRoutes = Tab.entries.map { it.route }.toSet()

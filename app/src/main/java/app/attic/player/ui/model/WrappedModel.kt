@@ -32,9 +32,6 @@ import app.attic.player.wrapped.RankedSong
 import app.attic.player.wrapped.Recap
 import app.attic.player.wrapped.RecapPeriod
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle as DateTextStyle
-import java.util.Locale
 import kotlinx.coroutines.launch
 
 /** A recap with its songs and artists looked up in the library, ready to draw. */
@@ -42,9 +39,6 @@ import kotlinx.coroutines.launch
 class WrappedData(
     val recap: Recap,
     val period: RecapPeriod,
-    /** "2026 so far", "November 2026". Printed on every card so a shared image says what it covers. */
-    val periodLabel: String,
-    val headline: String,
     val songs: List<Pair<Track, RankedSong>>,
     val artists: List<Pair<Artist, RankedArtist>>,
     /** The cover shown for each artist: their most played song in this period. */
@@ -82,21 +76,6 @@ enum class WrappedCard(val fileName: String) {
     }
 }
 
-/** The label printed on cards, such as "2026 so far" or "November 2026". */
-fun periodLabel(period: RecapPeriod, today: java.time.LocalDate): String = when (period) {
-    RecapPeriod.Week -> "Week of ${today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY)).format(DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()))}"
-    RecapPeriod.Month -> "${today.month.getDisplayName(DateTextStyle.FULL, Locale.getDefault())} ${today.year}"
-    RecapPeriod.Year -> if (today.monthValue == 12 && today.dayOfMonth >= 24) "${today.year}" else "${today.year} so far"
-    RecapPeriod.AllTime -> "All time"
-}
-
-fun headline(period: RecapPeriod, today: java.time.LocalDate): String = when (period) {
-    RecapPeriod.Week -> "Your week in music"
-    RecapPeriod.Month -> "Your ${today.month.getDisplayName(DateTextStyle.FULL, Locale.getDefault())} in music"
-    RecapPeriod.Year -> if (today.monthValue == 12 && today.dayOfMonth >= 24) "Your ${today.year} Wrapped" else "Your ${today.year} so far"
-    RecapPeriod.AllTime -> "Everything you've played"
-}
-
 /** Looks up a recap's songs and artists so the cards can show names and covers. */
 fun wrappedData(recap: Recap, period: RecapPeriod, library: Library, today: LocalDate = LocalDate.now()): WrappedData {
     val songs = recap.topSongs.mapNotNull { ranked -> library.trackByKey[ranked.key]?.let { it to ranked } }
@@ -110,7 +89,7 @@ fun wrappedData(recap: Recap, period: RecapPeriod, library: Library, today: Loca
         used += art(pick)
         artist.key to pick.mediaId
     }
-    return WrappedData(recap, period, periodLabel(period, today), headline(period, today), songs, artists, covers, today)
+    return WrappedData(recap, period, songs, artists, covers, today)
 }
 
 // Wrapped page

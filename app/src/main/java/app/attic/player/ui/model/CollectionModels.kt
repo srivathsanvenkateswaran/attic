@@ -26,7 +26,6 @@ import app.attic.player.ui.UiActions
 class PlayControlsState(
     /** The collection's name, which is also the "Playing from" name its songs play under. */
     val contextName: String,
-    val coverId: Long?,
     /** False for an empty collection. */
     val enabled: Boolean,
     /** Shuffle is on and this collection is what's playing. */
@@ -52,7 +51,6 @@ private fun playControls(
     val isThisContext = player.contextName == contextName && player.current?.key in tracks.map { it.key }
     val state = PlayControlsState(
         contextName = contextName,
-        coverId = tracks.firstOrNull()?.mediaId,
         enabled = tracks.isNotEmpty(),
         shuffleOn = player.shuffle && isThisContext,
         isPlaying = isThisContext && player.isPlaying,

@@ -29,20 +29,14 @@ sealed interface Shortcut {
     data class ForFolder(val folder: FolderPlaylist) : Shortcut
 }
 
-enum class HomeFilter(val label: String) {
-    All("All"),
-    Albums("Albums"),
-    Artists("Artists"),
-    Folders("Folders"),
-}
+enum class HomeFilter { All, Albums, Artists, Folders }
 
 /**
- * The way into Wrapped, open all year rather than only in December. [headline] is Classic's wording;
- * [year] and [yearEnded] (from 24 December) let a style word it from its own copy.
+ * The way into the recap, open all year rather than only in December. [year] and [yearEnded] (from
+ * 24 December) let a style word it from its own copy.
  */
 @Immutable
 class WrappedTeaser(
-    val headline: String,
     val minutes: Long,
     val mosaicIds: List<Long>,
     val year: Int,
@@ -168,7 +162,6 @@ private fun rememberWrappedTeaser(library: Library, recentKeys: List<String>): W
     if (loaded.recap.isEmpty) return null
     val today = java.time.LocalDate.now()
     return WrappedTeaser(
-        headline = loaded.headline,
         minutes = loaded.recap.minutes,
         mosaicIds = loaded.songs.map { it.first }.let(::mosaicIds),
         year = today.year,
