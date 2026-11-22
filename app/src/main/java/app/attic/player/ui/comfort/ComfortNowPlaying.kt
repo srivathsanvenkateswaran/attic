@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -139,8 +141,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             }
         }
     }
-    // Where the deck ends on the first page, so the compact header can take over once it has gone.
-    var deckBottom by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
+    // Where the play button sits on the first page: the compact header takes over once it has scrolled
+    // under the header's place. (What follows the page is often too short to scroll the whole deck away.)
+    var playCentre by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
 
     BoxWithConstraints(
         Modifier
@@ -152,6 +155,13 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             .nestedScroll(dismissDrag),
     ) {
         val pageHeight = maxHeight
+        val insets = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        // The cover takes the kit's width (30dp in from each edge) unless the page is too short for it;
+        // whatever height is left over goes above the deck, keeping the controls low.
+        val hasLine = state.lyrics.hasLyrics && state.lyrics.lines.isNotEmpty()
+        val fixed = insets + HeaderHeight + 4.dp + TitleHeight + (if (hasLine) 30.dp else 0.dp) + DeckHeight + 16.dp
+        val side = min(maxWidth - 60.dp, pageHeight - fixed).coerceAtLeast(120.dp)
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
             Column(Modifier.fillMaxWidth().height(pageHeight)) {
                 NowPlayingHeader(
@@ -160,13 +170,11 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                     onMore = actions.showMenu,
                     moreDescription = stringResource(R.string.more_options_for_cd, track.title),
                 )
-                BoxWithConstraints(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    val side = min(maxWidth - 60.dp, maxHeight - 4.dp).coerceAtLeast(120.dp)
-                    CoverPager(state, actions, side)
-                }
+                CoverPager(state, actions, side)
                 NowPlayingTitle(track.title, track.artist, onArtistClick = actions.openTrackArtist)
                 InlineLyric(state.lyrics, state.clock, track, state.isPlaying)
-                Deck(Modifier.onPlaced { deckBottom = (it.positionInParent().y + it.size.height).roundToInt() }) {
+                Spacer(Modifier.weight(1f))
+                Deck(Modifier.onPlaced { playCentre = it.positionInParent().y.roundToInt() + with(density) { PlayCentreInDeck.roundToPx() } }) {
                     Seek(state, track, actions.seekTo)
                     Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
                     Toggles {
@@ -204,15 +212,27 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
         }
 
         val headerHeight = with(density) { WindowInsets.statusBars.getTop(this) + 60.dp.roundToPx() }
+        // Once the page moves, the status bar keeps the ground under it, so nothing scrolls through it.
+        if (scroll.value > 0) {
+            Spacer(Modifier.fillMaxWidth().windowInsetsTopHeight(WindowInsets.statusBars).background(colors.ground))
+        }
         CompactHeader(
             state,
             actions,
             track,
-            visible = scroll.value > deckBottom - headerHeight,
+            visible = scroll.value > playCentre - headerHeight,
             onTop = { scope.launch { scroll.animateScrollTo(0) } },
         )
     }
 }
+
+/** `.np-head` (60), `.np-title` (18 + 32 + 22 + 2) and `.deck` (16 above; 14 + 48 + 14 + 76 + 12 + 54 + 14). */
+private val HeaderHeight = 60.dp
+private val TitleHeight = 74.dp
+private val DeckHeight = 248.dp
+
+/** From the deck's top (its 16dp margin included) to the middle of the play button. */
+private val PlayCentreInDeck = 16.dp + 14.dp + 48.dp + 14.dp + 38.dp
 
 /**
  * The cover (`.np-cover`) as a pager over the queue: swiping sideways changes song, and settling on a
