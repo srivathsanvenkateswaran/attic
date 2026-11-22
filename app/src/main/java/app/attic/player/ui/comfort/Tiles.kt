@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
  * - [centered] is `.tile.center` (artists, trays): centred medium names. [twoLines] is `b.two`.
  * - [artSize] fixes the art and centres it (a tray's 80 or 64dp).
  * - [now] is `.tile.now`: the cover dimmed with the bars over it; [playing] animates them.
+ * - [subtitleLines] lets the second line wrap (Search's result shelf: "Album, {artist}" on two lines).
  */
 @Composable
 fun Tile(
@@ -54,6 +55,7 @@ fun Tile(
     now: Boolean = false,
     playing: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    subtitleLines: Int = 1,
 ) {
     val colors = Comfort.colors
     Column(
@@ -86,7 +88,7 @@ fun Tile(
                 subtitle,
                 style = Comfort.type.caption,
                 color = colors.on2,
-                maxLines = 1,
+                maxLines = subtitleLines,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = if (centered) TextAlign.Center else TextAlign.Start,
                 modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
