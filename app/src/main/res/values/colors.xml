@@ -13,4 +13,25 @@
     -->
     <color name="expressive_window">@android:color/system_neutral1_10</color>
     <color name="comfort_window">#F2F1EE</color>
+
+    <!--
+        The widget's colours before PlayerWidget sets them from the cover: the picker preview and the
+        first frame. Expressive: the wallpaper scheme's roles (surfaceContainerHigh, onSurface,
+        onSurfaceVariant, primary, onPrimary, secondaryContainer, onSecondaryContainer) as system
+        tones. Comfort: oneui/kit.css card, on, on-2, accent, on-accent, fill, line.
+    -->
+    <color name="expressive_widget_container">@android:color/system_neutral1_100</color>
+    <color name="expressive_widget_on">@android:color/system_neutral1_900</color>
+    <color name="expressive_widget_on_variant">@android:color/system_neutral2_700</color>
+    <color name="expressive_widget_primary">@android:color/system_accent1_600</color>
+    <color name="expressive_widget_on_primary">@android:color/system_accent1_0</color>
+    <color name="expressive_widget_tonal">@android:color/system_accent2_100</color>
+    <color name="expressive_widget_on_tonal">@android:color/system_accent2_900</color>
+    <color name="comfort_widget_card">#FFFFFF</color>
+    <color name="comfort_widget_on">#191817</color>
+    <color name="comfort_widget_on_2">#67645F</color>
+    <color name="comfort_widget_accent">#F2A024</color>
+    <color name="comfort_widget_on_accent">#2A1800</color>
+    <color name="comfort_widget_fill">#EEECE8</color>
+    <color name="comfort_widget_line">#EBE9E4</color>
 </resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pause, filled. Material Symbols Rounded, weight 400. Both styles. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16 19Q15.18 19 14.59 18.41Q14 17.82 14 17V7Q14 6.18 14.59 5.59Q15.18 5 16 5Q16.82 5 17.41 5.59Q18 6.18 18 7V17Q18 17.82 17.41 18.41Q16.82 19 16 19ZM8 19Q7.18 19 6.59 18.41Q6 17.82 6 17V7Q6 6.18 6.59 5.59Q7.18 5 8 5Q8.83 5 9.41 5.59Q10 6.18 10 7V17Q10 17.82 9.41 18.41Q8.83 19 8 19ZM16 17V7ZM8 17V7ZM8 7V17ZM16 7V17Z" />
+</vector>

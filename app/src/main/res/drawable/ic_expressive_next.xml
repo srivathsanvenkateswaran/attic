@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- skip_next, filled. Material Symbols Rounded, weight 400. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16.5 17V7Q16.5 6.57 16.79 6.29Q17.07 6 17.5 6Q17.93 6 18.21 6.29Q18.5 6.57 18.5 7V17Q18.5 17.43 18.21 17.71Q17.93 18 17.5 18Q17.07 18 16.79 17.71Q16.5 17.43 16.5 17ZM5.5 16.12V7.88Q5.5 7.43 5.8 7.15Q6.1 6.88 6.5 6.88Q6.62 6.88 6.78 6.9Q6.93 6.93 7.05 7.02L13.25 11.17Q13.48 11.32 13.59 11.54Q13.7 11.75 13.7 12Q13.7 12.25 13.59 12.46Q13.48 12.67 13.25 12.82L7.05 16.98Q6.93 17.07 6.78 17.1Q6.62 17.12 6.5 17.12Q6.1 17.12 5.8 16.85Q5.5 16.57 5.5 16.12ZM7.5 9.75 10.9 12 7.5 14.25ZM7.5 14.25 10.9 12 7.5 9.75Z" />
+</vector>

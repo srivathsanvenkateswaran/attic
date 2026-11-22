@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Comfort, about 2 x 2 (oneui/10-system frame A): the cover keeps its superellipse inside the card,
+    and the play button is set into its corner on a ring of the card's colour. No title, as today.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_comfort_bg"
+    android:backgroundTint="@color/comfort_widget_card"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/widget_art"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="12dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
+
+    <FrameLayout
+        android:id="@+id/widget_play_ring"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="7dp"
+        android:background="@drawable/widget_squircle"
+        android:backgroundTint="@color/comfort_widget_card">
+
+        <ImageButton
+            android:id="@+id/widget_play"
+            style="@style/WidgetPlay.Comfort"
+            android:layout_gravity="center" />
+    </FrameLayout>
+</FrameLayout>

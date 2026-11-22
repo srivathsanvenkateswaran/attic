@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Comfort's large superellipse, oneui/kit.css sq-lg mask (n = 5, the same 72 points), for art from 100dp. White, tinted where used. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M100.0,50.0L99.9,68.8L99.7,74.8L99.3,79.1L98.8,82.6L98.1,85.4L97.2,87.9L96.2,90.0L94.9,91.9L93.5,93.5L91.9,94.9L90.0,96.2L87.9,97.2L85.4,98.1L82.6,98.8L79.1,99.3L74.8,99.7L68.8,99.9L50.0,100.0L31.2,99.9L25.2,99.7L20.9,99.3L17.4,98.8L14.6,98.1L12.1,97.2L10.0,96.2L8.1,94.9L6.5,93.5L5.1,91.9L3.8,90.0L2.8,87.9L1.9,85.4L1.2,82.6L0.7,79.1L0.3,74.8L0.1,68.8L0.0,50.0L0.1,31.2L0.3,25.2L0.7,20.9L1.2,17.4L1.9,14.6L2.8,12.1L3.8,10.0L5.1,8.1L6.5,6.5L8.1,5.1L10.0,3.8L12.1,2.8L14.6,1.9L17.4,1.2L20.9,0.7L25.2,0.3L31.2,0.1L50.0,0.0L68.8,0.1L74.8,0.3L79.1,0.7L82.6,1.2L85.4,1.9L87.9,2.8L90.0,3.8L91.9,5.1L93.5,6.5L94.9,8.1L96.2,10.0L97.2,12.1L98.1,14.6L98.8,17.4L99.3,20.9L99.7,25.2L99.9,31.2Z" />
+</vector>

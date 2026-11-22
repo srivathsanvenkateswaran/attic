@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Comfort, about 4 x 1 (oneui/10-system frame A): the cover, the song, then the three controls. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_comfort_bg"
+    android:backgroundTint="@color/comfort_widget_card"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp">
+
+        <ImageView
+            android:id="@+id/widget_art"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                style="@style/WidgetText.Comfort.Title" />
+
+            <TextView
+                android:id="@+id/widget_artist"
+                style="@style/WidgetText.Comfort.Artist" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_prev"
+            style="@style/WidgetSkip.Comfort.Narrow"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/widget_previous"
+            android:src="@drawable/ic_comfort_previous" />
+
+        <ImageButton
+            android:id="@+id/widget_play"
+            style="@style/WidgetPlay.Comfort"
+            android:layout_marginHorizontal="2dp" />
+
+        <ImageButton
+            android:id="@+id/widget_next"
+            style="@style/WidgetSkip.Comfort.Narrow"
+            android:contentDescription="@string/widget_next"
+            android:src="@drawable/ic_comfort_next" />
+    </LinearLayout>
+</FrameLayout>

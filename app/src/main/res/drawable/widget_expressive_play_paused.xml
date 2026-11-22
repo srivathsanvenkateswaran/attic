@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Expressive's play control while paused: a 36dp circle in its 52dp box (pixel/kit.css .pp). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="8dp">
+    <shape>
+        <solid android:color="#FFFFFFFF" />
+        <corners android:radius="18dp" />
+    </shape>
+</inset>

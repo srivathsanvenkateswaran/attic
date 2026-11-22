@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Expressive, about 2 x 2 (pixel/10-system frame A): the cover inset in the container, and under it
+    the title beside the play control, so no control sits on the artwork.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_expressive_bg"
+    android:backgroundTint="@color/expressive_widget_container"
+    android:clipToOutline="true"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/widget_art"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_corner_18"
+            android:backgroundTint="@color/expressive_widget_tonal"
+            android:clipToOutline="true"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="6dp">
+
+            <TextView
+                android:id="@+id/widget_title"
+                style="@style/WidgetText.Expressive.Title"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:maxLines="2"
+                android:textSize="13sp" />
+
+            <ImageButton
+                android:id="@+id/widget_play"
+                style="@style/WidgetPlay.Expressive"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

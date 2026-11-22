@@ -13,6 +13,7 @@ import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
+import app.attic.player.widget.PlayerWidget
 import app.attic.player.wrapped.WrappedRepository
 import coil3.ImageLoader
 import coil3.PlatformContext
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
@@ -51,6 +53,10 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
         // New files get analysed the next time the phone charges.
         scope.launch {
             library.library.filterNotNull().collect { if (it.tracks.isNotEmpty()) AnalysisWorker.scheduleWhileCharging(this@AtticApp) }
+        }
+        // The widget is drawn in the app's style, so a new style redraws it at once.
+        scope.launch {
+            settings.uiStyle.drop(1).collect { PlayerWidget.refresh(this@AtticApp) }
         }
     }
 
