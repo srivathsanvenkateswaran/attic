@@ -8,6 +8,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,8 @@ import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLoading
 import app.attic.player.ui.classic.ClassicPermissionScreen
 import app.attic.player.ui.classic.ClassicShell
+import app.attic.player.ui.expressive.ExpressiveLoading
+import app.attic.player.ui.expressive.ExpressivePermission
 import app.attic.player.ui.expressive.ExpressiveShell
 import app.attic.player.ui.model.RootState
 import app.attic.player.ui.model.rememberRootModel
@@ -58,6 +61,9 @@ class UiActions(
 data class TrackMenuRequest(val track: Track, val playlistId: Long? = null)
 
 val LocalUi = staticCompositionLocalOf<UiActions> { error("No UiActions") }
+
+/** True while Now Playing, the queue or lyrics covers the destinations, so a screen's own back handling stands aside. */
+val LocalOverlayCovered = compositionLocalOf { false }
 
 enum class Tab(val route: String, val label: String) {
     Home("home", "Home"),
@@ -109,12 +115,12 @@ fun AppRoot() {
     val (state, actions) = rememberRootModel()
     when (state) {
         is RootState.NeedsAccess -> when (LocalUiStyle.current) {
-            UiStyle.Expressive -> ClassicSurface { ClassicPermissionScreen(state, actions) }
+            UiStyle.Expressive -> ExpressivePermission(state, actions)
             UiStyle.Comfort -> ClassicSurface { ClassicPermissionScreen(state, actions) }
             UiStyle.Classic -> ClassicPermissionScreen(state, actions)
         }
         RootState.Loading -> when (LocalUiStyle.current) {
-            UiStyle.Expressive -> ClassicSurface { ClassicLoading() }
+            UiStyle.Expressive -> ExpressiveLoading()
             UiStyle.Comfort -> ClassicSurface { ClassicLoading() }
             UiStyle.Classic -> ClassicLoading()
         }
@@ -161,7 +167,7 @@ private fun MainShell(library: Library) {
     )
 
     val style = LocalUiStyle.current
-    CompositionLocalProvider(LocalUi provides shell.ui) {
+    CompositionLocalProvider(LocalUi provides shell.ui, LocalOverlayCovered provides state.covered) {
         when (style) {
             UiStyle.Expressive -> ExpressiveShell(state, actions, slots)
             UiStyle.Comfort -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
