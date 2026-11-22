@@ -258,7 +258,7 @@ private fun Header(state: NowPlayingState, actions: NowPlayingActions, track: Tr
     }
 }
 
-private fun contextSymbol(kind: ContextKind): Symbol? = when (kind) {
+internal fun contextSymbol(kind: ContextKind): Symbol? = when (kind) {
     ContextKind.Album -> Symbol.Album
     ContextKind.Artist -> Symbol.Person
     ContextKind.Folder -> Symbol.Folder
@@ -270,7 +270,7 @@ private fun contextSymbol(kind: ContextKind): Symbol? = when (kind) {
 
 /** The model keeps Classic's context names; this applies the shared naming ("Favourites"). */
 @Composable
-private fun contextLabel(name: String?, kind: ContextKind): String = when {
+internal fun contextLabel(name: String?, kind: ContextKind): String = when {
     name == null -> stringResource(R.string.context_your_library)
     kind == ContextKind.Favourites -> stringResource(R.string.context_favourites)
     kind == ContextKind.Radio -> stringResource(R.string.context_radio, name.substringAfter(" · "))

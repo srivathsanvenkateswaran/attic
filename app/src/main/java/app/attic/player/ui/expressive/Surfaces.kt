@@ -252,12 +252,12 @@ fun StaticSnackbar(text: String, modifier: Modifier = Modifier) {
  * An empty state (`.empty`): a 112dp rounded square on the secondary container holding a symbol (or
  * [art], e.g. the Attic mark), the title in the emphasised headline, the body, and an optional action.
  * [clover] draws the picture as the 128dp clover instead (`.empty-art.clover`), for "nothing here yet":
- * the empty library.
+ * the empty library. A null [body] leaves the title alone ("Nothing up next").
  */
 @Composable
 fun EmptyState(
     title: String,
-    body: String,
+    body: String?,
     modifier: Modifier = Modifier,
     symbol: Symbol? = null,
     art: (@Composable () -> Unit)? = null,
@@ -281,8 +281,10 @@ fun EmptyState(
             Spacer(Modifier.height(24.dp))
         }
         Text(title, style = Expressive.type.headlineSmallEmphasized, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(8.dp))
-        Text(body, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, textAlign = TextAlign.Center)
+        if (body != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(body, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, textAlign = TextAlign.Center)
+        }
         if (action != null) {
             Spacer(Modifier.height(24.dp))
             action()

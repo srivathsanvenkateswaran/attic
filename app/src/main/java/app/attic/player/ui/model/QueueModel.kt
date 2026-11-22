@@ -2,8 +2,10 @@ package app.attic.player.ui.model
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
@@ -27,6 +29,10 @@ private fun buildRows(state: PlayerUiState): List<UpNextRow> {
 class QueueState(
     val current: Track?,
     val isPlaying: Boolean,
+    /** What the queue plays from, as Now Playing shows it. Null means the whole library. */
+    val contextName: String?,
+    /** What [contextName] names, for a style that marks it with a glyph. */
+    val contextKind: ContextKind,
     /** Everything after the current song, in play order (which is the shuffled order when shuffle is on). */
     val upNext: List<UpNextRow>,
 )
@@ -46,8 +52,13 @@ class QueueActions(
 fun rememberQueueModel(player: PlayerUiState, onClose: () -> Unit): UiModel<QueueState, QueueActions> {
     val app = LocalContext.current.attic
     val ui = LocalUi.current
+    val library by app.library.library.collectAsStateWithLifecycle()
+    val playlists by app.userData.playlists.collectAsStateWithLifecycle()
     val upNext = remember(player.queue, player.currentIndex) { buildRows(player) }
-    val state = QueueState(player.current, player.isPlaying, upNext)
+    val contextKind = remember(player.contextName, player.current, library, playlists) {
+        contextKindOf(player.contextName, player.current, library, playlists.map { it.name })
+    }
+    val state = QueueState(player.current, player.isPlaying, player.contextName, contextKind, upNext)
     val actions = QueueActions(
         close = onClose,
         clearUpNext = { app.player.clearUpNext() },
