@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -323,9 +324,17 @@ fun CollectionRow(
 /**
  * Swipe to remove (`.swipe`): either way. Behind the row is the error container with "Remove" and
  * the delete glyph; [onRemove] runs once the swipe settles. Wrap a [SongRow] in it, inside a group cell.
+ * The swipe starts over whenever [resetKey] changes. Pass the list the row comes from when a row's key
+ * can pass to another row after a removal (the queue's second copy of a song takes the first one's),
+ * so the row that stays is not left swiped away.
  */
 @Composable
-fun SwipeToRemove(onRemove: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun SwipeToRemove(onRemove: () -> Unit, modifier: Modifier = Modifier, resetKey: Any? = null, content: @Composable () -> Unit) {
+    key(resetKey) { SwipeToRemoveBox(onRemove, modifier, content) }
+}
+
+@Composable
+private fun SwipeToRemoveBox(onRemove: () -> Unit, modifier: Modifier, content: @Composable () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val state = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(

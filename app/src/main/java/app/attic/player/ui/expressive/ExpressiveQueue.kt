@@ -132,7 +132,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                 itemsIndexed(rows, key = { _, row -> row.id }) { index, row ->
                     ReorderableItem(reorderState, key = row.id) { isDragging ->
                         Box(Modifier.fillMaxWidth().liftableCell(index, rows.size, isDragging)) {
-                            SwipeToRemove(onRemove = { actions.remove(row.queueIndex) }) {
+                            SwipeToRemove(onRemove = { actions.remove(row.queueIndex) }, resetKey = state.upNext) {
                                 SongRow(
                                     title = row.track.title,
                                     subtitle = row.track.artist,

@@ -156,7 +156,7 @@ house until they are redrawn.
 | `.group` | `ListGroup(count) { index -> … }`; lazy: `groupItems(list, key) { index, item -> … }`; any modifier: `Modifier.groupCell(index, count, color)` | sheets raise cells via `LocalGroupCellColor` (ExpressiveSheet sets it) |
 | `.row` (cover, number, rank + cover, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/None, current, playing, lifted, onClick, onLongClick, trailing)` | the wave goes over the cover or replaces the number on the current song |
 | row trailing | `RowMoreButton(title, onClick)`, `RowDragHandle(title, modifier)`, `RowAddToggle(title, added, onToggle)`, `RowCount(text)` | describe themselves from the shared copy |
-| `.swipe` | `SwipeToRemove(onRemove) { SongRow(…) }` | |
+| `.swipe` | `SwipeToRemove(onRemove, resetKey) { SongRow(…) }` | the swipe starts over when `resetKey` changes; the queue passes its up-next list, because a row's key passes to the song's next copy after a removal |
 | `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode |
 | `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | |
 | `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick)` | |
