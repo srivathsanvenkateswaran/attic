@@ -52,7 +52,7 @@ data class WidgetState(
 /**
  * Home-screen player. One widget that reshapes as it's resized: the cover and play when small, a
  * single row at 4x1, and the song with five album shortcuts at 4x2 and up. Each UI style has its
- * own three layouts (pixel/ and oneui/ 10-system, frame A); Classic uses Expressive's. Colours come
+ * own three layouts (pixel/ and oneui/ 10-system, frame A). Colours come
  * from the cover by the style's rule, in light and dark, and the launcher picks by night mode.
  */
 class PlayerWidget : AppWidgetProvider() {
