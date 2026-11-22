@@ -3,10 +3,10 @@ package app.attic.player.ui
 import androidx.compose.runtime.Composable
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
-import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicMiniPlayer
 import app.attic.player.ui.classic.ClassicNowPlaying
 import app.attic.player.ui.comfort.ComfortMiniPlayer
+import app.attic.player.ui.comfort.ComfortNowPlaying
 import app.attic.player.ui.expressive.ExpressiveMiniPlayer
 import app.attic.player.ui.expressive.ExpressiveNowPlaying
 import app.attic.player.ui.model.rememberMiniPlayerModel
@@ -27,7 +27,7 @@ fun NowPlayingScreen(state: PlayerUiState, onClose: () -> Unit, onOpenQueue: () 
     val (model, actions) = rememberNowPlayingModel(state, onClose, onOpenQueue, onOpenLyrics)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveNowPlaying(model, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicNowPlaying(model, actions) }
+        UiStyle.Comfort -> ComfortNowPlaying(model, actions)
         UiStyle.Classic -> ClassicNowPlaying(model, actions)
     }
 }
