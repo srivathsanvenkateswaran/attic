@@ -6,6 +6,7 @@ import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicMiniPlayer
 import app.attic.player.ui.classic.ClassicNowPlaying
+import app.attic.player.ui.comfort.ComfortMiniPlayer
 import app.attic.player.ui.expressive.ExpressiveMiniPlayer
 import app.attic.player.ui.expressive.ExpressiveNowPlaying
 import app.attic.player.ui.model.rememberMiniPlayerModel
@@ -16,7 +17,7 @@ fun MiniPlayer(state: PlayerUiState, onOpen: () -> Unit) {
     val (model, actions) = rememberMiniPlayerModel(state, onOpen)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveMiniPlayer(model, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicMiniPlayer(model, actions) }
+        UiStyle.Comfort -> ComfortMiniPlayer(model, actions)
         UiStyle.Classic -> ClassicMiniPlayer(model, actions)
     }
 }

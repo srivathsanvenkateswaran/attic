@@ -25,6 +25,7 @@ import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLoading
 import app.attic.player.ui.classic.ClassicPermissionScreen
 import app.attic.player.ui.classic.ClassicShell
+import app.attic.player.ui.comfort.ComfortShell
 import app.attic.player.ui.expressive.ExpressiveLoading
 import app.attic.player.ui.expressive.ExpressivePermission
 import app.attic.player.ui.expressive.ExpressiveShell
@@ -170,7 +171,7 @@ private fun MainShell(library: Library) {
     CompositionLocalProvider(LocalUi provides shell.ui, LocalOverlayCovered provides state.covered) {
         when (style) {
             UiStyle.Expressive -> ExpressiveShell(state, actions, slots)
-            UiStyle.Comfort -> ClassicSurface { ClassicShell(state, actions, slots.inStyleSurface()) }
+            UiStyle.Comfort -> ComfortShell(state, actions, slots)
             UiStyle.Classic -> ClassicShell(state, actions, slots)
         }
 
