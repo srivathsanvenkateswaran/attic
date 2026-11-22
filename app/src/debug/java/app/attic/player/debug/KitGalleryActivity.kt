@@ -155,8 +155,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 /**
  * The Expressive kit laid out the way pixel/00-direction.html lays out its strips, with sample covers
- * drawn in code. Debug builds only. Extras: `theme` (dark, light, system) and `section` (the strip
- * to scroll to, from 0). See ui/expressive/KIT.md for the command.
+ * drawn in code. Debug builds only. Extras: `theme` (dark, light, system), `section` (the strip to
+ * scroll to, from 0) and `style` (`comfort` for the Comfort kit, ComfortGallery.kt). See
+ * ui/expressive/KIT.md and ui/comfort/KIT.md for the commands.
  */
 class KitGalleryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -167,17 +168,19 @@ class KitGalleryActivity : ComponentActivity() {
             else -> ThemeMode.Dark
         }
         val section = intent.getIntExtra("section", 0)
+        val uiStyle = if (intent.getStringExtra("style") == "comfort") UiStyle.Comfort else UiStyle.Expressive
         setContent {
             var mode by remember { mutableStateOf(initialTheme) }
-            CompositionLocalProvider(LocalUiStyle provides UiStyle.Expressive) {
-                AtticTheme(mode, UiStyle.Expressive) {
+            CompositionLocalProvider(LocalUiStyle provides uiStyle) {
+                AtticTheme(mode, uiStyle) {
                     val dark = LocalIsDark.current
                     LaunchedEffect(dark) {
                         val clear = Color.Transparent.toArgb()
                         val style = if (dark) SystemBarStyle.dark(clear) else SystemBarStyle.light(clear, clear)
                         enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                     }
-                    Gallery(section, dark) { mode = if (dark) ThemeMode.Light else ThemeMode.Dark }
+                    val toggle = { mode = if (dark) ThemeMode.Light else ThemeMode.Dark }
+                    if (uiStyle == UiStyle.Comfort) ComfortGallery(section, dark, toggle) else Gallery(section, dark, toggle)
                 }
             }
         }
@@ -185,8 +188,8 @@ class KitGalleryActivity : ComponentActivity() {
 }
 
 /** Sample covers: soft glows and gradients in the fixture library's colours. */
-private object Samples {
-    private fun glow(center: Int, edge: Int, deep: Int): ImageBitmap {
+internal object Samples {
+    fun glow(center: Int, edge: Int, deep: Int): ImageBitmap {
         val bitmap = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(deep)
@@ -196,7 +199,7 @@ private object Samples {
         return bitmap.asImageBitmap()
     }
 
-    private fun sweep(a: Int, b: Int): ImageBitmap {
+    fun sweep(a: Int, b: Int): ImageBitmap {
         val bitmap = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)

@@ -3,13 +3,13 @@
 
     <application>
         <!--
-            Debug builds only: the Expressive kit laid out as strips, for checking against the mocks.
-            The adb command that opens it is in app/src/main/java/app/attic/player/ui/expressive/KIT.md.
+            Debug builds only: the Expressive and Comfort kits laid out as strips, for checking against the mocks.
+            The adb commands that open it are in ui/expressive/KIT.md and ui/comfort/KIT.md.
         -->
         <activity
             android:name=".debug.KitGalleryActivity"
             android:exported="true"
-            android:label="Expressive kit"
+            android:label="Kit gallery"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Attic" />
     </application>
