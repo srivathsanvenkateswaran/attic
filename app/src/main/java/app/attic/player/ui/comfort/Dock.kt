@@ -61,10 +61,11 @@ data class TabItem(val label: String, val symbol: Symbol)
 fun Dock(
     modifier: Modifier = Modifier,
     mini: (@Composable () -> Unit)? = null,
+    insets: WindowInsets = WindowInsets.navigationBars,
     tabs: @Composable () -> Unit,
 ) {
     val colors = Comfort.colors
-    val navigation = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val navigation = insets.asPaddingValues().calculateBottomPadding()
     val bottom = max(22.dp, navigation + 6.dp)
     Box(
         modifier

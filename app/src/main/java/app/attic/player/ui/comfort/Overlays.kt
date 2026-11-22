@@ -80,19 +80,45 @@ fun ComfortSheet(
         contentColor = colors.on,
         tonalElevation = 0.dp,
         scrimColor = colors.scrim,
-        dragHandle = {
-            Box(
-                Modifier
-                    .padding(top = 12.dp, bottom = 12.dp)
-                    .size(width = 40.dp, height = 4.dp)
-                    .clip(ComfortShapes.Pill)
-                    .background(colors.fill2),
-            )
-        },
+        dragHandle = { SheetGrab() },
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
         CompositionLocalProvider(LocalComfortContainer provides ComfortContainer.Sheet) {
             Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 30.dp)) { content() }
+        }
+    }
+}
+
+@Composable
+private fun SheetGrab() {
+    Box(
+        Modifier
+            .padding(top = 12.dp, bottom = 12.dp)
+            .size(width = 40.dp, height = 4.dp)
+            .clip(ComfortShapes.Pill)
+            .background(Comfort.colors.fill2),
+    )
+}
+
+/**
+ * The sheet drawn in place, not modal: for previews and the gallery (`.strip .sheet`). Screens use
+ * [ComfortSheet].
+ */
+@Composable
+fun StaticSheet(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val colors = Comfort.colors
+    Column(
+        modifier
+            .fillMaxWidth()
+            .floatingShadow(ComfortShapes.FloatingTop, edge = false)
+            .clip(ComfortShapes.FloatingTop)
+            .background(colors.raised)
+            .padding(bottom = 30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        SheetGrab()
+        CompositionLocalProvider(LocalComfortContainer provides ComfortContainer.Sheet, LocalContentColor provides colors.on) {
+            Column(Modifier.fillMaxWidth()) { content() }
         }
     }
 }
@@ -195,13 +221,18 @@ fun ComfortDialog(
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
             contentAlignment = Alignment.BottomCenter,
         ) {
-            DialogCard(title, body, confirmText, onConfirm, dismissText, onDismiss, confirmEnabled, danger, modifier, content)
+            DialogCard(
+                title, body, confirmText, onConfirm, dismissText, onDismiss, confirmEnabled, danger,
+                modifier.navigationBarsPadding().imePadding().padding(start = 12.dp, end = 12.dp, bottom = 22.dp),
+                content,
+            )
         }
     }
 }
 
 /**
- * The dialog's card on its own, for a preview or the gallery. [ComfortDialog] places it in a window.
+ * The dialog's card on its own, for a preview or the gallery. [ComfortDialog] places it in a window,
+ * 12dp in from the edges and 22dp above the bottom.
  */
 @Composable
 fun DialogCard(
@@ -219,9 +250,6 @@ fun DialogCard(
     val colors = Comfort.colors
     Column(
         modifier
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(start = 12.dp, end = 12.dp, bottom = 22.dp)
             .fillMaxWidth()
             .floatingShadow(ComfortShapes.Floating)
             .clip(ComfortShapes.Floating)
@@ -335,6 +363,22 @@ fun ComfortMenu(
         tonalElevation = 0.dp,
         shadowElevation = 12.dp,
         border = androidx.compose.foundation.BorderStroke(1.dp, colors.edge),
+    ) {
+        CompositionLocalProvider(LocalContentColor provides colors.on) { content() }
+    }
+}
+
+/** The menu drawn in place, for previews and the gallery. Screens use [ComfortMenu]. */
+@Composable
+fun StaticMenu(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val colors = Comfort.colors
+    Column(
+        modifier
+            .widthIn(min = 200.dp)
+            .floatingShadow(ComfortShapes.Menu)
+            .clip(ComfortShapes.Menu)
+            .background(colors.raised)
+            .padding(vertical = 6.dp),
     ) {
         CompositionLocalProvider(LocalContentColor provides colors.on) { content() }
     }

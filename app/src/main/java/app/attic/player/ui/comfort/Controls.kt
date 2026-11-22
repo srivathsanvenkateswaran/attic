@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -316,12 +318,16 @@ fun EmptyState(
  * from the edges and 22dp up, holding [ActionBarItem]s.
  */
 @Composable
-fun ActionBar(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
+fun ActionBar(
+    modifier: Modifier = Modifier,
+    insets: WindowInsets = WindowInsets.navigationBars,
+    content: @Composable RowScope.() -> Unit,
+) {
     val colors = Comfort.colors
     Row(
         modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
+            .windowInsetsPadding(insets)
             .padding(start = 12.dp, end = 12.dp, bottom = 22.dp)
             .height(68.dp)
             .floatingShadow(ComfortShapes.Floating)
