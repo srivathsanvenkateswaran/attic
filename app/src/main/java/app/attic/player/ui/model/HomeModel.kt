@@ -76,7 +76,7 @@ class HomeActions(
     val openFolder: (FolderPlaylist) -> Unit,
     val openAlbum: (Album) -> Unit,
     val openArtist: (Artist) -> Unit,
-    /** A Speed dial tile starts radio from its song. */
+    /** An Instant mixes tile starts radio from its song. */
     val startRadio: (Track) -> Unit,
     val showMenu: (Track) -> Unit,
     val playRecent: (Track) -> Unit,

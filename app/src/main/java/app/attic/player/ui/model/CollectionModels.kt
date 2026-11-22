@@ -119,7 +119,7 @@ fun rememberAlbumModel(library: Library, key: String): UiModel<AlbumState, Album
 class ArtistState(
     /** Null when the artist has gone from the library. */
     val artist: Artist?,
-    /** No play counts from a streaming service here, so "Popular" means what you've played most recently. */
+    /** "Top songs": with no outside play counts, what you've played most recently. */
     val popular: List<Track>,
     /** The artist's other songs, listed under "All songs". */
     val others: List<Track>,

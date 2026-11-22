@@ -268,7 +268,7 @@ internal fun contextSymbol(kind: ContextKind): Symbol? = when (kind) {
     ContextKind.Other -> null
 }
 
-/** The model keeps Classic's context names; this applies the shared naming ("Favourites"). */
+/** The model hands over the saved context name; this applies the shared naming ("Favourites"). */
 @Composable
 internal fun contextLabel(name: String?, kind: ContextKind): String = when {
     name == null -> stringResource(R.string.context_your_library)

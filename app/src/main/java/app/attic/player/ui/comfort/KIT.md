@@ -45,7 +45,7 @@ Tinted(seed, wash = true) { … }  // .tinted.wash: also the surfaces and the qu
 TintedCover(mediaId, wash = true) { … }   // the same, looking the swatch up itself
 ```
 
-- Pass the cover's **swatch** (`deepen = false`), not the deepened tint Classic and Expressive use:
+- Pass the cover's **swatch** (`deepen = false`), not the deepened tint Expressive uses:
   the kit keeps the cover's chroma, so a dulled seed gives a dull player.
 - How it maps the kit rule (`ComfortTint`, Tinted.kt): kit.css writes each token as
   `oklch(from var(--tint) L calc(c*k) h)`. `ComfortTint.apply` converts the seed to OKLCH (Oklch.kt)
@@ -252,7 +252,7 @@ opens the Expressive kit.
   follows kit.css, which replaced it with the OKLCH rule.
 - Shadows use Compose's `dropShadow` with the CSS values (blur 36 / offset 12 dark, 28 / 8 light);
   Android's blur is close to, not identical with, Chrome's.
-- `.bars` animate while playing (the mock is a still picture; Classic's bars bounce too).
+- `.bars` animate while playing (the mock is a still picture).
 - The spinner turns; the mock's is a still arc at 28°.
 - The menu is Material's DropdownMenu: 8dp vertical padding inside (kit 6) and Material's own
   enter animation. Its shadow is an elevation shadow, not the CSS blur.

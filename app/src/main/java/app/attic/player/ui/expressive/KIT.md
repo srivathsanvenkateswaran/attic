@@ -35,16 +35,10 @@ functions below.
 `Expressive.type`, `Expressive.motion`, `Expressive.shapes` reach the tokens MaterialTheme has no
 slot for.
 
-### Unbuilt surfaces and the shell
+### The shell
 
-Every Expressive (and Comfort) branch that still calls Classic drawing is wrapped in
-`ClassicSurface { }` (ui/classic/ClassicTheme.kt), which provides Classic's colours, type and shapes.
-When you build a surface, replace `ClassicSurface { ClassicX(state, actions) }` with your drawing.
-
-The Expressive shell is built: AppRoot calls `ExpressiveShell(state, actions, slots)` with no
-wrappers, so every slot is in the Expressive theme and an unbuilt screen brings its own
-`ClassicSurface`. Comfort still uses `ClassicShell(state, actions, slots.inStyleSurface())`, where
-each slot is drawn in `StyleSurface { }` to get the style's theme back.
+AppRoot calls `ExpressiveShell(state, actions, slots)` with no wrappers, so every slot is drawn in
+the Expressive theme.
 
 ### The shell, for screens inside it (ExpressiveShell.kt)
 
@@ -205,7 +199,7 @@ and `ExpressiveRecapCards.kt`. Pieces other screens can use:
   `primary` mixed 58% into `ground`; the busiest is `primary`.
 - `recapPeriodLabel(data)`, `recapHeadline(data)`, `listenerTitle(type)`, `recapClockLine(type, hours)`:
   Recap's wording from the shared copy, including the switch from 24 December ("2026", "Your 2026
-  Recap"). The model's `periodLabel` and `headline` are Classic's literals and say "Wrapped".
+  Recap").
 - `FitText(text, style)`: one line that shrinks its font to fit instead of wrapping (big figures).
   `cardText(size, line, weight, width, round)`: Google Sans Flex at any size on the width (50–100)
   and ROND axes; the mock's 25% and 151% widths and 900 weight are clamped to the bundled ranges.
@@ -233,13 +227,13 @@ applied. Use `stringResource` / `pluralStringResource`; do not write literals in
 - Counts are plurals with the number as `%1$s`, formatted by you with grouping:
   `pluralStringResource(R.plurals.song_count, n, NumberFormat.getIntegerInstance().format(n))`.
 - Durations: `duration_hours_minutes` / `duration_minutes`, joined by `songs_and_duration`.
-- Context names under "Playing from" are `context_*`; the model still produces Classic's literal
-  context strings ("Liked Songs"), so map them when you draw.
+- Context names under "Playing from" are `context_*`. The model hands over the name the queue was
+  saved with ("Favourites", or "Liked Songs" in an older saved queue), so map it by `ContextKind`.
 - The style picker's three strings (`settings_style*`) are the only copy not in CURRENT-UI.md. Two
   format strings join existing values the way sheets 07 and 09 draw them: `add_songs_subtitle`
   ("Late drive, 14 songs") and `story_position` ("5 of 10", which replaced the progress segments).
-- The playlist name dialog's callers still pass Classic's literal titles ("Give your playlist a
-  name"); the Expressive dialog maps them to `dialog_*_title`, as context names are mapped.
+- The playlist name dialog's callers pass `dialog_*_title` and `create` / `rename` already, so the
+  dialog draws them as they come.
 - Wording deliberately kept from today although the mocks differ: library subtitles stay
   "Playlist, 46 songs" / "Artist"; the album detail stays "Album • 2025". The Favourites empty body
   says "Tap the heart on a song to save it." because the plus became a heart.
