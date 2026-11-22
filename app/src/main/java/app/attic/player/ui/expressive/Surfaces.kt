@@ -44,19 +44,22 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
  * A bottom sheet (`.sheet`): Material's modal sheet on surface container low, 28dp top corners, the
  * kit's 32×4 handle, opened fully. Rows inside are [SheetRow]s; a group inside takes surface
- * container high cells.
+ * container high cells. [bottomPadding] is the kit's 32dp under the last row; a sheet whose list
+ * scrolls to its foot (Add songs) passes 0 and pads the list instead.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpressiveSheet(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomPadding: Dp = 32.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -71,7 +74,7 @@ fun ExpressiveSheet(
         dragHandle = { SheetHandle() },
     ) {
         CompositionLocalProvider(LocalGroupCellColor provides colors.surfaceContainerHigh) {
-            Column(Modifier.padding(bottom = 32.dp), content = content)
+            Column(Modifier.padding(bottom = bottomPadding), content = content)
         }
     }
 }

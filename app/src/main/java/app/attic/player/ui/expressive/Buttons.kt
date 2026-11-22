@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
@@ -71,6 +72,7 @@ enum class ButtonSize(val height: Dp) { Small(40.dp), Medium(56.dp) }
  * A labelled button (`.btn`): filled, tonal, outlined or text, in two heights, fully round. [squared]
  * is "squared off means on": a collection's Play button squares off while it reads Pause.
  * [leading] / [trailing] put a symbol before or after the label; [leadingFilled] fills it (play glyphs are filled).
+ * [contentColor] recolours a text button, e.g. `error` for a destructive confirm ("Delete playlist").
  */
 @Composable
 fun ExpressiveButton(
@@ -85,6 +87,7 @@ fun ExpressiveButton(
     squared: Boolean = false,
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource? = null,
+    contentColor: Color = Color.Unspecified,
 ) {
     val medium = size == ButtonSize.Medium
     val corner by animateDpAsState(
@@ -126,7 +129,13 @@ fun ExpressiveButton(
             interactionSource = interactionSource,
             content = content,
         )
-        ButtonVariant.Text -> TextButton(onClick, sized, enabled, shape, contentPadding = padding, interactionSource = interactionSource, content = content)
+        ButtonVariant.Text -> TextButton(
+            onClick, sized, enabled, shape,
+            colors = if (contentColor.isSpecified) ButtonDefaults.textButtonColors(contentColor = contentColor) else ButtonDefaults.textButtonColors(),
+            contentPadding = padding,
+            interactionSource = interactionSource,
+            content = content,
+        )
     }
 }
 

@@ -191,7 +191,11 @@ fun ExpressiveShell(state: ShellState, actions: ShellActions, slots: ShellSlots)
                     }
                     IntOffset(0, -bottom)
                 },
-        ) { data -> ExpressiveSnackbar(data) }
+        ) { data ->
+            // Over the player, queue or lyrics the message takes the inverse roles of the cover's scheme (07 J).
+            val cover = state.player.current?.mediaId
+            if (covered && cover != null) FromCover(cover) { ExpressiveSnackbar(data) } else ExpressiveSnackbar(data)
+        }
     }
 }
 

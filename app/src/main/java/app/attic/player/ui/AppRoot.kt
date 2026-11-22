@@ -182,7 +182,7 @@ private fun MainShell(library: Library) {
         }
 
         state.menu?.let { request ->
-            TrackMenuSheet(request, library, onDismiss = actions.dismissMenu)
+            TrackMenuSheet(request, library, onDismiss = actions.dismissMenu, overPlayer = state.covered)
         }
         state.picking?.let { keys ->
             PlaylistPickerSheet(keys, onDismiss = actions.dismissPicker)

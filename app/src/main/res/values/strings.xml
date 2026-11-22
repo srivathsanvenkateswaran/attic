@@ -230,6 +230,8 @@
     <string name="add_songs_placeholder">Find a song</string>
     <string name="add_songs_add_cd">Add %1$s</string>
     <string name="add_songs_remove_cd">Remove %1$s</string>
+    <!-- Under the Add songs title, what is being filled: "Late drive, 14 songs" (the count from song_count) -->
+    <string name="add_songs_subtitle">%1$s, %2$s</string>
 
     <!-- Dialogs and menus (2.14) -->
     <string name="dialog_playlist_name_label">Playlist name</string>

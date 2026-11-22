@@ -16,6 +16,7 @@ import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
+import app.attic.player.ui.mosaicIds
 import kotlinx.coroutines.launch
 
 // Track menu
@@ -38,6 +39,12 @@ class TrackMenuState(
     val pickingLanguage: Boolean,
     /** The raw language code, for the language picker's check mark. */
     val language: String?,
+    /** The album "Go to album" opens, by name, when it is in the library. */
+    val albumName: String? = null,
+    /** The artist "Go to artist" opens, by name, when one is in the library. */
+    val artistName: String? = null,
+    /** A cover of that artist's, for drawing the artist. */
+    val artistCover: Long? = null,
 )
 
 /** Each choice does its thing and closes the menu, except the two that open a picker. */
@@ -67,6 +74,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
     val language by remember(track.key) { app.radio.languageFlow(track) }.collectAsStateWithLifecycle(null)
     val albumKey = track.albumKey?.takeIf { it in library.albumByKey }
     val artistKey = track.artistKeys.firstOrNull { it in library.artistByKey }
+    val artist = artistKey?.let { library.artistByKey[it] }
 
     val state = TrackMenuState(
         track = track,
@@ -78,6 +86,9 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         pickingPlaylist = pickingPlaylist,
         pickingLanguage = pickingLanguage,
         language = language,
+        albumName = albumKey?.let { library.albumByKey[it]?.name },
+        artistName = artist?.name,
+        artistCover = artist?.let { a -> a.tracks.firstOrNull { it.key == track.key }?.mediaId ?: a.tracks.firstOrNull()?.mediaId },
     )
     val actions = TrackMenuActions(
         startRadio = {
@@ -129,6 +140,8 @@ class LanguagePickerState(
     val current: String?,
     /** Code and display name, in the order offered. */
     val choices: List<Pair<String, String>>,
+    /** The song being corrected, by title. */
+    val songTitle: String? = null,
 )
 
 class LanguagePickerActions(
@@ -137,22 +150,33 @@ class LanguagePickerActions(
     val dismiss: () -> Unit,
 )
 
-fun languagePickerModel(current: String?, onChoose: (String) -> Unit): UiModel<LanguagePickerState, LanguagePickerActions> =
+fun languagePickerModel(current: String?, onChoose: (String) -> Unit, songTitle: String? = null): UiModel<LanguagePickerState, LanguagePickerActions> =
     UiModel(
-        LanguagePickerState(current, LanguageLabels.CHOICES),
+        LanguagePickerState(current, LanguageLabels.CHOICES, songTitle),
         LanguagePickerActions(choose = onChoose, dismiss = { onChoose("") }),
     )
 
 // Playlist picker
 
 @Immutable
-class PickerPlaylist(val id: Long, val name: String, val songCount: Int, val alreadyIn: Boolean)
+class PickerPlaylist(
+    val id: Long,
+    val name: String,
+    val songCount: Int,
+    val alreadyIn: Boolean,
+    /** Covers for the playlist's mosaic, from different albums. */
+    val coverIds: List<Long> = emptyList(),
+)
 
 @Immutable
 class PlaylistPickerState(
     val playlists: List<PickerPlaylist>,
     /** The new-playlist dialog is open. */
     val creating: Boolean,
+    /** What is being added: the song's title when it is one song, else null. */
+    val songTitle: String? = null,
+    /** How many songs are being added. */
+    val songCount: Int = 0,
 )
 
 class PlaylistPickerActions(
@@ -169,6 +193,7 @@ class PlaylistPickerActions(
 fun rememberPlaylistPickerModel(trackKeys: List<String>, onDismiss: () -> Unit): UiModel<PlaylistPickerState, PlaylistPickerActions> {
     val app = LocalContext.current.attic
     val playlists by app.userData.playlists.collectAsStateWithLifecycle()
+    val library by app.library.library.collectAsStateWithLifecycle()
     var creating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -181,8 +206,13 @@ fun rememberPlaylistPickerModel(trackKeys: List<String>, onDismiss: () -> Unit):
     }
 
     val state = PlaylistPickerState(
-        playlists = playlists.map { PickerPlaylist(it.id, it.name, it.trackKeys.size, it.trackKeys.containsAll(trackKeys)) },
+        playlists = playlists.map { playlist ->
+            val tracks = library?.let { lib -> playlist.trackKeys.mapNotNull { lib.trackByKey[it] } }.orEmpty()
+            PickerPlaylist(playlist.id, playlist.name, playlist.trackKeys.size, playlist.trackKeys.containsAll(trackKeys), mosaicIds(tracks))
+        },
         creating = creating,
+        songTitle = trackKeys.singleOrNull()?.let { key -> library?.trackByKey?.get(key)?.title },
+        songCount = trackKeys.size,
     )
     val actions = PlaylistPickerActions(
         addTo = { addTo(it.id, it.name) },
@@ -244,6 +274,8 @@ class AddSongsState(
     val matches: List<Track>,
     /** Songs already in the playlist, shown with a check. */
     val existing: Set<String>,
+    /** The playlist being filled, by name. */
+    val playlistName: String? = null,
 )
 
 class AddSongsActions(
@@ -256,6 +288,7 @@ class AddSongsActions(
 @Composable
 fun rememberAddSongsModel(library: Library, playlistId: Long, existing: Set<String>, onDismiss: () -> Unit): UiModel<AddSongsState, AddSongsActions> {
     val app = LocalContext.current.attic
+    val playlists by app.userData.playlists.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
     val matches = remember(query, library) {
         val q = TitleCleaner.searchable(query)
@@ -276,5 +309,5 @@ fun rememberAddSongsModel(library: Library, playlistId: Long, existing: Set<Stri
         },
         dismiss = onDismiss,
     )
-    return UiModel(AddSongsState(query, matches, existing), actions)
+    return UiModel(AddSongsState(query, matches, existing, playlists.firstOrNull { it.id == playlistId }?.name), actions)
 }
