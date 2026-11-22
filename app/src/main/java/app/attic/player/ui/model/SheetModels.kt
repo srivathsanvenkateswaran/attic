@@ -61,6 +61,8 @@ class TrackMenuActions(
     /** From the language picker. An empty code (the picker dismissed) changes nothing. */
     val chooseLanguage: (String) -> Unit,
     val dismiss: () -> Unit,
+    /** Closes the language picker and leaves the menu open, for a style that draws the picker over the menu. */
+    val stopPickingLanguage: () -> Unit = {},
 )
 
 @Composable
@@ -128,6 +130,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
             onDismiss()
         },
         dismiss = onDismiss,
+        stopPickingLanguage = { pickingLanguage = false },
     )
     return UiModel(state, actions)
 }

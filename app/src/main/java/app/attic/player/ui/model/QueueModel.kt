@@ -35,6 +35,8 @@ class QueueState(
     val contextKind: ContextKind,
     /** Everything after the current song, in play order (which is the shuffled order when shuffle is on). */
     val upNext: List<UpNextRow>,
+    /** Where the current song is, for a style that shows how far it has played. */
+    val clock: PlaybackClock? = null,
 )
 
 class QueueActions(
@@ -58,7 +60,8 @@ fun rememberQueueModel(player: PlayerUiState, onClose: () -> Unit): UiModel<Queu
     val contextKind = remember(player.contextName, player.current, library, playlists) {
         contextKindOf(player.contextName, player.current, library, playlists.map { it.name })
     }
-    val state = QueueState(player.current, player.isPlaying, player.contextName, contextKind, upNext)
+    val clock = remember(app) { PlaybackClock(app.player::positionMs) }
+    val state = QueueState(player.current, player.isPlaying, player.contextName, contextKind, upNext, clock)
     val actions = QueueActions(
         close = onClose,
         clearUpNext = { app.player.clearUpNext() },

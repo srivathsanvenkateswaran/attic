@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -125,7 +126,8 @@ enum class MiniPlayerPlacement { Dock, Alone, Top }
  * swiping the text sideways past 28% of its width skips ([onSwipeNext], [onSwipePrevious]).
  *
  * The mini player takes its colour from [seed] itself (`.mini.tinted`): its ground and fill become the
- * cover's. [MiniPlayerPlacement.Top] is `.mini.top`: 60dp, square corners, no cover.
+ * cover's. [MiniPlayerPlacement.Top] is `.mini.top`: 60dp, square corners, no cover. [trailing]
+ * replaces the heart and play icon (full-screen lyrics ends the row in a small [PlayButton] instead).
  */
 @Composable
 fun MiniPlayer(
@@ -143,6 +145,7 @@ fun MiniPlayer(
     placement: MiniPlayerPlacement = MiniPlayerPlacement.Dock,
     onSwipeNext: (() -> Unit)? = null,
     onSwipePrevious: (() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Tinted(seed) {
         val colors = Comfort.colors
@@ -190,7 +193,9 @@ fun MiniPlayer(
                     subtitleColor = colors.miniInk2,
                 )
             }
-            CompositionLocalProvider(LocalContentColor provides colors.on) {
+            if (trailing != null) {
+                CompositionLocalProvider(LocalContentColor provides colors.on) { trailing() }
+            } else CompositionLocalProvider(LocalContentColor provides colors.on) {
                 HeartButton(favourite, onToggleFavourite)
                 ComfortIconButton(
                     if (playing) Symbol.Pause else Symbol.PlayArrow,

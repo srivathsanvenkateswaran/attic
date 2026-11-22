@@ -136,21 +136,33 @@ fun SheetHeader(title: String, subtitle: String?, art: @Composable (Modifier) ->
     }
 }
 
-/** `.sheet-title`: 20/26 bold ("Add to playlist"). */
+/**
+ * `.sheet-title`: 20/26 bold ("Add to playlist"). [subtitle] is its `<small>`: 13.5/18 in `--on-2`, 2dp
+ * under it, naming what the sheet acts on ("Late drive, 12 songs").
+ */
 @Composable
-fun SheetTitle(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text,
-        style = Comfort.type.barTitle,
-        color = Comfort.colors.on,
-        modifier = modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 12.dp),
-    )
+fun SheetTitle(text: String, modifier: Modifier = Modifier, subtitle: String? = null) {
+    Column(modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 12.dp)) {
+        Text(text, style = Comfort.type.barTitle, color = Comfort.colors.on)
+        if (subtitle != null) {
+            Text(
+                subtitle,
+                style = onest(13.5f, 18f),
+                color = Comfort.colors.on2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+    }
 }
 
 /**
  * `.sheet-row`: an icon in `--on-2`, the label, and at the end a [value] ("Change") or, when
- * [selected], a tick in accent ink (and a semibold label). [danger] colours it `--danger`. Split by
- * hairlines inset to the label when placed in a [Hairlined].
+ * [selected], a tick in accent ink (and a semibold label). [danger] colours it `--danger`. [end] is a
+ * quiet trailing glyph in `--on-3` for a row that opens something in place (`.end.go`: `chevron_right`
+ * to a picker, `unfold_more` to a pop-over). Split by hairlines inset to the label when placed in a
+ * [Hairlined].
  */
 @Composable
 fun SheetRow(
@@ -161,6 +173,7 @@ fun SheetRow(
     value: String? = null,
     selected: Boolean = false,
     danger: Boolean = false,
+    end: Symbol? = null,
 ) {
     val colors = Comfort.colors
     val ink = if (danger) colors.danger else colors.on
@@ -185,6 +198,7 @@ fun SheetRow(
         )
         if (value != null) Text(value, style = onest(14f, 18f), color = colors.on2, maxLines = 1)
         if (selected) ComfortIcon(Symbol.Check, tint = colors.accentInk)
+        if (end != null) ComfortIcon(end, tint = colors.on3)
     }
 }
 
@@ -342,7 +356,9 @@ fun DialogField(
 
 /**
  * `.menu`: Material's DropdownMenu, raised, radius 22, with the floating shadow and edge. It opens
- * beside the anchor it is placed in (a Box around the trigger). Fill it with [MenuRow]s.
+ * beside the anchor it is placed in (a Box around the trigger). Fill it with [MenuRow]s, and a
+ * [MenuCaption] first if it needs one. [onSheet] is `.menu.on-sheet`: opened from a sheet's row, it
+ * sits one step above the sheet on `--fill`.
  */
 @Composable
 fun ComfortMenu(
@@ -350,6 +366,7 @@ fun ComfortMenu(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    onSheet: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = Comfort.colors
@@ -359,7 +376,7 @@ fun ComfortMenu(
         modifier = modifier.widthIn(min = 200.dp),
         offset = offset,
         shape = ComfortShapes.Menu,
-        containerColor = colors.raised,
+        containerColor = if (onSheet) colors.fill else colors.raised,
         tonalElevation = 0.dp,
         shadowElevation = 12.dp,
         border = androidx.compose.foundation.BorderStroke(1.dp, colors.edge),
@@ -384,12 +401,32 @@ fun StaticMenu(modifier: Modifier = Modifier, content: @Composable ColumnScope.(
     }
 }
 
+/** `.menu-cap`: a small caption at the top of a pop-over ("Song language"). */
+@Composable
+fun MenuCaption(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        style = onest(13f, 18f, 600),
+        color = Comfort.colors.on2,
+        modifier = modifier.padding(start = 22.dp, end = 22.dp, top = 10.dp, bottom = 6.dp),
+    )
+}
+
 /**
- * `.menu-row`: 50dp, icon in `--on-2` then the label. [selected] is `.on` (accent ink, semibold);
- * [danger] is `.danger`. A null [symbol] keeps no space.
+ * `.menu-row`: 50dp, icon in `--on-2` then the label. [selected] is `.on` (accent ink, semibold) and,
+ * in a single-choice pop-over, ends in a tick ([check]); [danger] is `.danger`. A null [symbol] keeps
+ * no space.
  */
 @Composable
-fun MenuRow(symbol: Symbol?, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, selected: Boolean = false, danger: Boolean = false) {
+fun MenuRow(
+    symbol: Symbol?,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    danger: Boolean = false,
+    check: Boolean = false,
+) {
     val colors = Comfort.colors
     val ink = when {
         danger -> colors.danger
@@ -402,7 +439,10 @@ fun MenuRow(symbol: Symbol?, label: String, onClick: () -> Unit, modifier: Modif
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (symbol != null) ComfortIcon(symbol, tint = if (danger || selected) ink else colors.on2)
-        Text(label, style = onest(16f, 22f, if (selected) 600 else 400), color = ink, maxLines = 1)
+        Text(label, style = onest(16f, 22f, if (selected) 600 else 400), color = ink, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+        if (check && selected) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) { ComfortIcon(Symbol.Check, tint = ink, modifier = Modifier.padding(start = 18.dp)) }
+        }
     }
 }
 

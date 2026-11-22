@@ -227,13 +227,14 @@ fun CollectionHeader(
     onBylineClick: (() -> Unit)? = null,
     meta: String? = null,
     person: Boolean = false,
+    artSize: Dp = if (person) 148.dp else 196.dp,
 ) {
     val colors = Comfort.colors
     Column(
         modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        art(Modifier.size(if (person) 148.dp else 196.dp))
+        art(Modifier.size(artSize))
         Text(
             title,
             style = if (person) Comfort.type.personTitle else Comfort.type.title,

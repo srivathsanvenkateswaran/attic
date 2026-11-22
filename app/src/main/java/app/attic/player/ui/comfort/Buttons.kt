@@ -135,7 +135,9 @@ fun ComfortIconButton(
 /**
  * `.ib.tonal`: the icon in a superellipse, the shape of a quick-panel toggle. [checked] is `.on`
  * (accent fill, on-accent ink); [large] is `.lg` (54dp). With [onCheckedChange] null it is a plain
- * tonal button ([onClick]) rather than a toggle.
+ * tonal button ([onClick]) rather than a toggle. `enabled = false` is `.off` (38%). [container] replaces
+ * `--fill` while it is off: a sheet's toggles sit one step up (`--fill-2` dark), a light collection's
+ * on the plaster ground take `--card`.
  */
 @Composable
 fun TonalIconButton(
@@ -147,15 +149,18 @@ fun TonalIconButton(
     large: Boolean = false,
     filled: Boolean = checked,
     stateDescription: String? = null,
+    enabled: Boolean = true,
+    container: Color = Comfort.colors.fill,
 ) {
     val colors = Comfort.colors
     val side = if (large) 54.dp else 48.dp
     Box(
         modifier
             .size(side)
+            .alpha(if (enabled) 1f else 0.38f)
             .clip(ComfortShapes.Squircle)
-            .background(if (checked) colors.accent else colors.fill)
-            .clickable(role = Role.Button, onClick = onClick)
+            .background(if (checked) colors.accent else container)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .semantics {
                 this.contentDescription = contentDescription
                 if (stateDescription != null) this.stateDescription = stateDescription
@@ -228,13 +233,14 @@ fun PlayButton(playing: Boolean, onClick: () -> Unit, modifier: Modifier = Modif
  * `pause` while this collection is playing. Give it `Modifier.weight(1f)` in [CollectionActions].
  */
 @Composable
-fun CollectionPlayButton(playing: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CollectionPlayButton(playing: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     ComfortButton(
         text = stringResource(if (playing) R.string.pause else R.string.play),
         onClick = onClick,
         modifier = modifier,
         leading = if (playing) Symbol.Pause else Symbol.PlayArrow,
         leadingFilled = true,
+        enabled = enabled,
     )
 }
 

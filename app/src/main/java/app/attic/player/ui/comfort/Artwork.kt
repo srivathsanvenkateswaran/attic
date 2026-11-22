@@ -122,9 +122,11 @@ fun MarkBox(modifier: Modifier = Modifier, size: Dp? = null, style: IconBoxStyle
 @Composable
 private fun iconBoxColors(style: IconBoxStyle): Pair<Color, Color> {
     val colors = Comfort.colors
+    // `.sheet .ibox.neutral`: on a dark sheet the neutral box is one step up, so it shows on the raised surface.
+    val neutral = if (colors.dark && LocalComfortContainer.current == ComfortContainer.Sheet) colors.fill2 else colors.fill
     return when (style) {
         IconBoxStyle.Tonal -> colors.accentSoft to colors.accentInk
-        IconBoxStyle.Neutral -> colors.fill to colors.on2
+        IconBoxStyle.Neutral -> neutral to colors.on2
         IconBoxStyle.Solid -> colors.accent to colors.onAccent
     }
 }

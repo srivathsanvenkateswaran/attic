@@ -104,13 +104,15 @@ fun CollectionRow(
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val colors = Comfort.colors
+    // In a sheet the row lines up with the sheet's 24dp margin (`.sheet .row`).
+    val inSheet = LocalComfortContainer.current == ComfortContainer.Sheet
     Row(
         modifier
             .fillMaxWidth()
-            .hairlineAbove(LocalHairlineAbove.current, size.separator)
+            .hairlineAbove(LocalHairlineAbove.current, size.separator + if (inSheet) 8.dp else 0.dp, if (inSheet) 24.dp else 20.dp)
             .rowClick(onClick, onLongClick)
             .heightIn(min = size.minHeight)
-            .padding(start = 16.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = if (inSheet) 24.dp else 16.dp, end = if (inSheet) 18.dp else 10.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -152,6 +154,9 @@ fun KeyValue(label: String, value: String, modifier: Modifier = Modifier, onClic
 sealed interface SongLead {
     /** A 48dp cover. */
     data class Cover(val art: Art?) : SongLead
+
+    /** A 48dp artist picture, in the rounder superellipse (Recap's top artists). */
+    data class Artist(val art: Art?) : SongLead
 
     /** `.song.numbered`: the track number, no cover (an album). */
     data class Number(val number: Int) : SongLead
@@ -246,6 +251,7 @@ fun SongRow(
                 Cover(lead.art, size = 48.dp, dimmed = current)
                 if (current) PlayingBars(playing, color = colors.onArt)
             }
+            is SongLead.Artist -> ArtistCover(lead.art, size = 48.dp)
             is SongLead.Number -> Box(Modifier.width(28.dp), contentAlignment = Alignment.Center) {
                 if (current) PlayingBars(playing, color = colors.onAccentSoft)
                 else Text(lead.number.toString(), style = onest(15f, 20f).tabular(), color = colors.on2)
@@ -353,8 +359,9 @@ fun PlayingBars(
 }
 
 /**
- * `.swipe`: a queue row that swipes aside to the end to reveal "Remove" in `--danger` on `--fill`, then
- * calls [onRemove]. The swipe starts over when [resetKey] changes.
+ * `.swipe`: a queue row that swipes aside, either way, to reveal `do_not_disturb_on` and "Remove" in
+ * `--danger` on `--fill` on the side it uncovers (`.swipe`, `.swipe.r`), then calls [onRemove]. The
+ * swipe starts over when [resetKey] changes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -369,28 +376,35 @@ fun SwipeToRemove(
     key(resetKey) {
         val state = rememberSwipeToDismissBoxState()
         LaunchedEffect(state.currentValue) {
-            if (state.currentValue == SwipeToDismissBoxValue.EndToStart) remove()
+            if (state.currentValue != SwipeToDismissBoxValue.Settled) remove()
         }
+        val towardsStart = state.dismissDirection == SwipeToDismissBoxValue.EndToStart
         SwipeToDismissBox(
             state = state,
             modifier = modifier.hairlineAbove(LocalHairlineAbove.current, 78.dp),
-            enableDismissFromStartToEnd = false,
             backgroundContent = {
-                Box(Modifier.fillMaxSize().background(colors.fill), contentAlignment = Alignment.CenterEnd) {
-                    Text(
-                        stringResource(R.string.queue_remove),
-                        style = onest(14f, 18f, 600),
-                        color = colors.danger,
-                        modifier = Modifier.padding(end = 24.dp),
-                    )
+                Box(
+                    Modifier.fillMaxSize().background(colors.fill),
+                    contentAlignment = if (towardsStart) Alignment.CenterEnd else Alignment.CenterStart,
+                ) {
+                    Row(
+                        Modifier.padding(start = 20.dp, end = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        ComfortIcon(Symbol.DoNotDisturbOn, size = 20.dp, tint = colors.danger)
+                        Text(stringResource(R.string.queue_remove), style = onest(14f, 18f, 600), color = colors.danger)
+                    }
                 }
             },
         ) {
-            Box(
-                Modifier.fillMaxWidth()
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp))
-                    .background(colors.card),
-            ) {
+            val radius = ComfortShapes.ControlRadius
+            val shape = when (state.dismissDirection) {
+                SwipeToDismissBoxValue.EndToStart -> androidx.compose.foundation.shape.RoundedCornerShape(topEnd = radius, bottomEnd = radius)
+                SwipeToDismissBoxValue.StartToEnd -> androidx.compose.foundation.shape.RoundedCornerShape(topStart = radius, bottomStart = radius)
+                SwipeToDismissBoxValue.Settled -> androidx.compose.ui.graphics.RectangleShape
+            }
+            Box(Modifier.fillMaxWidth().clip(shape).background(colors.card)) {
                 CompositionLocalProvider(LocalHairlineAbove provides false) { content() }
             }
         }
