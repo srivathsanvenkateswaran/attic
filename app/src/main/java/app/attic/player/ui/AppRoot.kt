@@ -21,10 +21,11 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
-import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicLoading
 import app.attic.player.ui.classic.ClassicPermissionScreen
 import app.attic.player.ui.classic.ClassicShell
+import app.attic.player.ui.comfort.ComfortLoading
+import app.attic.player.ui.comfort.ComfortPermission
 import app.attic.player.ui.comfort.ComfortShell
 import app.attic.player.ui.expressive.ExpressiveLoading
 import app.attic.player.ui.expressive.ExpressivePermission
@@ -117,12 +118,12 @@ fun AppRoot() {
     when (state) {
         is RootState.NeedsAccess -> when (LocalUiStyle.current) {
             UiStyle.Expressive -> ExpressivePermission(state, actions)
-            UiStyle.Comfort -> ClassicSurface { ClassicPermissionScreen(state, actions) }
+            UiStyle.Comfort -> ComfortPermission(state, actions)
             UiStyle.Classic -> ClassicPermissionScreen(state, actions)
         }
         RootState.Loading -> when (LocalUiStyle.current) {
             UiStyle.Expressive -> ExpressiveLoading()
-            UiStyle.Comfort -> ClassicSurface { ClassicLoading() }
+            UiStyle.Comfort -> ComfortLoading()
             UiStyle.Classic -> ClassicLoading()
         }
         is RootState.Ready -> MainShell(state.library)
