@@ -58,6 +58,8 @@ each slot is drawn in `StyleSurface { }` to get the style's theme back.
 - While the keyboard is up the mini player rides above it and the navigation bar stays under it.
 - The snackbar (`ExpressiveSnackbar`) sits 16dp above the dock, or near the bottom edge while an
   overlay is open, and draws above the overlays.
+- `LocalOverlayCovered` (ui/AppRoot.kt) is true while Now Playing, the queue or lyrics is up. A screen with
+  its own `BackHandler` (Search's docked bar) disables it then, so back closes the overlay first.
 - System bar icons follow the theme (MainActivity). Art surfaces take the same light or dark as the
   theme, so the icons stay readable over them without a change per surface.
 
@@ -138,7 +140,7 @@ house until they are redrawn.
 | `.ib.on` | `ExpressiveToggleButton(symbol, checked, onCheckedChange, contentDescription, medium, width, tonalWhenOff)` | morphs round → 12/16 corners, fills primary |
 | `.ib.heart` | `HeartButton(favourite, onToggle)` | describes itself ("Add to favourites" / "Remove from favourites") |
 | `.btn-group` | `ButtonGroup(modifier, fill) { … Modifier.groupItem(interactionSource, weight) }` | pressed item widens 15%; with `fill` the others narrow |
-| `.fab`, `.fab.ext` | `ExpressiveFab(symbol, contentDescription, onClick, primary)`, `ExpressiveExtendedFab(text, symbol, onClick)` | |
+| `.fab`, `.fab.ext` | `ExpressiveFab(symbol, contentDescription, onClick, primary)`, `ExpressiveExtendedFab(text, symbol, onClick, expanded)` | `expanded = false` shrinks it to the symbol once a list scrolls (Library) |
 | `.split` | `SplitButton(text, onClick, onMenuClick, menuContentDescription, leading)` | |
 | `.toolbar` (`.vibrant`, `.floating`) | `FloatingToolbar(modifier, vibrant, floating) { icon buttons }` | Now Playing's tools row |
 | `.pp`, `.pp.l`, `.pp.xl`, `.pp.ring`, `.pp.tonal` | `PlayButton(playing, onClick, modifier, size = Small/Large/ExtraLarge, tonal, progress = { fraction })` | ring only when `progress` is given; describes itself "Play"/"Pause" |
@@ -148,9 +150,9 @@ house until they are redrawn.
 | `.nav` | `ExpressiveNavigationBar(items: List<NavItem>, selectedIndex, onSelect)` | Material ShortNavigationBar; pads for the gesture bar itself |
 | `.appbar.root` (+ `.scrolled`) | `RootAppBar(title, modifier, scrolled = 0f..1f, titleLeading, actions)` | `scrolled = listState.scrolledFraction()`; Home passes the mark as `titleLeading`; settings is the last action |
 | `.appbar`, `.scrolled`, `.over` | `DetailAppBar(title, onBack, modifier, surface = Plain/Scrolled/OverArt, actions)` | OverArt hides the title and puts scrims behind the buttons; inside `FromArt` for a collection |
-| `.searchbar` | `SearchField(query, onQueryChange, placeholder, modifier, onSearch)` | clear button appears with text |
+| `.searchbar`, `.searchbar.docked` | `SearchField(query, onQueryChange, placeholder, modifier, onSearch, onBack)` | clear button appears with text; `onBack` makes it the docked search view's bar, a back button in place of the glyph |
 | `.chips` / `.chip` | `ChipRow { ExpressiveFilterChip(label, selected, onClick) }` | Library's filters |
-| `.seg` | `ConnectedButtonGroup(options, selectedIndex, onSelect)` | Home's filter, Recap's period |
+| `.seg` | `ConnectedButtonGroup(options, selectedIndex, onSelect, modifier, unselectedColor)` | Home's filter, Recap's period, Settings' theme and style; on a group cell pass `surfaceContainerHighest` |
 | `.sec` | `SectionHeader(title, modifier, overline, trailing)` | |
 | `.list-label` | `ListLabel(text)` | |
 | `.group` | `ListGroup(count) { index -> … }`; lazy: `groupItems(list, key) { index, item -> … }`; any modifier: `Modifier.groupCell(index, count, color)` | sheets raise cells via `LocalGroupCellColor` (ExpressiveSheet sets it) |
@@ -167,11 +169,11 @@ house until they are redrawn.
 | `.mix`, `.mixes` | `InstantMixPill(title, art, onClick, onLongClick, now)`, `InstantMixes(items, rows = 3) { InstantMixPill(…) }` | |
 | `.recap-card` | `RecapCard(title, body, onClick) { m -> Mosaic(…, m) }` | |
 | `.spot` | `Spotlight(overline, title, art, onOpen) { Shelf { … } }` | |
-| `.browse` | `BrowseTile(title, seed, onClick) { m -> Cover(…, m) }` | takes the cover's scheme itself |
+| `.browse`, `.browse.folder` | `BrowseTile(title, seed, onClick, modifier, subtitle) { m -> Cover(…, m) }` | takes the cover's scheme itself; with `subtitle` it is Search's 88dp folder tile (sheet 02) with a 64dp picture |
 | `.stat` | `StatTile(value, label, modifier, accent)` | |
 | `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)` | opens fully expanded |
 | `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
-| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | |
+| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | a null `symbol` keeps its space, so a list of choices ticks only the current one |
 | `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | |
 | `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library; `body = null` for a title alone ("Nothing up next") |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |
