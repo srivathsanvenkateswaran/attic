@@ -25,12 +25,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -145,7 +150,9 @@ private fun RowScope.QuickAction(symbol: Symbol, label: String, onClick: () -> U
  */
 @Composable
 private fun LanguageRow(state: TrackMenuState, actions: TrackMenuActions) {
-    BoxWithConstraints {
+    var rowHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.onSizeChanged { rowHeight = it.height }) {
         SheetRow(
             Symbol.Language,
             stringResource(R.string.menu_language, languageName(state.language)),
@@ -156,8 +163,10 @@ private fun LanguageRow(state: TrackMenuState, actions: TrackMenuActions) {
             expanded = state.pickingLanguage,
             onDismiss = actions.stopPickingLanguage,
             onSheet = true,
-            // Toward the row's end, where the glyph that opened it is.
-            offset = DpOffset(maxWidth - 214.dp, 0.dp),
+            // Toward the row's end, where the glyph that opened it is, and over the row itself: with no room
+            // below, the menu opens upward from the row's top, so it is pulled down by the row's height until
+            // its foot meets the row's foot.
+            offset = DpOffset(maxWidth - 214.dp, with(density) { -rowHeight.toDp() }),
         ) {
             MenuCaption(stringResource(R.string.language_picker_title))
             for ((code, _) in app.attic.player.data.LanguageLabels.CHOICES) {
