@@ -270,7 +270,8 @@ fun DialogCard(
     Column(
         modifier
             .fillMaxWidth()
-            .floatingShadow(ComfortShapes.Floating)
+            // kit.css gives the dialog the shadow only; the 1dp edge is the menu's, the dock's and the action bar's.
+            .floatingShadow(ComfortShapes.Floating, edge = false)
             .clip(ComfortShapes.Floating)
             .background(colors.raised)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {})
