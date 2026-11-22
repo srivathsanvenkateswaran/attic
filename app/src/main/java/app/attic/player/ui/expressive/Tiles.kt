@@ -311,31 +311,54 @@ fun Spotlight(
 
 /**
  * A browse tile (`.browse`): title and a 56dp cover on the secondary container of the cover's own
- * scheme. [seed] is the cover tint (see [FromArt]).
+ * scheme. [seed] is the cover tint (see [FromArt]). With a [subtitle] it is Search's folder tile
+ * (sheet 02 A): 88dp tall, an 18sp bold title over the subtitle ("24 songs") and a 64dp picture.
  */
 @Composable
-fun BrowseTile(title: String, seed: Color, onClick: () -> Unit, modifier: Modifier = Modifier, art: @Composable (Modifier) -> Unit) {
+fun BrowseTile(
+    title: String,
+    seed: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    art: @Composable (Modifier) -> Unit,
+) {
     FromArt(seed) {
         val colors = MaterialTheme.colorScheme
+        val large = subtitle != null
         Row(
             modifier
-                .height(72.dp)
+                .height(if (large) 88.dp else 72.dp)
                 .clip(RoundedCornerShape(ExpressiveShapes.LargeIncreased))
                 .background(colors.secondaryContainer)
                 .combinedClickableCompat(onClick)
-                .padding(start = 16.dp, end = 8.dp),
+                .padding(start = 16.dp, end = if (large) 12.dp else 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, lineHeight = 20.sp, letterSpacing = 0.sp),
-                color = colors.onSecondaryContainer,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    title,
+                    style = if (large) {
+                        Expressive.type.titleMediumEmphasized.copy(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
+                    } else {
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, lineHeight = 20.sp, letterSpacing = 0.sp)
+                    },
+                    color = colors.onSecondaryContainer,
+                    maxLines = if (large) 1 else 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (subtitle != null) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                        color = colors.onSurfaceVariant,
+                        maxLines = 1,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
+            }
             Spacer(Modifier.width(8.dp))
-            art(Modifier.size(56.dp))
+            art(Modifier.size(if (large) 64.dp else 56.dp))
         }
     }
 }

@@ -210,14 +210,17 @@ fun ExpressiveMenu(expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier 
     )
 }
 
-/** A menu item (`.menu-item`): a symbol and a label. [danger] turns both to the error colour. */
+/**
+ * A menu item (`.menu-item`): a symbol and a label. [danger] turns both to the error colour. A null
+ * [symbol] keeps its space, so a menu of choices can tick only the current one (sheet 03 H).
+ */
 @Composable
-fun ExpressiveMenuItem(symbol: Symbol, label: String, onClick: () -> Unit, danger: Boolean = false) {
+fun ExpressiveMenuItem(symbol: Symbol?, label: String, onClick: () -> Unit, danger: Boolean = false) {
     val colors = MaterialTheme.colorScheme
     DropdownMenuItem(
         text = { Text(label, style = MaterialTheme.typography.labelLarge) },
         onClick = onClick,
-        leadingIcon = { SymbolIcon(symbol) },
+        leadingIcon = { if (symbol != null) SymbolIcon(symbol) else Spacer(Modifier.size(24.dp)) },
         colors = MenuDefaults.itemColors(
             textColor = if (danger) colors.error else colors.onSurface,
             leadingIconColor = if (danger) colors.error else colors.onSurfaceVariant,

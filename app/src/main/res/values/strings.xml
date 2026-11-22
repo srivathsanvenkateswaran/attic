@@ -111,6 +111,8 @@
         <item quantity="other">%1$s, %2$s songs</item>
     </plurals>
     <string name="library_shuffle_all_cd">Shuffle all songs</string>
+    <!-- The arrow half of the Songs sort split button (sheet 03 H). Not in CURRENT-UI.md: the control is new -->
+    <string name="library_sort_menu_cd">Sort songs by</string>
 
     <!-- Collection screens: shared frame (2.6) -->
     <string name="collection_add_to_playlist_cd">Add %1$s to a playlist</string>

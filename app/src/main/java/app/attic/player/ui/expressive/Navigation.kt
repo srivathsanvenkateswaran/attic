@@ -216,7 +216,9 @@ private fun OverArtScrim(over: Boolean, content: @Composable () -> Unit) {
 
 /**
  * The search bar (`.searchbar`): a 56dp pill on surface container high with the search glyph, the
- * query, and a clear button once there is text. [placeholder] is "Search your music".
+ * query, and a clear button once there is text. [placeholder] is "Search your music". With [onBack]
+ * it is the docked search view's bar (`.searchbar.docked`, sheet 02 B): a back button leads in place
+ * of the glyph.
  */
 @Composable
 fun SearchField(
@@ -225,6 +227,7 @@ fun SearchField(
     placeholder: String,
     modifier: Modifier = Modifier,
     onSearch: () -> Unit = {},
+    onBack: (() -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     val textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurface)
@@ -240,11 +243,16 @@ fun SearchField(
         decorationBox = { field ->
             Row(
                 Modifier.fillMaxWidth().height(56.dp).clip(ExpressiveShapes.Pill).background(colors.surfaceContainerHigh)
-                    .padding(start = 16.dp, end = 4.dp),
+                    .padding(start = if (onBack != null) 4.dp else 16.dp, end = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SymbolIcon(Symbol.Search, tint = colors.onSurface)
-                Spacer(Modifier.width(12.dp))
+                if (onBack != null) {
+                    ExpressiveIconButton(Symbol.ArrowBack, stringResource(R.string.back), onBack, tint = colors.onSurface)
+                    Spacer(Modifier.width(4.dp))
+                } else {
+                    SymbolIcon(Symbol.Search, tint = colors.onSurface)
+                    Spacer(Modifier.width(12.dp))
+                }
                 Box(Modifier.weight(1f)) {
                     if (query.isEmpty()) Text(placeholder, style = textStyle.copy(color = colors.onSurfaceVariant), maxLines = 1)
                     field()
@@ -298,7 +306,7 @@ fun ChipRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> U
  * A connected button group (`.seg`): a one-of-N switch that always has one selected, such as Home's
  * filter or Recap's period. Segments are 40dp tall and 2dp apart; the group's ends are round and the
  * inner corners 8. The selected segment widens a little, goes fully round, fills with primary and
- * shows a tick.
+ * shows a tick. On a surface container cell (Settings) pass surface container highest as [unselectedColor].
  */
 @Composable
 fun ConnectedButtonGroup(
@@ -306,6 +314,7 @@ fun ConnectedButtonGroup(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    unselectedColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
 ) {
     val colors = MaterialTheme.colorScheme
     Row(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -314,7 +323,7 @@ fun ConnectedButtonGroup(
             val weight by animateFloatAsState(if (selected) 1.15f else 1f, ExpressiveMotion.fastSpatial(), label = "segWeight")
             val start by animateDpAsState(if (selected || index == 0) 20.dp else 8.dp, ExpressiveMotion.fastSpatial(), label = "segStart")
             val end by animateDpAsState(if (selected || index == options.lastIndex) 20.dp else 8.dp, ExpressiveMotion.fastSpatial(), label = "segEnd")
-            val container by animateColorAsState(if (selected) colors.primary else colors.surfaceContainerHigh, ExpressiveMotion.fastEffects(), label = "segColor")
+            val container by animateColorAsState(if (selected) colors.primary else unselectedColor, ExpressiveMotion.fastEffects(), label = "segColor")
             val content by animateColorAsState(if (selected) colors.onPrimary else colors.onSurfaceVariant, ExpressiveMotion.fastEffects(), label = "segContent")
             val shape = RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end)
             Row(
