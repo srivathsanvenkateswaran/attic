@@ -26,7 +26,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  * command; "style" switches the UI style exactly as Settings does, so every surface restyles live;
  * "analysis" posts the analysis progress notification as the worker builds it (84 of 127) without
  * analysing anything, and "analysis-clear" (or its Stop) removes it. "release" lets go of the
- * controller "prepare" holds.
+ * controller "prepare" holds. "widget-shot" (--ez night, --es name) saves the widget drawn off screen
+ * (see WidgetSnapshot).
  *
  * adb shell am broadcast -n app.attic.player/.debug.SystemSurfacesReceiver -a prepare
  * adb shell am broadcast -n app.attic.player/.debug.SystemSurfacesReceiver -a like
@@ -51,6 +52,17 @@ class SystemSurfacesReceiver : BroadcastReceiver() {
                 notifications.cancel(PREVIEW_ID)
                 return
             }
+        }
+        if (intent.action == "widget-shot") {
+            val pending = goAsync()
+            app.attic.scope.launch {
+                try {
+                    WidgetSnapshot.take(app, intent.getBooleanExtra("night", false), intent.getStringExtra("name") ?: "shot")
+                } finally {
+                    pending.finish()
+                }
+            }
+            return
         }
         if (intent.action == "release") {
             held?.release()

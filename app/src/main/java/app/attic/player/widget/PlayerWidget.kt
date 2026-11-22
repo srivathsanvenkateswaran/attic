@@ -151,20 +151,22 @@ class PlayerWidget : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, PlayerWidget::class.java))
             if (ids.isEmpty()) return
+            manager.updateAppWidget(ids, RemoteViews(views(context, state)))
+        }
+
+        /** What the widget shows for [state] in the current style: a layout per smallest size, the launcher picks. */
+        internal suspend fun views(context: Context, state: WidgetState = read(context)): Map<SizeF, RemoteViews> {
             val comfort = context.attic.settings.uiStyle.value == UiStyle.Comfort
             val cover = cover(context, state.mediaId)
             val tiles = recentAlbums(context)
             val (look, art) = withContext(Dispatchers.Default) {
                 look(context, comfort, state.mediaId) to art(comfort, cover, tiles)
             }
-            val views = RemoteViews(
-                mapOf(
-                    SMALL to build(context, comfort, Layout.Small, state, art, look),
-                    WIDE to build(context, comfort, Layout.Wide, state, art, look),
-                    LARGE to build(context, comfort, Layout.Large, state, art, look),
-                ),
+            return mapOf(
+                SMALL to build(context, comfort, Layout.Small, state, art, look),
+                WIDE to build(context, comfort, Layout.Wide, state, art, look),
+                LARGE to build(context, comfort, Layout.Large, state, art, look),
             )
-            manager.updateAppWidget(ids, views)
         }
 
         /**
