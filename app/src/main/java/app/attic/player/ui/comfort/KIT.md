@@ -160,7 +160,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | song trailing | `SongMoreButton(title, onClick)`, `SongDragHandle(title, modifier)`, `SongAddButton(title, added, onToggle)`, `SongRadioMark()` | describe themselves from the shared strings; pass the reorder library's handle modifier to `SongDragHandle` |
 | `.swipe` | `SwipeToRemove(onRemove, modifier, resetKey) { SongRow(…) }` | "Remove" in danger on fill |
 | `.bars`, `.bars.still` | `PlayingBars(playing, modifier, size = 16.dp, barWidth, gap, color)` | bounces while playing (Attic's choice; the mock is still) |
-| `.tile`, `.tile.center`, `b.two`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, modifier, subtitle, width = 132.dp, centered, twoLines, artSize, now, playing, onLongClick)` | `width = null` in a grid |
+| `.tile`, `.tile.center`, `b.two`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, modifier, subtitle, width = 132.dp, centered, twoLines, artSize, now, playing, onLongClick, subtitleLines = 1)` | `width = null` in a grid; `subtitleLines = 2` lets the second line wrap (Search's result shelf) |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 14dp gaps, 24dp edges (16 in a group) |
 | `.grid2/3/4`, `.tray` | `TileGrid(count, columns, modifier, tray) { i -> Tile(…, width = null) }`; tray tiles: `artSize = trayArt(columns), centered = true` | not lazy; put a tray in `Group(pad = true)` |
 | `.pager` | `Pager(pageCount) { page -> item { SongRow(…) } }` | 312dp cards, 10dp apart |
@@ -204,9 +204,11 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.bg-ground`, `.bg-card` | `ComfortSurface(modifier, card, shape) { … }` | |
 | floating shadow | `Modifier.floatingShadow(shape, small, edge)` | dock, sheet, dialog, menu, action bar; `small` for a lifted row, toast, knob |
 
-Not in the kit, as in oneui/KIT.md: the screens themselves. The Comfort shell (dock placement over
-the content, `LocalBottomPadding`, the collapsing hero-to-bar, Now Playing's page) is screen work,
-composed from the parts above; the gallery shows each part on its own. `ComfortPadding.Dock/Tabs/
+Not in the kit, as in oneui/KIT.md: the screens themselves. The Comfort shell (ComfortShell.kt: the
+dock over the content, `LocalBottomPadding`, the overlays and the toast), the collapsing hero-to-bar
+of a root screen (ComfortRoot.kt: `RootPage`, `rememberCollapsed`, `rememberPinned`, `LeadTools`) and
+Now Playing's page are screen work, composed from the parts above; the gallery shows each part on
+its own. `ComfortPadding.Dock/Tabs/
 ActionBar` are the mock's `.pad-dock` (176), `.pad-tabs` and `.pad-bar` (112) if a screen needs them
 before a shell exists.
 
@@ -260,5 +262,6 @@ opens the Expressive kit.
   instead.
 - Optical sizes: the icon font is set at fixed optical sizes 20 / 24 / 40 by size, where the browser
   follows the exact size.
-- The Comfort shell and screens still draw Classic (`ClassicSurface`); only the theme, the kit and
-  the gallery are Comfort.
+- The shell, the mini player, Home, Search, Library, Settings, Now Playing, the permission screen
+  and loading draw Comfort. The other surfaces (collections, queue, lyrics, sheets, dialogs, Recap)
+  still draw Classic inside a `ClassicSurface` until they get their own.

@@ -87,7 +87,10 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
         derivedStateOf { browseState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == FIND_ROW }?.offset }
     }
     val pinnedTop = with(density) { (barBottom + 2.dp).roundToPx() }
-    val fieldPinned = !browsing || rowTop == null || rowTop!! < pinnedTop
+    // Before the list's first layout the row is where the hero leaves it.
+    val restingTop = with(density) { (statusTop + HeroHeight).roundToPx() }
+    val fieldTop = rowTop ?: if (browseState.firstVisibleItemIndex <= 1) restingTop else pinnedTop
+    val fieldPinned = !browsing || fieldTop < pinnedTop
     val showBar = !browsing || collapsed || fieldPinned
 
     Box(Modifier.fillMaxSize()) {
@@ -138,7 +141,7 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
                 .fillMaxWidth()
             else -> Modifier
                 .align(Alignment.TopStart)
-                .offset { IntOffset(0, rowTop ?: pinnedTop) }
+                .offset { IntOffset(0, fieldTop) }
                 .fillMaxWidth()
                 .padding(end = 40.dp)
         }
