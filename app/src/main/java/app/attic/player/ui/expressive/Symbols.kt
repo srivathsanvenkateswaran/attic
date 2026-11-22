@@ -85,6 +85,7 @@ enum class Symbol(val ligature: String, val codepoint: Int) {
     MusicNote("music_note", 0xE405),
     MusicOff("music_off", 0xE440),
     NewReleases("new_releases", 0xEF76),
+    NightsStay("nights_stay", 0xF174),
     Notifications("notifications", 0xE7F5),
     OpenInFull("open_in_full", 0xF1CE),
     OpenInNew("open_in_new", 0xE89E),
@@ -119,6 +120,8 @@ enum class Symbol(val ligature: String, val codepoint: Int) {
     UnfoldMore("unfold_more", 0xE5D7),
     ViewList("view_list", 0xE8EF),
     VolumeUp("volume_up", 0xE050),
+    WbSunny("wb_sunny", 0xE430),
+    WbTwilight("wb_twilight", 0xE1C6),
     Wifi("wifi", 0xE63E),
     ;
 

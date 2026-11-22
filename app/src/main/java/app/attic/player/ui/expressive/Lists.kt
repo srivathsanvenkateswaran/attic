@@ -125,11 +125,15 @@ sealed interface RowLead {
     /** A rank before a cover (artist "Top songs", Recap). */
     data class RankedCover(val rank: Int, val art: Art?) : RowLead
 
+    /** A rank before an artist's cookie (Recap's "Top artists"). */
+    data class RankedArtist(val rank: Int, val art: Art?) : RowLead
+
     data object None : RowLead
 }
 
 /**
  * A song row (`.row`): lead, title over subtitle, trailing control. 64dp minimum, 12dp start, 4 end.
+ * An empty [subtitle] leaves the title alone on the row (an artist in Recap's "Top artists").
  * The current song ([current]) gets the secondary container fill, a heavier title, and the wave over
  * its cover or in place of its number, moving while [playing]. [lifted] is the row being dragged:
  * 20dp corners, the highest container and a shadow. Put it in a [ListGroup] or [groupItems].
@@ -187,14 +191,12 @@ fun SongRow(
             is RowLead.Cover -> CoverLead(lead.art, current, playing)
             is RowLead.Number -> NumberLead(lead.number, current, playing)
             is RowLead.RankedCover -> {
-                Text(
-                    lead.rank.toString(),
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
-                    color = colors.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.width(18.dp),
-                )
+                RankText(lead.rank)
                 CoverLead(lead.art, current, playing)
+            }
+            is RowLead.RankedArtist -> {
+                RankText(lead.rank)
+                ArtistCover(lead.art, size = 48.dp)
             }
             RowLead.None -> Unit
         }
@@ -206,16 +208,32 @@ fun SongRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (current) colors.onSecondaryContainer else colors.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (subtitle.isNotEmpty()) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (current) colors.onSecondaryContainer else colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         if (trailing != null) trailing()
     }
+}
+
+/** A rank in a ranked row (`.row .rank`): 18dp wide, centred, tabular. */
+@Composable
+private fun RankText(rank: Int) {
+    Text(
+        rank.toString(),
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        softWrap = false,
+        modifier = Modifier.width(18.dp),
+    )
 }
 
 @Composable

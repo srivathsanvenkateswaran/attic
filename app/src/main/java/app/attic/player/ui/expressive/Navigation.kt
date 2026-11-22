@@ -307,6 +307,8 @@ fun ChipRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> U
  * filter or Recap's period. Segments are 40dp tall and 2dp apart; the group's ends are round and the
  * inner corners 8. The selected segment widens a little, goes fully round, fills with primary and
  * shows a tick. On a surface container cell (Settings) pass surface container highest as [unselectedColor].
+ * Four segments (Recap's period, `.seg.four`) set their labels at [labelWidth] 86 and
+ * widen the selected one by [selectedWeight] 1.3 so the words fit.
  */
 @Composable
 fun ConnectedButtonGroup(
@@ -315,12 +317,14 @@ fun ConnectedButtonGroup(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     unselectedColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    labelWidth: Int = 100,
+    selectedWeight: Float = 1.15f,
 ) {
     val colors = MaterialTheme.colorScheme
     Row(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         options.forEachIndexed { index, label ->
             val selected = index == selectedIndex
-            val weight by animateFloatAsState(if (selected) 1.15f else 1f, ExpressiveMotion.fastSpatial(), label = "segWeight")
+            val weight by animateFloatAsState(if (selected) selectedWeight else 1f, ExpressiveMotion.fastSpatial(), label = "segWeight")
             val start by animateDpAsState(if (selected || index == 0) 20.dp else 8.dp, ExpressiveMotion.fastSpatial(), label = "segStart")
             val end by animateDpAsState(if (selected || index == options.lastIndex) 20.dp else 8.dp, ExpressiveMotion.fastSpatial(), label = "segEnd")
             val container by animateColorAsState(if (selected) colors.primary else unselectedColor, ExpressiveMotion.fastEffects(), label = "segColor")
@@ -343,7 +347,7 @@ fun ConnectedButtonGroup(
                     }
                     Text(
                         label,
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium).narrowed(labelWidth),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

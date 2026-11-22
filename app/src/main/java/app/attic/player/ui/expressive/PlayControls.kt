@@ -202,7 +202,7 @@ internal fun rememberWavePhase(running: Boolean, periodMs: Long = 1000): State<F
 }
 
 /** Draws a sine wave from [startX] to [endX] around [centerY]. Phase moves it towards the end. */
-private fun DrawScope.drawWave(
+internal fun DrawScope.drawWave(
     color: Color,
     startX: Float,
     endX: Float,
@@ -333,6 +333,53 @@ fun SeekBar(
         val offStart = thumbX + thumbWidth / 2 + gap
         if (offStart < size.width - track / 2) {
             drawLine(colors.outlineVariant, Offset(offStart, cy), Offset(size.width - track / 2, cy), track, StrokeCap.Round)
+        }
+        drawRoundRect(
+            colors.primary,
+            topLeft = Offset(thumbX - thumbWidth / 2, cy - 14.dp.toPx()),
+            size = Size(thumbWidth, 28.dp.toPx()),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(thumbWidth / 2),
+        )
+    }
+}
+
+/**
+ * The seek bar's drawing as a progress line that cannot be dragged (Recap's story, sheet 09 D): the
+ * wave up to [progress], the bar handle, the rest of the track, and a 4dp stop at each fraction in
+ * [stops] still ahead of the handle. The wave travels while [running] and lies flat when not (held).
+ */
+@Composable
+fun StoryProgress(progress: () -> Float, stops: List<Float>, running: Boolean, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    val amplitude by animateFloatAsState(if (running) 1f else 0f, ExpressiveMotion.defaultSpatial(), label = "storyAmp")
+    val phase by rememberWavePhase(running)
+    val path = remember { Path() }
+    Canvas(modifier.fillMaxWidth().height(44.dp)) {
+        val shown = progress().coerceIn(0f, 1f)
+        val track = 4.dp.toPx()
+        val thumbWidth = 4.dp.toPx()
+        val gap = 6.dp.toPx()
+        val cy = size.height / 2
+        val thumbX = (track / 2 + gap + thumbWidth / 2) + (size.width - track - 2 * gap - thumbWidth) * shown
+        drawWave(
+            colors.primary,
+            startX = track / 2,
+            endX = thumbX - thumbWidth / 2 - gap,
+            centerY = cy,
+            wavelength = 32.dp.toPx(),
+            amplitude = 3.5.dp.toPx() * amplitude,
+            phase = phase,
+            stroke = track,
+            path = path,
+        )
+        val offStart = thumbX + thumbWidth / 2 + gap
+        if (offStart < size.width - track / 2) {
+            drawLine(colors.outlineVariant, Offset(offStart, cy), Offset(size.width - track / 2, cy), track, StrokeCap.Round)
+        }
+        val dot = 2.dp.toPx()
+        stops.forEach { stop ->
+            val x = size.width * stop
+            if (x > offStart + dot) drawCircle(colors.onSurfaceVariant, dot, Offset(x, cy))
         }
         drawRoundRect(
             colors.primary,
