@@ -7,7 +7,9 @@ import androidx.compose.ui.platform.LocalContext
 import app.attic.player.attic
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
-import app.attic.player.ui.classic.ClassicSurface
+import app.attic.player.ui.comfort.ComfortRecap
+import app.attic.player.ui.comfort.ComfortRecapCard
+import app.attic.player.ui.comfort.ComfortRecapStory
 import app.attic.player.ui.classic.ClassicWrapped
 import app.attic.player.ui.classic.ClassicWrappedCard
 import app.attic.player.ui.classic.ClassicWrappedStory
@@ -24,7 +26,7 @@ fun WrappedScreen(library: Library) {
     val (state, actions) = rememberWrappedModel(library)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveRecap(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicWrapped(state, actions) }
+        UiStyle.Comfort -> ComfortRecap(state, actions)
         UiStyle.Classic -> ClassicWrapped(state, actions)
     }
 
@@ -42,7 +44,7 @@ private fun WrappedStory(data: WrappedData, cards: List<WrappedCard>, start: Int
     when (LocalUiStyle.current) {
         // The story covers the shell, so it shows the app's messages ("Saved to Pictures/Attic") itself.
         UiStyle.Expressive -> ExpressiveRecapStory(state, actions, LocalContext.current.attic.messages)
-        UiStyle.Comfort -> ClassicSurface { ClassicWrappedStory(state, actions) }
+        UiStyle.Comfort -> ComfortRecapStory(state, actions, LocalContext.current.attic.messages)
         UiStyle.Classic -> ClassicWrappedStory(state, actions)
     }
 }
@@ -56,7 +58,7 @@ private fun WrappedStory(data: WrappedData, cards: List<WrappedCard>, start: Int
 fun WrappedCardView(card: WrappedCard, data: WrappedData, modifier: Modifier = Modifier, layer: GraphicsLayer? = null, animate: Boolean = false) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveRecapCard(card, data, modifier, layer, animate)
-        UiStyle.Comfort -> ClassicSurface { ClassicWrappedCard(card, data, modifier, layer, animate) }
+        UiStyle.Comfort -> ComfortRecapCard(card, data, modifier, layer, animate)
         UiStyle.Classic -> ClassicWrappedCard(card, data, modifier, layer, animate)
     }
 }
