@@ -30,11 +30,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
@@ -136,7 +134,7 @@ private fun ThemeCell(mode: ThemeMode, actions: SettingsActions) {
 @Composable
 private fun StyleCell(style: UiStyle, actions: SettingsActions) {
     Column {
-        SetIconRow(Symbol.Palette, center = true, modifier = Modifier.padding(bottom = 0.dp)) {
+        SetIconRow(Symbol.Palette, center = true) {
             Text(stringResource(R.string.settings_style), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
         }
         val choices = UiStyle.choices
