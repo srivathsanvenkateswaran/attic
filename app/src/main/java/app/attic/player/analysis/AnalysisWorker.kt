@@ -23,6 +23,13 @@ import androidx.work.workDataOf
 import app.attic.player.MainActivity
 import app.attic.player.R
 import app.attic.player.attic
+import app.attic.player.data.UiStyle
+import app.attic.player.ui.comfort.ComfortDark
+import app.attic.player.ui.comfort.ComfortLight
+import androidx.compose.ui.graphics.toArgb
+import java.text.NumberFormat
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.SongAnalysisEntity
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +44,8 @@ import kotlin.coroutines.coroutineContext
 class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val notifications = context.getSystemService(NotificationManager::class.java)
     private var foreground = false
+    private var shownDone = 0
+    private var shownTotal = 0
 
     override suspend fun doWork(): Result = withContext(Dispatchers.Default) {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
@@ -54,6 +63,10 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val total = library.tracks.size
         var finished = total - todo.size
         showProgress(finished, total)
+        // A style change in Settings redraws the notification at once rather than at the next song.
+        val restyle = launch {
+            app.settings.uiStyle.drop(1).collect { notifications.notify(NOTIFICATION_ID, buildNotification(shownDone, shownTotal)) }
+        }
         try {
             SongAnalyzer(applicationContext).use { analyzer ->
                 val started = System.currentTimeMillis()
@@ -82,6 +95,7 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 }
             }
         } finally {
+            restyle.cancel()
             notifications.cancel(NOTIFICATION_ID)
         }
         // Files added during this run didn't get a job of their own, because this one was already going.
@@ -92,6 +106,8 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
     /** A foreground service when Android allows one, which only happens if the app was open to start it. */
     private suspend fun showProgress(done: Int, total: Int) {
+        shownDone = done
+        shownTotal = total
         val notification = buildNotification(done, total)
         try {
             setForeground(ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC))
@@ -102,30 +118,43 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         }
     }
 
+    /**
+     * Android's standard progress notification, as both 10-system sheets draw frame C. The style picks
+     * the glyph (graphic_eq at each kit's weight) and, for Comfort only, the accent: its amber fills the
+     * icon's circle. Expressive leaves the colour to the system, which takes it from the wallpaper.
+     */
     private fun buildNotification(done: Int, total: Int): Notification {
+        val context = applicationContext
         notifications.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Song analysis", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Progress while Attic analyses your songs for radio"
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.analysis_channel), NotificationManager.IMPORTANCE_LOW).apply {
+                description = context.getString(R.string.analysis_channel_description)
             },
         )
         val open = PendingIntent.getActivity(
-            applicationContext,
+            context,
             0,
-            Intent(applicationContext, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE,
         )
-        return NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_analysis)
-            .setContentTitle("Analysing your songs")
-            .setContentText("$done of $total")
+        val comfort = context.attic.settings.uiStyle.value == UiStyle.Comfort
+        val number = NumberFormat.getIntegerInstance()
+        return NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(if (comfort) R.drawable.ic_comfort_analysis else R.drawable.ic_expressive_analysis)
+            .apply { if (comfort) setColor(comfortAccent(context)) }
+            .setContentTitle(context.getString(R.string.analysis_notification_title))
+            .setContentText(context.getString(R.string.analysis_notification_progress, number.format(done), number.format(total)))
             .setProgress(total, done, false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
             .setContentIntent(open)
-            .addAction(0, "Stop", WorkManager.getInstance(applicationContext).createCancelPendingIntent(id))
+            .addAction(0, context.getString(R.string.analysis_notification_stop), WorkManager.getInstance(context).createCancelPendingIntent(id))
             .build()
     }
+
+    /** Comfort's Lamplight, in the phone's current theme: oneui/kit.css `--accent`. */
+    private fun comfortAccent(context: Context): Int =
+        (if (context.resources.configuration.isNightModeActive) ComfortDark else ComfortLight).accent.toArgb()
 
     private fun enqueueNextChunk() {
         val request = OneTimeWorkRequestBuilder<AnalysisWorker>()
