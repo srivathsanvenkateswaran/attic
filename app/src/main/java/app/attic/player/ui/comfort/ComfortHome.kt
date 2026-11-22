@@ -376,6 +376,3 @@ private fun FilterGrid(count: Int, tile: @Composable (Int) -> Unit) {
     }
 }
 
-@Composable
-internal fun songCount(count: Int): String =
-    pluralStringResource(R.plurals.song_count, count, NumberFormat.getIntegerInstance().format(count))
