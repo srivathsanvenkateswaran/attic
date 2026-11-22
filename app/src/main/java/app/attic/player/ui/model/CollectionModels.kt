@@ -48,7 +48,7 @@ private fun playControls(
     tracks: List<Track>,
     contextName: String,
 ): UiModel<PlayControlsState, PlayControlsActions> {
-    val isThisContext = player.contextName == contextName && player.current?.key in tracks.map { it.key }
+    val isThisContext = isSameContext(player.contextName, contextName) && player.current?.key in tracks.map { it.key }
     val state = PlayControlsState(
         contextName = contextName,
         enabled = tracks.isNotEmpty(),
@@ -205,7 +205,7 @@ fun rememberFolderModel(library: Library, name: String): UiModel<FolderState, Fo
     return UiModel(state, actions)
 }
 
-// Liked Songs
+// Favourites
 
 @Immutable
 class LikedState(
@@ -230,18 +230,16 @@ fun rememberLikedModel(library: Library): UiModel<LikedState, LikedActions> {
     val likedKeys by app.userData.likedKeys.collectAsStateWithLifecycle()
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = remember(likedKeys, library) { likedKeys.mapNotNull { library.trackByKey[it] } }
-    val controls = playControls(app, ui, player, tracks, LIKED_SONGS)
+    val controls = playControls(app, ui, player, tracks, FAVOURITES_CONTEXT)
     val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying)
     val actions = LikedActions(
         back = { ui.back() },
         controls = controls.actions,
-        play = { index -> app.player.play(tracks, index, LIKED_SONGS) },
+        play = { index -> app.player.play(tracks, index, FAVOURITES_CONTEXT) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
     )
     return UiModel(state, actions)
 }
-
-private const val LIKED_SONGS = "Liked Songs"
 
 // Playlist
 

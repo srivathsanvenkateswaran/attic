@@ -6,6 +6,8 @@ import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
 import app.attic.player.data.Track
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ContextKindTest {
@@ -31,10 +33,20 @@ class ContextKindTest {
     @Test
     fun fixedNamesAreRecognised() {
         assertEquals(ContextKind.Radio, kind("Radio · Yellow"))
-        assertEquals(ContextKind.Favourites, kind("Liked Songs"))
+        assertEquals(ContextKind.Favourites, kind("Favourites"))
         assertEquals(ContextKind.Other, kind("Recently played"))
         assertEquals(ContextKind.Other, kind("All songs"))
         assertEquals(ContextKind.Other, kind(null))
+    }
+
+    @Test
+    fun aQueueSavedUnderTheOldFavouritesNameIsStillFavourites() {
+        assertEquals(ContextKind.Favourites, kind("Liked Songs"))
+        assertTrue(isSameContext("Liked Songs", "Favourites"))
+        assertTrue(isSameContext("Favourites", "Favourites"))
+        assertTrue(isSameContext("Hindi", "Hindi"))
+        assertFalse(isSameContext("Liked Songs", "Hindi"))
+        assertFalse(isSameContext(null, "Favourites"))
     }
 
     @Test

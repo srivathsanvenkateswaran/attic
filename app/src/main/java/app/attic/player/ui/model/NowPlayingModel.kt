@@ -155,7 +155,7 @@ enum class ContextKind { Album, Artist, Folder, Playlist, Favourites, Radio, Oth
 fun contextKindOf(name: String?, track: Track?, library: Library?, playlists: List<String>): ContextKind {
     if (name == null) return ContextKind.Other
     if (name.startsWith(RADIO_PREFIX)) return ContextKind.Radio
-    if (name == FAVOURITES) return ContextKind.Favourites
+    if (isFavouritesContext(name)) return ContextKind.Favourites
     if (name in FIXED_CONTEXTS) return ContextKind.Other
     if (track != null) {
         val album = track.albumKey?.let { library?.albumByKey?.get(it)?.name } ?: track.album
@@ -173,5 +173,16 @@ fun contextKindOf(name: String?, track: Track?, library: Library?, playlists: Li
 }
 
 private const val RADIO_PREFIX = "Radio · "
-private const val FAVOURITES = "Liked Songs"
+
+/** The name Favourites plays under. It is saved with the queue, so a style shows its own label for it. */
+internal const val FAVOURITES_CONTEXT = "Favourites"
+
+/** What Favourites played under before it was renamed. Queues saved back then still carry it. */
+private const val OLD_FAVOURITES_CONTEXT = "Liked Songs"
+
+fun isFavouritesContext(name: String?): Boolean = name == FAVOURITES_CONTEXT || name == OLD_FAVOURITES_CONTEXT
+
+/** True when [playing], the name the player holds, is the collection called [name], under either Favourites name. */
+fun isSameContext(playing: String?, name: String): Boolean =
+    playing == name || (isFavouritesContext(playing) && isFavouritesContext(name))
 private val FIXED_CONTEXTS = setOf("Recently played", "Start listening", "Search results", "All songs", "Your top songs")
