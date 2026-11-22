@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shuffle, dimmed: shuffle is off (pixel/10-system B). Material Symbols Rounded, weight 400. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillAlpha="0.42"
+        android:pathData="M15 20Q14.58 20 14.29 19.71Q14 19.43 14 19Q14 18.57 14.29 18.29Q14.58 18 15 18H16.6L14.12 15.53Q13.83 15.22 13.84 14.81Q13.85 14.4 14.15 14.1Q14.45 13.8 14.86 13.8Q15.28 13.8 15.58 14.1L18 16.55V15Q18 14.57 18.29 14.29Q18.57 14 19 14Q19.43 14 19.71 14.29Q20 14.57 20 15V19Q20 19.43 19.71 19.71Q19.43 20 19 20ZM4.3 19.7Q4.03 19.43 4.03 19Q4.03 18.57 4.3 18.3L16.6 6H15Q14.58 6 14.29 5.71Q14 5.43 14 5Q14 4.57 14.29 4.29Q14.58 4 15 4H19Q19.43 4 19.71 4.29Q20 4.57 20 5V9Q20 9.42 19.71 9.71Q19.43 10 19 10Q18.57 10 18.29 9.71Q18 9.42 18 9V7.4L5.7 19.7Q5.43 19.98 5 19.98Q4.58 19.98 4.3 19.7ZM4.28 5.7Q4 5.43 4 5Q4 4.57 4.28 4.3Q4.55 4.02 4.96 4.02Q5.38 4.02 5.68 4.3L9.88 8.47Q10.15 8.75 10.16 9.16Q10.18 9.57 9.88 9.88Q9.6 10.15 9.18 10.15Q8.75 10.15 8.47 9.88Z" />
+</vector>

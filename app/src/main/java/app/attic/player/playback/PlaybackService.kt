@@ -23,6 +23,8 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.attic.player.MainActivity
+import app.attic.player.R
+import app.attic.player.data.UiStyle
 import app.attic.player.data.ListeningEventEntity
 import app.attic.player.data.SavedQueueEntity
 import app.attic.player.attic
@@ -97,6 +99,9 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             attic.userData.likedSet.collect { refreshMediaButtons() }
         }
+        scope.launch {
+            attic.settings.uiStyle.collect { refreshMediaButtons() }
+        }
 
         scope.launch { restoreQueue() }
         startSaving()
@@ -115,19 +120,42 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
-    /** Shuffle and like, shown beside the transport controls in the notification and on the lock screen. */
+    /**
+     * Shuffle and favourite, shown beside the transport controls in the notification and on the lock
+     * screen. Android draws the card; Attic hands it these two glyphs in the current style's set
+     * (pixel/ and oneui/ 10-system, frames B and F): shuffle drawn dim when off, a heart outline that
+     * fills when the song is in favourites.
+     */
     private fun refreshMediaButtons() {
         val key = player.currentMediaItem?.mediaId
         val liked = key != null && key in attic.userData.likedSet.value
+        val shuffled = player.shuffleModeEnabled
+        val comfort = attic.settings.uiStyle.value == UiStyle.Comfort
         session?.setMediaButtonPreferences(
             listOf(
-                CommandButton.Builder(if (player.shuffleModeEnabled) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF)
-                    .setDisplayName(if (player.shuffleModeEnabled) "Turn shuffle off" else "Turn shuffle on")
+                CommandButton.Builder(if (shuffled) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF)
+                    .setCustomIconResId(
+                        when {
+                            comfort && shuffled -> R.drawable.ic_comfort_shuffle_on
+                            comfort -> R.drawable.ic_comfort_shuffle_off
+                            shuffled -> R.drawable.ic_expressive_shuffle_on
+                            else -> R.drawable.ic_expressive_shuffle_off
+                        },
+                    )
+                    .setDisplayName(getString(if (shuffled) R.string.notification_shuffle_off else R.string.notification_shuffle_on))
                     .setSessionCommand(SHUFFLE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)
                     .build(),
-                CommandButton.Builder(if (liked) CommandButton.ICON_CHECK_CIRCLE_FILLED else CommandButton.ICON_PLUS_CIRCLE_UNFILLED)
-                    .setDisplayName(if (liked) "Remove from liked songs" else "Add to liked songs")
+                CommandButton.Builder(if (liked) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED)
+                    .setCustomIconResId(
+                        when {
+                            comfort && liked -> R.drawable.ic_comfort_favourite_on
+                            comfort -> R.drawable.ic_comfort_favourite_off
+                            liked -> R.drawable.ic_expressive_favourite_on
+                            else -> R.drawable.ic_expressive_favourite_off
+                        },
+                    )
+                    .setDisplayName(getString(if (liked) R.string.notification_favourite_remove else R.string.notification_favourite_add))
                     .setSessionCommand(LIKE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)
                     .build(),
