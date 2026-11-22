@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -198,13 +199,17 @@ fun DialogTextField(value: String, onValueChange: (String) -> Unit, label: Strin
     )
 }
 
-/** A menu (`.menu`): Material's dropdown on surface container with 16dp corners and the kit's shadow. */
+/**
+ * A menu (`.menu`): Material's dropdown on surface container with 16dp corners and the kit's shadow,
+ * 8dp of padding round its items and at least 196dp wide.
+ */
 @Composable
 fun ExpressiveMenu(expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
-        modifier = modifier,
+        // Applies inside the surface. Material already pads 8dp above and below; this adds the sides.
+        modifier = modifier.padding(horizontal = 8.dp).widthIn(min = 180.dp),
         shape = RoundedCornerShape(ExpressiveShapes.Large),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 0.dp,
