@@ -21,9 +21,6 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
-import app.attic.player.ui.classic.ClassicLoading
-import app.attic.player.ui.classic.ClassicPermissionScreen
-import app.attic.player.ui.classic.ClassicShell
 import app.attic.player.ui.comfort.ComfortLoading
 import app.attic.player.ui.comfort.ComfortPermission
 import app.attic.player.ui.comfort.ComfortShell
@@ -100,18 +97,6 @@ class ShellSlots(
     val lyrics: @Composable () -> Unit,
 )
 
-/**
- * The same slots, each drawn in the style's own theme. A shell still drawn by Classic sits in a
- * ClassicSurface; this hands its slots back to the style, so a screen with drawing of its own looks right.
- */
-fun ShellSlots.inStyleSurface() = ShellSlots(
-    content = { transitions -> StyleSurface { content(transitions) } },
-    miniPlayer = { StyleSurface { miniPlayer() } },
-    nowPlaying = { StyleSurface { nowPlaying() } },
-    queue = { StyleSurface { queue() } },
-    lyrics = { StyleSurface { lyrics() } },
-)
-
 @Composable
 fun AppRoot() {
     val (state, actions) = rememberRootModel()
@@ -119,12 +104,10 @@ fun AppRoot() {
         is RootState.NeedsAccess -> when (LocalUiStyle.current) {
             UiStyle.Expressive -> ExpressivePermission(state, actions)
             UiStyle.Comfort -> ComfortPermission(state, actions)
-            UiStyle.Classic -> ClassicPermissionScreen(state, actions)
         }
         RootState.Loading -> when (LocalUiStyle.current) {
             UiStyle.Expressive -> ExpressiveLoading()
             UiStyle.Comfort -> ComfortLoading()
-            UiStyle.Classic -> ClassicLoading()
         }
         is RootState.Ready -> MainShell(state.library)
     }
@@ -173,7 +156,6 @@ private fun MainShell(library: Library) {
         when (style) {
             UiStyle.Expressive -> ExpressiveShell(state, actions, slots)
             UiStyle.Comfort -> ComfortShell(state, actions, slots)
-            UiStyle.Classic -> ClassicShell(state, actions, slots)
         }
 
         // While an overlay is up, back closes it instead of popping the NavHost. The last callback registered

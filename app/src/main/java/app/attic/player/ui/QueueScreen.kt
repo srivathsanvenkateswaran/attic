@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.comfort.ComfortQueue
-import app.attic.player.ui.classic.ClassicQueue
 import app.attic.player.ui.expressive.ExpressiveQueue
 import app.attic.player.ui.model.rememberQueueModel
 
@@ -14,6 +13,5 @@ fun QueueScreen(state: PlayerUiState, onClose: () -> Unit) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveQueue(model, actions)
         UiStyle.Comfort -> ComfortQueue(model, actions)
-        UiStyle.Classic -> ClassicQueue(model, actions)
     }
 }

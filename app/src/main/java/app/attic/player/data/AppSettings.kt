@@ -15,11 +15,7 @@ enum class ThemeMode(val label: String) {
 /** How the app is drawn. Expressive is Pixel-like, Comfort is One UI-like. */
 enum class UiStyle(val label: String) {
     Expressive("Expressive"),
-    Comfort("Comfort"),
-
-    /** Today's Spotify-like look, kept only until the new styles replace it. Never offered as a choice. */
-    Classic("Classic"),
-    ;
+    Comfort("Comfort");
 
     companion object {
         /** The styles a user can pick, in the order they are offered. */
@@ -29,7 +25,10 @@ enum class UiStyle(val label: String) {
         fun defaultFor(manufacturer: String): UiStyle =
             if (manufacturer.equals("samsung", ignoreCase = true)) Comfort else Expressive
 
-        /** The saved choice, or the phone's default when the user has never chosen one. */
+        /**
+         * The saved choice, or the phone's default when there is none or it names a style that is
+         * gone (such as "Classic").
+         */
         fun resolve(saved: String?, manufacturer: String): UiStyle =
             entries.firstOrNull { it.name == saved } ?: defaultFor(manufacturer)
     }

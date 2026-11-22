@@ -22,7 +22,6 @@ class UiStyleTest {
     fun aSavedChoiceWinsOverTheDefault() {
         assertEquals(UiStyle.Expressive, UiStyle.resolve("Expressive", "samsung"))
         assertEquals(UiStyle.Comfort, UiStyle.resolve("Comfort", "Google"))
-        assertEquals(UiStyle.Classic, UiStyle.resolve("Classic", "Google"))
     }
 
     @Test
@@ -30,10 +29,19 @@ class UiStyleTest {
         assertEquals(UiStyle.Comfort, UiStyle.resolve(null, "samsung"))
         assertEquals(UiStyle.Expressive, UiStyle.resolve(null, "Google"))
         assertEquals(UiStyle.Expressive, UiStyle.resolve("Retro", "Google"))
+        assertEquals(UiStyle.Comfort, UiStyle.resolve("Retro", "samsung"))
+        assertEquals(UiStyle.Expressive, UiStyle.resolve("", "Google"))
     }
 
     @Test
-    fun onlyTheNewStylesAreOffered() {
+    fun theRemovedClassicStyleFallsBackToTheDefault() {
+        assertEquals(UiStyle.Expressive, UiStyle.resolve("Classic", "Google"))
+        assertEquals(UiStyle.Comfort, UiStyle.resolve("Classic", "samsung"))
+    }
+
+    @Test
+    fun everyStyleIsOffered() {
         assertEquals(listOf(UiStyle.Expressive, UiStyle.Comfort), UiStyle.choices)
+        assertEquals(UiStyle.entries.toList(), UiStyle.choices)
     }
 }

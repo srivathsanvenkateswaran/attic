@@ -3,11 +3,6 @@ package app.attic.player.ui
 import androidx.compose.runtime.Composable
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
-import app.attic.player.ui.classic.ClassicAlbum
-import app.attic.player.ui.classic.ClassicArtist
-import app.attic.player.ui.classic.ClassicFolder
-import app.attic.player.ui.classic.ClassicLiked
-import app.attic.player.ui.classic.ClassicPlaylist
 import app.attic.player.ui.comfort.ComfortAlbum
 import app.attic.player.ui.comfort.ComfortArtist
 import app.attic.player.ui.comfort.ComfortFavourites
@@ -30,7 +25,6 @@ fun AlbumScreen(library: Library, key: String) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveAlbum(state, actions)
         UiStyle.Comfort -> ComfortAlbum(state, actions)
-        UiStyle.Classic -> ClassicAlbum(state, actions)
     }
 }
 
@@ -40,7 +34,6 @@ fun ArtistScreen(library: Library, key: String) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveArtist(state, actions)
         UiStyle.Comfort -> ComfortArtist(state, actions)
-        UiStyle.Classic -> ClassicArtist(state, actions)
     }
 }
 
@@ -50,7 +43,6 @@ fun FolderScreen(library: Library, name: String) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveFolder(state, actions)
         UiStyle.Comfort -> ComfortFolder(state, actions)
-        UiStyle.Classic -> ClassicFolder(state, actions)
     }
 }
 
@@ -60,7 +52,6 @@ fun LikedScreen(library: Library) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveFavourites(state, actions)
         UiStyle.Comfort -> ComfortFavourites(state, actions)
-        UiStyle.Classic -> ClassicLiked(state, actions)
     }
 }
 
@@ -70,7 +61,6 @@ fun PlaylistScreen(library: Library, id: Long) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressivePlaylist(state, actions)
         UiStyle.Comfort -> ComfortPlaylist(state, actions)
-        UiStyle.Classic -> ClassicPlaylist(state, actions)
     }
 
     // The sheet and dialogs sit outside the style's drawing, so what they hold survives a style switch.

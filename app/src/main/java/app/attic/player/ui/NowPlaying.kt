@@ -3,8 +3,6 @@ package app.attic.player.ui
 import androidx.compose.runtime.Composable
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
-import app.attic.player.ui.classic.ClassicMiniPlayer
-import app.attic.player.ui.classic.ClassicNowPlaying
 import app.attic.player.ui.comfort.ComfortMiniPlayer
 import app.attic.player.ui.comfort.ComfortNowPlaying
 import app.attic.player.ui.expressive.ExpressiveMiniPlayer
@@ -18,7 +16,6 @@ fun MiniPlayer(state: PlayerUiState, onOpen: () -> Unit) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveMiniPlayer(model, actions)
         UiStyle.Comfort -> ComfortMiniPlayer(model, actions)
-        UiStyle.Classic -> ClassicMiniPlayer(model, actions)
     }
 }
 
@@ -28,6 +25,5 @@ fun NowPlayingScreen(state: PlayerUiState, onClose: () -> Unit, onOpenQueue: () 
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveNowPlaying(model, actions)
         UiStyle.Comfort -> ComfortNowPlaying(model, actions)
-        UiStyle.Classic -> ClassicNowPlaying(model, actions)
     }
 }

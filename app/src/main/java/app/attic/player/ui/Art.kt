@@ -6,32 +6,16 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.util.LruCache
 import android.util.Size
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette as ColorPalette
 import app.attic.player.data.LibraryRepository
 import coil3.ImageLoader
 import coil3.asImage
-import coil3.compose.AsyncImage
 import coil3.decode.DataSource
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
@@ -150,35 +134,4 @@ private fun deepenTint(rgb: Int): Int {
     hsl[1] = hsl[1].coerceAtMost(0.62f)
     hsl[2] = hsl[2].coerceIn(0.2f, 0.3f)
     return ColorUtils.HSLToColor(hsl)
-}
-
-/** Embedded cover, with a note icon behind it that shows through when a file has no art. */
-@Composable
-fun CoverArt(
-    mediaId: Long?,
-    shape: Shape,
-    modifier: Modifier = Modifier,
-    iconSize: Dp = 24.dp,
-) {
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            Icons.Rounded.MusicNote,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(iconSize),
-        )
-        if (mediaId != null) {
-            AsyncImage(
-                model = ArtModel(mediaId),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-    }
 }

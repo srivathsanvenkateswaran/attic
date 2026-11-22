@@ -10,9 +10,6 @@ import app.attic.player.data.UiStyle
 import app.attic.player.ui.comfort.ComfortRecap
 import app.attic.player.ui.comfort.ComfortRecapCard
 import app.attic.player.ui.comfort.ComfortRecapStory
-import app.attic.player.ui.classic.ClassicWrapped
-import app.attic.player.ui.classic.ClassicWrappedCard
-import app.attic.player.ui.classic.ClassicWrappedStory
 import app.attic.player.ui.expressive.ExpressiveRecap
 import app.attic.player.ui.expressive.ExpressiveRecapCard
 import app.attic.player.ui.expressive.ExpressiveRecapStory
@@ -27,7 +24,6 @@ fun WrappedScreen(library: Library) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveRecap(state, actions)
         UiStyle.Comfort -> ComfortRecap(state, actions)
-        UiStyle.Classic -> ClassicWrapped(state, actions)
     }
 
     // Outside the page's drawing, so the card and pause survive a style switch.
@@ -45,7 +41,6 @@ private fun WrappedStory(data: WrappedData, cards: List<WrappedCard>, start: Int
         // The story covers the shell, so it shows the app's messages ("Saved to Pictures/Attic") itself.
         UiStyle.Expressive -> ExpressiveRecapStory(state, actions, LocalContext.current.attic.messages)
         UiStyle.Comfort -> ComfortRecapStory(state, actions, LocalContext.current.attic.messages)
-        UiStyle.Classic -> ClassicWrappedStory(state, actions)
     }
 }
 
@@ -59,6 +54,5 @@ fun WrappedCardView(card: WrappedCard, data: WrappedData, modifier: Modifier = M
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveRecapCard(card, data, modifier, layer, animate)
         UiStyle.Comfort -> ComfortRecapCard(card, data, modifier, layer, animate)
-        UiStyle.Classic -> ClassicWrappedCard(card, data, modifier, layer, animate)
     }
 }

@@ -29,13 +29,6 @@ fun formatDuration(ms: Long): String {
     return "%d:%02d".format(total / 60, total % 60)
 }
 
-/** "17 songs, 1 hr 2 min" */
-fun summarize(tracks: List<Track>): String {
-    val minutes = tracks.sumOf { it.durationMs } / 60_000
-    val length = if (minutes >= 60) "${minutes / 60} hr ${minutes % 60} min" else "$minutes min"
-    return "${songCount(tracks.size)}, $length"
-}
-
 fun songCount(count: Int) = if (count == 1) "1 song" else "$count songs"
 
 @Composable
@@ -66,12 +59,4 @@ fun rememberPosition(clock: PlaybackClock, trackKey: String?, active: Boolean, i
         }
     }
     return position
-}
-
-/** "midnight", "9 am", "noon", "3 pm". */
-fun hourLabel(hour: Int): String = when {
-    hour == 0 -> "midnight"
-    hour == 12 -> "noon"
-    hour < 12 -> "$hour am"
-    else -> "${hour - 12} pm"
 }
