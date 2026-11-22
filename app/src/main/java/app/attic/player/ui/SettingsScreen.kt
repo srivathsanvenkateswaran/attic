@@ -5,13 +5,14 @@ import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.classic.ClassicSurface
 import app.attic.player.ui.classic.ClassicSettings
+import app.attic.player.ui.expressive.ExpressiveSettings
 import app.attic.player.ui.model.rememberSettingsModel
 
 @Composable
 fun SettingsScreen(library: Library) {
     val (state, actions) = rememberSettingsModel(library)
     when (LocalUiStyle.current) {
-        UiStyle.Expressive -> ClassicSurface { ClassicSettings(state, actions) }
+        UiStyle.Expressive -> ExpressiveSettings(state, actions)
         UiStyle.Comfort -> ClassicSurface { ClassicSettings(state, actions) }
         UiStyle.Classic -> ClassicSettings(state, actions)
     }
