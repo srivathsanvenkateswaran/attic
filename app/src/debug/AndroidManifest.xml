@@ -12,5 +12,18 @@
             android:label="Kit gallery"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Attic" />
+
+        <!-- Debug builds only: the home-screen widget at its three sizes, light or dark. See the class. -->
+        <activity
+            android:name=".debug.WidgetHostActivity"
+            android:exported="true"
+            android:label="Widget host"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Attic" />
+
+        <!-- Debug builds only: readies the media notification without sound, and switches style. See the class. -->
+        <receiver
+            android:name=".debug.SystemSurfacesReceiver"
+            android:exported="true" />
     </application>
 </manifest>

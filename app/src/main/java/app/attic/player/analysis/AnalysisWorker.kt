@@ -118,43 +118,8 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         }
     }
 
-    /**
-     * Android's standard progress notification, as both 10-system sheets draw frame C. The style picks
-     * the glyph (graphic_eq at each kit's weight) and, for Comfort only, the accent: its amber fills the
-     * icon's circle. Expressive leaves the colour to the system, which takes it from the wallpaper.
-     */
-    private fun buildNotification(done: Int, total: Int): Notification {
-        val context = applicationContext
-        notifications.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, context.getString(R.string.analysis_channel), NotificationManager.IMPORTANCE_LOW).apply {
-                description = context.getString(R.string.analysis_channel_description)
-            },
-        )
-        val open = PendingIntent.getActivity(
-            context,
-            0,
-            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
-        val comfort = context.attic.settings.uiStyle.value == UiStyle.Comfort
-        val number = NumberFormat.getIntegerInstance()
-        return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(if (comfort) R.drawable.ic_comfort_analysis else R.drawable.ic_expressive_analysis)
-            .apply { if (comfort) setColor(comfortAccent(context)) }
-            .setContentTitle(context.getString(R.string.analysis_notification_title))
-            .setContentText(context.getString(R.string.analysis_notification_progress, number.format(done), number.format(total)))
-            .setProgress(total, done, false)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setSilent(true)
-            .setContentIntent(open)
-            .addAction(0, context.getString(R.string.analysis_notification_stop), WorkManager.getInstance(context).createCancelPendingIntent(id))
-            .build()
-    }
-
-    /** Comfort's Lamplight, in the phone's current theme: oneui/kit.css `--accent`. */
-    private fun comfortAccent(context: Context): Int =
-        (if (context.resources.configuration.isNightModeActive) ComfortDark else ComfortLight).accent.toArgb()
+    private fun buildNotification(done: Int, total: Int): Notification =
+        progressNotification(applicationContext, done, total, WorkManager.getInstance(applicationContext).createCancelPendingIntent(id))
 
     private fun enqueueNextChunk() {
         val request = OneTimeWorkRequestBuilder<AnalysisWorker>()
@@ -175,6 +140,44 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         private const val NOTIFICATION_ID = 2001
         private const val RECENT_FIRST = 200
         private const val CHUNK_MS = 8 * 60 * 1000L
+
+        /**
+         * Android's standard progress notification, as both 10-system sheets draw frame C. The style
+         * picks the glyph (graphic_eq at each kit's weight) and, for Comfort only, the accent: its amber
+         * fills the icon's circle. Expressive leaves the colour to the system, which takes it from the
+         * wallpaper. [stop] is the "Stop" action.
+         */
+        fun progressNotification(context: Context, done: Int, total: Int, stop: PendingIntent): Notification {
+            context.getSystemService(NotificationManager::class.java).createNotificationChannel(
+                NotificationChannel(CHANNEL_ID, context.getString(R.string.analysis_channel), NotificationManager.IMPORTANCE_LOW).apply {
+                    description = context.getString(R.string.analysis_channel_description)
+                },
+            )
+            val open = PendingIntent.getActivity(
+                context,
+                0,
+                Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_IMMUTABLE,
+            )
+            val comfort = context.attic.settings.uiStyle.value == UiStyle.Comfort
+            val number = NumberFormat.getIntegerInstance()
+            return NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(if (comfort) R.drawable.ic_comfort_analysis else R.drawable.ic_expressive_analysis)
+                .apply { if (comfort) setColor(comfortAccent(context)) }
+                .setContentTitle(context.getString(R.string.analysis_notification_title))
+                .setContentText(context.getString(R.string.analysis_notification_progress, number.format(done), number.format(total)))
+                .setProgress(total, done, false)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setSilent(true)
+                .setContentIntent(open)
+                .addAction(0, context.getString(R.string.analysis_notification_stop), stop)
+                .build()
+        }
+
+        /** Comfort's Lamplight, in the phone's current theme: oneui/kit.css `--accent`. */
+        private fun comfortAccent(context: Context): Int =
+            (if (context.resources.configuration.isNightModeActive) ComfortDark else ComfortLight).accent.toArgb()
 
         /** Being interrupted is normal here, so the retry stays short instead of growing to hours. */
         private const val RETRY_SECONDS = 30L
