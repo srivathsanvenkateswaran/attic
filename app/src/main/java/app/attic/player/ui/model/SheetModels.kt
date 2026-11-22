@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
@@ -103,12 +104,12 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         },
         playNext = {
             app.player.playNext(listOf(track))
-            app.messages.tryEmit("Playing next")
+            app.messages.tryEmit(app.getString(R.string.message_playing_next))
             onDismiss()
         },
         addToQueue = {
             app.player.addToQueue(listOf(track))
-            app.messages.tryEmit("Added to queue")
+            app.messages.tryEmit(app.getString(R.string.message_added_to_queue))
             onDismiss()
         },
         pickPlaylist = { pickingPlaylist = true },
@@ -203,7 +204,7 @@ fun rememberPlaylistPickerModel(trackKeys: List<String>, onDismiss: () -> Unit):
     fun addTo(id: Long, name: String) {
         app.scope.launch {
             val added = app.userData.addToPlaylist(id, trackKeys)
-            app.messages.tryEmit(if (added > 0) "Added to $name" else "Already in $name")
+            app.messages.tryEmit(app.getString(if (added > 0) R.string.message_added_to_playlist else R.string.message_already_in_playlist, name))
         }
         onDismiss()
     }

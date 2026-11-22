@@ -274,9 +274,9 @@ fun ComfortPlaylistNameDialog(state: PlaylistNameState, actions: PlaylistNameAct
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     ComfortDialog(
-        title = playlistDialogTitle(state.title),
+        title = state.title,
         onDismiss = actions.dismiss,
-        confirmText = playlistDialogConfirm(state.confirm),
+        confirmText = state.confirm,
         onConfirm = actions.confirm,
         dismissText = stringResource(R.string.cancel),
         confirmEnabled = state.canConfirm,
@@ -289,22 +289,6 @@ fun ComfortPlaylistNameDialog(state: PlaylistNameState, actions: PlaylistNameAct
             onDone = { if (state.canConfirm) actions.confirm() },
         )
     }
-}
-
-/** The callers pass Classic's literal titles; these are the shared copy for each ("Name this playlist"). */
-@Composable
-private fun playlistDialogTitle(title: String): String = when (title) {
-    "Give your playlist a name" -> stringResource(R.string.dialog_name_playlist_title)
-    "New playlist" -> stringResource(R.string.dialog_new_playlist_title)
-    "Rename playlist" -> stringResource(R.string.dialog_rename_playlist_title)
-    else -> title
-}
-
-@Composable
-private fun playlistDialogConfirm(confirm: String): String = when (confirm) {
-    "Create" -> stringResource(R.string.create)
-    "Rename" -> stringResource(R.string.rename)
-    else -> confirm
 }
 
 /** The delete dialog (frame E2): the question, one sentence, Cancel and "Delete playlist" in red under the right thumb. */

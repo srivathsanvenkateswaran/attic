@@ -20,6 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.currentStateAsState
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.Artist
 import app.attic.player.data.Library
@@ -217,9 +218,9 @@ fun rememberWrappedStoryModel(data: WrappedData, cards: List<WrappedCard>, start
         scope.launch {
             try {
                 val bitmap = capture()
-                val name = "attic-wrapped-${card.fileName}-${System.currentTimeMillis() / 1000}"
+                val name = "attic-recap-${card.fileName}-${System.currentTimeMillis() / 1000}"
                 if (save) {
-                    app.messages.tryEmit(if (ShareImage.save(context, bitmap, name)) "Saved to Pictures/Attic" else "Couldn't save the image")
+                    app.messages.tryEmit(context.getString(if (ShareImage.save(context, bitmap, name)) R.string.message_saved_image else R.string.message_save_failed))
                 } else {
                     ShareImage.share(context, bitmap, name)
                 }

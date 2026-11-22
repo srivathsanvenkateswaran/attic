@@ -1,6 +1,8 @@
 package app.attic.player.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import app.attic.player.R
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.comfort.ComfortAlbum
@@ -70,8 +72,8 @@ fun PlaylistScreen(library: Library, id: Long) {
     }
     if (state.renaming) {
         PlaylistNameDialog(
-            title = "Rename playlist",
-            confirm = "Rename",
+            title = stringResource(R.string.dialog_rename_playlist_title),
+            confirm = stringResource(R.string.rename),
             initial = playlist.name,
             onDismiss = actions.dismissRenaming,
             onConfirm = actions.rename,

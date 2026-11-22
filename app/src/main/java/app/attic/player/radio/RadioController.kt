@@ -2,6 +2,7 @@ package app.attic.player.radio
 
 import android.util.Log
 import app.attic.player.AtticApp
+import app.attic.player.R
 import app.attic.player.analysis.MelodyMatch
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.data.LanguageLabels
@@ -173,7 +174,7 @@ class RadioController(private val app: AtticApp) {
         val dao = app.database.dao()
         val library = app.library.await()
         if (ensureAnalyzed(current.seedKey).not()) {
-            app.messages.tryEmit("Radio couldn't read this song")
+            app.messages.tryEmit(app.getString(R.string.message_radio_unreadable))
             stop(current.contextName)
             return false
         }
@@ -195,7 +196,7 @@ class RadioController(private val app: AtticApp) {
             current.analyzedCount = analyzedNow
         }
         if (songs.size < library.tracks.size) {
-            app.messages.tryEmit("Radio is using ${songs.size} of ${library.tracks.size} songs until analysis finishes")
+            app.messages.tryEmit(app.getString(R.string.message_radio_partial, songs.size.toString(), library.tracks.size.toString()))
         }
         return true
     }

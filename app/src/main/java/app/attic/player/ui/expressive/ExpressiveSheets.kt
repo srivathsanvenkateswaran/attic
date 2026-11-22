@@ -392,31 +392,15 @@ fun ExpressivePlaylistNameDialog(state: PlaylistNameState, actions: PlaylistName
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }
     ExpressiveDialog(
-        title = playlistDialogTitle(state.title),
+        title = state.title,
         onDismiss = actions.dismiss,
         confirmButton = {
-            ExpressiveButton(playlistDialogConfirm(state.confirm), actions.confirm, variant = ButtonVariant.Text, enabled = state.canConfirm)
+            ExpressiveButton(state.confirm, actions.confirm, variant = ButtonVariant.Text, enabled = state.canConfirm)
         },
         dismissButton = { ExpressiveButton(stringResource(R.string.cancel), actions.dismiss, variant = ButtonVariant.Text) },
     ) {
         DialogTextField(state.name, actions.setName, stringResource(R.string.dialog_playlist_name_label), Modifier.focusRequester(focus))
     }
-}
-
-/** The callers still pass Classic's literal titles; these are the shared copy for each. */
-@Composable
-private fun playlistDialogTitle(title: String): String = when (title) {
-    "Give your playlist a name" -> stringResource(R.string.dialog_name_playlist_title)
-    "New playlist" -> stringResource(R.string.dialog_new_playlist_title)
-    "Rename playlist" -> stringResource(R.string.dialog_rename_playlist_title)
-    else -> title
-}
-
-@Composable
-private fun playlistDialogConfirm(confirm: String): String = when (confirm) {
-    "Create" -> stringResource(R.string.create)
-    "Rename" -> stringResource(R.string.rename)
-    else -> confirm
 }
 
 /** The delete dialog (frame E2): title, one sentence, Cancel and "Delete playlist" in error. */

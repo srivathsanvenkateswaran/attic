@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.LrcParser
 import app.attic.player.data.LyricLine
@@ -63,8 +64,8 @@ fun rememberLyricsModel(track: Track?): UiModel<LyricsState, LyricsActions> {
                 scope.launch {
                     val message = when (app.lyrics.download(track)) {
                         LyricsResult.Found -> null
-                        LyricsResult.NotFound -> "No lyrics found for ${track.title}"
-                        LyricsResult.Offline -> "Connect to the internet to download lyrics"
+                        LyricsResult.NotFound -> app.getString(R.string.message_no_lyrics_found, track.title)
+                        LyricsResult.Offline -> app.getString(R.string.message_lyrics_offline)
                     }
                     message?.let { app.messages.tryEmit(it) }
                     busy = false

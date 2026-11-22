@@ -6,7 +6,9 @@ import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.ui.comfort.ComfortAddSongs
 import app.attic.player.ui.comfort.ComfortDeletePlaylistDialog
@@ -89,8 +91,8 @@ fun PlaylistPickerSheet(trackKeys: List<String>, onDismiss: () -> Unit) {
 
     if (state.creating) {
         PlaylistNameDialog(
-            title = "New playlist",
-            confirm = "Create",
+            title = stringResource(R.string.dialog_new_playlist_title),
+            confirm = stringResource(R.string.create),
             initial = "",
             onDismiss = actions.dismissCreating,
             onConfirm = actions.create,

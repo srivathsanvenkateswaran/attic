@@ -337,9 +337,9 @@ class PlaybackService : MediaSessionService() {
 
         // A file deleted or corrupted mid-queue: drop it and carry on rather than stopping the music.
         override fun onPlayerError(error: PlaybackException) {
-            val title = player.currentMediaItem?.mediaMetadata?.title ?: "a song"
+            val title = player.currentMediaItem?.mediaMetadata?.title ?: getString(R.string.message_skipped_fallback)
             Log.w(TAG, "Playback failed for $title", error)
-            attic.messages.tryEmit("Skipped $title because it can't be played")
+            attic.messages.tryEmit(getString(R.string.message_skipped, title))
             // Posted, because the playlist must not change during a listener callback.
             mainHandler.post {
                 if (player.mediaItemCount > 1) {

@@ -9,7 +9,7 @@
     <string name="widget_album">Open album</string>
 
     <!--
-        Shared copy for the Expressive and Comfort styles (Classic keeps its own literal strings).
+        Shared copy for the Expressive and Comfort styles.
         Every label of every surface in docs/design/2026-11-21-ui-directions/CURRENT-UI.md section 2,
         with BRIEF.md's naming table applied. Names are <surface>_<what>; a content description ends
         in _cd. Numbers that can pass 999 are %s, formatted by the caller with grouping ("18,460").
@@ -399,6 +399,8 @@
     <string name="message_radio_unreadable">Radio couldn\'t read this song</string>
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
+    <!-- Stands in for the title in message_skipped when the song has none -->
+    <string name="message_skipped_fallback">a song</string>
 
     <!-- Permission, loading and empty states (2.18) -->
     <string name="permission_title">Attic plays the music on this phone</string>
