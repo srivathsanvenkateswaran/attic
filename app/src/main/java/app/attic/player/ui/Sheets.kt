@@ -4,7 +4,17 @@ import androidx.compose.runtime.Composable
 import app.attic.player.AtticApp
 import app.attic.player.data.Library
 import app.attic.player.data.UiStyle
-import app.attic.player.ui.classic.ClassicSurface
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.attic
+import app.attic.player.ui.comfort.ComfortAddSongs
+import app.attic.player.ui.comfort.ComfortDeletePlaylistDialog
+import app.attic.player.ui.comfort.ComfortLanguagePicker
+import app.attic.player.ui.comfort.ComfortPlaylistNameDialog
+import app.attic.player.ui.comfort.ComfortPlaylistPicker
+import app.attic.player.ui.comfort.ComfortTrackMenu
+import app.attic.player.ui.comfort.TintedCover
 import app.attic.player.ui.classic.ClassicAddSongs
 import app.attic.player.ui.classic.ClassicDeletePlaylistDialog
 import app.attic.player.ui.classic.ClassicLanguagePicker
@@ -41,16 +51,26 @@ fun CoroutineScope.launchCreate(app: AtticApp, name: String, then: (Long) -> Uni
 fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () -> Unit, overPlayer: Boolean = false) {
     val (state, actions) = rememberTrackMenuModel(request, library, onDismiss)
     val style = LocalUiStyle.current
-    // Expressive takes the cover's scheme over the player; the other styles ignore it.
+    // Over the player Expressive takes the cover's scheme, and Comfort the wash of the song that is
+    // playing, the surfaces of the screen underneath (07 H). Classic ignores it.
     val inScheme: @Composable (@Composable () -> Unit) -> Unit = { content ->
-        if (style == UiStyle.Expressive && overPlayer) FromCover(state.track.mediaId, content = content) else content()
+        when {
+            style == UiStyle.Expressive && overPlayer -> FromCover(state.track.mediaId, content = content)
+            style == UiStyle.Comfort && overPlayer -> {
+                val playing by LocalContext.current.attic.player.state.collectAsStateWithLifecycle()
+                TintedCover(playing.current?.mediaId, wash = true, content = content)
+            }
+            else -> content()
+        }
     }
     when {
         state.pickingPlaylist -> inScheme { PlaylistPickerSheet(listOf(state.track.key), onDismiss = onDismiss) }
-        state.pickingLanguage -> inScheme { LanguagePickerSheet(current = state.language, title = state.track.title, onChoose = actions.chooseLanguage) }
+        // Comfort opens the language picker as a pop-over on the menu itself.
+        state.pickingLanguage && style != UiStyle.Comfort ->
+            inScheme { LanguagePickerSheet(current = state.language, title = state.track.title, onChoose = actions.chooseLanguage) }
         else -> when (style) {
             UiStyle.Expressive -> inScheme { ExpressiveTrackMenu(state, actions) }
-            UiStyle.Comfort -> ClassicSurface { ClassicTrackMenu(state, actions) }
+            UiStyle.Comfort -> inScheme { ComfortTrackMenu(state, actions) }
             UiStyle.Classic -> ClassicTrackMenu(state, actions)
         }
     }
@@ -62,7 +82,7 @@ private fun LanguagePickerSheet(current: String?, title: String, onChoose: (Stri
     val (state, actions) = languagePickerModel(current, onChoose, songTitle = title)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveLanguagePicker(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicLanguagePicker(state, actions) }
+        UiStyle.Comfort -> ComfortLanguagePicker(state, actions)
         UiStyle.Classic -> ClassicLanguagePicker(state, actions)
     }
 }
@@ -72,7 +92,7 @@ fun PlaylistPickerSheet(trackKeys: List<String>, onDismiss: () -> Unit) {
     val (state, actions) = rememberPlaylistPickerModel(trackKeys, onDismiss)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressivePlaylistPicker(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicPlaylistPicker(state, actions) }
+        UiStyle.Comfort -> ComfortPlaylistPicker(state, actions)
         UiStyle.Classic -> ClassicPlaylistPicker(state, actions)
     }
 
@@ -98,7 +118,7 @@ fun PlaylistNameDialog(
     val (state, actions) = rememberPlaylistNameModel(title, confirm, initial, onDismiss, onConfirm)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressivePlaylistNameDialog(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicPlaylistNameDialog(state, actions) }
+        UiStyle.Comfort -> ComfortPlaylistNameDialog(state, actions)
         UiStyle.Classic -> ClassicPlaylistNameDialog(state, actions)
     }
 }
@@ -109,7 +129,7 @@ fun DeletePlaylistDialog(name: String, onDismiss: () -> Unit, onConfirm: () -> U
     val actions = DeletePlaylistActions(confirm = onConfirm, dismiss = onDismiss)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveDeletePlaylistDialog(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicDeletePlaylistDialog(state, actions) }
+        UiStyle.Comfort -> ComfortDeletePlaylistDialog(state, actions)
         UiStyle.Classic -> ClassicDeletePlaylistDialog(state, actions)
     }
 }
@@ -119,7 +139,7 @@ fun AddSongsSheet(library: Library, playlistId: Long, existing: Set<String>, onD
     val (state, actions) = rememberAddSongsModel(library, playlistId, existing, onDismiss)
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveAddSongs(state, actions)
-        UiStyle.Comfort -> ClassicSurface { ClassicAddSongs(state, actions) }
+        UiStyle.Comfort -> ComfortAddSongs(state, actions)
         UiStyle.Classic -> ClassicAddSongs(state, actions)
     }
 }

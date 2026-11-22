@@ -33,7 +33,12 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -313,7 +318,7 @@ private fun DialogButton(text: String, onClick: () -> Unit, modifier: Modifier, 
 
 /**
  * `.field`: a label in accent ink over the text (17/24), underlined 2dp in the accent. [placeholder]
- * shows in `--on-3` while empty.
+ * shows in `--on-3` while empty. A prefilled [value] opens with the cursor at its end.
  */
 @Composable
 fun DialogField(
@@ -340,9 +345,15 @@ fun DialogField(
         Text(label, style = onest(12.5f, 16f, 500), color = colors.accentInk)
         Box(contentAlignment = Alignment.CenterStart) {
             if (value.isEmpty() && placeholder != null) Text(placeholder, style = onest(17f, 24f), color = colors.on3)
+            // A prefilled name ("Rename playlist") opens with the cursor after it, as `.field .caret` draws.
+            var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+            val shown = if (field.text == value) field else TextFieldValue(value, TextRange(value.length))
             BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
+                value = shown,
+                onValueChange = {
+                    field = it
+                    if (it.text != value) onValueChange(it.text)
+                },
                 singleLine = true,
                 textStyle = onest(17f, 24f).copy(color = colors.on),
                 cursorBrush = SolidColor(colors.accent),
