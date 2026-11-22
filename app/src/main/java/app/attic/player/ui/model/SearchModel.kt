@@ -18,6 +18,7 @@ import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
+import app.attic.player.ui.mosaicIds
 
 /** What a query found, already cut to what is shown: up to five artists and ten albums. */
 @Immutable
@@ -52,9 +53,19 @@ private fun search(library: Library, query: String): SearchResults {
     )
 }
 
-/** A browse tile: every folder, then the eight biggest albums. */
+/**
+ * A browse tile: every folder, then the eight biggest albums. [artist] is the album's artist (null for
+ * a folder); [mosaicIds] are a folder's covers from different albums.
+ */
 @Immutable
-class BrowseTile(val title: String, val cover: Long?, val destination: Destination)
+class BrowseTile(
+    val title: String,
+    val cover: Long?,
+    val destination: Destination,
+    val songCount: Int = 0,
+    val artist: String? = null,
+    val mosaicIds: List<Long> = emptyList(),
+)
 
 @Immutable
 class SearchState(
@@ -82,9 +93,11 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
     var query by rememberSaveable { mutableStateOf("") }
     val results = remember(query, library) { query.takeIf { it.isNotBlank() }?.let { search(library, it) } }
     val tiles = remember(library) {
-        library.folders.map { f -> BrowseTile(f.name, f.tracks.first().mediaId, Destination.Folder(f.name)) } +
+        library.folders.map { f ->
+            BrowseTile(f.name, f.tracks.first().mediaId, Destination.Folder(f.name), f.tracks.size, mosaicIds = mosaicIds(f.tracks))
+        } +
             library.albums.sortedByDescending { it.tracks.size }.take(8).map { a ->
-                BrowseTile(a.name, a.tracks.first().mediaId, Destination.Album(a.key))
+                BrowseTile(a.name, a.tracks.first().mediaId, Destination.Album(a.key), a.tracks.size, a.artist)
             }
     }
 

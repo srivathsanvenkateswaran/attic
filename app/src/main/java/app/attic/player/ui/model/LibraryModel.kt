@@ -33,7 +33,13 @@ enum class SongSort(val label: String) {
     fun next() = entries[(ordinal + 1) % entries.size]
 }
 
-/** One row or grid tile. [circle] marks artists, which are shown round. */
+/** What a library row is, so a style can group rows and word their subtitles itself. */
+enum class LibraryKind { Favourites, Playlist, Folder, Artist, Album }
+
+/**
+ * One row or grid tile. [circle] marks artists, which are shown round. [title] and [subtitle] are
+ * Classic's wording; [kind], [songCount] and [artist] (an album's) let other styles word their own.
+ */
 @Immutable
 class LibraryItem(
     val id: String,
@@ -43,6 +49,9 @@ class LibraryItem(
     val mediaIds: List<Long> = emptyList(),
     val liked: Boolean = false,
     val destination: Destination,
+    val kind: LibraryKind,
+    val songCount: Int = 0,
+    val artist: String? = null,
 )
 
 @Immutable
@@ -64,6 +73,8 @@ class LibraryState(
 class LibraryActions(
     val toggleFilter: (LibraryFilter) -> Unit,
     val cycleSort: () -> Unit,
+    /** Picks a sort directly, as a menu of the three does. */
+    val setSort: (SongSort) -> Unit,
     val toggleGrid: () -> Unit,
     val openSettings: () -> Unit,
     val openSearch: () -> Unit,
@@ -98,22 +109,37 @@ fun rememberLibraryModel(library: Library): UiModel<LibraryState, LibraryActions
         }
     }
     val items = remember(library, filter, likedKeys.size, playlists, recentKeys) {
-        val liked = LibraryItem("liked", "Liked Songs", "Playlist, ${songCount(likedKeys.size)}", liked = true, destination = Destination.Liked)
+        val liked = LibraryItem(
+            "liked", "Liked Songs", "Playlist, ${songCount(likedKeys.size)}", liked = true, destination = Destination.Liked,
+            kind = LibraryKind.Favourites, songCount = likedKeys.size,
+        )
         val lists = playlists.map { p ->
             val tracks = p.trackKeys.mapNotNull { library.trackByKey[it] }
-            LibraryItem("p${p.id}", p.name, "Playlist, ${songCount(tracks.size)}", mediaIds = mosaicIds(tracks), destination = Destination.Playlist(p.id))
+            LibraryItem(
+                "p${p.id}", p.name, "Playlist, ${songCount(tracks.size)}", mediaIds = mosaicIds(tracks), destination = Destination.Playlist(p.id),
+                kind = LibraryKind.Playlist, songCount = tracks.size,
+            )
         }
         val folders = library.folders.map { f ->
-            LibraryItem("f${f.name}", f.name, "Playlist, ${songCount(f.tracks.size)}", mediaIds = mosaicIds(f.tracks), destination = Destination.Folder(f.name))
+            LibraryItem(
+                "f${f.name}", f.name, "Playlist, ${songCount(f.tracks.size)}", mediaIds = mosaicIds(f.tracks), destination = Destination.Folder(f.name),
+                kind = LibraryKind.Folder, songCount = f.tracks.size,
+            )
         }
         // "Recents" order: whatever you played lately first, then the rest alphabetically.
         val rank = recentKeys.withIndex().associate { it.value to it.index }
         fun recency(tracks: List<Track>) = tracks.minOfOrNull { rank[it.key] ?: Int.MAX_VALUE } ?: Int.MAX_VALUE
         val albums = library.albums.sortedBy { recency(it.tracks) }.map { a ->
-            LibraryItem("a${a.key}", a.name, "Album, ${a.artist}", mediaIds = listOf(a.tracks.first().mediaId), destination = Destination.Album(a.key))
+            LibraryItem(
+                "a${a.key}", a.name, "Album, ${a.artist}", mediaIds = listOf(a.tracks.first().mediaId), destination = Destination.Album(a.key),
+                kind = LibraryKind.Album, songCount = a.tracks.size, artist = a.artist,
+            )
         }
         val artists = library.artists.sortedBy { recency(it.tracks) }.map { a ->
-            LibraryItem("r${a.key}", a.name, "Artist", circle = true, mediaIds = listOf(a.tracks.first().mediaId), destination = Destination.Artist(a.key))
+            LibraryItem(
+                "r${a.key}", a.name, "Artist", circle = true, mediaIds = listOf(a.tracks.first().mediaId), destination = Destination.Artist(a.key),
+                kind = LibraryKind.Artist, songCount = a.tracks.size,
+            )
         }
         when (filter) {
             LibraryFilter.Playlists -> listOf(liked) + lists + folders
@@ -128,6 +154,7 @@ fun rememberLibraryModel(library: Library): UiModel<LibraryState, LibraryActions
     val actions = LibraryActions(
         toggleFilter = { option -> filter = if (filter == option) null else option },
         cycleSort = { sort = sort.next() },
+        setSort = { sort = it },
         toggleGrid = { grid = !grid },
         openSettings = ui::openSettings,
         openSearch = { ui.openSearch() },
