@@ -8,7 +8,9 @@ import android.graphics.drawable.GradientDrawable
 import android.util.TypedValue
 import android.view.View
 import android.widget.FrameLayout
+import app.attic.player.attic
 import app.attic.player.widget.PlayerWidget
+import app.attic.player.widget.WidgetState
 import java.io.File
 
 /**
@@ -19,14 +21,23 @@ import java.io.File
 object WidgetSnapshot {
     private val SIZES = listOf(358 to 201, 358 to 88, 172 to 172)
 
-    suspend fun take(context: Context, night: Boolean, name: String): File {
+    /**
+     * [song], a title, draws the widget for that song instead of the current one (with [playing] as its
+     * play state), without touching the queue.
+     */
+    suspend fun take(context: Context, night: Boolean, name: String, song: String? = null, playing: Boolean = false): File {
         val themed = context.createConfigurationContext(
             Configuration(context.resources.configuration).apply {
                 uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
                     (if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
             },
         )
-        val remote = PlayerWidget.views(context)
+        val track = song?.let { title -> context.attic.library.await().tracks.firstOrNull { it.title.equals(title, ignoreCase = true) } }
+        val remote = if (track != null) {
+            PlayerWidget.views(context, WidgetState(track.title, track.artist, track.mediaId, playing))
+        } else {
+            PlayerWidget.views(context)
+        }
         val pad = dp(context, 16)
         val width = dp(context, 358) + pad * 2
         val height = SIZES.sumOf { dp(context, it.second) } + pad * (SIZES.size + 1)
