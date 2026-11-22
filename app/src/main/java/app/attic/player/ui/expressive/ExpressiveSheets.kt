@@ -186,7 +186,13 @@ private fun MenuCell(
         modifier
             .fillMaxWidth()
             .then(if (selected) Modifier.background(colors.secondaryContainer) else Modifier)
-            .selectable(selected = selected, role = role, onClick = onClick)
+            .then(
+                if (role == Role.RadioButton) {
+                    Modifier.selectable(selected = selected, role = role, onClick = onClick)
+                } else {
+                    Modifier.clickable(role = role, onClick = onClick)
+                },
+            )
             .heightIn(min = if (supporting != null) 64.dp else 56.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -194,7 +200,13 @@ private fun MenuCell(
     ) {
         if (lead != null) lead()
         Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge, color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal),
+                color = colors.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             if (supporting != null) {
                 Text(supporting, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }

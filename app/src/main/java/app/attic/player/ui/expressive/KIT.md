@@ -111,6 +111,7 @@ FontFamily for other combinations; each style already sets an optical size near 
 | squared off means on | `ExpressiveShapes.onCorner(height)` |
 | group cell | `ExpressiveShapes.groupItemShape(index, count)`, `GroupGap` 2dp, `GroupSpacing` 12dp |
 | `--shape-clover` (sheets 06, 08) | `CloverShape` (Material's Clover4Leaf), for "nothing here yet" |
+| `--sunny`, `--puff` (sheet 09) | `SunnyShape` (Material's Sunny, the play-count badge), `PuffShape` (a soft square inset 6.5%) |
 
 ## Icons
 
@@ -135,7 +136,7 @@ house until they are redrawn.
 | `.mosaic` | `Mosaic(arts, modifier, size)` | 2×2 at four or more covers; pass covers from different albums (`mosaicIds`) |
 | `.fav-art` | `FavouritesArt(modifier, size)` | |
 | `.no-art` | `NoArt(modifier, size)` | `Cover(null)` shows the same |
-| `.btn` (filled/tonal/outlined/text, `.m`, `.sq`, `.off`) | `ExpressiveButton(text, onClick, modifier, variant, size = Small/Medium, leading, trailing, squared, enabled)` | `squared = true` while a Play button reads Pause |
+| `.btn` (filled/tonal/outlined/text, `.m`, `.sq`, `.off`, `.danger`) | `ExpressiveButton(text, onClick, modifier, variant, size = Small/Medium, leading, trailing, squared, enabled, contentColor)` | `squared = true` while a Play button reads Pause; `contentColor = colorScheme.error` for a destructive text button ("Delete playlist") |
 | `.ib` (`.filled` `.tonal` `.outlined` `.narrow` `.wide` `.m`) | `ExpressiveIconButton(symbol, contentDescription, onClick, modifier, variant, medium, width, filled, tint)` | 48dp target |
 | `.ib.on` | `ExpressiveToggleButton(symbol, checked, onCheckedChange, contentDescription, medium, width, tonalWhenOff)` | morphs round → 12/16 corners, fills primary |
 | `.ib.heart` | `HeartButton(favourite, onToggle)` | describes itself ("Add to favourites" / "Remove from favourites") |
@@ -147,16 +148,17 @@ house until they are redrawn.
 | `.skip`, `.transport` | `SkipButton(symbol, contentDescription, onClick)`, `Transport(playing, onPrevious, onPlayPause, onNext)` | |
 | `.wave` / `.wave.still` | `NowPlayingWave(playing)` | 20×10dp |
 | `.seek`, `.seek.paused`, `.seek-times` | `SeekBar(progress, playing, onSeek, contentDescription, onScrub)`, `SeekTimes(elapsed, total)` | tap or drag; `onSeek(fraction)` on release; `onScrub(fraction)` while dragging and `onScrub(null)` on release, so the elapsed time can follow the finger; flat while paused or dragging |
+| `.story .seek` + `.st-stops` | `StoryProgress(progress = { fraction }, stops, running)` | the seek bar's drawing, not draggable, with a 4dp dot at each stop still ahead; flat while not running (the story held) |
 | `.nav` | `ExpressiveNavigationBar(items: List<NavItem>, selectedIndex, onSelect)` | Material ShortNavigationBar; pads for the gesture bar itself |
 | `.appbar.root` (+ `.scrolled`) | `RootAppBar(title, modifier, scrolled = 0f..1f, titleLeading, actions)` | `scrolled = listState.scrolledFraction()`; Home passes the mark as `titleLeading`; settings is the last action |
 | `.appbar`, `.scrolled`, `.over` | `DetailAppBar(title, onBack, modifier, surface = Plain/Scrolled/OverArt, actions)` | OverArt hides the title and puts scrims behind the buttons; inside `FromArt` for a collection |
 | `.searchbar`, `.searchbar.docked` | `SearchField(query, onQueryChange, placeholder, modifier, onSearch, onBack)` | clear button appears with text; `onBack` makes it the docked search view's bar, a back button in place of the glyph |
 | `.chips` / `.chip` | `ChipRow { ExpressiveFilterChip(label, selected, onClick) }` | Library's filters |
-| `.seg` | `ConnectedButtonGroup(options, selectedIndex, onSelect, modifier, unselectedColor)` | Home's filter, Recap's period, Settings' theme and style; on a group cell pass `surfaceContainerHighest` |
+| `.seg`, `.seg.four` | `ConnectedButtonGroup(options, selectedIndex, onSelect, modifier, unselectedColor, labelWidth, selectedWeight)` | Home's filter, Recap's period, Settings' theme and style; on a group cell pass `surfaceContainerHighest`; Recap's four periods pass `labelWidth = 86, selectedWeight = 1.3f` |
 | `.sec` | `SectionHeader(title, modifier, overline, trailing)` | |
 | `.list-label` | `ListLabel(text)` | |
 | `.group` | `ListGroup(count) { index -> … }`; lazy: `groupItems(list, key) { index, item -> … }`; any modifier: `Modifier.groupCell(index, count, color)` | sheets raise cells via `LocalGroupCellColor` (ExpressiveSheet sets it) |
-| `.row` (cover, number, rank + cover, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/None, current, playing, lifted, onClick, onLongClick, trailing)` | the wave goes over the cover or replaces the number on the current song |
+| `.row` (cover, number, rank + cover, rank + cookie, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/RankedArtist/None, current, playing, lifted, onClick, onLongClick, trailing)` | the wave goes over the cover or replaces the number on the current song; an empty `subtitle` leaves the title alone (Recap's top artists) |
 | row trailing | `RowMoreButton(title, onClick)`, `RowDragHandle(title, modifier)`, `RowAddToggle(title, added, onToggle)`, `RowCount(text)` | describe themselves from the shared copy |
 | `.swipe` | `SwipeToRemove(onRemove, resetKey) { SongRow(…) }` | the swipe starts over when `resetKey` changes; the queue passes its up-next list, because a row's key passes to the song's next copy after a removal |
 | `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode |
@@ -171,10 +173,10 @@ house until they are redrawn.
 | `.spot` | `Spotlight(overline, title, art, onOpen) { Shelf { … } }` | |
 | `.browse`, `.browse.folder` | `BrowseTile(title, seed, onClick, modifier, subtitle) { m -> Cover(…, m) }` | takes the cover's scheme itself; with `subtitle` it is Search's 88dp folder tile (sheet 02) with a 64dp picture |
 | `.stat` | `StatTile(value, label, modifier, accent)` | |
-| `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)` | opens fully expanded |
+| `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss, bottomPadding) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)` | opens fully expanded; a sheet whose list scrolls to its foot passes `bottomPadding = 0.dp` |
 | `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
 | `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | a null `symbol` keeps its space, so a list of choices ticks only the current one |
-| `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | |
+| `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | over the player the shell draws it inside `FromCover`, so it takes the cover scheme's inverse roles (07 J) |
 | `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library; `body = null` for a title alone ("Nothing up next") |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |
 | `.switch`, `.radio` | `ExpressiveSwitch(checked, onCheckedChange)`, `ExpressiveRadio(selected, onClick)` | Material's |
@@ -183,6 +185,30 @@ house until they are redrawn.
 | `.loader`, `.loader.contained` | `LoadingIndicator(contained)` | library scan, downloading lyrics |
 | `.np-card`, `.kv` | `InfoCard(title, symbol) { … }`, `KeyValue(label, value)` | lyrics and credits cards |
 | `.lyrics p` (`.past`, `.now`, `.plain`, `.l`) | `LyricLine(text, LyricState.Sung/Current/Upcoming/Plain, large, maxLines)` | `maxLines` ends in an ellipsis (the card's preview: two per synced line, four for plain text) |
+
+## Sheets and Recap (sheets 07 and 09)
+
+Built from the parts above, in `ExpressiveSheets.kt`, `ExpressiveRecap.kt`, `ExpressiveRecapStory.kt`
+and `ExpressiveRecapCards.kt`. Pieces other screens can use:
+
+- `languageName(code)`: a language code ("ta", "none", null) as the shared copy, "Unknown" when unset.
+- `ExpressiveRecapCard(card, data, modifier, layer, animate)`: one Recap card at any width. The
+  drawing is a fixed 360×640 canvas at font scale 1, so the story, thumbnails and the saved
+  1080×1920 image match. Its colours are `ArtScheme.colorScheme(seed, dark = true)` of the cover
+  `recapCardCover(card, data)` names (a card about one song or artist takes that cover; the rest are
+  dealt from the top songs), in both themes and never the wallpaper. A song with no art uses a fixed
+  fallback seed, Material's baseline purple. `rememberRecapCardSeed` gives the seed, which the
+  story screen passes to `FromArt` so the screen takes the card's hue.
+- `ListeningDial(hours, type, ground, modifier, labelSize, glyph)`: the 24-bar clock on a 288-unit
+  drawing (hub radius 34, bars to 100, stroke 8.5), "12 am / 6 am / 12 pm / 6 pm" and the busiest
+  hour labelled, the listener type's glyph (`listenerSymbol`) in a secondary-container hub. Bars are
+  `primary` mixed 58% into `ground`; the busiest is `primary`.
+- `recapPeriodLabel(data)`, `recapHeadline(data)`, `listenerTitle(type)`, `recapClockLine(type, hours)`:
+  Recap's wording from the shared copy, including the switch from 24 December ("2026", "Your 2026
+  Recap"). The model's `periodLabel` and `headline` are Classic's literals and say "Wrapped".
+- `FitText(text, style)`: one line that shrinks its font to fit instead of wrapping (big figures).
+  `cardText(size, line, weight, width, round)`: Google Sans Flex at any size on the width (50–100)
+  and ROND axes; the mock's 25% and 151% widths and 900 weight are clamped to the bundled ranges.
 
 Not in the kit, as in pixel/KIT.md: the mini player, Now Playing, the collection header block and
 Recap's charts are screen work, composed from the parts above (the gallery shows a mini player and
@@ -209,7 +235,11 @@ applied. Use `stringResource` / `pluralStringResource`; do not write literals in
 - Durations: `duration_hours_minutes` / `duration_minutes`, joined by `songs_and_duration`.
 - Context names under "Playing from" are `context_*`; the model still produces Classic's literal
   context strings ("Liked Songs"), so map them when you draw.
-- The style picker's three strings (`settings_style*`) are the only copy not in CURRENT-UI.md.
+- The style picker's three strings (`settings_style*`) are the only copy not in CURRENT-UI.md. Two
+  format strings join existing values the way sheets 07 and 09 draw them: `add_songs_subtitle`
+  ("Late drive, 14 songs") and `story_position` ("5 of 10", which replaced the progress segments).
+- The playlist name dialog's callers still pass Classic's literal titles ("Give your playlist a
+  name"); the Expressive dialog maps them to `dialog_*_title`, as context names are mapped.
 - Wording deliberately kept from today although the mocks differ: library subtitles stay
   "Playlist, 46 songs" / "Artist"; the album detail stays "Album • 2025". The Favourites empty body
   says "Tap the heart on a song to save it." because the plus became a heart.

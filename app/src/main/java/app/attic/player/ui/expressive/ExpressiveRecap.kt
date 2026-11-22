@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -145,7 +146,17 @@ private fun LazyListScope.recapContent(state: WrappedPageState, actions: Wrapped
     if (data.songs.isNotEmpty()) {
         item(key = "songsHeader") {
             SectionHeader(stringResource(R.string.recap_top_songs)) {
-                PlayButton(playing = state.topSongsPlaying, onClick = actions.playTopSongs, size = PlaySize.Large, modifier = Modifier.offset(x = 8.dp, y = 10.dp))
+                // `.sec .pp{margin:-10px -8px -10px 0}`: the control reaches past the header's padding.
+                PlayButton(
+                    playing = state.topSongsPlaying,
+                    onClick = actions.playTopSongs,
+                    size = PlaySize.Large,
+                    modifier = Modifier.layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        val v = 10.dp.roundToPx()
+                        layout(placeable.width - 8.dp.roundToPx(), placeable.height - 2 * v) { placeable.place(0, -v) }
+                    },
+                )
             }
         }
         groupItems(data.songs, key = { "song:" + it.first.key }) { index, (track, ranked) ->
