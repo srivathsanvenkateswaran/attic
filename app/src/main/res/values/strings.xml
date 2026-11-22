@@ -334,6 +334,8 @@
     <string name="story_close">Close</string>
     <string name="story_save">Save</string>
     <string name="story_share">Share</string>
+    <!-- The story's place in the sequence, where the progress segments used to show it: "5 of 10" -->
+    <string name="story_position">%1$d of %2$d</string>
     <string name="card_intro_week">Your week in music</string>
     <string name="card_intro_month">Your month in music</string>
     <string name="card_intro_year">Your year so far</string>

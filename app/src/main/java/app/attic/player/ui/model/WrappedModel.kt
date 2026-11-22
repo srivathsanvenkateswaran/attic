@@ -49,6 +49,8 @@ class WrappedData(
     val artists: List<Pair<Artist, RankedArtist>>,
     /** The cover shown for each artist: their most played song in this period. */
     val artistCovers: Map<String, Long>,
+    /** The day the recap was made, which a style words the period and headline from. */
+    val today: LocalDate = LocalDate.now(),
 )
 
 enum class WrappedCard(val fileName: String) {
@@ -108,7 +110,7 @@ fun wrappedData(recap: Recap, period: RecapPeriod, library: Library, today: Loca
         used += art(pick)
         artist.key to pick.mediaId
     }
-    return WrappedData(recap, period, periodLabel(period, today), headline(period, today), songs, artists, covers)
+    return WrappedData(recap, period, periodLabel(period, today), headline(period, today), songs, artists, covers, today)
 }
 
 // Wrapped page
@@ -127,6 +129,8 @@ class WrappedPageState(
     /** The top songs are what's playing, and they are playing. */
     val topSongsPlaying: Boolean,
     val currentKey: String?,
+    /** Something is playing, so the current song's wave moves. */
+    val playing: Boolean = false,
 )
 
 class WrappedPageActions(
@@ -164,6 +168,7 @@ fun rememberWrappedModel(library: Library): UiModel<WrappedPageState, WrappedPag
         storyAt = storyAt,
         topSongsPlaying = player.isPlaying && isTopSongs,
         currentKey = player.current?.key,
+        playing = player.isPlaying,
     )
     val actions = WrappedPageActions(
         back = { ui.back() },
