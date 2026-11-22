@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Attic mark: a gabled roofline with a round window, centred in the adaptive safe zone. -->
+<!--
+    The Attic mark, Headroom, in one colour: the cabinet with the woofer and the tweeter cut out and the
+    dust cap left solid. One even-odd path, copied unscaled from
+    docs/design/2026-11-21-ui-directions/logo/marks/sound-2-headroom.svg on the 108dp adaptive canvas.
+    The launcher's themed icon, and the mark wherever a widget draws it.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#FFFFFFFF"
         android:fillType="evenOdd"
-        android:pathData="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z" />
+        android:pathData="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z" />
 </vector>

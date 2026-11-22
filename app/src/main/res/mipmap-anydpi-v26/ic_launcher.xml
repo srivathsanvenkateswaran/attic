@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    One adaptive icon for every style. The launcher applies its own mask (a circle on Pixel, a squircle
+    on Samsung), so the icon fits the phone without the app swapping icons, which would take the
+    user's icon off their home screen.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/splash_bg" />
+    <background android:drawable="@color/headroom_ground" />
     <foreground android:drawable="@drawable/ic_launcher_foreground" />
     <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
 </adaptive-icon>

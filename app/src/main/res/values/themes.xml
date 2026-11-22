@@ -1,18 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_bg">#121212</color>
-    <color name="accent">#1ED760</color>
-
+    <!-- The window under Compose. Expressive's ground; MainActivity switches to Comfort's for Comfort. -->
     <style name="Theme.Attic" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">@color/splash_bg</item>
+        <item name="android:windowBackground">@color/expressive_window</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
+    <style name="Theme.Attic.Comfort">
+        <item name="android:windowBackground">@color/comfort_window</item>
+    </style>
+
+    <!--
+        The manifest's launch theme, used until the app has run once: the Expressive splash. The
+        launcher icon (Headroom on terracotta) sits on the style's ground.
+    -->
     <style name="Theme.Attic.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="windowSplashScreenBackground">@color/expressive_window</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/headroom_ground</item>
         <item name="postSplashScreenTheme">@style/Theme.Attic</item>
+    </style>
+
+    <!--
+        The splash for each style, handed to the system with SplashScreen.setSplashScreenTheme so the
+        next cold start uses it. The system reads these itself, so they use the platform attributes.
+        Both show the launcher icon; the ground is the style's own.
+    -->
+    <style name="Theme.Attic.Splash.Expressive" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/expressive_window</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/headroom_ground</item>
+    </style>
+
+    <style name="Theme.Attic.Splash.Comfort" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/comfort_window</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/headroom_ground</item>
     </style>
 
     <style name="WidgetTile">

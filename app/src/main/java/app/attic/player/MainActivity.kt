@@ -12,7 +12,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import app.attic.player.data.UiStyle
+import kotlinx.coroutines.launch
 import app.attic.player.ui.AppRoot
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.ui.AtticTheme
@@ -22,7 +25,17 @@ import app.attic.player.ui.LocalUiStyle
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+        if (attic.settings.uiStyle.value == UiStyle.Comfort) setTheme(R.style.Theme_Attic_Comfort)
         super.onCreate(savedInstanceState)
+        // The system draws the splash before any app code runs, so each style's splash is handed over
+        // now and used from the next cold start. The system keeps the choice.
+        lifecycleScope.launch {
+            attic.settings.uiStyle.collect { style ->
+                splashScreen.setSplashScreenTheme(
+                    if (style == UiStyle.Comfort) R.style.Theme_Attic_Splash_Comfort else R.style.Theme_Attic_Splash_Expressive,
+                )
+            }
+        }
         handleWidgetIntent(intent)
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
