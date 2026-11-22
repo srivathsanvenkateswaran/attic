@@ -15,6 +15,12 @@ import app.attic.player.data.UiStyle
 import app.attic.player.ui.classic.ClassicDarkColors
 import app.attic.player.ui.classic.ClassicLightColors
 import app.attic.player.ui.classic.ClassicType
+import app.attic.player.ui.comfort.ComfortShapes
+import app.attic.player.ui.comfort.DefaultComfortType
+import app.attic.player.ui.comfort.LocalComfortColors
+import app.attic.player.ui.comfort.LocalComfortType
+import app.attic.player.ui.comfort.comfortColors
+import app.attic.player.ui.comfort.toColorScheme
 import app.attic.player.ui.expressive.DefaultExpressiveType
 import app.attic.player.ui.expressive.ExpressiveShapes
 import app.attic.player.ui.expressive.LocalExpressiveType
@@ -48,8 +54,12 @@ fun AtticTheme(mode: ThemeMode, style: UiStyle, content: @Composable () -> Unit)
             typography = DefaultExpressiveType.material
             shapes = ExpressiveShapes.material
         }
-        // Comfort has no theme of its own yet, so it keeps Classic's.
-        UiStyle.Comfort, UiStyle.Classic -> {
+        UiStyle.Comfort -> {
+            colors = comfortColors(dark).toColorScheme()
+            typography = DefaultComfortType.material
+            shapes = ComfortShapes.material
+        }
+        UiStyle.Classic -> {
             colors = if (dark) ClassicDarkColors else ClassicLightColors
             typography = ClassicType
             shapes = Shapes()
@@ -61,6 +71,8 @@ fun AtticTheme(mode: ThemeMode, style: UiStyle, content: @Composable () -> Unit)
             LocalIsDark provides dark,
             LocalStyleTheme provides StyleTheme(colors, typography, shapes),
             LocalExpressiveType provides DefaultExpressiveType,
+            LocalComfortColors provides comfortColors(dark),
+            LocalComfortType provides DefaultComfortType,
             content = content,
         )
     }

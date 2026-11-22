@@ -100,39 +100,51 @@ private const val THUMBNAIL_MAX_PX = 640
 private val artColors = LruCache<Long, Int>(256)
 private const val NO_COLOR = 0
 
-/** The tint for a cover as ARGB, or null if it has no art. Cached. */
-fun coverTint(context: Context, mediaId: Long): Int? {
+/** The tint for a cover as ARGB, deepened (see [deepenTint]), or null if it has no art. Cached. */
+fun coverTint(context: Context, mediaId: Long): Int? = coverSwatch(context, mediaId)?.let(::deepenTint)
+
+/**
+ * The cover's own colour as ARGB, as Palette found it (vibrant, else muted, else dominant), or null
+ * if it has no art. Cached. Comfort's `Tinted` reads this: the kit sets each token's lightness itself
+ * and only keeps the cover's hue and chroma, so it wants the swatch before [deepenTint] dulls it.
+ */
+fun coverSwatch(context: Context, mediaId: Long): Int? {
     val argb = artColors.get(mediaId) ?: run {
         val bitmap = loadCover(context, mediaId, 96)
         val swatch = bitmap?.let { bmp ->
             val palette = ColorPalette.from(bmp.copy(Bitmap.Config.ARGB_8888, false)).generate()
             palette.vibrantSwatch ?: palette.mutedSwatch ?: palette.dominantSwatch
         }
-        (swatch?.let { deepen(it.rgb) } ?: NO_COLOR).also { artColors.put(mediaId, it) }
+        (swatch?.rgb ?: NO_COLOR).also { artColors.put(mediaId, it) }
     }
     return argb.takeIf { it != NO_COLOR }
 }
 
-/** A dark tint pulled from the cover, for gradients behind album headers and Now Playing. */
+/**
+ * The cover's colour for a song. With [deepen] (the default) it is a dark tint that keeps white text
+ * readable, for gradients behind album headers and Now Playing; without, the swatch as found.
+ */
 @Composable
-fun rememberArtColor(mediaId: Long?, fallback: Color = Color(0xFF333333)): Color {
+fun rememberArtColor(mediaId: Long?, fallback: Color = Color(0xFF333333), deepen: Boolean = true): Color {
     val context = LocalContext.current
+    fun shade(raw: Int) = if (deepen) deepenTint(raw) else raw
     val color by produceState(
-        initialValue = mediaId?.let { artColors.get(it) }?.takeIf { it != NO_COLOR }?.let { Color(it) } ?: fallback,
+        initialValue = mediaId?.let { artColors.get(it) }?.takeIf { it != NO_COLOR }?.let { Color(shade(it)) } ?: fallback,
         mediaId,
+        deepen,
     ) {
         if (mediaId == null) {
             value = fallback
             return@produceState
         }
-        val argb = withContext(Dispatchers.IO) { coverTint(context, mediaId) }
-        value = argb?.let { Color(it) } ?: fallback
+        val argb = withContext(Dispatchers.IO) { coverSwatch(context, mediaId) }
+        value = argb?.let { Color(shade(it)) } ?: fallback
     }
     return color
 }
 
 /** Keeps the cover's hue but holds lightness low so white text stays readable on top. */
-private fun deepen(rgb: Int): Int {
+private fun deepenTint(rgb: Int): Int {
     val hsl = FloatArray(3)
     ColorUtils.colorToHSL(rgb, hsl)
     hsl[1] = hsl[1].coerceAtMost(0.62f)

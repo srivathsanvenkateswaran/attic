@@ -31,4 +31,19 @@ app/src/main/res/font/material_symbols_rounded.ttf
     python3 -m fontTools.subset inst.ttf --unicodes=<the codepoints in Symbols.kt> \
         --layout-features='' --no-hinting --desubroutinize --output-file=material_symbols_rounded.ttf
   Grade is pinned at 0; the fill, weight and optical-size axes are kept. Ligatures are dropped:
-  the app addresses each icon by codepoint.
+  the app addresses each icon by codepoint. Expressive draws at weight 400, Comfort at 300.
+
+app/src/main/res/font/onest.ttf
+  Onest, from github.com/google/fonts, ofl/onest ("Onest[wght].ttf", upstream v2.001,
+  github.com/simpals/onest). Copyright 2021 The Onest Project Authors. Licensed under the
+  SIL Open Font License 1.1: see OFL-onest.txt. The licence names no Reserved Font Name.
+  Used by the Comfort style.
+
+  Modified (subset) with fontTools 4.60:
+    python3 -m fontTools.varLib.instancer "Onest[wght].ttf" wght=400:800 -o inst.ttf
+    python3 -m fontTools.subset inst.ttf \
+        --unicodes="U+0020-007E,U+00A0-00FF,U+0100-017F,U+0300-0303,U+0308,U+2000-206F,U+20AC,U+2122,U+2190,U+2192,U+2212" \
+        --layout-features='kern,liga,calt,ccmp,locl,mark,mkmk,tnum,pnum,lnum,case' \
+        --no-hinting --desubroutinize --output-file=onest.ttf
+  The weight axis is narrowed to the 400-800 the kit sets and the characters to Latin.
+  Cyrillic and other scripts fall back to the system font.
