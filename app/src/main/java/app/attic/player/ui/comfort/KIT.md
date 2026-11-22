@@ -141,7 +141,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.cv.sq`, `.cv.sq-lg` | `Cover(art, modifier, size = null, shape = ArtShape, dimmed = false)` | size null fills the width as a square; no art shows the neutral note box; `dimmed` is the current song's brightness(.4) |
 | `.cv.sq-soft` | `ArtistCover(art, modifier, size)` | |
 | `.mosaic` | `Mosaic(arts, modifier, size)` | 2×2 at four or more |
-| `.ibox` (`.neutral`, `.solid`) | `IconBox(symbol, modifier, size, style = Tonal/Neutral/Solid, filled)`, `FavouritesArt(m, size)`, `NoArt(m, size)`, `MarkBox` | icon at 46% |
+| `.ibox` (`.neutral`, `.solid`) | `IconBox(symbol, modifier, size, style = Tonal/Neutral/Solid, filled)`, `FavouritesArt(m, size)`, `NoArt(m, size)`, `MarkBox` | icon at 46%; neutral on a dark sheet is `--fill-2` |
 | `.hero`, `.hero.short` | `Hero(title, modifier, subtitle, short, mark, insets = statusBars)` | pads for the status bar itself; `mark` on Home only |
 | `.tools` | `Tools(modifier, leading = { SubTabs(…) }) { icon buttons }` | settings last |
 | `.bar`, `.bar.lift`, `.bar.count` | `Bar(title, modifier, onBack, backSymbol, backDescription, lift, accentTitle, insets) { actions }` | `title = ""` at the top of a detail screen; `backSymbol = ExpandMore` on overlays; describe the back button with `backDescription` (default "Back") |
@@ -153,23 +153,23 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.group`, `.group.pad`, `.group + .group` | `Group(modifier, pad, margin = 16.dp) { item { … } }`; `GroupSpacing` (12dp) | lazy: `LazyListScope.groupItems(list, key) { i, x -> … }` or `GroupCell(index, count) { … }` |
 | hairline-split rows with no card (sheet rows) | `Hairlined { item { … } }` | |
 | `.inset` | `Inset { … }` | a shelf or grid inside a group |
-| `.row`, `.row.sm`, `.row.lg`, `.val`, chevron | `CollectionRow(title, subtitle, lead = { m -> Cover(art, m) }, onClick, modifier, size = Small/Medium/Large, overline, value, chevron, onLongClick, trailing)` | lead gets the art size in its modifier |
+| `.row`, `.row.sm`, `.row.lg`, `.val`, chevron | `CollectionRow(title, subtitle, lead = { m -> Cover(art, m) }, onClick, modifier, size = Small/Medium/Large, overline, value, chevron, onLongClick, trailing)` | lead gets the art size in its modifier; in a sheet it pads 24 / 18 (`.sheet .row`) |
 | `.txt` (`em`, `b`, `span`) | `RowText(title, modifier, subtitle, overline, titleStyle, …, wrap)` | |
 | `.kv` | `KeyValue(label, value)` | Credits |
-| `.song` | `SongRow(title, subtitle, modifier, lead = SongLead.Cover(art)/Number(n)/None, onClick, onLongClick, current, playing, rank, meta, lifted, trailing = { … })` | `.now` = `current`; `.numbered` = `Number`; `.bare` = `None`; `.ranked` = `rank`; `.meta` = `meta`; `.lifted` = `lifted` |
+| `.song` | `SongRow(title, subtitle, modifier, lead = SongLead.Cover(art)/Artist(art)/Number(n)/None, onClick, onLongClick, current, playing, rank, meta, lifted, trailing = { … })` | `.now` = `current`; `.numbered` = `Number`; `.bare` = `None`; `.ranked` = `rank`; `.meta` = `meta`; `.lifted` = `lifted` |
 | song trailing | `SongMoreButton(title, onClick)`, `SongDragHandle(title, modifier)`, `SongAddButton(title, added, onToggle)`, `SongRadioMark()` | describe themselves from the shared strings; pass the reorder library's handle modifier to `SongDragHandle` |
-| `.swipe` | `SwipeToRemove(onRemove, modifier, resetKey) { SongRow(…) }` | "Remove" in danger on fill |
+| `.swipe`, `.swipe.r` | `SwipeToRemove(onRemove, modifier, resetKey) { SongRow(…) }` | either way; `do_not_disturb_on` and "Remove" in danger on fill, on the side it uncovers |
 | `.bars`, `.bars.still` | `PlayingBars(playing, modifier, size = 16.dp, barWidth, gap, color)` | bounces while playing (Attic's choice; the mock is still) |
 | `.tile`, `.tile.center`, `b.two`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, modifier, subtitle, width = 132.dp, centered, twoLines, artSize, now, playing, onLongClick, subtitleLines = 1)` | `width = null` in a grid; `subtitleLines = 2` lets the second line wrap (Search's result shelf) |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 14dp gaps, 24dp edges (16 in a group) |
 | `.grid2/3/4`, `.tray` | `TileGrid(count, columns, modifier, tray) { i -> Tile(…, width = null) }`; tray tiles: `artSize = trayArt(columns), centered = true` | not lazy; put a tray in `Group(pad = true)` |
 | `.pager` | `Pager(pageCount) { page -> item { SongRow(…) } }` | 312dp cards, 10dp apart |
 | `.browse` (`.tinted.wash`) | `BrowseTile(title, onClick, art = { m -> Mosaic(…, m) }, modifier, subtitle, seed)` | art gets 56dp; a seed washes the card |
-| `.c-head`, `.c-head.person` | `CollectionHeader(title, art = { m -> Cover(art, m) }, modifier, byline, onBylineClick, meta, person)` | art gets 196dp (148 for a person) |
-| `.c-actions` | `CollectionActions { CollectionPlayButton(playing, onClick, Modifier.weight(1f)); TonalIconButton(…, large = true) }` | Play reads Pause while this collection plays |
+| `.c-head`, `.c-head.person` | `CollectionHeader(title, art = { m -> Cover(art, m) }, modifier, byline, onBylineClick, meta, person, artSize)` | art gets 196dp (148 for a person) unless `artSize`; sheet 04 draws 176 |
+| `.c-actions` | `CollectionActions { CollectionPlayButton(playing, onClick, Modifier.weight(1f), enabled); TonalIconButton(…, large = true) }` | Play reads Pause while this collection plays; `enabled = false` is `.off` |
 | `.btn` (`.filled .tonal .plain .text`, `.lg .sm .block .danger .off`) | `ComfortButton(text, onClick, modifier, style, size = Small/Medium/Large, leading, leadingFilled, block, danger, enabled)` | |
 | `.ib` (`.dim`, `.off`) | `ComfortIconButton(symbol, contentDescription, onClick, modifier, dim, filled, enabled, iconSize, tint)` | 48dp target |
-| `.ib.tonal` (`.lg`, `.on`) | `TonalIconButton(symbol, contentDescription, onClick, modifier, checked, large, filled, stateDescription)` | superellipse; checked = accent |
+| `.ib.tonal` (`.lg`, `.on`, `.off`) | `TonalIconButton(symbol, contentDescription, onClick, modifier, checked, large, filled, stateDescription, enabled, container)` | superellipse; checked = accent; `container` replaces `--fill` at rest (`--fill-2` on a dark sheet, `--card` on light ground) |
 | `.ib.heart`, `.ib.tonal.lg.heart` | `HeartButton(favourite, onToggle, modifier, tonal, large)` | describes itself |
 | `.play` (`.md`, `.sm`) | `PlayButton(playing, onClick, modifier, size = Large/Medium/Small)` | 76 / 56 / 44; describes itself |
 | `.np-head` | `NowPlayingHeader(context, onClose, onMore, moreDescription, modifier, overline, insets)` | |
@@ -182,14 +182,14 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.toggles` | `Toggles { TonalIconButton(…, large = true); HeartButton(…, tonal = true) }` | shuffle, repeat, favourite, queue |
 | `.lyrics-card`, `.ln`, `.ln.cur`, `.ln.clip`, message | `LyricsCard(modifier, title) { LyricsLine(text, current, plain); LyricsMessage(text) }` | give a button or `Spinner(small = true)` inside `Modifier.padding(top = 14.dp)` |
 | `.dock` | `Dock(modifier, mini = { MiniPlayer(…) }, insets) { TabBar(…) }` | `mini = null` with nothing queued; place at the bottom over content |
-| `.mini` (`.top`, alone) | `MiniPlayer(title, artist, art, progress, playing, favourite, onToggleFavourite, onPlayPause, onClick, modifier, seed, placement = Dock/Alone/Top, onSwipeNext, onSwipePrevious)` | tints itself from `seed`; fill = progress; swipe text past 28% to skip |
+| `.mini` (`.top`, alone) | `MiniPlayer(title, artist, art, progress, playing, favourite, onToggleFavourite, onPlayPause, onClick, modifier, seed, placement = Dock/Alone/Top, onSwipeNext, onSwipePrevious, trailing)` | tints itself from `seed`; fill = progress; swipe text past 28% to skip; `trailing` replaces heart and play (lyrics: `PlayButton(size = Small)`) |
 | `.tabs`, `.tab.on` | `TabBar(items = listOf(TabItem(label, symbol)), selectedIndex, onSelect)` | |
 | `.sheet`, `.grab` | `ComfortSheet(onDismiss, modifier, sheetState) { … }`; `StaticSheet { … }` for previews | opens expanded |
-| `.sheet-head`, `.sheet-title` | `SheetHeader(title, subtitle, art = { m -> Cover(art, m) })`, `SheetTitle(text)` | |
-| `.sheet-row` (`.on`, `.danger`, `.val`) | `Hairlined { item { SheetRow(symbol, label, onClick, modifier, value, selected, danger) } }` | |
+| `.sheet-head`, `.sheet-title` (`small`) | `SheetHeader(title, subtitle, art = { m -> Cover(art, m) })`, `SheetTitle(text, modifier, subtitle)` | |
+| `.sheet-row` (`.on`, `.danger`, `.val`, `.end.go`) | `Hairlined { item { SheetRow(symbol, label, onClick, modifier, value, selected, danger, end) } }` | `end`: a quiet trailing glyph (`chevron_right`, `unfold_more`) |
 | `.dialog`, `.dialog-btns`, `.above-kbd` | `ComfortDialog(title, onDismiss, confirmText, onConfirm, dismissText, modifier, body, confirmEnabled, danger) { DialogField(…) }`; `DialogCard(…)` for previews | rides above the keyboard by itself |
-| `.field` | `DialogField(value, onValueChange, label, modifier, placeholder, focusRequester, onDone)` | |
-| `.menu`, `.menu-row` | `ComfortMenu(expanded, onDismiss, modifier, offset) { MenuRow(symbol, label, onClick, modifier, selected, danger) }`; `StaticMenu` for previews | anchor: a Box around the trigger |
+| `.field` | `DialogField(value, onValueChange, label, modifier, placeholder, focusRequester, onDone)` | a prefilled value opens with the cursor at its end |
+| `.menu`, `.menu.on-sheet`, `.menu-cap`, `.menu-row` | `ComfortMenu(expanded, onDismiss, modifier, offset, onSheet) { MenuCaption(text); MenuRow(symbol, label, onClick, modifier, selected, danger, check) }`; `StaticMenu` for previews | anchor: a Box around the trigger; `onSheet` takes `--fill`; `check` ends the selected row in a tick |
 | `.toast` | `ToastHost(snackbarHostState, modifier)`; `Toast(text)` | place 180dp up with the mini player, 116 with tabs alone, 56 over an overlay |
 | `.switch` | `ComfortSwitch(checked, onCheckedChange, modifier, enabled)` | `onCheckedChange = null` when the row toggles |
 | `.radio` | `ComfortRadio(selected, onClick, modifier)` | |
@@ -262,6 +262,21 @@ opens the Expressive kit.
   instead.
 - Optical sizes: the icon font is set at fixed optical sizes 20 / 24 / 40 by size, where the browser
   follows the exact size.
-- The shell, the mini player, Home, Search, Library, Settings, Now Playing, the permission screen
-  and loading draw Comfort. The other surfaces (collections, queue, lyrics, sheets, dialogs, Recap)
-  still draw Classic inside a `ClassicSurface` until they get their own.
+- Every Comfort surface now draws Comfort: the shell, the mini player, Home, Search, Library,
+  Settings, Now Playing, the permission screen and loading, plus the collection screens, the queue,
+  full-screen lyrics, the sheets, dialogs and menus, and Recap (page, story, cards; tables below).
+
+## Screens drawn from the kit (sheets 04, 06, 07, 09)
+
+| Surface | File | Notes |
+|---|---|---|
+| Album, artist, folder, Favourites, playlist, "is gone" | ComfortCollections.kt | a plain bar that lifts and shows the title once it has scrolled under; header art 176dp; Play row; songs in one card; playlist tools (`.pl-tools`) at the head of the card; reorder mode in its own full-screen window so the action bar can replace the dock |
+| Queue | ComfortQueue.kt | `Tinted(wash = true)`; the current song as the mini player's filled row (`.q-now`); "Clear" as a raised pill over a fade (`.q-foot`) |
+| Full-screen lyrics | ComfortLyrics.kt | `Tinted(wash = true)`; lines on the ground, the current one on an accent-soft bed (`.ly`); the mini player's row alone at the foot (`.dock.solo`) |
+| Track menu, pickers, Add songs, dialogs | ComfortSheets.kt | quick actions as tonal toggles on `--fill-2` (`.quick .qa`); the language picker as a pop-over on its row; over the player the caller washes them with the playing cover |
+| Recap page | ComfortRecap.kt | hero with the back arrow pulled into its foot (`.tools.lead`); sub-tabs pin under the bar when scrolled; `.playrow`, `.stats`, `.langs`, `.when` |
+| Recap cards | ComfortRecapCards.kt | 360 by 640, always `ComfortDark` (`RecapCardColors`); top song, top artist and summary washed by their cover; ranked rows on beds in each cover's `--mini-fill`; `ListeningClock`, `languageSteps` (accent minus .13 / .26 / .38 L in OKLCH, "No vocals" `--on-3`) |
+| Recap story | ComfortRecapStory.kt | full-screen window, dark, washed with the card; one deck: `ComfortProgress` with "4 of 10", Save (plain) and Share (filled); the app's messages as a `ToastHost` above the deck |
+
+Shared helpers there: `songCount`, `totalLength`, `songsAndLength` (copy), `SystemBarsFor` (a
+full-screen window's dim and bar icons), `rememberProgress` (how far a song has played).
