@@ -157,6 +157,7 @@ house until they are redrawn.
 | `.row` (cover, number, rank + cover, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/None, current, playing, lifted, onClick, onLongClick, trailing)` | the wave goes over the cover or replaces the number on the current song |
 | row trailing | `RowMoreButton(title, onClick)`, `RowDragHandle(title, modifier)`, `RowAddToggle(title, added, onToggle)`, `RowCount(text)` | describe themselves from the shared copy |
 | `.swipe` | `SwipeToRemove(onRemove) { SongRow(…) }` | |
+| `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode |
 | `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | |
 | `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick)` | |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 12dp gaps |
@@ -172,7 +173,7 @@ house until they are redrawn.
 | `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
 | `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | |
 | `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | |
-| `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library |
+| `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library; `body = null` for a title alone ("Nothing up next") |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |
 | `.switch`, `.radio` | `ExpressiveSwitch(checked, onCheckedChange)`, `ExpressiveRadio(selected, onClick)` | Material's |
 | `.progress`, `.progress.wavy` | `LinearProgress { fraction }`, `WavyLinearProgress({ fraction }, running)` | wavy for long running jobs (analysis) |
@@ -183,7 +184,13 @@ house until they are redrawn.
 
 Not in the kit, as in pixel/KIT.md: the mini player, Now Playing, the collection header block and
 Recap's charts are screen work, composed from the parts above (the gallery shows a mini player and
-both headers built that way). The shell and the mini player are `ExpressiveShell` and
+both headers built that way). The collection header follows sheet 04's `.chead.tf` arrangement
+(title, byline and meta, then the cover with the `.ccluster` beside it), drawn in
+ExpressiveCollections.kt with the collapsing bar and the missing-item state; the full-screen lyric
+lines (sheet 06 frame D: current 34/40 in primary, others 24/32 medium, sung in outline) are drawn in
+ExpressiveLyrics.kt, because they differ from the kit's `LyricLine` as the sheet's open question says.
+`contextSymbol(kind)` and `contextLabel(name, kind)` (ExpressiveNowPlaying.kt) give the glyph and the
+shared name for what is playing; the queue's bar uses them too. The shell and the mini player are `ExpressiveShell` and
 `ExpressiveMiniPlayer` (ExpressiveShell.kt); the `.dock` and `.nav` placement is there.
 
 ## Shared copy (strings)

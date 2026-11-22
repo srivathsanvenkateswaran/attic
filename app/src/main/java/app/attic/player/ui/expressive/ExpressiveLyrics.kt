@@ -27,7 +27,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -190,12 +190,12 @@ private fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions,
     val lines = state.lyrics.lines
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 200)
     val current = LrcParser.lineAt(lines, position)
-    val listState = rememberLazyListState()
+    val listState = remember(track.key) { LazyListState() }
     val blank = stringResource(R.string.lyric_blank_line)
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val anchor = constraints.maxHeight / 3
-        LaunchedEffect(current, anchor) {
+        LaunchedEffect(listState, current, anchor) {
             if (current < 0) return@LaunchedEffect
             val shown = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == current }
             if (shown == null) {

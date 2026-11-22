@@ -523,25 +523,6 @@ private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name
     }
 }
 
-/**
- * A group cell that can be picked up: in its place in the group while it rests, and with all four
- * corners at 20 and the list's one shadow while it is held, so the shadow is not clipped by the group.
- */
-@Composable
-internal fun Modifier.liftableCell(index: Int, count: Int, lifted: Boolean): Modifier {
-    val color = groupCellColor()
-    val outer = if (lifted) ExpressiveShapes.LargeIncreased else if (index == 0) ExpressiveShapes.LargeIncreased else ExpressiveShapes.ExtraSmall
-    val inner = if (lifted) ExpressiveShapes.LargeIncreased else if (index == count - 1) ExpressiveShapes.LargeIncreased else ExpressiveShapes.ExtraSmall
-    val top by animateDpAsState(outer, ExpressiveMotion.fastSpatial(), label = "cellTop")
-    val bottom by animateDpAsState(inner, ExpressiveMotion.fastSpatial(), label = "cellBottom")
-    val shape: Shape = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
-    return this
-        .padding(start = 16.dp, end = 16.dp, top = if (index == 0) 0.dp else ExpressiveShapes.GroupGap)
-        .then(if (lifted) Modifier.shadow(6.dp, shape) else Modifier)
-        .clip(shape)
-        .background(color)
-}
-
 // ── The shared frame ─────────────────────────────────────────────────────────
 
 /**
