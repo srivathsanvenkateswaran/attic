@@ -98,6 +98,7 @@ Outside the app
 | Sleep timer | "Sleep timer" in the track menu, only when it was opened from the kebab in the Now Playing header (added 2026-11-23, section 2.13) |
 | Now Playing, on a file from another app | Opening an audio file with Attic from a file manager or downloads list (added 2026-11-23, section 2.21) |
 | Smart shuffle | "Smart shuffle" in the more menu of a playlist or Favourites (added 2026-11-23, section 2.9) |
+| Android Auto | The car's app launcher, or "play X on Attic" said to the assistant (added 2026-11-23, section 2.22) |
 
 ### 1.2 Navigation behaviour
 
@@ -963,10 +964,10 @@ Button descriptions: "Play or pause", "Next", "Previous", "Open album".
 Purpose: control playback with the app closed or the phone locked.
 
 `playback/PlaybackService.kt:118-136`. Android draws this, not the app. The app supplies:
-- Title, artist and album of the current song. The cover is not set by app code; the player reads it from the file.
+- Title, artist and album of the current song. The player reads the cover from the file. Since 2026-11-23 each song also carries a cover URI from `playback/ArtProvider.kt`, for car screens; the card uses it only until the file's own picture has been read.
 - The status-bar icon: the Attic mark in white (`drawable/media3_notification_small_icon.xml`).
 - Standard transport: previous, play/pause, next, and the seek position.
-- Two extra buttons: **shuffle** ("Turn shuffle on" / "Turn shuffle off") and **like** (plus-in-circle "Add to liked songs" / filled check-in-circle "Remove from liked songs").
+- Two extra buttons: **shuffle** ("Turn shuffle on" / "Turn shuffle off") and **like** (plus-in-circle "Add to liked songs" / filled check-in-circle "Remove from liked songs"). Android Auto shows the same two on its now-playing screen.
 - Tapping the notification opens the app.
 
 In `notification.png` and `lock_screen.png` this renders as the system media card: cover as the background, the Attic mark top-left, a "This phone" output chip, title and artist, a rounded play/pause button, and a bottom row of previous, seek line, next, shuffle and like.
@@ -988,6 +989,19 @@ Added 2026-11-23. Purpose: play an audio file from a file manager, a downloads l
 - In both cases Now Playing opens on the song.
 - A URI that isn't `content://` or `file://`, or one that fails to read, shows the snackbar "Couldn't open this file". Nothing crashes.
 - A relaunch from Recents or a recreated screen does not play the file again.
+
+### 2.22 Android Auto
+
+Added 2026-11-23. Purpose: play the library from a car screen. The car draws everything from the playback service's browse tree (`playback/BrowseTree.kt`, `playback/CarBrowser.kt`); Attic has no car layouts of its own. `docs/play/ANDROID-AUTO.md` has the guideline check and the head-unit test steps.
+
+- **Tabs**, each with a white outline icon (`drawable/ic_auto_*.xml`): "Home", "Playlists", "Albums", "Artists". A car that allows five tabs also gets "Favourites" between Home and Playlists; Android Auto allows four.
+- **Home**: "Shuffle all songs" with the song count, then the Instant mixes under an "Instant mixes" heading (song title over artist, with its cover; tapping one starts radio from it), then up to 12 songs under "Recently played".
+- **Playlists**: "Favourites" with its count (when it isn't a tab), your playlists that have songs, then folder playlists, each with "{n} songs" and the first song's cover.
+- **Albums**: a grid sorted by name, album over artist. **Artists**: a grid sorted by name, with "{n} songs". Both open a list of songs.
+- **Songs** are rows of title over artist (over album, on an artist's list), with covers. Tapping one plays its list from there under the app's own "Playing from" name: the album or artist name, the playlist or folder name, "Favourites", "Recently played", "Search results" or "All songs".
+- **Search** groups results under "Songs", "Artists", "Albums" and "Playlists".
+- **Voice**: "Play X on Attic" plays a matching playlist, artist, album or song; "play music" carries on with the queue. When nothing matches, the car shows "Couldn't find “{query}” in your music". The same phrase said to the phone opens Attic and plays, and the miss shows as a snackbar.
+- **No audio access**: the car shows "Attic can't see your music yet. When it's safe, open Attic on your phone and allow access to music." Cars that run Android themselves add an "Open Attic" button.
 
 ---
 
@@ -1413,6 +1427,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Analysis progress notification with "Stop"
 - [ ] Launcher icon with a monochrome variant
 - [ ] "Open with" for audio files: library songs play in context, other files play once and are kept nowhere (added 2026-11-23)
+- [ ] Android Auto: browse tabs with white icons, covers, search, "play X" by voice, and the shuffle and like buttons (added 2026-11-23, section 2.22). A restyle changes the tab icons and the shuffle and like glyphs only.
 
 **Not present today.** Listed so a restyle does not add controls that have nothing behind them: an equaliser of Attic's own (Settings only opens the phone's), playback speed, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
 

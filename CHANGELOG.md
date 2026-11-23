@@ -14,6 +14,7 @@ The first public release.
 - Background playback with notification and lock-screen controls, including shuffle and like
 - Media button support for Bluetooth and headsets, and a pause when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
+- Android Auto: browse Home, Playlists, Albums and Artists with covers, search, and "play X" by voice
 
 ### Look
 - Two styles, Expressive and Comfort, switchable in Settings > Appearance

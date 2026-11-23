@@ -50,6 +50,7 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Background playback with notification and lock-screen controls, including shuffle and like
 - Media button support for Bluetooth and headsets, and it pauses when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
+- Android Auto: browse Home, Playlists, Albums and Artists with covers, search, and "play X" by voice ([details](docs/play/ANDROID-AUTO.md))
 
 
 **Shows lyrics, then keeps them**
@@ -130,7 +131,7 @@ The release build is signed with the debug key, which suits sideloading on your 
 | Part | Choice |
 |---|---|
 | UI | Kotlin, Jetpack Compose, Material 3 |
-| Playback | Media3 ExoPlayer with `MediaSessionService` |
+| Playback | Media3 ExoPlayer with `MediaLibraryService`, which also serves the Android Auto browse tree |
 | Library | MediaStore |
 | Your data | Room: likes, playlists, history, the saved queue and lyrics |
 | Covers | Coil, loading embedded art through MediaStore thumbnails |

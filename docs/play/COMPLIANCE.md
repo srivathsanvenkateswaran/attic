@@ -26,6 +26,7 @@ The merged release manifest requests `READ_MEDIA_AUDIO`, `POST_NOTIFICATIONS`, `
 - `RECEIVE_BOOT_COMPLETED` comes from WorkManager, which uses it to restore scheduled analysis after a reboot. It is kept.
 - Backup and restore add no permission. "Back up to a file" and "Restore from a file" go through the system file picker. Android's backup is on (`allowBackup="true"`). Its cloud half carries only an end-to-end-encrypted JSON copy and the settings file, and never the database (`docs/backup.md`).
 - `READ_MEDIA_AUDIO` and `POST_NOTIFICATIONS` are requested together from the first screen, after text that says what each one is for. If the user refuses, the screen links to the app's permission settings (`RootModel.kt`).
+- Android Auto adds no permission. The manifest declares the car media metadata, and an exported, read-only provider that serves song covers to the car. Play reviews car apps separately; `docs/play/ANDROID-AUTO.md` has the guideline check and the Console steps.
 - ONNX Runtime 1.31 adds `ai.onnxruntime.TelemetryInitializer`. At launch it starts Microsoft's 1DS telemetry uploader, which reads `ANDROID_ID`, the device class, locale and time zone. ONNX Runtime's `Privacy.md` says telemetry is on by default in official Android builds and keeps the platform device IDs there. The manifest removes the provider, and `SongAnalyzer` sets `ORT_DISABLE_TELEMETRY=1` before the runtime loads. Without that fix, the Data safety form would have to declare device IDs shared with Microsoft.
 
 ## Foreground services
