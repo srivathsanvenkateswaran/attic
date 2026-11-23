@@ -43,7 +43,7 @@ Launch
    │  ├─ library ................ tab root
    │  ├─ album/{key}
    │  ├─ artist/{key}
-   │  ├─ folder/{name} .......... read-only playlist made from a Music/Offline folder
+   │  ├─ folder/{name} .......... read-only playlist made from a themed music folder
    │  ├─ playlist/{id} .......... user playlist
    │  ├─ liked .................. Liked Songs
    │  ├─ settings
@@ -243,7 +243,7 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 
 **States**
 
-- **Empty library** (`ui/HomeScreen.kt:90-98`): no header, no chips. A centred empty message, title "No songs in Music/Offline", body "Copy MP3s into Music/Offline on this phone and they will show up here." The tab bar is still present.
+- **Empty library** (`ui/HomeScreen.kt:90-98`): no header, no chips. A centred empty message, title "No songs on this phone", body "Copy MP3s onto this phone, in Music or any other folder, and they will show up here." The tab bar is still present.
 - **No history yet**: the shortcut grid is "Liked Songs" plus the five biggest albums, and "Recently played" is absent. This is what `home.png` shows.
 - **No listening log**: no Wrapped card.
 - **Radio has not run yet**: no "Speed dial".
@@ -354,7 +354,7 @@ Album, Artist, Folder, Playlist and Liked Songs share one frame. `ui/CollectionS
 
 "This collection is playing" means the player's context name equals the collection name and the current song belongs to it (`ui/CollectionScreens.kt:195`).
 
-**Missing item** (`ui/CollectionScreens.kt:238-245`). If the album, artist or playlist no longer exists: a back button and an empty message, "{This album | This artist | This playlist} is gone" / "It may have been removed from Music/Offline."
+**Missing item** (`ui/CollectionScreens.kt:238-245`). If the album, artist or playlist no longer exists: a back button and an empty message, "{This album | This artist | This playlist} is gone" / "It may have been removed from this phone."
 
 **Light theme.** The header tint is mixed at 40% over white, so the gradient is a pale wash and the title stays dark (`ui/CollectionScreens.kt:69-73`).
 
@@ -388,9 +388,9 @@ Purpose: an artist's songs and albums. `ui/CollectionScreens.kt:293-377`.
 
 All three use the gradient header and control row from 2.6, followed by track rows with covers.
 
-**Folder** (`ui/CollectionScreens.kt:379-409`). A top-level folder under Music/Offline shown as a read-only playlist. In the owner's library these are English, Hindi, Tamil and Phonk.
+**Folder** (`ui/CollectionScreens.kt:379-409`). A themed folder at the top of the music library shown as a read-only playlist. In the owner's library these are English, Hindi, Tamil and Phonk.
 - Cover: mosaic, 62% width. Title: folder name.
-- Subtitle: "Playlist from your Music/Offline folder" in `bodyMedium` `onSurfaceVariant`.
+- Subtitle: "Playlist from a folder on this phone" in `bodyMedium` `onSurfaceVariant`.
 - Detail: "{n} songs, {duration}".
 - No rename, delete, add or reorder.
 
@@ -632,7 +632,7 @@ Purpose: theme, lyrics download, radio options. `ui/SettingsScreen.kt`. A plain 
     - "{done} of {total} songs analysed. The rest continue next time the phone charges."
   - A text button "Analyse now without a charger", shown only when analysis is not running and songs remain.
 
-- **"About"** section title. "Attic plays the music in Music/Offline. It has no account and no streaming. {n} songs on this phone." in `bodyMedium` `onSurfaceVariant`.
+- **"About"** section title. "Attic plays your own music files, from any folder. It has no account and no streaming. {n} songs on this phone." in `bodyMedium` `onSurfaceVariant`.
 
 Progress bars, radio buttons, the switch and text buttons use stock Material 3 components coloured by the theme's `primary`. No colours are overridden.
 
@@ -816,7 +816,7 @@ Liking a song, removing from a playlist, clearing the queue, and renaming or del
 
 | State | Body | Button |
 |---|---|---|
-| Not asked yet | "Allow audio access so it can read your songs in Music/Offline. Notifications show the playback controls." | "Allow access" (opens the system permission prompts for audio and notifications) |
+| Not asked yet | "Allow audio access so it can find your songs in any folder. Notifications show the playback controls." | "Allow access" (opens the system permission prompts for audio and notifications) |
 | Asked and refused | "Audio access is off, so Attic can't see your songs. Turn on Music and audio in the app's permissions." | "Open app permissions" (opens the system settings page for the app) |
 
 **Loading** (`ui/AppRoot.kt:159-164`). A centred Material circular progress indicator on the background colour while the first library scan runs. No text.
@@ -827,11 +827,11 @@ Liking a song, removing from a playlist, clearing the queue, and renaming or del
 
 | Where | Title | Body |
 |---|---|---|
-| Home, empty library | "No songs in Music/Offline" | "Copy MP3s into Music/Offline on this phone and they will show up here." |
+| Home, empty library | "No songs on this phone" | "Copy MP3s onto this phone, in Music or any other folder, and they will show up here." |
 | Search, no matches | `No results for "{query}"` | "Check the spelling, or try fewer words." |
 | Liked Songs, empty | "Songs you like will appear here" | "Tap the plus on a song to save it." |
 | Playlist, empty | "Let's find something for your playlist" | "Tap the plus above to add songs from your library." |
-| Album / artist / playlist missing | "{This album \| This artist \| This playlist} is gone" | "It may have been removed from Music/Offline." |
+| Album / artist / playlist missing | "{This album \| This artist \| This playlist} is gone" | "It may have been removed from this phone." |
 | Wrapped, empty period | "Nothing played {period} yet" | "Any song you play for 30 seconds or more counts. Your top songs, artists and listening clock build up from there." |
 | Queue, nothing next | heading "Nothing up next" | none |
 
@@ -1141,7 +1141,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 
 **Library content types**
 - [ ] Songs, albums (including one-song albums labelled "Single"), artists
-- [ ] Folders shown as read-only playlists ("Playlist from your Music/Offline folder")
+- [ ] Folders shown as read-only playlists ("Playlist from a folder on this phone")
 - [ ] User playlists
 - [ ] "Liked Songs"
 - [ ] Artist images are covers of the artist's songs, because there are no artist photos

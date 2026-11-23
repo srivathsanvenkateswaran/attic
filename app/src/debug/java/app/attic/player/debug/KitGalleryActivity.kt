@@ -849,7 +849,7 @@ private fun SurfacesStrip() {
         }
     }
     EmptyState("No results for “dhurx”", "Check the spelling, or try fewer words.", symbol = Symbol.SearchOff)
-    EmptyState("Attic plays the music on this phone", "Allow audio access so it can read your songs in Music/Offline. Notifications show the playback controls.", art = { AtticMarkIcon(size = 56.dp) }) {
+    EmptyState("Attic plays the music on this phone", "Allow audio access so it can find your songs in any folder. Notifications show the playback controls.", art = { AtticMarkIcon(size = 56.dp) }) {
         ExpressiveButton("Allow access", {})
     }
 

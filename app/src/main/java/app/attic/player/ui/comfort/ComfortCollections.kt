@@ -215,7 +215,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
 
 // ── Folder and Favourites ────────────────────────────────────────────────────
 
-/** A Music/Offline folder (frame I): a playlist that cannot be edited, so no more button and no tools. */
+/** A themed music folder (frame I): a playlist that cannot be edited, so no more button and no tools. */
 @Composable
 fun ComfortFolder(state: FolderState, actions: FolderActions) {
     val folder = state.folder ?: return GoneState(R.string.collection_playlist_gone, Symbol.QueueMusic, actions.back)

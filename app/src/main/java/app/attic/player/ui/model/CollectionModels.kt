@@ -173,7 +173,7 @@ private const val POPULAR_COUNT = 5
 
 @Immutable
 class FolderState(
-    /** Null when the folder has gone from Music/Offline. */
+    /** Null when the folder has gone from the phone. */
     val folder: FolderPlaylist?,
     val controls: PlayControlsState,
     val currentKey: String?,

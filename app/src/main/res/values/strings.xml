@@ -71,8 +71,8 @@
     <string name="home_more_from">More from</string>
     <string name="home_album_no_year">Album</string>
     <string name="home_top_artists">Top artists</string>
-    <string name="home_empty_title">No songs in Music/Offline</string>
-    <string name="home_empty_body">Copy MP3s into Music/Offline on this phone and they will show up here.</string>
+    <string name="home_empty_title">No songs on this phone</string>
+    <string name="home_empty_body">Copy MP3s onto this phone, in Music or any other folder, and they will show up here.</string>
 
     <!-- Search (2.4) -->
     <string name="search_title">Search</string>
@@ -121,7 +121,7 @@
     <string name="collection_album_gone">This album is gone</string>
     <string name="collection_artist_gone">This artist is gone</string>
     <string name="collection_playlist_gone">This playlist is gone</string>
-    <string name="collection_gone_body">It may have been removed from Music/Offline.</string>
+    <string name="collection_gone_body">It may have been removed from this phone.</string>
 
     <!-- Album (2.7) -->
     <string name="album_kind_album">Album</string>
@@ -139,7 +139,7 @@
     <string name="artist_album_year_kind">%1$s • %2$s</string>
 
     <!-- Folder, Favourites and Playlist (2.9) -->
-    <string name="folder_subtitle">Playlist from your Music/Offline folder</string>
+    <string name="folder_subtitle">Playlist from a folder on this phone</string>
     <string name="favourites_empty_title">Songs you like will appear here</string>
     <string name="favourites_empty_body">Tap the heart on a song to save it.</string>
     <string name="playlist_rename">Rename</string>
@@ -273,7 +273,7 @@
     <string name="settings_about">About</string>
     <!-- %1$s is the song count with its noun, from song_count: "127 songs" -->
     <string name="settings_licences">Open-source licences</string>
-    <string name="settings_about_body">Attic plays the music in Music/Offline. It has no account and no streaming. %1$s on this phone.</string>
+    <string name="settings_about_body">Attic plays your own music files, from any folder. It has no account and no streaming. %1$s on this phone.</string>
 
     <!-- Recap page (2.16) -->
     <string name="recap_title">Recap</string>
@@ -405,7 +405,7 @@
 
     <!-- Permission, loading and empty states (2.18) -->
     <string name="permission_title">Attic plays the music on this phone</string>
-    <string name="permission_body">Allow audio access so it can read your songs in Music/Offline. Notifications show the playback controls.</string>
+    <string name="permission_body">Allow audio access so it can find your songs in any folder. Notifications show the playback controls.</string>
     <string name="permission_body_refused">Audio access is off, so Attic can\'t see your songs. Turn on Music and audio in the app\'s permissions.</string>
     <string name="permission_allow">Allow access</string>
     <string name="permission_open_settings">Open app permissions</string>

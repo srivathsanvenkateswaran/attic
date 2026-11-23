@@ -266,7 +266,7 @@ private fun yearAndKind(album: Album): String {
 
 // ── Folder and Favourites ────────────────────────────────────────────────────
 
-/** A folder (frame H): a playlist that cannot be edited, with "Playlist from your Music/Offline folder". */
+/** A folder (frame H): a playlist that cannot be edited, with "Playlist from a folder on this phone". */
 @Composable
 fun ExpressiveFolder(state: FolderState, actions: FolderActions) {
     val folder = state.folder ?: return GoneState(R.string.collection_playlist_gone, Symbol.QueueMusic, cookie = false, actions.back)
