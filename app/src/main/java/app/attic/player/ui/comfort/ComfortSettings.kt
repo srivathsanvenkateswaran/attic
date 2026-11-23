@@ -21,7 +21,11 @@ import app.attic.player.R
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.expressive.Symbol
+import app.attic.player.ui.model.BackupUiState
 import app.attic.player.ui.model.SettingsActions
+import app.attic.player.ui.model.restoreConfirmBody
+import app.attic.player.ui.model.restoreProblemBody
+import app.attic.player.ui.model.restoreResultBody
 import app.attic.player.ui.model.SettingsState
 import java.text.NumberFormat
 
@@ -30,7 +34,8 @@ import java.text.NumberFormat
  * arrow in the row that closes the viewing area, then one labelled card per section in today's order.
  * Appearance's themes are radios that lead their rows, with the style (Expressive or Comfort) as a
  * second card of radios under it. Lyrics and Song radio are paragraphs, a 10dp progress capsule, a
- * status line and a text button inside their cards; About sits beside the mark.
+ * status line and a text button inside their cards; Backup is two rows and a note, with the restore
+ * question and its result as dialogs; About sits beside the mark.
  */
 @Composable
 fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
@@ -141,6 +146,30 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
             }
         }
 
+        item(key = "backup") {
+            val backup = state.backup
+            Label(stringResource(R.string.settings_backup))
+            Group {
+                item {
+                    SetRow(
+                        stringResource(R.string.settings_backup_save),
+                        summary = stringResource(if (backup.saving) R.string.settings_backup_saving else R.string.settings_backup_save_body),
+                        onClick = actions.backUp.takeUnless { backup.busy },
+                    )
+                }
+                item {
+                    SetRow(
+                        stringResource(R.string.settings_backup_restore),
+                        summary = stringResource(if (backup.restoring) R.string.settings_backup_restoring else R.string.settings_backup_restore_body),
+                        onClick = actions.restore.takeUnless { backup.busy },
+                    )
+                }
+                item {
+                    SetBlock(afterRow = true) { BlockSmall(stringResource(R.string.settings_backup_note), Modifier) }
+                }
+            }
+        }
+
         item(key = "about") {
             Label(stringResource(R.string.settings_about))
             Group {
@@ -174,9 +203,45 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
             }
         }
     }
+    BackupDialogs(state.backup, actions)
 }
 
 private val Bold = SpanStyle(fontWeight = FontWeight.SemiBold)
+
+/** The question before a restore, then its result or why the file couldn't be used. */
+@Composable
+private fun BackupDialogs(backup: BackupUiState, actions: SettingsActions) {
+    backup.confirm?.let { summary ->
+        ComfortDialog(
+            title = stringResource(R.string.restore_confirm_title),
+            onDismiss = actions.dismissBackupDialog,
+            confirmText = stringResource(R.string.restore_confirm),
+            onConfirm = actions.confirmRestore,
+            dismissText = stringResource(R.string.cancel),
+            body = restoreConfirmBody(summary),
+        )
+    }
+    backup.restored?.let { report ->
+        ComfortDialog(
+            title = stringResource(R.string.restore_done_title),
+            onDismiss = actions.dismissBackupDialog,
+            confirmText = stringResource(R.string.close),
+            onConfirm = actions.dismissBackupDialog,
+            dismissText = null,
+            body = restoreResultBody(report),
+        )
+    }
+    backup.problem?.let { problem ->
+        ComfortDialog(
+            title = stringResource(R.string.restore_failed_title),
+            onDismiss = actions.dismissBackupDialog,
+            confirmText = stringResource(R.string.close),
+            onConfirm = actions.dismissBackupDialog,
+            dismissText = null,
+            body = restoreProblemBody(problem),
+        )
+    }
+}
 
 /** "{saved} of {total} songs have lyrics saved…", the span from the saved count through the word after the total in bold. */
 @Composable

@@ -110,7 +110,8 @@ FontFamily for other combinations; each style already sets an optical size near 
 ## Icons
 
 `SymbolIcon(Symbol.QueueMusic, size = 24.dp, filled = false, tint = LocalContentColor.current)`.
-Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use; `Symbol` is an
+Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use, plus `file_save` and
+`file_open` for Settings' backup rows; `Symbol` is an
 enum named after the ligature in CamelCase (`queue_music` → `Symbol.QueueMusic`,
 `Symbol.named("queue_music")`). Filled is the selected state and the transport glyphs. Sizes 18–40.
 `weight = 300` for Comfort. A name not in the enum is not in the font: add it (see the enum's doc

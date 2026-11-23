@@ -62,6 +62,8 @@ enum class Symbol(val ligature: String, val codepoint: Int) {
     ExpandLess("expand_less", 0xE5CE),
     ExpandMore("expand_more", 0xE5CF),
     Favorite("favorite", 0xE87E),
+    FileOpen("file_open", 0xEAF3),
+    FileSave("file_save", 0xF17F),
     FlashlightOn("flashlight_on", 0xF00B),
     Folder("folder", 0xE2C7),
     FolderOpen("folder_open", 0xE2C8),

@@ -14,6 +14,7 @@ import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
+import app.attic.player.ui.model.BackupController
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.wrapped.WrappedRepository
 import coil3.ImageLoader
@@ -46,6 +47,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val backup by lazy {
         BackupRepository(database, settings, library, packageManager.getPackageInfo(packageName, 0).versionName, filesDir, noBackupFilesDir)
     }
+    val backupSession by lazy { BackupController(this) }
 
     /** Short confirmations and playback errors, shown as a snackbar. */
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */

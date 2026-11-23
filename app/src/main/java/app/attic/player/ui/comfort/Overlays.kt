@@ -222,7 +222,8 @@ fun ComfortDialog(
     onDismiss: () -> Unit,
     confirmText: String,
     onConfirm: () -> Unit,
-    dismissText: String,
+    /** Null for a dialog with one button, such as a result to acknowledge. */
+    dismissText: String?,
     modifier: Modifier = Modifier,
     body: String? = null,
     confirmEnabled: Boolean = true,
@@ -259,7 +260,7 @@ fun DialogCard(
     body: String?,
     confirmText: String,
     onConfirm: () -> Unit,
-    dismissText: String,
+    dismissText: String?,
     onDismiss: () -> Unit,
     confirmEnabled: Boolean = true,
     danger: Boolean = false,
@@ -288,8 +289,10 @@ fun DialogCard(
                     .padding(horizontal = 0.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                DialogButton(dismissText, onDismiss, Modifier.weight(1f))
-                Box(Modifier.size(width = 1.dp, height = 18.dp).background(colors.fill2))
+                if (dismissText != null) {
+                    DialogButton(dismissText, onDismiss, Modifier.weight(1f))
+                    Box(Modifier.size(width = 1.dp, height = 18.dp).background(colors.fill2))
+                }
                 DialogButton(confirmText, onConfirm, Modifier.weight(1f), enabled = confirmEnabled, danger = danger)
             }
         }
