@@ -96,6 +96,9 @@ class LibraryRepository(
             MediaStore.Audio.Media.IS_PODCAST,
             MediaStore.Audio.Media.IS_AUDIOBOOK,
             MediaStore.Audio.Media.IS_RECORDING,
+            MediaStore.Audio.Media.ALBUM_ARTIST,
+            MediaStore.Audio.Media.COMPOSER,
+            MediaStore.Audio.Media.GENRE,
         )
         val rows = ArrayList<RawTrack>(300)
         context.contentResolver.query(
@@ -130,6 +133,9 @@ class LibraryRepository(
                     year = c.getInt(8).takeIf { it > 0 },
                     dateAddedSec = c.getLong(9),
                     volume = c.getString(10) ?: RawTrack.PRIMARY_VOLUME,
+                    albumArtist = c.getString(17),
+                    composer = c.getString(18),
+                    genre = c.getString(19),
                 )
             }
         }

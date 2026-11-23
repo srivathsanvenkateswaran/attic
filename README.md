@@ -66,8 +66,10 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 | `Coldplay - Hymn For The Weekend (Lyrics)` by `DopeMusic` | **Hymn For The Weekend** by Coldplay |
 | `Gulabi [kTpyO8iwlSY].mp3`, no tags | **Gulabi** |
 | `A.R. RAHMAN`, `A.R. Rahman`, `A. R. Rahman` | One artist page |
-| `English/`, `Hindi/`, `Tamil/`, `Phonk/` folders | Playlists, not artists |
+| `English/`, `Hindi/`, `Bollywood/`, `Snaptube/` folders | Playlists, not artists |
 | `Various Artists/` folder | The real performers get the credit |
+| One soundtrack filed under each singer's folder, album artist `Various Artists` | One album |
+| Genre `Music` or `People & Blogs`, copied from YouTube | No genre |
 
 ## Two styles
 
@@ -105,7 +107,9 @@ Install the release build for everyday use. Compose runs far slower in a debug b
 3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.
 
-Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
+Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them in subfolders of its own and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way.
+
+Each folder at the top of the root is an artist folder when more than half of its tagged songs credit the folder's name as artist, album artist or composer, or when none of its songs has those tags. Any other folder, such as `Bollywood/`, `Workout/` or `Snaptube/`, becomes a read-only playlist. `Various Artists/` holds compilations and credits each song's own performers. Albums group by album name and album artist, falling back to the artist folder when a song has no album artist tag. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule.
 
 ## Build from source
 

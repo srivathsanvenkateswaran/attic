@@ -11,11 +11,23 @@ data class AudioFlags(
     val isRecording: Boolean = false,
 )
 
+/** What a folder at the top of a library root stands for. */
+enum class FolderKind {
+    /** Named after the artist of most of its songs, or holding no artist tags at all. */
+    Artist,
+
+    /** `Various Artists`: a compilation shelf whose songs credit their own performers. */
+    Various,
+
+    /** Anything else, such as `Bollywood/`, `Workout/` or `Snaptube/`: shown as a read-only playlist. */
+    Playlist,
+}
+
 /**
  * Decides which audio files are songs and where each song's library folder starts.
  *
  * Attic reads every volume MediaStore indexes, so a library can sit in `Music/`, `Music/Offline/`,
- * `Download/` or on an SD card. Folder-derived meaning (artist folders, themed playlists, "Various
+ * `Download/` or on an SD card. Folder-derived meaning (artist folders, folder playlists, "Various
  * Artists") is read from the path below the library root that [roots] picks.
  */
 object LibraryScope {
@@ -45,6 +57,9 @@ object LibraryScope {
     /** Share of a root's songs one subfolder must hold to count as a wrapper around the whole library. */
     private const val WRAPPER_SHARE = 0.9
 
+    private val VARIOUS_KEY = TitleCleaner.normalize("Various Artists")
+    private val UNKNOWN_TAGS = setOf("<unknown>", "unknown", "")
+
     fun isSong(relativePath: String, displayName: String, flags: AudioFlags): Boolean {
         if (!flags.isMusic) return false
         if (flags.isRingtone || flags.isNotification || flags.isAlarm) return false
@@ -62,11 +77,12 @@ object LibraryScope {
      *
      * Songs are grouped by volume and by their standard top-level folder (`Music/`, `Download/` …);
      * songs outside any standard folder form one group at the volume root. Each group starts at that
-     * folder and steps into a subfolder while the subfolder holds at least 90% of the group's songs
-     * and is neither an artist folder (named after the artist tag of most of its songs) nor a folder
-     * the builder reads meaning from, such as a themed playlist folder. So `Music/Offline/` is the
-     * root when nearly everything lives under it, `Music/` when artist folders sit directly in it,
-     * and a one-artist library in `Music/Coldplay/` keeps Coldplay as its artist folder.
+     * folder and steps into a subfolder while the subfolder is a wrapper: it holds at least 90% of
+     * the group's songs, most of them in its own subfolders rather than loose inside it, and it is
+     * neither an artist folder nor `Various Artists`. So `Music/Offline/` is the root when nearly
+     * everything lives in folders under it, `Music/` when artist folders sit directly in it, a
+     * one-artist library in `Music/Coldplay/` keeps Coldplay as its artist folder, and a single
+     * folder of loose songs such as `Download/Snaptube/` stays a folder below the root.
      */
     fun roots(rows: List<RawTrack>): Map<RawTrack, String> {
         val result = HashMap<RawTrack, String>(rows.size)
@@ -96,17 +112,42 @@ object LibraryScope {
             val (child, count) = below.groupingBy { it[root.size] }.eachCount().maxByOrNull { it.value } ?: break
             if (count < group.size * WRAPPER_SHARE) break
             val inChild = group.filter { segments(it.relativePath).getOrNull(root.size) == child }
-            if (LibraryBuilder.isMeaningfulFolder(child) || isArtistFolder(child, inChild)) break
+            if (isVariousArtists(child) || isProvenArtistFolder(child, inChild)) break
+            val loose = inChild.count { segments(it.relativePath).size == root.size + 1 }
+            if (loose * 2 >= inChild.size) break
             root += child
         }
         return root
     }
 
-    private fun isArtistFolder(name: String, rows: List<RawTrack>): Boolean {
+    /**
+     * A folder is an artist folder when most of its tagged songs credit the folder's name as artist,
+     * album artist or composer, or when none of its songs has any of those tags. `Various Artists` is
+     * its own kind. Any other folder is a playlist.
+     */
+    fun folderKind(name: String, rows: List<RawTrack>): FolderKind = when {
+        isVariousArtists(name) -> FolderKind.Various
+        rows.none { creditTags(it).isNotEmpty() } -> FolderKind.Artist
+        isProvenArtistFolder(name, rows) -> FolderKind.Artist
+        else -> FolderKind.Playlist
+    }
+
+    fun isVariousArtists(name: String): Boolean = TitleCleaner.normalize(name) == VARIOUS_KEY
+
+    /** The tag with MediaStore's `<unknown>` placeholder and blanks read as absent. */
+    fun tagOrNull(tag: String?): String? = tag?.trim()?.takeUnless { it.lowercase() in UNKNOWN_TAGS }
+
+    private fun creditTags(row: RawTrack): List<String> =
+        listOfNotNull(tagOrNull(row.artist), tagOrNull(row.albumArtist), tagOrNull(row.composer))
+
+    /** More than half of the folder's tagged songs credit its name, whole ("Simon & Garfunkel") or as one of several. */
+    private fun isProvenArtistFolder(name: String, rows: List<RawTrack>): Boolean {
         val key = TitleCleaner.normalize(name)
-        val tagged = rows.mapNotNull { it.artist?.trim()?.takeIf { a -> a.isNotEmpty() && a.lowercase() != "<unknown>" } }
+        val tagged = rows.map(::creditTags).filter { it.isNotEmpty() }
         if (tagged.isEmpty()) return false
-        val matching = tagged.count { artist -> TitleCleaner.splitCredits(artist).any { TitleCleaner.normalize(it) == key } }
+        val matching = tagged.count { tags ->
+            (tags + tags.flatMap { TitleCleaner.splitCredits(it) }).any { TitleCleaner.normalize(it) == key }
+        }
         return matching * 2 > tagged.size
     }
 

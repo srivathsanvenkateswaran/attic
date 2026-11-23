@@ -15,20 +15,32 @@ class LibraryScopeTest {
         artist: String? = null,
         album: String? = null,
         volume: String = RawTrack.PRIMARY_VOLUME,
-    ) = RawTrack(nextId++, file, path, title, artist, album, null, 200_000, null, 0, volume)
+        albumArtist: String? = null,
+        composer: String? = null,
+    ) = RawTrack(nextId++, file, path, title, artist, album, null, 200_000, null, 0, volume, albumArtist, composer)
 
-    /** The shape of the owner's library: artist folders, themed folders and Various Artists under Music/Offline. */
+    /**
+     * The shape of the owner's library under Music/Offline: artist folders whose album artist tag is
+     * the folder's name, a composer's soundtrack folder whose songs credit only the singers,
+     * Various Artists, and four folders of YouTube downloads (English, Hindi, Tamil, Phonk) whose
+     * tags name many artists and no album artist. As in the real library, most songs in each of
+     * those four carry an artist tag and a few have none.
+     */
     private fun ownerLibrary(volume: String = RawTrack.PRIMARY_VOLUME) = listOf(
-        raw("Music/Offline/A. R. Rahman/Roja/", "01 Kadhal Rojave.m4a", "Kadhal Rojave", "A. R. Rahman", "Roja", volume),
-        raw("Music/Offline/A. R. Rahman/Roja/", "02 Chinna Chinna Aasai.m4a", "Chinna Chinna Aasai", "A. R. Rahman", "Roja", volume),
-        raw("Music/Offline/Coldplay/Parachutes/", "05 Yellow.mp3", "Yellow", "Coldplay", "Parachutes", volume),
+        raw("Music/Offline/A. R. Rahman/Roja/", "01 Kadhal Rojave.m4a", "Kadhal Rojave", "A. R. Rahman", "Roja", volume, "A. R. Rahman"),
+        raw("Music/Offline/A. R. Rahman/Roja/", "02 Chinna Chinna Aasai.m4a", "Chinna Chinna Aasai", "A. R. Rahman", "Roja", volume, "A. R. Rahman"),
+        raw("Music/Offline/Coldplay/Parachutes/", "05 Yellow.mp3", "Yellow", "Coldplay", "Parachutes", volume, "Coldplay"),
         raw("Music/Offline/Coldplay/Parachutes/", "06 Trouble.mp3", "Trouble", "Coldplay", "Parachutes", volume),
-        raw("Music/Offline/Various Artists/Tamasha/", "a.mp3", "Agar Tum Saath Ho", "Alka Yagnik & Arijit Singh", "Tamasha", volume),
+        raw("Music/Offline/Shashwat Sachdev/Dhurandhar/", "03 Gehra Hua.mp3", "Gehra Hua", "Arijit Singh", "Dhurandhar", volume, "Shashwat Sachdev"),
+        raw("Music/Offline/Shashwat Sachdev/Dhurandhar/", "08 Lutt Le Gaya.mp3", "Lutt Le Gaya", "Simran Choudhary", "Dhurandhar", volume, "Shashwat Sachdev"),
+        raw("Music/Offline/Various Artists/Tamasha/", "a.mp3", "Agar Tum Saath Ho", "Alka Yagnik & Arijit Singh", "Tamasha", volume, "Various Artists"),
         raw("Music/Offline/English/", "The Nights [kTpyO8iwlSY].mp3", "Avicii - The Nights", "Avicii", "English", volume),
         raw("Music/Offline/English/", "Wake Me Up [kTpyO8iwlSY].mp3", "Avicii - Wake Me Up", "Avicii", "English", volume),
         raw("Music/Offline/Hindi/", "Gulabi [kTpyO8iwlSY].mp3", null, null, "Hindi", volume),
+        raw("Music/Offline/Hindi/", "Kesariya [kTpyO8iwlSY].mp3", "Kesariya", "T-Series", "Hindi", volume),
         raw("Music/Offline/Tamil/", "Song [kTpyO8iwlSY].mp3", "Song", "Anirudh", "Tamil", volume),
         raw("Music/Offline/Phonk/", "Soul [kTpyO8iwlSY].mp3", "KORDHELL - SOUL", "KORDHELL", "Phonk", volume),
+        raw("Music/Offline/Phonk/", "Lost [kTpyO8iwlSY].mp3", "Lost", null, "Phonk", volume),
     )
 
     @Test
@@ -40,11 +52,30 @@ class LibraryScopeTest {
 
         val lib = LibraryBuilder.build(rows)
         assertEquals(listOf("English", "Hindi", "Phonk", "Tamil"), lib.folders.map { it.name })
+        assertEquals(listOf(2, 2, 2, 1), lib.folders.map { it.tracks.size })
         assertEquals(
-            listOf("A. R. Rahman", "Alka Yagnik", "Arijit Singh", "Avicii", "Coldplay", "KORDHELL"),
+            listOf("A. R. Rahman", "Alka Yagnik", "Arijit Singh", "Avicii", "Coldplay", "KORDHELL", "Shashwat Sachdev", "Simran Choudhary"),
             lib.artists.map { it.name },
         )
+        assertEquals(
+            listOf("Dhurandhar" to "Shashwat Sachdev", "Parachutes" to "Coldplay", "Roja" to "A. R. Rahman", "Tamasha" to "Various Artists"),
+            lib.albums.map { it.name to it.artist },
+        )
+        assertEquals(listOf("parachutes|coldplay"), lib.albums.filter { it.name == "Parachutes" }.map { it.key })
+        assertEquals(2, lib.albums.single { it.name == "Parachutes" }.tracks.size)
         assertEquals("Music/Offline/Coldplay/Parachutes/05 Yellow.mp3", lib.tracks.single { it.title == "Yellow" }.key)
+    }
+
+    @Test
+    fun `the owner's library comes out the same whether or not album artist tags are read`() {
+        val tagged = ownerLibrary()
+        nextId = 1
+        val untagged = ownerLibrary().map { if (it.relativePath.contains("Shashwat")) it else it.copy(albumArtist = null) }
+        val a = LibraryBuilder.build(tagged)
+        val b = LibraryBuilder.build(untagged)
+        assertEquals(a.folders, b.folders)
+        assertEquals(a.artists.map { it.key to it.name }, b.artists.map { it.key to it.name })
+        assertEquals(a.albums.map { it.key to it.artist }, b.albums.map { it.key to it.artist })
     }
 
     @Test

@@ -44,7 +44,7 @@ Launch
    │  ├─ library ................ tab root
    │  ├─ album/{key}
    │  ├─ artist/{key}
-   │  ├─ folder/{name} .......... read-only playlist made from a themed music folder
+   │  ├─ folder/{name} .......... read-only playlist made from a music folder
    │  ├─ playlist/{id} .......... user playlist
    │  ├─ liked .................. Liked Songs
    │  ├─ settings
@@ -391,7 +391,7 @@ Purpose: an artist's songs and albums. `ui/CollectionScreens.kt:293-377`.
 
 All three use the gradient header and control row from 2.6, followed by track rows with covers.
 
-**Folder** (`ui/CollectionScreens.kt:379-409`). A themed folder at the top of the music library shown as a read-only playlist. In the owner's library these are English, Hindi, Tamil and Phonk.
+**Folder** (`ui/CollectionScreens.kt:379-409`). A folder at the top of the music library that isn't an artist's, shown as a read-only playlist. A folder is an artist's when more than half of its tagged songs credit the folder's name as artist, album artist or composer, or when none of its songs has those tags (`data/LibraryScope.kt`). In the owner's library the playlists are English, Hindi, Tamil and Phonk; in another library they might be Bollywood, Workout or Snaptube.
 - Cover: mosaic, 62% width. Title: folder name.
 - Subtitle: "Playlist from a folder on this phone" in `bodyMedium` `onSurfaceVariant`.
 - Detail: "{n} songs, {duration}".

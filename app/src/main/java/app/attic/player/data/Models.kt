@@ -14,6 +14,9 @@ data class RawTrack(
     val dateAddedSec: Long,
     /** MediaStore volume, such as "external_primary" or an SD card's ID. [relativePath] is relative to it. */
     val volume: String = PRIMARY_VOLUME,
+    val albumArtist: String? = null,
+    val composer: String? = null,
+    val genre: String? = null,
 ) {
     companion object {
         const val PRIMARY_VOLUME = "external_primary"
@@ -34,6 +37,9 @@ data class Track(
     val durationMs: Long,
     val year: Int?,
     val dateAddedSec: Long,
+    /** The genre tag, minus the YouTube category names some downloaders write there. */
+    val genre: String? = null,
+    val composer: String? = null,
 )
 
 data class Album(
@@ -52,7 +58,7 @@ data class Artist(
     val albums: List<Album>,
 )
 
-/** A themed folder at the top of the library root (English, Hindi, Tamil, Phonk) shown as a read-only playlist. */
+/** A folder at the top of a library root that isn't an artist's, such as `Bollywood/`, shown as a read-only playlist. */
 data class FolderPlaylist(
     val name: String,
     val tracks: List<Track>,

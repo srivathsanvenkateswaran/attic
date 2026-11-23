@@ -16,7 +16,13 @@ class LibraryBuilderTest {
         artist: String? = null,
         album: String? = null,
         track: String? = null,
-    ) = RawTrack(nextId++, file, "Music/Offline/$path", title, artist, album, track, 1000, null, 0)
+        albumArtist: String? = null,
+        composer: String? = null,
+        genre: String? = null,
+    ) = RawTrack(
+        nextId++, file, "Music/Offline/$path", title, artist, album, track, 1000, null, 0,
+        albumArtist = albumArtist, composer = composer, genre = genre,
+    )
 
     /** These tests are about tag cleanup, so they fix the owner's root instead of detecting one. */
     private fun build(rows: List<RawTrack>) = LibraryBuilder.build(rows, root = "Music/Offline/")
@@ -53,8 +59,14 @@ class LibraryBuilderTest {
 
     @Test
     fun `untagged file in a themed folder has unknown artist and no album`() {
-        val t = build(listOf(raw("Hindi/", "Gulabi [kTpyO8iwlSY].mp3", null, null, "Hindi"))).tracks.single()
-        assertEquals("Gulabi", t.title)
+        val lib = build(
+            listOf(
+                raw("Hindi/", "Gulabi [kTpyO8iwlSY].mp3", null, null, "Hindi"),
+                raw("Hindi/", "Kesariya [kTpyO8iwlSY].mp3", "Kesariya", "T-Series", "Hindi"),
+            ),
+        )
+        assertEquals(listOf("Hindi"), lib.folders.map { it.name })
+        val t = lib.tracks.single { it.title == "Gulabi" }
         assertEquals("Unknown artist", t.artist)
         assertNull(t.album)
         assertTrue(t.artistKeys.isEmpty())
@@ -243,5 +255,88 @@ class LibraryBuilderTest {
     fun `key is the stable path and not the mediastore id`() {
         val t = build(listOf(raw("Hindi/", "G.mp3", "G", "A", "Hindi"))).tracks.single()
         assertEquals("Music/Offline/Hindi/G.mp3", t.key)
+    }
+
+    @Test
+    fun `a compilation filed under each performer's folder is one album by its album artist`() {
+        val lib = build(
+            listOf(
+                raw("Arijit Singh/Aashiqui 2/", "a.mp3", "Tum Hi Ho", "Arijit Singh", "Aashiqui 2", albumArtist = "Various Artists"),
+                raw("Ankit Tiwari/Aashiqui 2/", "b.mp3", "Sunn Raha Hai", "Ankit Tiwari", "Aashiqui 2", albumArtist = "Various Artists"),
+            ),
+        )
+        val album = lib.albums.single()
+        assertEquals(2, album.tracks.size)
+        assertEquals("Various Artists", album.artist)
+        assertNull(album.artistKey)
+        // The folders still make both performers artists.
+        assertEquals(listOf("Ankit Tiwari", "Arijit Singh"), lib.artists.map { it.name })
+    }
+
+    @Test
+    fun `without an album artist the same album name under two artist folders stays two albums`() {
+        val lib = build(
+            listOf(
+                raw("Queen/Greatest Hits/", "a.mp3", "Bohemian Rhapsody", "Queen", "Greatest Hits"),
+                raw("ABBA/Greatest Hits/", "b.mp3", "Dancing Queen", "ABBA", "Greatest Hits"),
+            ),
+        )
+        assertEquals(listOf("ABBA", "Queen"), lib.albums.map { it.artist }.sorted())
+    }
+
+    @Test
+    fun `loose songs group into albums by album artist`() {
+        val rows = listOf(
+            RawTrack(1, "a.mp3", "Music/", "Bohemian Rhapsody", "Queen", "Greatest Hits", null, 1000, null, 0, albumArtist = "Queen"),
+            RawTrack(2, "b.mp3", "Music/", "Dancing Queen", "ABBA", "Greatest Hits", null, 1000, null, 0, albumArtist = "ABBA"),
+            RawTrack(3, "c.mp3", "Music/", "Waterloo", "ABBA", "Greatest Hits", null, 1000, null, 0, albumArtist = "ABBA"),
+            RawTrack(4, "d.mp3", "Music/", "Chaleya", "Arijit Singh, Shilpa Rao", "Jawan", null, 1000, null, 0, albumArtist = "Anirudh Ravichander"),
+        )
+        val lib = LibraryBuilder.build(rows)
+        val hits = lib.albums.filter { it.name == "Greatest Hits" }.associate { it.artist to it.tracks.size }
+        assertEquals(mapOf("ABBA" to 2, "Queen" to 1), hits)
+        // An album artist with no song of their own still gets a page the album links to.
+        val jawan = lib.albums.single { it.name == "Jawan" }
+        assertEquals("Anirudh Ravichander", jawan.artist)
+        assertEquals("Anirudh Ravichander", lib.artistByKey.getValue(jawan.artistKey!!).name)
+        assertEquals("Arijit Singh, Shilpa Rao", lib.tracks.single { it.title == "Chaleya" }.artist)
+    }
+
+    @Test
+    fun `an album artist naming several people shows them all and links the first`() {
+        val lib = LibraryBuilder.build(
+            listOf(RawTrack(1, "a.mp3", "Music/", "Kesariya", "Arijit Singh", "Brahmastra", null, 1000, null, 0, albumArtist = "Pritam, Arijit Singh")),
+        )
+        val album = lib.albums.single()
+        assertEquals("Pritam, Arijit Singh", album.artist)
+        assertEquals(TitleCleaner.normalize("Pritam"), album.artistKey)
+    }
+
+    @Test
+    fun `an album artist that spells an artist folder is not split at its ampersand`() {
+        val lib = build(
+            listOf(raw("Simon & Garfunkel/Bookends/", "a.mp3", "America", "Simon & Garfunkel", "Bookends", albumArtist = "Simon & Garfunkel")),
+        )
+        val album = lib.albums.single()
+        assertEquals("Simon & Garfunkel", album.artist)
+        assertEquals(TitleCleaner.normalize("Simon & Garfunkel"), album.artistKey)
+        assertEquals("bookends|simongarfunkel", album.key)
+    }
+
+    @Test
+    fun `genre and composer come from the tags and youtube categories are dropped`() {
+        val lib = build(
+            listOf(
+                raw("Coldplay/Parachutes/", "a.mp3", "Yellow", "Coldplay", "Parachutes", genre = "Alternative Rock", composer = "Chris Martin, Guy Berryman, Chris Martin"),
+                raw("Coldplay/Parachutes/", "b.mp3", "Trouble", "Coldplay", "Parachutes", genre = "Music"),
+                raw("Coldplay/Parachutes/", "c.mp3", "Shiver", "Coldplay", "Parachutes", genre = "People & Blogs", composer = "<unknown>"),
+            ),
+        )
+        val yellow = lib.tracks.single { it.title == "Yellow" }
+        assertEquals("Alternative Rock", yellow.genre)
+        assertEquals("Chris Martin, Guy Berryman", yellow.composer)
+        assertNull(lib.tracks.single { it.title == "Trouble" }.genre)
+        assertNull(lib.tracks.single { it.title == "Shiver" }.genre)
+        assertNull(lib.tracks.single { it.title == "Shiver" }.composer)
     }
 }
