@@ -17,9 +17,10 @@ class RadioEngineTest {
         artist: String? = key,
         album: String? = key,
         affinity: Float = 0f,
+        composers: Set<String> = emptySet(),
     ): RadioSong {
         val r = Math.toRadians(degrees)
-        return RadioSong(key, floatArrayOf(cos(r).toFloat(), sin(r).toFloat()), language, artist, album, affinity)
+        return RadioSong(key, floatArrayOf(cos(r).toFloat(), sin(r).toFloat()), language, artist, album, affinity, composers)
     }
 
     private fun engine(vararg songs: RadioSong, sameSong: (RadioSong, RadioSong) -> Boolean = { _, _ -> false }) =
@@ -114,6 +115,34 @@ class RadioEngineTest {
     @Test
     fun theSeedComposerGetsABoost() {
         val e = engine(song("seed", 0.0, artist = "rahman"), song("other", 10.0), song("rahman2", 11.0, artist = "rahman"))
+        assertEquals("rahman2", e.chain("seed", 1).single())
+    }
+
+    @Test
+    fun aComposerTagOnBothSongsDecidesTheBoostOverTheArtist() {
+        // Same performer, different composers: no boost, so the closer song wins.
+        val e = engine(
+            song("seed", 0.0, artist = "spb", composers = setOf("ilaiyaraaja")),
+            song("other", 10.0, composers = setOf("devi")),
+            song("spb2", 11.0, artist = "spb", composers = setOf("rahman")),
+        )
+        assertEquals("other", e.chain("seed", 1).single())
+        // Different performers, same composer: the boost goes to the composer's song.
+        val f = engine(
+            song("seed", 0.0, artist = "spb", composers = setOf("ilaiyaraaja")),
+            song("other", 10.0, composers = setOf("devi")),
+            song("yesudas", 11.0, artist = "yesudas", composers = setOf("ilaiyaraaja", "vaali")),
+        )
+        assertEquals("yesudas", f.chain("seed", 1).single())
+    }
+
+    @Test
+    fun withoutAComposerTagTheArtistStandsIn() {
+        val e = engine(
+            song("seed", 0.0, artist = "rahman", composers = setOf("rahman")),
+            song("other", 10.0),
+            song("rahman2", 11.0, artist = "rahman"),
+        )
         assertEquals("rahman2", e.chain("seed", 1).single())
     }
 

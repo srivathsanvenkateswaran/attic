@@ -12,6 +12,8 @@ class RadioSong(
     val artistKey: String?,
     val albumKey: String?,
     val affinity: Float = 0f,
+    /** Normalized names from the composer tag. Empty when the file has none. */
+    val composerKeys: Set<String> = emptySet(),
 ) {
     companion object {
         const val NO_VOCALS = "none"
@@ -89,11 +91,22 @@ class RadioEngine(
     private inner class Candidate(val song: RadioSong, val similarity: Float) {
         fun scoreFor(seed: RadioSong): Float {
             var score = similarity + song.affinity
-            if (song.artistKey != null && song.artistKey == seed.artistKey) score += COMPOSER_BOOST
+            if (sameComposer(song, seed)) score += COMPOSER_BOOST
             if (song.language == null) score -= UNLABELLED_PENALTY
             return score
         }
     }
+
+    /**
+     * Shares a composer with the seed. With a composer tag on both songs that tag decides; otherwise
+     * the lead artist stands in, which for a film soundtrack filed by music director is the composer.
+     */
+    private fun sameComposer(song: RadioSong, seed: RadioSong): Boolean =
+        if (song.composerKeys.isNotEmpty() && seed.composerKeys.isNotEmpty()) {
+            song.composerKeys.any { it in seed.composerKeys }
+        } else {
+            song.artistKey != null && song.artistKey == seed.artistKey
+        }
 
     private fun firstUsable(ranked: List<Candidate>, played: List<RadioSong>, allowed: (Candidate) -> Boolean): RadioSong? =
         ranked.firstOrNull { allowed(it) && played.none { p -> same(p, it.song) } }?.song
