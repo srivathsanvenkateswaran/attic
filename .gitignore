@@ -10,3 +10,7 @@ local.properties
 # Upload keys
 *.jks
 *.keystore
+
+# The design-file generator lives in design/build; keep it despite the build/ rule above.
+!design/build/
+__pycache__/
