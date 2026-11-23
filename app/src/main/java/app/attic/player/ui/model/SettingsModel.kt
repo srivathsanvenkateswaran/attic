@@ -161,7 +161,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
             try {
                 equaliser.launch(Equaliser.panelIntent(context, app.audioSessionId.value))
             } catch (_: ActivityNotFoundException) {
-                app.messages.tryEmit(context.getString(R.string.settings_equaliser_failed))
+                app.messages.tryEmit(app.getString(R.string.settings_equaliser_failed))
             }
         },
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
