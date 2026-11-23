@@ -93,7 +93,6 @@
     <string name="library_filter_albums">Albums</string>
     <string name="library_filter_artists">Artists</string>
     <string name="library_filter_songs">Songs</string>
-    <string name="library_recents">Recents</string>
     <string name="library_show_grid_cd">Show as grid</string>
     <string name="library_show_list_cd">Show as list</string>
     <plurals name="library_playlist_subtitle">
