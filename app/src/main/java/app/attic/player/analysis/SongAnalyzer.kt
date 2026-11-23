@@ -9,6 +9,7 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.system.Os
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -19,7 +20,7 @@ import kotlin.math.sqrt
 class SongAnalyzer(private val context: Context) : Closeable {
     class Result(val embedding: FloatArray, val chroma: ByteArray)
 
-    private val environment = OrtEnvironment.getEnvironment()
+    private val environment = quietEnvironment()
     private val session: OrtSession = environment.createSession(
         context.assets.open(MODEL_ASSET).use { it.readBytes() },
         OrtSession.SessionOptions().apply {
@@ -149,6 +150,17 @@ class SongAnalyzer(private val context: Context) : Closeable {
     }
 
     companion object {
+        /**
+         * ONNX Runtime's Android build sends usage events, with the phone's device ID, to Microsoft unless
+         * told not to (Privacy.md in its repository). Analysis promises that nothing leaves the phone, so
+         * this switches that off before the runtime first loads. The manifest also removes the runtime's
+         * uploader, so nothing could send the events anyway.
+         */
+        private fun quietEnvironment(): OrtEnvironment {
+            Os.setenv("ORT_DISABLE_TELEMETRY", "1", true)
+            return OrtEnvironment.getEnvironment()
+        }
+
         /** Raise this if the model or its input changes, so every song gets analysed again. */
         const val MODEL_VERSION = 1
 

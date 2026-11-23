@@ -53,6 +53,15 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
 
+        <!--
+            ONNX Runtime adds this to start its usage reporting to Microsoft when the app opens, which also
+            loads its 34 MB library on every launch. Removed, so the app sends Microsoft nothing.
+        -->
+        <provider
+            android:name="ai.onnxruntime.TelemetryInitializer"
+            android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
+            tools:node="remove" />
+
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
