@@ -104,18 +104,22 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         Result.success()
     }
 
-    /** A foreground service when Android allows one, which only happens if the app was open to start it. */
+    /**
+     * A foreground service only for a run you started with "Analyse now", and only while Android allows one,
+     * which needs the app open. Play's dataSync declaration ("Local processing") covers user-started work
+     * only, so a run that waited for the charger stays an ordinary job with an ordinary notification.
+     */
     private suspend fun showProgress(done: Int, total: Int) {
         shownDone = done
         shownTotal = total
         val notification = buildNotification(done, total)
-        try {
+        foreground = withoutCharger && try {
             setForeground(ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC))
-            foreground = true
+            true
         } catch (_: IllegalStateException) {
-            foreground = false
-            notifications.notify(NOTIFICATION_ID, notification)
+            false
         }
+        if (!foreground) notifications.notify(NOTIFICATION_ID, notification)
     }
 
     private fun buildNotification(done: Int, total: Int): Notification =
