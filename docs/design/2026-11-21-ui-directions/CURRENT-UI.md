@@ -243,7 +243,7 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 
 **States**
 
-- **Empty library** (`ui/HomeScreen.kt:90-98`): no header, no chips. A centred empty message, title "No songs on this phone", body "Copy MP3s onto this phone, in Music or any other folder, and they will show up here." The tab bar is still present.
+- **Empty library** (`ui/HomeScreen.kt:90-98`): no header, no chips. A centred empty message, title "No songs on this phone", body "Copy music files onto this phone, in Music or any other folder, and they will show up here." The tab bar is still present.
 - **No history yet**: the shortcut grid is "Liked Songs" plus the five biggest albums, and "Recently played" is absent. This is what `home.png` shows.
 - **No listening log**: no Wrapped card.
 - **Radio has not run yet**: no "Speed dial".
@@ -827,7 +827,7 @@ Liking a song, removing from a playlist, clearing the queue, and renaming or del
 
 | Where | Title | Body |
 |---|---|---|
-| Home, empty library | "No songs on this phone" | "Copy MP3s onto this phone, in Music or any other folder, and they will show up here." |
+| Home, empty library | "No songs on this phone" | "Copy music files onto this phone, in Music or any other folder, and they will show up here." |
 | Search, no matches | `No results for "{query}"` | "Check the spelling, or try fewer words." |
 | Liked Songs, empty | "Songs you like will appear here" | "Tap the plus on a song to save it." |
 | Playlist, empty | "Let's find something for your playlist" | "Tap the plus above to add songs from your library." |

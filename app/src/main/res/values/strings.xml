@@ -72,7 +72,7 @@
     <string name="home_album_no_year">Album</string>
     <string name="home_top_artists">Top artists</string>
     <string name="home_empty_title">No songs on this phone</string>
-    <string name="home_empty_body">Copy MP3s onto this phone, in Music or any other folder, and they will show up here.</string>
+    <string name="home_empty_body">Copy music files onto this phone, in Music or any other folder, and they will show up here.</string>
 
     <!-- Search (2.4) -->
     <string name="search_title">Search</string>
