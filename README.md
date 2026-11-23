@@ -16,10 +16,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/home.jpg" width="24%" alt="Home screen">
-  <img src="docs/screenshots/album.jpg" width="24%" alt="Album screen">
-  <img src="docs/screenshots/artist.jpg" width="24%" alt="Artist screen">
-  <img src="docs/screenshots/now_playing.jpg" width="24%" alt="Now Playing screen">
+  <img src="docs/screenshots/expressive-home.jpg" width="24%" alt="Home in the Expressive style">
+  <img src="docs/screenshots/expressive-now-playing.jpg" width="24%" alt="Now Playing in the Expressive style">
+  <img src="docs/screenshots/comfort-home.jpg" width="24%" alt="Home in the Comfort style">
+  <img src="docs/screenshots/comfort-now-playing.jpg" width="24%" alt="Now Playing in the Comfort style">
 </p>
 
 ## Why it exists
@@ -51,10 +51,6 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Media button support for Bluetooth and headsets, and it pauses when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
 
-<p align="center">
-  <img src="docs/screenshots/lock_screen.jpg" width="48%" alt="Lock-screen player">
-  <img src="docs/screenshots/widget.jpg" width="48%" alt="Home-screen widget">
-</p>
 
 **Shows lyrics, then keeps them**
 - Synced lyrics highlight the current line, and tapping a line jumps to it
@@ -72,12 +68,18 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 | `English/`, `Hindi/`, `Tamil/`, `Phonk/` folders | Playlists, not artists |
 | `Various Artists/` folder | The real performers get the credit |
 
-## Light mode
+## Two styles
+
+Attic has two looks, Expressive and Comfort. Switch between them in Settings > Appearance; the change applies at once and the song keeps playing. Both come in light and dark.
 
 <p align="center">
-  <img src="docs/screenshots/light_home.jpg" width="30%" alt="Home in light mode">
-  <img src="docs/screenshots/light_album.jpg" width="30%" alt="Album in light mode">
+  <img src="docs/screenshots/expressive-album.jpg" width="24%" alt="Album in the Expressive style">
+  <img src="docs/screenshots/expressive-artist.jpg" width="24%" alt="Artist in the Expressive style">
+  <img src="docs/screenshots/comfort-album.jpg" width="24%" alt="Album in the Comfort style">
+  <img src="docs/screenshots/comfort-artist.jpg" width="24%" alt="Artist in the Comfort style">
 </p>
+
+The screenshots use a demo library with invented artists and generated covers.
 
 ## Performance
 
