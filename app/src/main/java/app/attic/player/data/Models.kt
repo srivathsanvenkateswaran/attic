@@ -12,7 +12,13 @@ data class RawTrack(
     val durationMs: Long,
     val year: Int?,
     val dateAddedSec: Long,
-)
+    /** MediaStore volume, such as "external_primary" or an SD card's ID. [relativePath] is relative to it. */
+    val volume: String = PRIMARY_VOLUME,
+) {
+    companion object {
+        const val PRIMARY_VOLUME = "external_primary"
+    }
+}
 
 data class Track(
     /** Survives a MediaStore rebuild, unlike [mediaId], so saved data refers to tracks by this. */
@@ -46,7 +52,7 @@ data class Artist(
     val albums: List<Album>,
 )
 
-/** A themed top-level folder (English, Hindi, Tamil, Phonk) shown as a read-only playlist. */
+/** A themed folder at the top of the library root (English, Hindi, Tamil, Phonk) shown as a read-only playlist. */
 data class FolderPlaylist(
     val name: String,
     val tracks: List<Track>,

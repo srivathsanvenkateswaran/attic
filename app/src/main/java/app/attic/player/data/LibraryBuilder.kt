@@ -1,10 +1,16 @@
 package app.attic.player.data
 
-/** Turns MediaStore rows into the albums, artists and folder playlists the app shows. */
+/**
+ * Turns MediaStore rows into the albums, artists and folder playlists the app shows. Folder meaning
+ * is read below each song's library root, which [LibraryScope.roots] picks.
+ */
 object LibraryBuilder {
-    const val ROOT = "Music/Offline/"
     private val THEMED_FOLDERS = setOf("English", "Hindi", "Tamil", "Phonk")
     private const val VARIOUS_ARTISTS = "Various Artists"
+
+    /** True for a folder name the builder reads meaning from, which therefore can't be a library root. */
+    fun isMeaningfulFolder(name: String): Boolean =
+        name in THEMED_FOLDERS || TitleCleaner.normalize(name) == VARIOUS_KEY
     private const val UNKNOWN_ARTIST = "Unknown artist"
     private val VARIOUS_KEY = TitleCleaner.normalize(VARIOUS_ARTISTS)
     private val UNKNOWN_TAGS = setOf("<unknown>", "unknown", "")
@@ -22,8 +28,14 @@ object LibraryBuilder {
         var albumKey: String? = null
     }
 
-    fun build(rows: List<RawTrack>): Library {
-        val drafts = rows.map(::draft)
+    /** [root] fixes one library root for every row; null picks one per song with [LibraryScope.roots]. */
+    fun build(rows: List<RawTrack>, root: String? = null): Library {
+        // A key is a path relative to its volume, so the same path on two volumes would collide.
+        // Keep the primary volume's copy, which is the one a key pointed at before SD cards counted.
+        val unique = rows.sortedByDescending { it.volume == RawTrack.PRIMARY_VOLUME }
+            .distinctBy { it.relativePath + it.displayName }
+        val roots = if (root == null) LibraryScope.roots(unique) else null
+        val drafts = unique.map { draft(it, root ?: roots!!.getValue(it)) }
 
         // Folder names are the most reliable spelling of an artist, so they seed the name table.
         val names = ArtistNames()
@@ -68,9 +80,8 @@ object LibraryBuilder {
         return Library(tracks, albums, artists, folders)
     }
 
-    private fun draft(raw: RawTrack): Draft {
-        val pathInRoot = raw.relativePath.removePrefix(ROOT).trim('/')
-        val pathParts = pathInRoot.split('/').filter { it.isNotEmpty() }
+    private fun draft(raw: RawTrack, root: String): Draft {
+        val pathParts = LibraryScope.pathInRoot(raw.relativePath, root)
         val topFolder = pathParts.firstOrNull()
         val isThemed = topFolder in THEMED_FOLDERS
         val isVarious = topFolder != null && TitleCleaner.normalize(topFolder) == VARIOUS_KEY
