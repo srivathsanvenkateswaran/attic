@@ -4,13 +4,13 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.variableFont
 
 /**
  * Onest (OFL 1.1), bundled as res/font/onest.ttf: the variable font from google/fonts, instanced to
@@ -19,11 +19,7 @@ import app.attic.player.R
  */
 val Onest: FontFamily = FontFamily(
     listOf(400, 500, 600, 700, 800).map { weight ->
-        Font(
-            R.font.onest,
-            weight = FontWeight(weight),
-            variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
-        )
+        variableFont(R.font.onest, FontWeight(weight), FontVariation.Settings(FontVariation.weight(weight)))
     },
 )
 

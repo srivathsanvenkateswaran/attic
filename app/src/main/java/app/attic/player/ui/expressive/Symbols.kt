@@ -13,7 +13,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import app.attic.player.R
+import app.attic.player.ui.variableFont
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -143,10 +143,10 @@ private object SymbolFont {
     fun family(filled: Boolean, weight: Int, opticalSize: Int): FontFamily =
         families.getOrPut(Key(filled, weight, opticalSize)) {
             FontFamily(
-                Font(
+                variableFont(
                     R.font.material_symbols_rounded,
-                    weight = FontWeight(weight),
-                    variationSettings = FontVariation.Settings(
+                    FontWeight(weight),
+                    FontVariation.Settings(
                         FontVariation.Setting("FILL", if (filled) 1f else 0f),
                         FontVariation.weight(weight),
                         FontVariation.Setting("opsz", opticalSize.toFloat()),
@@ -155,6 +155,10 @@ private object SymbolFont {
             )
         }
 }
+
+/** The icon families the first screens draw (outline and filled, 20 and 24), at [weight], for [warmTypefaces]. */
+internal fun commonSymbolFamilies(weight: Int): List<Pair<FontFamily, FontWeight>> =
+    listOf(false, true).flatMap { filled -> listOf(24, 20).map { size -> SymbolFont.family(filled, weight, size) to FontWeight(weight) } }
 
 /** The optical sizes the icon families are built at; a size in between uses the one below. */
 private fun opticalSizeFor(size: Dp): Int = when {

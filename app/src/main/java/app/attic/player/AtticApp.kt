@@ -17,6 +17,7 @@ import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
 import app.attic.player.ui.model.BackupController
+import app.attic.player.ui.warmStyleTypefaces
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.wrapped.WrappedRepository
 import coil3.ImageLoader
@@ -85,6 +86,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
         // Settings and the database are read before anything this launch writes to them.
         onboarding
         scope.launch { library.refresh() }
+        // The style's typefaces take a few milliseconds each; make them now, off the main thread, so
+        // the first screen finds them ready (ui/VariableFonts.kt).
+        scope.launch(Dispatchers.Default) { warmStyleTypefaces(this@AtticApp, settings.uiStyle.value) }
         scope.launch { LanguageImport.run(this@AtticApp) }
         // A new install that Android restored from a backup merges the copy it came with.
         scope.launch { backup.restoreSnapshotOnce() }
