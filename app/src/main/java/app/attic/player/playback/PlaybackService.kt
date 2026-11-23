@@ -127,8 +127,25 @@ class PlaybackService : MediaSessionService() {
             attic.settings.crossfadeSeconds.collect { crossfade.settingsChanged() }
         }
 
+        openAudioSession(player.audioSessionId)
+
         scope.launch { restoreQueue() }
         startSaving()
+    }
+
+    /** Hands the session to equaliser apps, and to Settings for its Equaliser row. */
+    private fun openAudioSession(sessionId: Int) {
+        if (sessionId == C.AUDIO_SESSION_ID_UNSET || sessionId == attic.audioSessionId.value) return
+        closeAudioSession()
+        attic.audioSessionId.value = sessionId
+        Equaliser.announceOpen(this, sessionId)
+    }
+
+    private fun closeAudioSession() {
+        val sessionId = attic.audioSessionId.value
+        if (sessionId == C.AUDIO_SESSION_ID_UNSET) return
+        Equaliser.announceClose(this, sessionId)
+        attic.audioSessionId.value = C.AUDIO_SESSION_ID_UNSET
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
@@ -141,6 +158,7 @@ class PlaybackService : MediaSessionService() {
         session?.release()
         session = null
         crossfade.release()
+        closeAudioSession()
         player.release()
         super.onDestroy()
     }
@@ -437,6 +455,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     private inner class PlayerEvents : Player.Listener {
+        override fun onAudioSessionIdChanged(audioSessionId: Int) = openAudioSession(audioSessionId)
+
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM && sleep.songEnded()) {
                 sleepJob?.cancel()

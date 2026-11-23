@@ -82,6 +82,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     /** Set when the first run ends on its radio link, so the shell opens Settings; cleared once navigated. */
     val requestedSettings = MutableStateFlow(false)
 
+    /** The player's audio session, for Settings' Equaliser row. 0 until the playback service has started. */
+    val audioSessionId = MutableStateFlow(0)
+
     /** Short confirmations and playback errors, shown as a snackbar. */
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
