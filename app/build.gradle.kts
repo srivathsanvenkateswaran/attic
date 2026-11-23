@@ -166,6 +166,7 @@ dependencies {
     implementation(libs.work.runtime)
 
     testImplementation(libs.junit)
+    testImplementation(libs.org.json)
     if (storeShots) {
         testImplementation(platform(libs.compose.bom))
         testImplementation(libs.robolectric)

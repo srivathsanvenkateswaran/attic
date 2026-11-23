@@ -123,6 +123,8 @@ class CrossCount(val outcome: String, val total: Int)
 
 class PlayCount(val trackKey: String, val playCount: Int)
 
+class EventStart(val trackKey: String, val startedAt: Long)
+
 class ListenRow(val trackKey: String, val startedAt: Long, val listenedMs: Long, val outcome: String, val contextName: String?)
 
 @Dao
@@ -179,10 +181,18 @@ interface MusicDao {
     @Insert
     suspend fun insertPlaylistTracks(entities: List<PlaylistTrackEntity>)
 
+    @Query("SELECT trackKey FROM playlist_tracks WHERE playlistId = :id ORDER BY position")
+    suspend fun playlistKeys(id: Long): List<String>
+
+    /**
+     * Puts [keys] in this order. The screen only shows songs that are on the phone, so songs it
+     * didn't pass (a restored song whose file isn't here yet) keep their order after them.
+     */
     @Transaction
     suspend fun reorderPlaylist(id: Long, keys: List<String>) {
+        val order = PlaylistOrder.reordered(playlistKeys(id), keys)
         clearPlaylist(id)
-        insertPlaylistTracks(keys.mapIndexed { i, key -> PlaylistTrackEntity(id, key, i) })
+        insertPlaylistTracks(order.mapIndexed { i, key -> PlaylistTrackEntity(id, key, i) })
     }
 
     @Query("SELECT * FROM history ORDER BY lastPlayedAt DESC LIMIT 200")
@@ -250,6 +260,53 @@ interface MusicDao {
 
     @Query("SELECT COUNT(*) FROM listening_events WHERE listenedMs > 0")
     fun listenCount(): Flow<Int>
+
+    // Backup and restore read whole tables and write in bulk.
+
+    @Query("SELECT * FROM liked ORDER BY likedAt")
+    suspend fun allLiked(): List<LikedEntity>
+
+    @Query("SELECT * FROM playlists ORDER BY createdAt, id")
+    suspend fun allPlaylists(): List<PlaylistEntity>
+
+    @Query("SELECT * FROM playlist_tracks ORDER BY playlistId, position")
+    suspend fun allPlaylistTracks(): List<PlaylistTrackEntity>
+
+    @Query("SELECT * FROM history")
+    suspend fun allHistory(): List<HistoryEntity>
+
+    @Query("SELECT * FROM listening_events ORDER BY startedAt, id")
+    suspend fun allEvents(): List<ListeningEventEntity>
+
+    @Query("SELECT trackKey, startedAt FROM listening_events")
+    suspend fun eventStarts(): List<EventStart>
+
+    @Query("SELECT * FROM lyrics WHERE found = 1")
+    suspend fun allFoundLyrics(): List<LyricsEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertLiked(entities: List<LikedEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlaylistTracksIfAbsent(entities: List<PlaylistTrackEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveHistory(entities: List<HistoryEntity>)
+
+    @Insert
+    suspend fun insertEvents(entities: List<ListeningEventEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLyrics(entities: List<LyricsEntity>)
+}
+
+/** Keeps songs a reorder didn't mention, in their old order, after the ones it did. */
+object PlaylistOrder {
+    fun reordered(current: List<String>, shown: List<String>): List<String> {
+        val placed = shown.distinct()
+        val set = placed.toSet()
+        return placed + current.filter { it !in set }
+    }
 }
 
 @Database(

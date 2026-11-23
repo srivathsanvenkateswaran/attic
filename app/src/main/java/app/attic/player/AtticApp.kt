@@ -8,6 +8,7 @@ import app.attic.player.data.LibraryRepository
 import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
 import app.attic.player.data.UserData
+import app.attic.player.data.backup.BackupRepository
 import app.attic.player.playback.PlayerClient
 import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
@@ -42,6 +43,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
     val wrapped by lazy { WrappedRepository(this) }
+    val backup by lazy {
+        BackupRepository(database, settings, library, packageManager.getPackageInfo(packageName, 0).versionName, filesDir, noBackupFilesDir)
+    }
 
     /** Short confirmations and playback errors, shown as a snackbar. */
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */
@@ -56,6 +60,8 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         scope.launch { library.refresh() }
         scope.launch { LanguageImport.run(this@AtticApp) }
+        // A new install that Android restored from a backup merges the copy it came with.
+        scope.launch { backup.restoreSnapshotOnce() }
         // New files get analysed the next time the phone charges.
         scope.launch {
             library.library.filterNotNull().collect { if (it.tracks.isNotEmpty()) AnalysisWorker.scheduleWhileCharging(this@AtticApp) }

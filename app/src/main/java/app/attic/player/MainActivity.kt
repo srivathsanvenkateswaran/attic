@@ -77,6 +77,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         attic.player.disconnect()
+        // Android's backup runs while the phone is idle, so the copy it takes is the one from the last time the app was left.
+        attic.scope.launch { attic.backup.saveSnapshot() }
         super.onStop()
     }
 }
