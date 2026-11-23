@@ -44,6 +44,14 @@ are songs and where each library root starts. The four folder names that become 
   after screenshots in the pull request.
 - User-facing text goes in `res/values/strings.xml`.
 
+## Design files
+
+Both styles are drawn as FigCraft files in [`design/`](design/README.md): every screen and state
+in light and dark, the components and the tokens. Open them in FigCraft, which is free and open
+source. To propose a change to how something looks, follow "Proposing a design change" in
+[`design/README.md`](design/README.md). A code change that alters the look should update the
+matching frames in the same pull request.
+
 ## Names and look
 
 Attic has two styles, called **Expressive** and **Comfort**. Don't name them, or anything else in
