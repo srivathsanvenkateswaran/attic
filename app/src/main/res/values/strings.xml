@@ -92,6 +92,8 @@
     <string name="search_result_artist">Artist</string>
     <string name="search_result_playlist">Playlist</string>
     <string name="search_result_album">Album, %1$s</string>
+    <string name="search_result_genre">Genre</string>
+    <string name="search_genres">Genres</string>
     <string name="search_no_results_title">No results for “%1$s”</string>
     <string name="search_no_results_body">Check the spelling, or try fewer words.</string>
 
@@ -134,6 +136,8 @@
     <string name="collection_album_gone">This album is gone</string>
     <string name="collection_artist_gone">This artist is gone</string>
     <string name="collection_playlist_gone">This playlist is gone</string>
+    <string name="collection_genre_gone">This genre is gone</string>
+    <string name="collection_radio_cd">Start radio from %1$s</string>
     <string name="collection_gone_body">It may have been removed from this phone.</string>
 
     <!-- Album (2.7) -->
@@ -153,6 +157,8 @@
 
     <!-- Folder, Favourites and Playlist (2.9) -->
     <string name="folder_subtitle">Playlist from a folder on this phone</string>
+    <!-- Under a genre's name: its songs come from their genre tags, or from analysis for songs without one. -->
+    <string name="genre_subtitle">Genre, from tags and analysis</string>
     <string name="favourites_empty_title">Songs you like will appear here</string>
     <string name="favourites_empty_body">Tap the heart on a song to save it.</string>
     <string name="playlist_rename">Rename</string>
@@ -481,6 +487,7 @@
     <string name="message_radio_unreadable">Radio couldn\'t read this song</string>
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
     <string name="message_smart_shuffle_nothing">Smart shuffle has nothing to add yet, so this is a plain shuffle</string>
+    <string name="message_genre_radio_unanalysed">Radio can start from this genre once its songs are analysed</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>

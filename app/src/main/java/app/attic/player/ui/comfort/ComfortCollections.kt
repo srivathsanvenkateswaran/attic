@@ -73,6 +73,8 @@ import app.attic.player.ui.model.ArtistActions
 import app.attic.player.ui.model.ArtistState
 import app.attic.player.ui.model.FolderActions
 import app.attic.player.ui.model.FolderState
+import app.attic.player.ui.model.GenreActions
+import app.attic.player.ui.model.GenreState
 import app.attic.player.ui.model.LikedActions
 import app.attic.player.ui.model.LikedState
 import app.attic.player.ui.model.PlayControlsActions
@@ -239,6 +241,54 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
         }
         item(key = "actions") { PlayRow(folder.name, state.controls, actions.controls) }
         item(key = "gap") { Spacer(Modifier.height(16.dp)) }
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+    }
+}
+
+/**
+ * A genre: the folder's header, with the line under the name saying where the genre comes from and
+ * radio in the row of actions. Albums most of whose songs are in it come first as a shelf, then every
+ * song as one card.
+ */
+@Composable
+fun ComfortGenre(state: GenreState, actions: GenreActions) {
+    val genre = state.genre
+    if (genre == null) {
+        // While the list is first built there is nothing to say yet; after that, the genre has gone.
+        if (!state.loading) GoneState(R.string.collection_genre_gone, Symbol.QueueMusic, actions.back)
+        return
+    }
+    val tracks = genre.tracks
+    CollectionFrame(title = genre.name, onBack = actions.back, titleTop = HeaderArt) {
+        item(key = "header") {
+            CollectionHeader(
+                title = genre.name,
+                art = { m -> Mosaic(mosaicIds(tracks).map(Art::Song), m) },
+                meta = stringResource(R.string.genre_subtitle) + "\n" + songsAndLength(tracks),
+                artSize = HeaderArt,
+            )
+        }
+        item(key = "actions") { PlayRow(genre.name, state.controls, actions.controls, radio = actions.startRadio) }
+        if (genre.albums.isNotEmpty()) {
+            item(key = "albums") {
+                Column {
+                    Label(stringResource(R.string.artist_albums))
+                    Shelf {
+                        items(genre.albums, key = { it.key }) { album ->
+                            Tile(
+                                title = album.name,
+                                onClick = { actions.openAlbum(album) },
+                                art = { m -> Cover(Art.of(album.tracks.firstOrNull()?.mediaId), m) },
+                                subtitle = album.artist,
+                            )
+                        }
+                    }
+                }
+            }
+            item(key = "songsLabel") { Label(stringResource(R.string.library_filter_songs)) }
+        } else {
+            item(key = "gap") { Spacer(Modifier.height(16.dp)) }
+        }
         songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
@@ -572,10 +622,11 @@ private fun CollectionFrame(
 /**
  * `.c-actions`: Play (Pause while this collection plays), then shuffle, lit while it is on for this
  * collection, and add to a playlist. All three are off for an empty collection. In light the resting
- * toggles take the card colour, since the putty fill vanishes on the plaster ground.
+ * toggles take the card colour, since the putty fill vanishes on the plaster ground. [radio], for a
+ * genre, adds a fourth button between shuffle and add to playlist.
  */
 @Composable
-private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControlsActions) {
+private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControlsActions, radio: (() -> Unit)? = null) {
     val colors = Comfort.colors
     val container = if (colors.dark) colors.fill else colors.card
     CollectionActions {
@@ -589,6 +640,16 @@ private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControl
             enabled = state.enabled,
             container = container,
         )
+        if (radio != null) {
+            TonalIconButton(
+                Symbol.Sensors,
+                stringResource(R.string.collection_radio_cd, name),
+                radio,
+                large = true,
+                enabled = state.enabled,
+                container = container,
+            )
+        }
         TonalIconButton(
             Symbol.PlaylistAdd,
             stringResource(R.string.collection_add_to_playlist_cd, name),

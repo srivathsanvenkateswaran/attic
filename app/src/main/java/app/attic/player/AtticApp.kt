@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.data.AppSettings
+import app.attic.player.data.GenreRepository
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.LocalLyricsFinder
 import app.attic.player.data.LyricsRepository
@@ -65,6 +66,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
     val homeFeed by lazy { HomeFeed(this) }
+    val genres by lazy { GenreRepository(this, database.dao(), library.library, scope) }
     val wrapped by lazy { WrappedRepository(this) }
     val backup by lazy {
         BackupRepository(database, settings, library, packageManager.getPackageInfo(packageName, 0).versionName, filesDir, noBackupFilesDir)

@@ -16,6 +16,7 @@ import app.attic.player.attic
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
+import app.attic.player.data.Genre
 import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UserPlaylist
@@ -418,6 +419,55 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
             if (!reordering) app.player.play(tracks, tracks.indexOf(track), name)
         },
         showMenu = { ui.showMenu(TrackMenuRequest(it, playlistId = id)) },
+        queue = app::queueSong,
+    )
+    return UiModel(state, actions)
+}
+
+// Genre
+
+@Immutable
+class GenreState(
+    /** Null while the list is still being built ([loading]) or when the genre has gone. */
+    val genre: Genre?,
+    val loading: Boolean,
+    val controls: PlayControlsState,
+    val currentKey: String?,
+    val isPlaying: Boolean,
+)
+
+class GenreActions(
+    val back: () -> Unit,
+    val controls: PlayControlsActions,
+    val play: (index: Int) -> Unit,
+    val showMenu: (Track) -> Unit,
+    val openAlbum: (Album) -> Unit,
+    /** Radio from the middle of the genre's sound. */
+    val startRadio: () -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit,
+)
+
+/** A genre's page. The list of genres is built off the main thread by [app.attic.player.data.GenreRepository]. */
+@Composable
+fun rememberGenreModel(key: String): UiModel<GenreState, GenreActions> {
+    val app = LocalContext.current.attic
+    val ui = LocalUi.current
+    val genres by app.genres.genres.collectAsStateWithLifecycle()
+    val player by app.player.state.collectAsStateWithLifecycle()
+    val genre = genres?.firstOrNull { it.key == key }
+    val tracks = genre?.tracks.orEmpty()
+    val name = genre?.name.orEmpty()
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, name)
+    val state = GenreState(genre, genres == null, controls.state, player.current?.key, player.isPlaying)
+    val actions = GenreActions(
+        back = { ui.back() },
+        controls = controls.actions,
+        play = { index -> app.player.play(tracks, index, name) },
+        showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        openAlbum = { ui.openAlbum(it.key) },
+        startRadio = { if (genre != null) app.scope.launch { app.radio.startFromGenre(genre.name, genre.tracks) } },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }

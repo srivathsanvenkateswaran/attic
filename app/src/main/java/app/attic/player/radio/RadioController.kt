@@ -45,7 +45,7 @@ object LanguageImport {
 
 /** Runs the radio session the playback service asks it to keep filled. */
 class RadioController(private val app: AtticApp) {
-    private class Session(val seedKey: String, val contextName: String) {
+    private class Session(val seedKey: String, val contextName: String, val seedVector: FloatArray? = null) {
         /** False until the player reports this context, so the old queue's events can't end a new session. */
         @Volatile var seen = false
         var engine: RadioEngine? = null
@@ -98,6 +98,30 @@ class RadioController(private val app: AtticApp) {
         session = started
         stoppedContext = null
         app.player.play(listOf(track), 0, started.contextName, shuffled = false)
+    }
+
+    /**
+     * Radio from a genre: opens with the song nearest the middle of the genre's sound and keeps steering
+     * toward that middle, so it doesn't drift off after the first song as song radio may. Says so and
+     * does nothing when none of [tracks] has been analysed yet.
+     */
+    suspend fun startFromGenre(name: String, tracks: List<Track>) {
+        val keys = tracks.mapTo(HashSet()) { it.key }
+        val vectors = withContext(Dispatchers.Default) {
+            app.database.dao().embeddings(SongAnalyzer.MODEL_VERSION)
+                .filter { it.trackKey in keys }
+                .associate { it.trackKey to SongAnalyzer.toFloats(it.embedding) }
+        }
+        val centre = Centroid.of(vectors.values.toList())
+        val seed = centre?.let { Centroid.nearest(it, vectors) }?.let { key -> tracks.firstOrNull { it.key == key } }
+        if (centre == null || seed == null) {
+            app.messages.tryEmit(app.getString(R.string.message_genre_radio_unanalysed))
+            return
+        }
+        val started = Session(seed.key, "$CONTEXT_PREFIX$name", centre)
+        session = started
+        stoppedContext = null
+        app.player.play(listOf(seed), 0, started.contextName, shuffled = false)
     }
 
     /**
@@ -191,6 +215,7 @@ class RadioController(private val app: AtticApp) {
                 skipped = cross.filter { it.outcome == ListenTracker.SKIPPED || it.outcome == ListenTracker.REMOVED }.sumOf { it.total },
             ),
             recent = dao.recentKeys(RECENT_TO_AVOID).toSet() - current.seedKey,
+            seedVector = current.seedVector,
         )
         synchronized(current) {
             current.pendingSkips.forEach(state::skipped)

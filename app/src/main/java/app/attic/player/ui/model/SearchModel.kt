@@ -13,6 +13,7 @@ import app.attic.player.attic
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
+import app.attic.player.data.Genre
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
@@ -27,12 +28,13 @@ class SearchResults(
     val artists: List<Artist>,
     val albums: List<Album>,
     val folders: List<FolderPlaylist>,
+    val genres: List<Genre> = emptyList(),
 ) {
-    val isEmpty get() = tracks.isEmpty() && artists.isEmpty() && albums.isEmpty() && folders.isEmpty()
+    val isEmpty get() = tracks.isEmpty() && artists.isEmpty() && albums.isEmpty() && folders.isEmpty() && genres.isEmpty()
 }
 
 /** Accent and case insensitive, with name-prefix matches ranked first. */
-private fun search(library: Library, query: String): SearchResults {
+private fun search(library: Library, genres: List<Genre>, query: String): SearchResults {
     val q = TitleCleaner.searchable(query)
     fun <T> List<T>.matching(name: (T) -> String, also: (T) -> String = { "" }): List<T> =
         mapNotNull { item ->
@@ -50,12 +52,14 @@ private fun search(library: Library, query: String): SearchResults {
         artists = library.artists.matching({ it.name }).take(5),
         albums = library.albums.matching({ it.name }, { it.artist }).take(10),
         folders = library.folders.matching({ it.name }),
+        genres = genres.matching({ it.name }).take(3),
     )
 }
 
 /**
- * A browse tile: every folder, then the eight biggest albums. [artist] is the album's artist (null for
- * a folder); [mosaicIds] are a folder's covers from different albums.
+ * A browse tile: every folder, then the eight biggest albums; or a genre, in [SearchState.genres].
+ * [artist] is the album's artist (null for a folder or genre); [mosaicIds] are a folder's or genre's
+ * covers from different albums.
  */
 @Immutable
 class BrowseTile(
@@ -75,6 +79,8 @@ class SearchState(
     val tiles: List<BrowseTile>,
     val currentKey: String?,
     val isPlaying: Boolean,
+    /** Browse's "Genres": one tile per genre, biggest first. Empty until there are genres to show. */
+    val genres: List<BrowseTile> = emptyList(),
 )
 
 class SearchActions(
@@ -93,7 +99,9 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
     val ui = LocalUi.current
     val player by app.player.state.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
-    val results = remember(query, library) { query.takeIf { it.isNotBlank() }?.let { search(library, it) } }
+    val genres by app.genres.genres.collectAsStateWithLifecycle()
+    val genreList = genres.orEmpty()
+    val results = remember(query, library, genreList) { query.takeIf { it.isNotBlank() }?.let { search(library, genreList, it) } }
     val tiles = remember(library) {
         library.folders.map { f ->
             BrowseTile(f.name, f.tracks.first().mediaId, Destination.Folder(f.name), f.tracks.size, mosaicIds = mosaicIds(f.tracks))
@@ -103,7 +111,13 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
             }
     }
 
-    val state = SearchState(query, results, tiles, player.current?.key, player.isPlaying)
+    val genreTiles = remember(genreList) {
+        genreList.map { g ->
+            BrowseTile(g.name, g.tracks.first().mediaId, Destination.Genre(g.key), g.tracks.size, mosaicIds = mosaicIds(g.tracks))
+        }
+    }
+
+    val state = SearchState(query, results, tiles, player.current?.key, player.isPlaying, genreTiles)
     val actions = SearchActions(
         setQuery = { query = it },
         openSettings = ui::openSettings,

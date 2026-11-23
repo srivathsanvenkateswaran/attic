@@ -342,4 +342,48 @@ class RadioEngineTest {
         val e = engine(song("seed", 0.0), song("near", 10.0), song("far", 40.0))
         assertEquals(listOf("near", "far"), e.chain("seed", 3))
     }
+
+    @Test
+    fun centroidIsTheNormalisedMean() {
+        val c = Centroid.of(listOf(floatArrayOf(1f, 0f), floatArrayOf(0f, 1f)))!!
+        assertEquals(0.7071f, c[0], 1e-4f)
+        assertEquals(0.7071f, c[1], 1e-4f)
+        assertNull(Centroid.of(emptyList()))
+        assertNull(Centroid.of(listOf(floatArrayOf(1f, 0f), floatArrayOf(-1f, 0f))))
+    }
+
+    @Test
+    fun genreRadioOpensWithTheSongNearestTheMiddle() {
+        val vectors = listOf(0.0, 40.0, 80.0).associate { d ->
+            val r = Math.toRadians(d)
+            "s$d" to floatArrayOf(cos(r).toFloat(), sin(r).toFloat())
+        }
+        val centre = Centroid.of(vectors.values.toList())!!
+        assertEquals("s40.0", Centroid.nearest(centre, vectors))
+    }
+
+    @Test
+    fun aSeedVectorSteersInPlaceOfTheSeedSong() {
+        // The seed song sits at 0 degrees, but the session is steered towards 60.
+        val e = engine(song("seed", 0.0), song("nearSeed", 10.0), song("nearMiddle", 55.0))
+        val r = Math.toRadians(60.0)
+        val state = RadioState("seed", crossEvery = 1000, seedVector = floatArrayOf(cos(r).toFloat(), sin(r).toFloat()))
+        assertEquals("nearMiddle", e.next(state)?.key)
+    }
+
+    @Test
+    fun genreRadioNeverRepeatsTheSongItOpenedWith() {
+        // Steered toward 5 degrees, where the opening song itself sits closest: it must still not come back.
+        val e = engine(song("seed", 5.0), song("near", 15.0), song("far", 40.0))
+        val r = Math.toRadians(5.0)
+        val state = RadioState("seed", crossEvery = 1000, seedVector = floatArrayOf(cos(r).toFloat(), sin(r).toFloat()))
+        val picked = buildList {
+            repeat(3) {
+                val next = e.next(state, queueWouldEnd = true) ?: return@buildList
+                add(next.key)
+                state.played(next.key)
+            }
+        }
+        assertEquals(listOf("near", "far"), picked)
+    }
 }

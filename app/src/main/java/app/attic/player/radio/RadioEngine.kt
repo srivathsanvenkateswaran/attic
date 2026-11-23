@@ -20,14 +20,19 @@ class RadioSong(
     }
 }
 
-/** One radio session. [crossEvery] is how often a song from another language may appear. */
+/**
+ * One radio session. [crossEvery] is how often a song from another language may appear. [seedVector],
+ * when set, is what the session steers toward in place of the seed song's own sound: a genre's centre
+ * (whose [seedKey] is the real song the session opened with) or a collection's average (whose
+ * [seedKey] is [COLLECTION_SEED], no song at all).
+ */
 class RadioState(
     val seedKey: String,
     val crossEvery: Int,
     val recent: Set<String> = emptySet(),
     /**
-     * A sound to start from in place of one song's: a collection's average (see [forCollection]).
-     * Null for song radio, whose seed is the song [seedKey] names.
+     * A sound to steer toward in place of the seed song's: a genre's centre ([seedKey] is still the song
+     * the session opened with) or a collection's average (see [forCollection]). Null for song radio.
      */
     val seedVector: FloatArray? = null,
     /** Songs never to pick, with every other version of them: the collection the seed came from. */
@@ -35,7 +40,8 @@ class RadioState(
     /** When set, picks keep to these languages instead of following the session's, and none crosses over. */
     val languages: Set<String>? = null,
 ) {
-    internal val playedKeys = ArrayList<String>().apply { if (seedVector == null) add(seedKey) }
+    // A collection's seed key names no song; a genre's names the song already playing, never to repeat.
+    internal val playedKeys = ArrayList<String>().apply { if (seedKey != COLLECTION_SEED) add(seedKey) }
     internal val skippedKeys = HashSet<String>()
     internal var sinceCross = 0
     internal var pendingCross: String? = null
@@ -89,12 +95,14 @@ class RadioEngine(
 
     /** Nothing, if no song is close enough. [queueWouldEnd] accepts the closest left, so music keeps playing. */
     fun next(state: RadioState, queueWouldEnd: Boolean = false): RadioSong? {
-        val seed = state.seedVector?.let { RadioSong(state.seedKey, it, language = null, artistKey = null, albumKey = null) }
-            ?: byKey[state.seedKey]
+        // Genre radio keeps its opening song's details (language, artist) and steers by the genre's centre;
+        // a collection's seed is no song, so it is only the vector.
+        val seed = byKey[state.seedKey]
+            ?: state.seedVector?.let { RadioSong(state.seedKey, it, language = null, artistKey = null, albumKey = null) }
             ?: return null
         val played = state.playedKeys.mapNotNull(byKey::get)
         val sessionLanguage = sessionLanguage(played) ?: seed.language
-        val query = query(seed, played, state.skippedKeys)
+        val query = query(state.seedVector ?: seed.vector, played, state.skippedKeys)
         // A collection's own songs count as played for spotting other versions of them.
         val heard = if (state.exclude.isEmpty()) played else played + state.exclude.mapNotNull(byKey::get)
 
@@ -182,8 +190,8 @@ class RadioEngine(
             }
 
     /** Half the seed, half recent songs with newer ones counting more. Skipped songs count against. */
-    private fun query(seed: RadioSong, played: List<RadioSong>, skipped: Set<String>): FloatArray {
-        val out = seed.vector.copyOf()
+    private fun query(seed: FloatArray, played: List<RadioSong>, skipped: Set<String>): FloatArray {
+        val out = seed.copyOf()
         for (i in out.indices) out[i] *= SEED_WEIGHT
         var weight = (1 - SEED_WEIGHT) / 2
         for (song in played.asReversed()) {
@@ -206,15 +214,8 @@ class RadioEngine(
 
     companion object {
         /** The normalised mean of unit vectors: the sound a set of songs shares. */
-        fun centroid(vectors: List<FloatArray>): FloatArray {
-            val out = FloatArray(vectors.first().size)
-            for (v in vectors) for (i in out.indices) out[i] += v[i]
-            var norm = 0f
-            for (value in out) norm += value * value
-            norm = sqrt(norm)
-            if (norm > 0) for (i in out.indices) out[i] /= norm
-            return out
-        }
+        fun centroid(vectors: List<FloatArray>): FloatArray =
+            Centroid.of(vectors) ?: FloatArray(vectors.first().size)
 
         private const val SEED_WEIGHT = 0.5f
         private const val COMPOSER_BOOST = 0.03f
@@ -229,6 +230,26 @@ class RadioEngine(
         private const val MAX_IN_A_ROW = 2
         private const val LANGUAGE_WINDOW = 5
     }
+}
+
+/** The middle of a group of songs' sound, for radio that starts from a genre rather than one song. */
+object Centroid {
+    /** The normalised mean of unit [vectors], or null for none (or vectors that cancel out). */
+    fun of(vectors: List<FloatArray>): FloatArray? {
+        val first = vectors.firstOrNull() ?: return null
+        val sum = FloatArray(first.size)
+        for (vector in vectors) for (i in sum.indices) sum[i] += vector[i]
+        var norm = 0f
+        for (value in sum) norm += value * value
+        norm = sqrt(norm)
+        if (norm == 0f) return null
+        for (i in sum.indices) sum[i] /= norm
+        return sum
+    }
+
+    /** The key whose vector is closest to [centre], the song a genre's radio opens with. */
+    fun nearest(centre: FloatArray, vectors: Map<String, FloatArray>): String? =
+        vectors.maxByOrNull { (_, vector) -> centre.indices.sumOf { (centre[it] * vector[it]).toDouble() } }?.key
 }
 
 /** Turns the listening log into the numbers radio uses. */

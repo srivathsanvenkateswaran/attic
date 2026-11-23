@@ -79,6 +79,8 @@ import app.attic.player.ui.model.ArtistActions
 import app.attic.player.ui.model.ArtistState
 import app.attic.player.ui.model.FolderActions
 import app.attic.player.ui.model.FolderState
+import app.attic.player.ui.model.GenreActions
+import app.attic.player.ui.model.GenreState
 import app.attic.player.ui.model.LikedActions
 import app.attic.player.ui.model.LikedState
 import app.attic.player.ui.model.PlayControlsActions
@@ -296,6 +298,65 @@ fun ExpressiveFolder(state: FolderState, actions: FolderActions) {
         },
     ) {
         item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+    }
+}
+
+/**
+ * A genre: the folder's layout, since it too is a set of songs gathered from across the library. The
+ * meta line says where the genre comes from. Albums most of whose songs are in it come first as a
+ * shelf, then every song. Radio sits in the cluster; add to playlist moves to the bar.
+ */
+@Composable
+fun ExpressiveGenre(state: GenreState, actions: GenreActions) {
+    val genre = state.genre
+    if (genre == null) {
+        // While the list is first built there is nothing to say yet; after that, the genre has gone.
+        if (!state.loading) GoneState(R.string.collection_genre_gone, Symbol.QueueMusic, cookie = false, actions.back)
+        return
+    }
+    val tracks = genre.tracks
+    val seed = rememberArtColor(tracks.firstOrNull()?.mediaId, fallback = Color.Unspecified)
+    CollectionFrame(
+        title = genre.name,
+        seed = seed,
+        controls = state.controls,
+        controlActions = actions.controls,
+        onBack = actions.back,
+        barActions = {
+            ExpressiveIconButton(Symbol.PlaylistAdd, stringResource(R.string.collection_add_to_playlist_cd, genre.name), actions.controls.addToPlaylist)
+        },
+        header = { titleModifier ->
+            CollectionHeader(
+                title = genre.name,
+                titleModifier = titleModifier,
+                meta = listOf(stringResource(R.string.genre_subtitle), songsAndDuration(tracks)),
+                art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
+                name = genre.name,
+                controls = state.controls,
+                controlActions = actions.controls,
+                radio = actions.startRadio,
+            )
+        },
+    ) {
+        if (genre.albums.isNotEmpty()) {
+            item(key = "albums") {
+                SectionHeader(stringResource(R.string.artist_albums))
+                Shelf {
+                    items(genre.albums, key = { it.key }) { album ->
+                        Tile(
+                            title = album.name,
+                            onClick = { actions.openAlbum(album) },
+                            art = { Cover(Art.of(album.tracks.firstOrNull()?.mediaId), it) },
+                            subtitle = album.artist,
+                        )
+                    }
+                }
+            }
+            item(key = "songsHeader") { SectionHeader(stringResource(R.string.library_filter_songs)) }
+        } else {
+            item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+        }
         songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
@@ -658,6 +719,7 @@ private fun CollectionHeader(
     controlActions: PlayControlsActions,
     artist: Boolean = false,
     byline: (@Composable () -> Unit)? = null,
+    radio: (() -> Unit)? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -683,7 +745,7 @@ private fun CollectionHeader(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             art(Modifier.size(CoverSize))
-            PlayCluster(name, controls, controlActions, Modifier.weight(1f).fillMaxHeight())
+            PlayCluster(name, controls, controlActions, Modifier.weight(1f).fillMaxHeight(), radio)
         }
     }
 }
@@ -718,10 +780,11 @@ private fun HeaderTitle(text: String, artist: Boolean, modifier: Modifier) {
  * The cluster beside the cover (`.ccluster`, frame K): Play as the large filled button, round until
  * this collection is the one playing, then squared off and reading Pause; under it shuffle, which
  * squares off and fills while it is on for this collection, and add to playlist. All three are
- * disabled for an empty collection.
+ * disabled for an empty collection. With [radio] (a genre) radio takes add to playlist's place, which
+ * moves to the bar.
  */
 @Composable
-private fun PlayCluster(name: String, state: PlayControlsState, actions: PlayControlsActions, modifier: Modifier) {
+private fun PlayCluster(name: String, state: PlayControlsState, actions: PlayControlsActions, modifier: Modifier, radio: (() -> Unit)? = null) {
     val enabled = state.enabled
     Column(modifier.alpha(if (enabled) 1f else 0.38f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CollectionPlayButton(state.isPlaying, actions.playOrPause, enabled, Modifier.fillMaxWidth().weight(1f))
@@ -737,9 +800,9 @@ private fun PlayCluster(name: String, state: PlayControlsState, actions: PlayCon
                 enabled = enabled,
             )
             ExpressiveIconButton(
-                Symbol.PlaylistAdd,
-                stringResource(R.string.collection_add_to_playlist_cd, name),
-                actions.addToPlaylist,
+                if (radio != null) Symbol.Sensors else Symbol.PlaylistAdd,
+                stringResource(if (radio != null) R.string.collection_radio_cd else R.string.collection_add_to_playlist_cd, name),
+                radio ?: actions.addToPlaylist,
                 modifier = Modifier.weight(1f),
                 variant = IconButtonVariant.Tonal,
                 medium = true,
