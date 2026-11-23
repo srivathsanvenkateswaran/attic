@@ -119,6 +119,15 @@ fun rememberShellModel(): ShellModel {
         }
     }
 
+    // The first run's radio link asks for Settings.
+    val requestedSettings by app.requestedSettings.collectAsStateWithLifecycle()
+    LaunchedEffect(requestedSettings) {
+        if (requestedSettings) {
+            ui.openSettings()
+            app.requestedSettings.value = false
+        }
+    }
+
     val entry by nav.currentBackStackEntryAsState()
     var currentTab by rememberSaveable { mutableStateOf(Tab.Home) }
     LaunchedEffect(entry) {

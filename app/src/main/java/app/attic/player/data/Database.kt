@@ -329,6 +329,14 @@ interface MusicDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveLyrics(entities: List<LyricsEntity>)
+
+    /** True when anything has been saved: likes, playlists, plays, a queue, lyrics, analysis or languages. */
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM liked) OR EXISTS(SELECT 1 FROM playlists) OR EXISTS(SELECT 1 FROM history) " +
+            "OR EXISTS(SELECT 1 FROM saved_queue) OR EXISTS(SELECT 1 FROM lyrics) OR EXISTS(SELECT 1 FROM listening_events) " +
+            "OR EXISTS(SELECT 1 FROM song_analysis) OR EXISTS(SELECT 1 FROM song_language)",
+    )
+    suspend fun hasUserData(): Boolean
 }
 
 /** Keeps songs a reorder didn't mention, in their old order, after the ones it did. */
