@@ -45,6 +45,7 @@ Launch
    │  ├─ album/{key}
    │  ├─ artist/{key}
    │  ├─ folder/{name} .......... read-only playlist made from a music folder
+   │  ├─ genre/{key} ............ songs of one genre, from tags and analysis (added 2026-11-23)
    │  ├─ playlist/{id} .......... user playlist
    │  ├─ liked .................. Liked Songs
    │  ├─ settings
@@ -126,6 +127,10 @@ Defined once here and referred to by name below.
 - Trailing: kebab (`MoreVert`, `onSurfaceVariant`, description "More options for {title}"). Some screens replace it with a drag handle or an add/check button.
 - Tap plays. Long-press opens the track menu. Press scale 0.985.
 - Rows show no duration and no track number.
+
+**Swipe to queue (added 2026-11-23, `ui/SwipeToQueue.kt`).** In both styles a song row in a list can be dragged towards the end of the line (right, in a left-to-right language). The row follows the finger to 30% of its width, then resists (35% of the finger's movement) and stops at half its width. Letting go past 30%, or flicking at 1,000dp a second or faster past 12%, adds the song to the end of the queue, shows "Added to queue" and gives the confirm haptic; the row springs back either way. Behind it: Expressive shows `surfaceContainerHighest` with the queue glyph and "Add to queue", turning `primaryContainer` once letting go would queue, and settles on its fast spatial spring; Comfort shows `--fill` with the glyph in brass, turning to the amber bed, and settles without overshoot. Rows that have it: album, artist, folder, genre, Favourites and playlist songs (not in reorder mode), Library's songs, Search results and Home's "Start listening". Rows that don't: the queue (swipe removes there), Instant mixes, Recap and reorder mode.
+
+**Haptics (added 2026-11-23, `ui/Haptics.kt`).** Light taps from the platform's own feedback constants, through the screen's view with no flags, so the phone's touch-feedback setting turns them off. Like and play: toggle-on. Unlike and pause: toggle-off. Picking up a row to reorder (queue, playlist): drag-start; letting go: gesture-end. A swipe that queues a song and setting a sleep timer: confirm. Changing the style in Settings or on the first run: segment tick. Android 13 has no toggle, drag-start or segment constant, so it gets clock-tick and long-press instead. No custom vibration patterns.
 
 **Playing bars (`ui/Components.kt:91-114`).** A 14dp canvas with three rounded bars, each a quarter of the width, in `primary`. While playing they bounce between 25% and 100% height on 420, 560 and 340 ms cycles. While paused they sit still at 30%.
 
@@ -303,6 +308,8 @@ Matching ignores case and accents. Names that start with the query rank first, t
 
 **No matches**: empty message, title `No results for "{query}"`, body "Check the spelling, or try fewer words."
 
+**Genres (added 2026-11-23).** In both styles Browse has "Genres" after the folders, in the folders' tiles: Expressive's tonal tiles in each genre's cover hue with a mosaic and "{n} songs", Comfort's neutral cards. Biggest genre first; a genre with fewer than five songs is not shown. A query also matches up to three genre names, labelled "Genre" (Expressive: a result row with a mosaic; Comfort: a tile in the results shelf). Section 2.9a has the genre page and where genres come from.
+
 ### 2.5 Your Library
 
 Purpose: everything you have, as a list or grid, with a full song list behind one filter. `ui/LibraryScreen.kt`.
@@ -439,6 +446,16 @@ All three use the gradient header and control row from 2.6, followed by track ro
 - When nothing fits, for example before any analysis: the snackbar "Smart shuffle has nothing to add yet, so this is a plain shuffle", and the collection shuffles as the Shuffle button does.
 - Off (the ticked row again): every pick leaves the queue except one that is playing, which finishes; shuffle stays on. Turning shuffle off anywhere also takes the picks out and puts the collection back in order. Playing anything else ends smart shuffle.
 - The playlist or Favourites itself never changes.
+
+### 2.9a Genre (added 2026-11-23)
+
+`ui/model/CollectionModels.kt` (`rememberGenreModel`), drawn by `ExpressiveGenre` and `ComfortGenre`. Opened from Search (section 2.4).
+
+- **Where genres come from** (`data/Genres.kt`). A song's genres are its genre tag's, when it has one. A tag holding several separates them with ";"; a "/" is part of the name, so "Funk / Soul" is one genre. YouTube category names count as no tag. A song without a tag takes genres from analysis: the model scores 400 Discogs styles, each named "Genre---Style", and Attic keeps a song's five strongest. The song goes in the genre whose styles add up most, and also in any other that reaches 60% of that. "Non-Music" is never used, and a song whose best style scores under 0.05 gets no genre. Names match with case, accents and punctuation folded, so a "Hip-Hop" tag and the model's "Hip Hop" are one genre, shown as most of its songs spell it. The list is built off the main thread and again as analysis stores more styles.
+- **Layout.** The folder's (section 2.9): mosaic of the genre's songs, the genre name, "Genre, from tags and analysis", then "{n} songs, {duration}". Then "Albums" as a shelf, when any album has at least two songs and at least half its songs in the genre, most-matching first; then "Songs" (with no albums, just the songs).
+- **Controls.** Play / pause and shuffle as on any collection, plus radio (`sensors` glyph, description "Start radio from {genre}"). Expressive puts radio in the cluster where add to playlist sits elsewhere, and moves add to playlist to the bar; Comfort adds radio to its row of buttons, between shuffle and add to playlist.
+- **Genre radio.** Context "Radio · {genre}". It opens with the song nearest the middle of the genre's sound (the normalised mean of its analysed songs' embeddings) and keeps steering towards that middle instead of the first song. With none of the genre's songs analysed yet it shows "Radio can start from this genre once its songs are analysed" and plays nothing.
+- **Gone.** A genre that no longer has five songs: "This genre is gone".
 
 ### 2.10 Now Playing
 
@@ -663,7 +680,7 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
 - **"Song radio"** section title.
   - A row (padding 16 sides, 12 below): "Autoplay" in `bodyLarge` over "When a queue reaches its last song, radio keeps going with similar songs." in `bodySmall` `onSurfaceVariant`, with a Material switch at the right. Tapping the row or the switch toggles it. Default on.
   - "Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded." in `bodyMedium` `onSurfaceVariant`.
-  - 12dp, then a linear progress bar showing analysed songs over total songs. It is always visible.
+  - 12dp, then a linear progress bar showing analysed songs over total songs. It is always visible. Since 2026-11-23 a song counts once its styles are stored as well, so a library analysed before then shows as part done until the next charging run has added them (section 2.9a).
   - A status line in `bodySmall`, 6dp above, one of:
     - "Analysing songs: {done} of {total}" while analysis is running
     - "All {total} songs analysed."
@@ -855,6 +872,8 @@ Purpose: short confirmations and playback or radio errors.
 | "Couldn't save the image" | Wrapped card save failed |
 | "Radio couldn't read this song" | Radio could not analyse its seed song |
 | "Radio is using {n} of {total} songs until analysis finishes" | Radio started before the whole library was analysed |
+| "Added to queue" | A song row swiped to queue it (added 2026-11-23, section 2.0) |
+| "Radio can start from this genre once its songs are analysed" | Genre radio with none of the genre's songs analysed (added 2026-11-23) |
 | "Skipped {title} because it can't be played" | A queued file failed to play and was dropped |
 | "Music will pause in {n} minutes" | Sleep timer set to 15, 30, 45 or 60 minutes (added 2026-11-23) |
 | "Music will pause after this song" | Sleep timer set to "End of this song" (added 2026-11-23) |
@@ -1224,6 +1243,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Portrait phone layout, edge to edge
 - [ ] Themes: "Match phone", "Dark", "Light"
 - [ ] Opening a destination from inside the player closes the player
+- [ ] Light haptics on like, play / pause, reorder pick-up and drop, swipe to queue, sleep timer set and style change, following the system setting (added 2026-11-23)
 
 **Library content types**
 - [ ] Songs, albums (including one-song albums labelled "Single"), artists
@@ -1252,6 +1272,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Placeholder "What do you want to listen to?" and a clear button
 - [ ] Browse tiles for every folder and the eight biggest albums under "Start browsing"
 - [ ] Result types labelled "Artist", "Playlist", "Album, {artist}"
+- [ ] "Genres" in Browse, genres of five songs or more, and genre names in results labelled "Genre" (added 2026-11-23)
 - [ ] No-results message
 
 **Your Library**
@@ -1275,10 +1296,12 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Playlist: add songs, reorder by drag, rename, delete with confirmation, remove a song, empty state
 - [ ] Smart shuffle on playlists and Favourites, from the more menu, ticked while on (added 2026-11-23)
 - [ ] "is gone" state for missing items
+- [ ] Genre: songs, albums mostly in the genre, play, shuffle, genre radio, add to playlist (added 2026-11-23)
 
 **Song rows and the track menu**
 - [ ] Current-song highlight and animated playing indicator
 - [ ] Tap to play in context, long-press or kebab for the menu
+- [ ] Swipe a row towards the end to add the song to the queue, outside the queue and reorder mode (added 2026-11-23)
 - [ ] "Start radio"
 - [ ] "Add to liked songs" / "Remove from liked songs"
 - [ ] "Play next"
@@ -1341,6 +1364,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 **Radio**
 - [ ] Start radio from any song, and from Speed dial
 - [ ] Radio context shown as "Radio · {song title}"
+- [ ] Radio from a genre, shown as "Radio · {genre}" (added 2026-11-23)
 - [ ] Self-refilling queue of ten upcoming songs
 - [ ] Removing an upcoming song steers radio; "Clear" stops it
 - [ ] "Autoplay" setting (default on)
