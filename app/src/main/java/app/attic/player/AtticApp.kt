@@ -34,7 +34,10 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val database by lazy { AtticDatabase.create(this) }
     val library by lazy { LibraryRepository(this, scope) }
     val userData by lazy { UserData(database.dao(), scope) }
-    val lyrics by lazy { LyricsRepository(database.dao(), scope) }
+    val lyrics by lazy {
+        val version = packageManager.getPackageInfo(packageName, 0).versionName
+        LyricsRepository(database.dao(), scope, userAgent = "Attic/$version (https://github.com/srivathsanvenkateswaran/attic)")
+    }
     val settings by lazy { AppSettings(this) }
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
