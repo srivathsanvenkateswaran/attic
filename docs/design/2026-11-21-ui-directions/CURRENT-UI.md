@@ -96,6 +96,7 @@ Outside the app
 | Track menu | Kebab on any track row; long-press on any track row; long-press on a Speed dial tile; long-press on a Wrapped "Top songs" row; kebab in the Now Playing header; long-press on a queue row |
 | Sleep timer | "Sleep timer" in the track menu, only when it was opened from the kebab in the Now Playing header (added 2026-11-23, section 2.13) |
 | Now Playing, on a file from another app | Opening an audio file with Attic from a file manager or downloads list (added 2026-11-23, section 2.21) |
+| Smart shuffle | "Smart shuffle" in the more menu of a playlist or Favourites (added 2026-11-23, section 2.9) |
 
 ### 1.2 Navigation behaviour
 
@@ -244,12 +245,26 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 | "Artists" | Only "Your top artists" |
 | "Folders" | Only "Your folders" |
 
+**Added 2026-11-23, in the Expressive and Comfort styles** (state in `ui/model/HomeModel.kt`; worked out in `home/HomeFeed.kt`, `home/HomeShelves.kt` and `home/TasteMixes.kt`; drawn in `ui/expressive/ExpressiveHome.kt` and `ui/comfort/ComfortHome.kt`). Four sections built from your own listening, under "All" only. They use the proposals' names (BRIEF.md), so "Speed dial" is "Instant mixes" there.
+
+- **"Mixes"**, straight after "Instant mixes", with the overline "Songs you play, grouped by sound" (Expressive's section overline, Comfort's small label). A shelf of three to five tiles: a mosaic of the mix's covers, its name on up to two lines, and "{n} songs". Tap plays the mix from its first song, in its own order with shuffle off, under the mix's name.
+  - How a mix is made: the played and liked songs that analysis has reached are grouped by their sound embeddings (k-means; three groups, one more per 20 such songs, up to five). A group needs four songs to become a mix. Each mix is up to 25 songs: two thirds from the group, and every third song an unplayed or rarely played song that sounds like the group. Songs you mostly skip are left out, and no song is in two mixes.
+  - Name: "Mix: {artist}, {artist} and more" after the two artists with the most plays in the group (a favourite counts as three plays), "Mix: {artist} and more" with one, "Mix {n}" when the songs have no artist tags. An artist who already leads an earlier mix gives way to the next one, and a name that would repeat becomes "Mix {n}".
+  - The mixes change once a day, at local midnight, and stay the same all day, across launches. With fewer than 12 played or liked songs analysed there are none and the section is absent; it appears the same day once analysis reaches enough.
+  - Instant mixes are unchanged: nine single songs, each starting radio. The mixes are fixed lists, a different thing, so they sit beside Instant mixes rather than replacing them.
+- **"On repeat"**, after "Recently played": your most played songs of the last 30 days, at least two plays each, most first. A skip (under half the song) or a song swiped out of the queue is not a play.
+- **"Haven't heard in a while"**: favourites, and songs played three times or more, with no play in the last 60 days, most played first (a favourite counts as three plays). A favourite you never played counts from the day you liked it.
+- **"Newly added"**: songs whose files arrived in the last 30 days, newest first, by the date MediaStore gives. Absent when every song in the library is that new, as on a phone whose music was copied over in one go.
+- These three are shelves of up to 20 songs drawn like "Recently played": cover, title, artist, and the playing song marked. Tap plays the shelf from that song, under "On repeat", "Haven't heard in a while" or "Newly added". Each is absent with fewer than four songs.
+- Order under "All": shortcuts, Recap, Instant mixes, Mixes, Recently played, On repeat, Haven't heard in a while, Newly added, Start listening, folders, Albums, More from, Top artists.
+
 **States**
 
 - **Empty library** (`ui/HomeScreen.kt:90-98`): no header, no chips. A centred empty message, title "No songs on this phone", body "Copy music files onto this phone, in Music or any other folder, and they will show up here." The tab bar is still present.
 - **No history yet**: the shortcut grid is "Liked Songs" plus the five biggest albums, and "Recently played" is absent. This is what `home.png` shows.
 - **No listening log**: no Wrapped card.
 - **Radio has not run yet**: no "Speed dial".
+- **Fewer than four songs for a shelf, or fewer than 12 played or liked songs analysed**: that shelf, or "Mixes", is absent (added 2026-11-23).
 - **Light theme**: tiles and chips use the light greys. The Wrapped card and Speed dial tiles keep their fixed colours.
 
 Artists have no photos. Every "artist picture" in the app is the cover of one of that artist's songs.
@@ -417,6 +432,14 @@ All three use the gradient header and control row from 2.6, followed by track ro
 - Empty: "Let's find something for your playlist" / "Tap the plus above to add songs from your library."
 - A song can appear only once in a playlist.
 
+**Smart shuffle** (added 2026-11-23, in the Expressive and Comfort styles; `ui/model/CollectionModels.kt`, `playback/SmartShuffle.kt`, `playback/PhysicalShuffle.kt`, `radio/RadioController.kt`). Playlists and Favourites only.
+
+- Where: the first row of the more menu in the bar, "Smart shuffle" with the `shuffle_on` glyph. The mocks have no place for it beside Shuffle, so it went in the menu. Favourites gains a more button for it, described "Favourites options". The row, and Favourites' button, show only when the collection has songs. While smart shuffle is on for this collection the row is ticked (Expressive: the glyph filled in `primary` and a trailing tick; Comfort: the row selected, with its tick), and TalkBack reads it as on.
+- On: radio picks one song for every two in the collection, at most 100, from the rest of the library. Its seed is the collection's average sound. It keeps to the collection's languages, prefers songs that aren't among the last 30 played, and never picks a song from the collection or another version of one. The collection is shuffled and a pick goes after every second song. If this collection is the one playing, the song playing carries on and the rest follows it; otherwise the queue is replaced. It plays under the collection's name, so "Playing from" and the collection's Play and Shuffle controls still show it as playing, with shuffle on.
+- When nothing fits, for example before any analysis: the snackbar "Smart shuffle has nothing to add yet, so this is a plain shuffle", and the collection shuffles as the Shuffle button does.
+- Off (the ticked row again): every pick leaves the queue except one that is playing, which finishes; shuffle stays on. Turning shuffle off anywhere also takes the picks out and puts the collection back in order. Playing anything else ends smart shuffle.
+- The playlist or Favourites itself never changes.
+
 ### 2.10 Now Playing
 
 Purpose: the full player. `ui/NowPlaying.kt:210-600`.
@@ -496,6 +519,8 @@ A full-screen overlay over Now Playing, sliding up over 240 ms. Unlike Now Playi
 - The same song can be queued more than once.
 
 **Radio behaviour visible here** (`playback/PlaybackService.kt:348-399`): while a radio session is active the service keeps ten songs up next, adding only to the end. Swiping one song out tells radio "less like this". "Clear" stops radio from refilling that queue.
+
+**Smart shuffle picks** (added 2026-11-23, both styles): a song smart shuffle added (section 2.9) has the radio glyph (`sensors`, 20dp) before its drag handle, or before the more button on the "Now playing" row, described "Added by smart shuffle". Expressive draws it in `primary`, Comfort in the row's trailing ink. The marks are saved with the queue and come back after a restart.
 
 ### 2.12 Lyrics: card, inline line and full screen
 
@@ -838,6 +863,7 @@ Purpose: short confirmations and playback or radio errors.
 | "Couldn't open this file" | Attic was asked to open something it can't play, such as a web link, or reading it failed (added 2026-11-23) |
 | "Backup saved" | Settings "Back up to a file" finished (added 2026-11-23) |
 | "Couldn't save the backup" | Writing the backup file failed (added 2026-11-23) |
+| "Smart shuffle has nothing to add yet, so this is a plain shuffle" | Smart shuffle found no song in the library that fits the collection, so it shuffled the collection alone (added 2026-11-23) |
 
 Liking a song, removing from a playlist, clearing the queue, and renaming or deleting a playlist show no message.
 
@@ -1212,6 +1238,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Wrapped entry card with headline and minutes
 - [ ] "Speed dial": up to nine songs, tap starts radio, long-press opens the menu
 - [ ] "Recently played" shelf (up to 12 songs)
+- [ ] "Mixes": three to five taste mixes named after their artists, the same all day, rebuilt daily (added 2026-11-23)
+- [ ] "On repeat", "Haven't heard in a while" and "Newly added" shelves, each absent below four songs (added 2026-11-23)
 - [ ] "Start listening": four random songs, labelled "Picked at random from your songs"
 - [ ] "Your folders" shelf
 - [ ] "Albums" shelf (14 biggest)
@@ -1245,6 +1273,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Artist: "Popular" top five with ranks, "Popular releases", "All songs"
 - [ ] Liked Songs: newest first, empty state
 - [ ] Playlist: add songs, reorder by drag, rename, delete with confirmation, remove a song, empty state
+- [ ] Smart shuffle on playlists and Favourites, from the more menu, ticked while on (added 2026-11-23)
 - [ ] "is gone" state for missing items
 
 **Song rows and the track menu**
@@ -1295,6 +1324,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] "Clear"
 - [ ] Track menu from queue rows
 - [ ] Shuffle reflected as the real order
+- [ ] Smart shuffle picks marked in the queue (added 2026-11-23)
 
 **Lyrics**
 - [ ] Lyrics read from `.lrc` files beside songs and from the songs' tags, with no source shown
