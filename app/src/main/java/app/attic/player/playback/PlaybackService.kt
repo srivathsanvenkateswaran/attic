@@ -14,6 +14,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder
@@ -53,6 +54,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Owns the player. Media3 provides the notification, lock-screen controls and media-button routing
@@ -80,6 +82,7 @@ class PlaybackService : MediaLibraryService() {
     private lateinit var levelling: LevellingAudioProcessor
     private lateinit var crossfade: CrossfadeController
     private val browse by lazy { CarBrowser(this) }
+    private val artGrants by lazy { ArtGrants(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -226,6 +229,11 @@ class PlaybackService : MediaLibraryService() {
                 .setSessionExtras(sessionExtras())
                 .build()
 
+        // A controller sees the playing song's cover as soon as it connects.
+        override fun onPostConnect(session: MediaSession, controller: MediaSession.ControllerInfo) {
+            artGrants.grant(controller, queueWindowItems())
+        }
+
         override fun onCustomCommand(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -281,7 +289,7 @@ class PlaybackService : MediaLibraryService() {
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
             params: LibraryParams?,
-        ): ListenableFuture<LibraryResult<MediaItem>> = Futures.immediateFuture(browse.root(browser, params))
+        ): ListenableFuture<LibraryResult<MediaItem>> = Futures.immediateFuture(browse.root(browser, params).grantedTo(browser))
 
         override fun onGetChildren(
             session: MediaLibrarySession,
@@ -291,14 +299,14 @@ class PlaybackService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future {
-            browse.children(browser, parentId, page, pageSize, params)
+            browse.children(browser, parentId, page, pageSize, params).grantedTo(browser)
         }
 
         override fun onGetItem(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
             mediaId: String,
-        ): ListenableFuture<LibraryResult<MediaItem>> = scope.future { browse.item(mediaId) }
+        ): ListenableFuture<LibraryResult<MediaItem>> = scope.future { browse.item(mediaId).grantedTo(browser) }
 
         override fun onSearch(
             session: MediaLibrarySession,
@@ -318,7 +326,7 @@ class PlaybackService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?,
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future {
-            LibraryResult.ofItemList(BrowseTree.page(browse.search(query), page, pageSize), params)
+            LibraryResult.ofItemList(BrowseTree.page(browse.search(query), page, pageSize), params).grantedTo(browser)
         }
 
         // Bluetooth or a headset pressed play while the service wasn't running.
@@ -379,6 +387,31 @@ class PlaybackService : MediaLibraryService() {
         }
         val request = BrowseTree.shuffleAllRequest(browse.snapshot()) ?: throw UnsupportedOperationException("No songs")
         return startRequest(request)
+    }
+
+    /**
+     * Lets [browser] read the covers in a browse or search result before it gets them (see [ArtGrants]).
+     * Off the main thread: a page can hold a hundred songs, each a call to the system the first time.
+     */
+    private suspend fun LibraryResult<ImmutableList<MediaItem>>.grantedTo(browser: MediaSession.ControllerInfo) = apply {
+        value?.let { items -> withContext(Dispatchers.IO) { artGrants.grant(browser, items) } }
+    }
+
+    @JvmName("grantedToItem")
+    private fun LibraryResult<MediaItem>.grantedTo(browser: MediaSession.ControllerInfo) = apply {
+        value?.let { artGrants.grant(browser, it) }
+    }
+
+    /** The song playing and the few after it: the covers a controller shows next. */
+    private fun queueWindowItems(): List<MediaItem> =
+        ArtGrants.queueWindow(player.currentMediaItemIndex, player.mediaItemCount, COVER_GRANT_AHEAD).map(player::getMediaItemAt)
+
+    /** Every connected controller may read the covers of the songs playing now and next. */
+    private fun grantQueueCovers() {
+        val controllers = session?.connectedControllers.orEmpty()
+        if (controllers.isEmpty()) return
+        val items = queueWindowItems()
+        for (controller in controllers) artGrants.grant(controller, items)
     }
 
     /** Tells a car showing a tab that it changed: a new scan, a favourite, a playlist edit. */
@@ -576,6 +609,11 @@ class PlaybackService : MediaLibraryService() {
     private inner class PlayerEvents : Player.Listener {
         override fun onAudioSessionIdChanged(audioSessionId: Int) = openAudioSession(audioSessionId)
 
+        // Songs queued, reordered or added by smart shuffle change which covers come next.
+        override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+            if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) grantQueueCovers()
+        }
+
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM && sleep.songEnded()) {
                 sleepJob?.cancel()
@@ -594,6 +632,7 @@ class PlaybackService : MediaLibraryService() {
                 listens.start(mediaItem.mediaId, mediaItem.mediaMetadata.durationMs ?: 0L)
                 listens.playing(player.isPlaying)
             }
+            grantQueueCovers()
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -765,6 +804,9 @@ class PlaybackService : MediaLibraryService() {
     private companion object {
         const val TAG = "PlaybackService"
         const val CAR_REFRESH_DEBOUNCE_MS = 1_000L
+
+        /** How many songs after the playing one a controller may read covers for (see [ArtGrants]). */
+        const val COVER_GRANT_AHEAD = 10
         const val SAVE_DEBOUNCE_MS = 400L
         const val SAVE_INTERVAL_MS = 15_000L
         const val RADIO_UP_NEXT = 10

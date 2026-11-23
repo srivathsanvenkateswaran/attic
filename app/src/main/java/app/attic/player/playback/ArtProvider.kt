@@ -14,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Serves song covers as files, for Android Auto and other car screens, which take artwork only as a
  * URI. A cover is cut from the song's file once, at [SIZE_PX], and kept in the cache until the next
- * launch. It is exported, as the car media sample's provider is, because the car's own process opens
- * these URIs; it is read-only and serves nothing but covers.
+ * launch. It isn't exported: the car's process opens these URIs on a read grant the session gives
+ * each connected controller for the covers it hands it ([ArtGrants]). Read-only, covers only.
  */
 class ArtProvider : ContentProvider() {
     private val launch = System.currentTimeMillis().toString()

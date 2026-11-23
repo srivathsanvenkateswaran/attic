@@ -124,14 +124,15 @@
         </service>
 
         <!--
-            Song covers for car screens, which take artwork only as a URI. Exported, as the car media
-            sample's provider is, because the car's own process opens the URIs. Read-only, covers only.
+            Song covers for car screens, which take artwork only as a URI. Not exported: the session grants
+            each connected controller read access to the covers it hands that controller (ArtGrants), so
+            no other app can read covers without the audio permission. Read-only, covers only.
         -->
         <provider
             android:name=".playback.ArtProvider"
             android:authorities="app.attic.player.art"
-            android:exported="true"
-            tools:ignore="ExportedContentProvider" />
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
         <receiver
             android:name=".widget.PlayerWidget"
