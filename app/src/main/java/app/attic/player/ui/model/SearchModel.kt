@@ -15,6 +15,7 @@ import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Genre
 import app.attic.player.data.Library
+import app.attic.player.data.LibrarySearch
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalUi
@@ -35,24 +36,13 @@ class SearchResults(
 
 /** Accent and case insensitive, with name-prefix matches ranked first. */
 private fun search(library: Library, genres: List<Genre>, query: String): SearchResults {
-    val q = TitleCleaner.searchable(query)
-    fun <T> List<T>.matching(name: (T) -> String, also: (T) -> String = { "" }): List<T> =
-        mapNotNull { item ->
-            val n = TitleCleaner.searchable(name(item))
-            when {
-                n.startsWith(q) -> item to 0
-                n.contains(q) -> item to 1
-                TitleCleaner.searchable(also(item)).contains(q) -> item to 2
-                else -> null
-            }
-        }.sortedBy { it.second }.map { it.first }
-
+    val found = LibrarySearch.find(library, query)
     return SearchResults(
-        tracks = library.tracks.matching({ it.title }, { "${it.artist} ${it.album.orEmpty()}" }),
-        artists = library.artists.matching({ it.name }).take(5),
-        albums = library.albums.matching({ it.name }, { it.artist }).take(10),
-        folders = library.folders.matching({ it.name }),
-        genres = genres.matching({ it.name }).take(3),
+        tracks = found.tracks,
+        artists = found.artists.take(5),
+        albums = found.albums.take(10),
+        folders = found.folders,
+        genres = with(LibrarySearch) { genres.matching(TitleCleaner.searchable(query), { it.name }) }.take(3),
     )
 }
 
