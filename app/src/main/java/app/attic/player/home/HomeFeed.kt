@@ -65,6 +65,10 @@ class HomeFeed(private val app: AtticApp) {
             mixCache = cached
             return cached.mixes
         }
+        // Too few played or liked songs analysed for any mix: say so without reading every embedding.
+        if (seedsNow < TasteMixes.MIN_SEEDS) {
+            return MixCache(today, seedsNow, emptyList()).also { mixCache = it }.mixes
+        }
 
         val vectors = dao.embeddings(SongAnalyzer.MODEL_VERSION).associate { it.trackKey to SongAnalyzer.toFloats(it.embedding) }
         val plays = history.associate { it.trackKey to it.playCount }
