@@ -55,6 +55,7 @@ import app.attic.player.ui.model.WrappedPageActions
 import app.attic.player.ui.model.WrappedPageState
 import app.attic.player.ui.model.WrappedTeaser
 import app.attic.player.ui.model.BrowseTile
+import app.attic.player.ui.model.BackupUiState
 import app.attic.player.ui.model.wrappedData
 import app.attic.player.wrapped.DayTotal
 import app.attic.player.wrapped.LanguageShare
@@ -302,9 +303,10 @@ object DemoStates {
         savedLyricsCount = 51,
         songCount = lib.tracks.size,
         analysis = AnalysisProgress(lib.tracks.size, lib.tracks.size, running = false),
+        backup = BackupUiState(saving = false, restoring = false, confirm = null, restored = null, problem = null),
     )
 
-    val settingsActions = SettingsActions(noop, {}, {}, {}, noop, noop)
+    val settingsActions = SettingsActions(noop, {}, {}, {}, noop, noop, noop, noop, noop, noop, noop)
 
     // Recap
 
