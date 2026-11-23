@@ -47,6 +47,14 @@
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
 
+        <!--
+            Android Auto's brand colour (guideline VD-3), from a style only the car reads. The application
+            theme is left alone, so neither in-app style changes; the Compose UI draws its own colours.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.car.application.theme"
+            android:resource="@style/Theme.Attic.Car" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

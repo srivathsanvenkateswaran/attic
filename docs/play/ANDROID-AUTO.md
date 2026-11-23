@@ -47,7 +47,7 @@ From [Car app quality](https://developer.android.com/docs/quality-guidelines/car
 | DR-3 | Content loads within 10 s | Check on DHU. Home re-reads Instant mixes each time it opens. |
 | VD-1 | Icons and colours meet Android Auto contrast | Meets. Every icon is a white vector the car tints. |
 | VD-2 | White icon sets the system colours | Meets. Tab icons and the shuffle and heart icons are white. |
-| VD-3 | Colours the system can adjust for readability | **Not done.** The application theme sets no primary or accent colour, so the car uses its defaults. The docs fetched for this didn't say which attributes Android Auto reads, so this needs checking. |
+| VD-3 | Colours the system can adjust for readability | Meets, unchecked on a head unit. Android Auto styles playback controls with the `colorAccent` of the style named by `com.google.android.gms.car.application.theme` ([configure manifest](https://developer.android.com/training/cars/media/configure-manifest)). That is `Theme.Attic.Car` in `res/values/themes.xml`: `android:colorAccent` and `android:colorPrimary` set to Headroom terracotta `#C6533A`. No activity uses that style, so neither in-app style changes. |
 | GB-1 | Disabled elements don't work | Meets. The session offers only the commands it handles. |
 | NA-1 | No ads in notifications | Meets. |
 | IN-1 | Notifications only when relevant to the driver | Meets. The only other notification is song analysis, which runs while charging or after "Analyse now" in Settings. |
@@ -58,7 +58,7 @@ Rows that don't apply: `EP-4`, `PE-1` and `DL-2` are for Android Automotive OS, 
 ### Gaps and risks
 
 - **Nothing has run on a head unit.** Every "Check on DHU" row is open until the steps below pass.
-- **VD-3 colours.** See the table above.
+- **VD-3 colours.** Set, but not yet seen on the DHU. Step 9's playback controls should show terracotta, or a colour the car adjusted from it for contrast.
 - **The listing.** EP-1 judges the app against its Play listing, which says nothing about cars yet.
 - **Cover grants on a head unit.** The provider is no longer exported, so a car shows covers only through the grants above. Nothing has checked them on the DHU yet: step 3's "Instant mixes" covers, step 5's album grid and step 9's now-playing cover are the test. A car that loads covers for queue items more than 10 ahead would show those without art.
 - **Updates wait for the car review.** The car review blocks every later release of the app until it passes ([distribute](https://developer.android.com/training/cars/distribute)). The FAQ on the quality page says the same.
