@@ -8,9 +8,10 @@ analytics and no crash reporting. The developer receives no data from the app.
 
 ## What Attic reads on your phone
 
-- **Your music.** With the audio permission you grant, Attic reads the files in the `Music/Offline`
-  folder through Android's media library: their tags (title, artist, album, duration), embedded
-  cover art and the audio itself.
+- **Your music.** With the audio permission you grant, Attic reads the songs Android's media
+  library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
+  duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
+  alarm sounds, recordings, podcasts, audiobooks and voice notes.
 - **A language label file, if you add one.** Attic reads `language-labels.tsv` from its own folder
   under `Android/data/app.attic.player/files/` if you put one there.
 
@@ -46,8 +47,9 @@ For each song, Attic sends an HTTPS request to `lrclib.net` containing:
 - the song's length in whole seconds
 
 If that finds no match, Attic sends a second request with a search query made of the title and
-the first artist. Each request also carries the header `User-Agent: Attic/1.0 (personal offline
-music player)`.
+the first artist. Each request also carries the header
+`User-Agent: Attic/<version> (https://github.com/srivathsanvenkateswaran/attic)`, which gives the
+app's version number and the address of its source code.
 
 No file, cover art, account, device identifier or listening history is sent. As with any web
 request, LRCLIB sees your IP address. LRCLIB is run independently of Attic and its own terms apply
@@ -74,7 +76,8 @@ your phone. Nothing is sent anywhere unless you choose to share it.
 
 - No account or sign-in.
 - No analytics, telemetry or crash reporting. Attic includes no analytics or crash reporting
-  library.
+  library. ONNX Runtime, the library that runs song analysis, can report usage to Microsoft; Attic
+  turns that off, so it sends nothing.
 - No ads and no advertising identifier.
 - No location, contacts, camera, microphone or other personal data.
 - No selling or sharing of data with anyone, because the developer collects none.

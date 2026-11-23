@@ -32,9 +32,10 @@
       analytics and no crash reporting. The developer receives no data from the app.</p>
       <h2>What Attic reads on your phone</h2>
       <ul>
-      <li><strong>Your music.</strong> With the audio permission you grant, Attic reads the files in the <code>Music/Offline</code>
-        folder through Android's media library: their tags (title, artist, album, duration), embedded
-        cover art and the audio itself.</li>
+      <li><strong>Your music.</strong> With the audio permission you grant, Attic reads the songs Android's media
+        library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
+        duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
+        alarm sounds, recordings, podcasts, audiobooks and voice notes.</li>
       <li><strong>A language label file, if you add one.</strong> Attic reads <code>language-labels.tsv</code> from its own folder
         under <code>Android/data/app.attic.player/files/</code> if you put one there.</li>
       </ul>
@@ -65,8 +66,9 @@
       <li>the song's length in whole seconds</li>
       </ul>
       <p>If that finds no match, Attic sends a second request with a search query made of the title and
-      the first artist. Each request also carries the header <code>User-Agent: Attic/1.0 (personal offline
-      music player)</code>.</p>
+      the first artist. Each request also carries the header
+      <code>User-Agent: Attic/&lt;version&gt; (https://github.com/srivathsanvenkateswaran/attic)</code>, which gives the
+      app's version number and the address of its source code.</p>
       <p>No file, cover art, account, device identifier or listening history is sent. As with any web
       request, LRCLIB sees your IP address. LRCLIB is run independently of Attic and its own terms apply
       to what it does with requests.</p>
@@ -113,7 +115,8 @@
       <ul>
       <li>No account or sign-in.</li>
       <li>No analytics, telemetry or crash reporting. Attic includes no analytics or crash reporting
-        library.</li>
+        library. ONNX Runtime, the library that runs song analysis, can report usage to Microsoft; Attic
+        turns that off, so it sends nothing.</li>
       <li>No ads and no advertising identifier.</li>
       <li>No location, contacts, camera, microphone or other personal data.</li>
       <li>No selling or sharing of data with anyone, because the developer collects none.</li>
