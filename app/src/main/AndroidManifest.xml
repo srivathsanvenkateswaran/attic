@@ -42,6 +42,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Attic.Splash">
 
+        <!-- Android Auto: Attic is a media app (res/xml/automotive_app_desc.xml). -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -60,6 +65,11 @@
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="audio/*" />
+            </intent-filter>
+            <!-- "Play X on Attic" said to the assistant, on the phone or in the car. PlayFromSearch hands it to the service. -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <!-- Some file managers label Ogg and FLAC files with these instead of audio/*. -->
             <intent-filter>
@@ -97,16 +107,31 @@
             android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
             tools:node="remove" />
 
-        <!-- Exported without a permission so the system, Bluetooth, cars and watches can control playback. -->
+        <!--
+            Exported without a permission so the system, Bluetooth, cars and watches can control playback.
+            MediaBrowserService is how Android Auto and voice assistants find and browse the library.
+        -->
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback"
             tools:ignore="ExportedService">
             <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
                 <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <!--
+            Song covers for car screens, which take artwork only as a URI. Exported, as the car media
+            sample's provider is, because the car's own process opens the URIs. Read-only, covers only.
+        -->
+        <provider
+            android:name=".playback.ArtProvider"
+            android:authorities="app.attic.player.art"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
 
         <receiver
             android:name=".widget.PlayerWidget"

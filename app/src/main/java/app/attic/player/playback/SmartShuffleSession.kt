@@ -5,11 +5,15 @@ import androidx.media3.session.SessionCommand
 
 /** How smart shuffle crosses the session boundary, as [SleepTimerSession] does for the timer. */
 object SmartShuffleSession {
+    const val START_ACTION = "app.attic.player.SMART_SHUFFLE"
+    const val STOP_ACTION = "app.attic.player.SMART_SHUFFLE_OFF"
+
+    // New bundles rather than Bundle.EMPTY, which is null where the unit tests run (see AtticCommands).
     /** Starts it: the collection in its own order, the picks, and the name it plays under. */
-    val START = SessionCommand("app.attic.player.SMART_SHUFFLE", Bundle.EMPTY)
+    val START = SessionCommand(START_ACTION, Bundle())
 
     /** Ends it and takes the picks out of the queue. Shuffle stays on. */
-    val STOP = SessionCommand("app.attic.player.SMART_SHUFFLE_OFF", Bundle.EMPTY)
+    val STOP = SessionCommand(STOP_ACTION, Bundle())
 
     private const val BASE = "smart_base"
     private const val PICKS = "smart_picks"

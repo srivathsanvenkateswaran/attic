@@ -55,7 +55,7 @@ class ArtFetcher(
 }
 
 /** MediaStore keeps its own thumbnail cache, so lists use it. Only large views decode the original. */
-private fun loadCover(context: Context, mediaId: Long, targetPx: Int): Bitmap? {
+internal fun loadCover(context: Context, mediaId: Long, targetPx: Int): Bitmap? {
     if (mediaId < 0) return null
     val uri = LibraryRepository.uriFor(mediaId)
     if (targetPx <= THUMBNAIL_MAX_PX) {

@@ -92,10 +92,20 @@ class RadioController(private val app: AtticApp) {
 
     /** Plays the song straight away. The service then asks for the songs that follow it. */
     fun start(track: Track) {
-        val started = Session(track.key, "$CONTEXT_PREFIX${track.title}")
+        app.player.play(listOf(track), 0, begin(track), shuffled = false)
+    }
+
+    /**
+     * Opens a radio session seeded from [track] and returns the name its queue plays under. The caller
+     * puts the song in the player; a car row does this inside the service, which has the player itself.
+     * Genre radio passes the genre's centre as [steerTo] and its own [title]. Smart shuffle never opens
+     * a session: its picks come from [smartPicks], which leaves the running session alone.
+     */
+    fun begin(track: Track, title: String = track.title, steerTo: FloatArray? = null): String {
+        val started = Session(track.key, "$CONTEXT_PREFIX$title", steerTo)
         session = started
         stoppedContext = null
-        app.player.play(listOf(track), 0, started.contextName, shuffled = false)
+        return started.contextName
     }
 
     /**
@@ -116,10 +126,7 @@ class RadioController(private val app: AtticApp) {
             app.messages.tryEmit(app.getString(R.string.message_genre_radio_unanalysed))
             return
         }
-        val started = Session(seed.key, "$CONTEXT_PREFIX$name", centre)
-        session = started
-        stoppedContext = null
-        app.player.play(listOf(seed), 0, started.contextName, shuffled = false)
+        app.player.play(listOf(seed), 0, begin(seed, title = name, steerTo = centre), shuffled = false)
     }
 
     /**

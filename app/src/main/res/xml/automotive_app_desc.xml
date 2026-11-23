@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lists Attic in Android Auto as a media app. The car draws the screens from the playback service's browse tree. -->
+<automotiveApp>
+    <uses name="media" />
+</automotiveApp>

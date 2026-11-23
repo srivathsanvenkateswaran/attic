@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionToken
 import app.attic.player.data.ExternalTrack
 import app.attic.player.data.Library
@@ -41,6 +42,7 @@ class PlayerClient(
     private val context: Context,
     private val library: LibraryRepository,
     private val scope: CoroutineScope,
+    private val onMessage: (String) -> Unit = {},
 ) {
     private val _state = MutableStateFlow(PlayerUiState())
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
@@ -63,6 +65,12 @@ class PlayerClient(
                 .setListener(
                     object : MediaController.Listener {
                         override fun onExtrasChanged(controller: MediaController, extras: Bundle) = publish()
+
+                        // "Couldn't find …" from a spoken request the service had no match for.
+                        @OptIn(UnstableApi::class)
+                        override fun onError(controller: MediaController, sessionError: SessionError) {
+                            sessionError.message.takeIf { it.isNotBlank() }?.let { onMessage(it) }
+                        }
                     },
                 )
                 .buildAsync()
@@ -134,6 +142,17 @@ class PlayerClient(
             c.seekTo(at, 0L)
         }
         if (c.playbackState == Player.STATE_IDLE) c.prepare()
+        c.play()
+    }
+
+    /**
+     * "Play X on Attic" said to the phone's assistant. The service resolves [query] the same way it
+     * does for a car, so both find the same songs; an empty query carries on with the saved queue.
+     */
+    fun playFromSearch(query: String, extras: Bundle?) = act { c ->
+        val request = MediaItem.RequestMetadata.Builder().setSearchQuery(query).setExtras(extras).build()
+        c.setMediaItem(MediaItem.Builder().setRequestMetadata(request).build())
+        c.prepare()
         c.play()
     }
 
@@ -227,6 +246,8 @@ fun Track.toMediaItem(): MediaItem =
                 .setAlbumTitle(album)
                 .setTrackNumber(trackNumber)
                 .setDurationMs(durationMs)
+                // Cars take covers only as a URI. The notification still prefers the file's own embedded picture.
+                .setArtworkUri(if (mediaId >= 0 && !ExternalTrack.isExternal(key)) ArtProvider.uriFor(mediaId) else null)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                 .setIsPlayable(true)
                 .setIsBrowsable(false)

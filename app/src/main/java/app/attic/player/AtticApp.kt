@@ -63,7 +63,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
             save = settings::setOnboardingDone,
         ).also { it.start(scope) }
     }
-    val player by lazy { PlayerClient(this, library, scope) }
+    val player by lazy { PlayerClient(this, library, scope) { messages.tryEmit(it) } }
     val radio by lazy { RadioController(this) }
     val homeFeed by lazy { HomeFeed(this) }
     val genres by lazy { GenreRepository(this, database.dao(), library.library, scope) }

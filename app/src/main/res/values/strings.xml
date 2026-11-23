@@ -553,6 +553,13 @@
     <string name="notification_shuffle_off">Turn shuffle off</string>
     <string name="notification_favourite_add">Add to favourites</string>
     <string name="notification_favourite_remove">Remove from favourites</string>
+    <!-- Android Auto and other car screens -->
+    <!-- Shown by the car when Attic can't read music yet. VI-1: the driver looks at the phone only when it's safe -->
+    <string name="car_needs_permission">Attic can\'t see your music yet. When it\'s safe, open Attic on your phone and allow access to music.</string>
+    <!-- The button under that message, on cars that run Android themselves -->
+    <string name="car_open_attic">Open Attic</string>
+    <!-- "Play X" by voice, when nothing in the library matches X -->
+    <string name="car_not_found">Couldn\'t find \u201c%1$s\u201d in your music</string>
     <string name="analysis_channel">Song analysis</string>
     <string name="analysis_channel_description">Progress while Attic analyses your songs for radio</string>
     <string name="analysis_notification_title">Analysing your songs</string>

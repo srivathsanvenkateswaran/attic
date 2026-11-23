@@ -8,7 +8,8 @@ import androidx.media3.session.SessionCommand
  * publishes its state in the session extras, which every connected controller receives.
  */
 object SleepTimerSession {
-    val COMMAND = SessionCommand("app.attic.player.SLEEP_TIMER", Bundle.EMPTY)
+    const val ACTION = "app.attic.player.SLEEP_TIMER"
+    val COMMAND = SessionCommand(ACTION, Bundle())
     private const val MINUTES = "sleep_minutes"
     private const val ENDS_AT = "sleep_ends_at"
 

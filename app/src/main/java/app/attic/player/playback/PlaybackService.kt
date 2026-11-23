@@ -18,10 +18,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.session.CommandButton
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.LibraryParams
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.MediaItemsWithStartPosition
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import app.attic.player.MainActivity
 import app.attic.player.R
@@ -32,6 +36,7 @@ import app.attic.player.data.SavedQueueEntity
 import app.attic.player.attic
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.widget.WidgetState
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
@@ -42,24 +47,28 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * Owns the player. Media3 provides the notification, lock-screen controls and media-button routing
- * from the session, and ExoPlayer handles audio focus and pausing when headphones are unplugged.
+ * from the session, and ExoPlayer handles audio focus and pausing when headphones are unplugged. The
+ * session is a library session, so Android Auto and other car screens can browse and search the
+ * library (see [BrowseTree]) and play by voice (see [VoiceSearch]).
  */
 @OptIn(UnstableApi::class)
-class PlaybackService : MediaSessionService() {
+class PlaybackService : MediaLibraryService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val saveRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     private lateinit var player: ExoPlayer
     private lateinit var shuffle: PhysicalShuffle
     private lateinit var shuffledPlayer: Player
-    private var session: MediaSession? = null
+    private var session: MediaLibrarySession? = null
     private var lastRecordedKey: String? = null
     private val listens = ListenTracker()
     private var upcomingKeys: List<String> = emptyList()
@@ -70,6 +79,7 @@ class PlaybackService : MediaSessionService() {
     private var sleepJob: Job? = null
     private lateinit var levelling: LevellingAudioProcessor
     private lateinit var crossfade: CrossfadeController
+    private val browse by lazy { CarBrowser(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -102,7 +112,7 @@ class PlaybackService : MediaSessionService() {
         )
 
         shuffledPlayer = shuffle.wrappedPlayer()
-        session = MediaSession.Builder(this, shuffledPlayer)
+        session = MediaLibrarySession.Builder(this, shuffledPlayer, SessionCallback())
             .setSessionActivity(
                 PendingIntent.getActivity(
                     this,
@@ -111,7 +121,6 @@ class PlaybackService : MediaSessionService() {
                     PendingIntent.FLAG_IMMUTABLE,
                 ),
             )
-            .setCallback(SessionCallback())
             .build()
         refreshMediaButtons()
         scope.launch {
@@ -131,6 +140,7 @@ class PlaybackService : MediaSessionService() {
 
         scope.launch { restoreQueue() }
         startSaving()
+        scope.launch { notifyCarOfChanges() }
     }
 
     /** Hands the session to equaliser apps, and to Settings for its Equaliser row. */
@@ -148,7 +158,7 @@ class PlaybackService : MediaSessionService() {
         attic.audioSessionId.value = C.AUDIO_SESSION_ID_UNSET
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = session
 
     override fun onDestroy() {
         logListen(automatic = false)
@@ -186,7 +196,7 @@ class PlaybackService : MediaSessionService() {
                         },
                     )
                     .setDisplayName(getString(if (shuffled) R.string.notification_shuffle_off else R.string.notification_shuffle_on))
-                    .setSessionCommand(SHUFFLE_COMMAND)
+                    .setSessionCommand(AtticCommands.SHUFFLE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)
                     .build(),
                 CommandButton.Builder(if (liked) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED)
@@ -199,28 +209,20 @@ class PlaybackService : MediaSessionService() {
                         },
                     )
                     .setDisplayName(getString(if (liked) R.string.notification_favourite_remove else R.string.notification_favourite_add))
-                    .setSessionCommand(LIKE_COMMAND)
+                    .setSessionCommand(AtticCommands.LIKE_COMMAND)
                     .setSlots(CommandButton.SLOT_OVERFLOW)
                     .build(),
             ),
         )
     }
 
-    private inner class SessionCallback : MediaSession.Callback {
+    private inner class SessionCallback : MediaLibrarySession.Callback {
         override fun onConnect(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult =
             MediaSession.ConnectionResult.AcceptedResultBuilder(mediaSession)
-                .setAvailableSessionCommands(
-                    MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                        .add(SHUFFLE_COMMAND)
-                        .add(LIKE_COMMAND)
-                        .add(SleepTimerSession.COMMAND)
-                        .add(SmartShuffleSession.START)
-                        .add(SmartShuffleSession.STOP)
-                        .build(),
-                )
+                .setAvailableSessionCommands(AtticCommands.available())
                 .setSessionExtras(sessionExtras())
                 .build()
 
@@ -230,23 +232,29 @@ class PlaybackService : MediaSessionService() {
             customCommand: SessionCommand,
             args: Bundle,
         ): ListenableFuture<SessionResult> {
-            when (customCommand) {
-                SHUFFLE_COMMAND -> shuffledPlayer.shuffleModeEnabled = !player.shuffleModeEnabled
-                LIKE_COMMAND -> player.currentMediaItem?.mediaId?.let(attic.userData::toggleLike)
-                SleepTimerSession.COMMAND -> setSleepTimer(SleepTimerSession.choiceFrom(args))
-                SmartShuffleSession.START -> startSmartShuffle(SmartShuffleSession.requestFrom(args))
-                SmartShuffleSession.STOP -> shuffle.stopSmart()
+            when (AtticCommands.route(customCommand.customAction)) {
+                AtticCommands.Route.Shuffle -> shuffledPlayer.shuffleModeEnabled = !player.shuffleModeEnabled
+                AtticCommands.Route.Like -> player.currentMediaItem?.mediaId?.let(attic.userData::toggleLike)
+                AtticCommands.Route.SleepTimer -> setSleepTimer(SleepTimerSession.choiceFrom(args))
+                AtticCommands.Route.SmartShuffleStart -> startSmartShuffle(SmartShuffleSession.requestFrom(args))
+                AtticCommands.Route.SmartShuffleStop -> shuffle.stopSmart()
+                null -> return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
 
-        // A controller can't hand us playable URIs across the session boundary, only ids.
+        // A controller can't hand us playable URIs across the session boundary, only ids. A car hands
+        // us a browse id or a spoken query instead of a song key; those become the songs they name.
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
             mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> = scope.future {
-            resolve(mediaItems).toMutableList()
+            mediaItems.flatMap { item ->
+                val voice = browse.voiceRequest(item)
+                val request = if (voice != null) voiceRequest(voice, controller) else browse.requestFor(item)
+                request?.tracks?.map { it.toMediaItem() } ?: resolve(listOf(item))
+            }.toMutableList()
         }
 
         override fun onSetMediaItems(
@@ -256,11 +264,61 @@ class PlaybackService : MediaSessionService() {
             startIndex: Int,
             startPositionMs: Long,
         ): ListenableFuture<MediaItemsWithStartPosition> = scope.future {
+            mediaItems.singleOrNull()?.let { item ->
+                browse.voiceRequest(item)?.let { voice ->
+                    return@future voiceRequest(voice, controller)?.let(::startRequest) ?: resumeOrShuffle()
+                }
+                browse.requestFor(item)?.let { return@future startRequest(it) }
+            }
             val resolved = resolve(mediaItems)
             val start = if (startIndex == C.INDEX_UNSET) 0 else startIndex.coerceIn(0, (resolved.size - 1).coerceAtLeast(0))
             val position = if (startPositionMs == C.TIME_UNSET) 0L else startPositionMs
             val ordered = shuffle.orderNewQueue(resolved, start)
             MediaItemsWithStartPosition(ordered.items, ordered.startIndex, position)
+        }
+
+        override fun onGetLibraryRoot(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<MediaItem>> = Futures.immediateFuture(browse.root(browser, params))
+
+        override fun onGetChildren(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            parentId: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future {
+            browse.children(browser, parentId, page, pageSize, params)
+        }
+
+        override fun onGetItem(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            mediaId: String,
+        ): ListenableFuture<LibraryResult<MediaItem>> = scope.future { browse.item(mediaId) }
+
+        override fun onSearch(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<Void>> = scope.future {
+            session.notifySearchResultChanged(browser, query, browse.search(query).size, params)
+            LibraryResult.ofVoid()
+        }
+
+        override fun onGetSearchResult(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            query: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?,
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future {
+            LibraryResult.ofItemList(BrowseTree.page(browse.search(query), page, pageSize), params)
         }
 
         // Bluetooth or a headset pressed play while the service wasn't running.
@@ -272,6 +330,67 @@ class PlaybackService : MediaSessionService() {
             val saved = loadSaved() ?: throw UnsupportedOperationException("Nothing to resume")
             MediaItemsWithStartPosition(saved.items, saved.index, saved.positionMs)
         }
+    }
+
+    /**
+     * Plays what a car row or a voice request named. It sets the queue's name first, as the app's own
+     * screens do, so history, radio continuation and the saved queue treat it like the same list in the app.
+     * An Instant mix starts a radio session from its song, as the Home tile does.
+     */
+    private fun startRequest(request: PlayRequest): MediaItemsWithStartPosition {
+        val contextName = request.radioFrom?.let(attic.radio::begin) ?: request.contextName
+        // Straight on the player: the new queue replaces this one, so there is nothing to reorder.
+        request.shuffled?.let { player.shuffleModeEnabled = it }
+        player.playlistMetadata = MediaMetadata.Builder().setTitle(contextName).build()
+        val ordered = shuffle.orderNewQueue(request.tracks.map { it.toMediaItem() }, request.startIndex)
+        return MediaItemsWithStartPosition(ordered.items, ordered.startIndex, 0L)
+    }
+
+    /**
+     * What "play …" names, or null for "play music" with nothing named. When nothing matches, the car
+     * is told so and the request fails, which leaves the queue as it was.
+     */
+    private suspend fun voiceRequest(voice: VoiceRequest, controller: MediaSession.ControllerInfo): PlayRequest? =
+        when (val result = VoiceSearch.resolve(voice, browse.snapshot())) {
+            VoiceResult.Resume -> null
+            is VoiceResult.Play -> result.request
+            VoiceResult.NotFound -> {
+                session?.sendError(controller, browse.notFound(voice.query))
+                throw UnsupportedOperationException("Nothing matches \"${voice.query}\"")
+            }
+        }
+
+    /**
+     * "Play music" with nothing named: the queue that is loaded, else the saved queue where it stopped,
+     * else every song shuffled.
+     */
+    private suspend fun resumeOrShuffle(): MediaItemsWithStartPosition {
+        if (player.mediaItemCount > 0) {
+            val items = (0 until player.mediaItemCount).map { player.getMediaItemAt(it) }
+            return MediaItemsWithStartPosition(items, player.currentMediaItemIndex, player.currentPosition)
+        }
+        val saved = loadSaved()
+        if (saved != null) {
+            player.repeatMode = saved.entity.repeatMode
+            shuffle.restore(saved.entity.shuffle, saved.entity.baseKeys?.split('\n')?.filter { it.isNotEmpty() }, savedPicks(saved.entity.contextName, saved.items))
+            player.playlistMetadata = MediaMetadata.Builder().setTitle(saved.entity.contextName).build()
+            if (saved.entity.radioSeed != null && saved.entity.contextName != null) attic.radio.resume(saved.entity.radioSeed, saved.entity.contextName)
+            return MediaItemsWithStartPosition(saved.items, saved.index, saved.positionMs)
+        }
+        val request = BrowseTree.shuffleAllRequest(browse.snapshot()) ?: throw UnsupportedOperationException("No songs")
+        return startRequest(request)
+    }
+
+    /** Tells a car showing a tab that it changed: a new scan, a favourite, a playlist edit. */
+    @kotlin.OptIn(FlowPreview::class)
+    private suspend fun notifyCarOfChanges() {
+        combine(attic.library.library, attic.userData.likedKeys, attic.userData.playlists) { _, _, _ -> }
+            .drop(1)
+            .debounce(CAR_REFRESH_DEBOUNCE_MS)
+            .collect {
+                val current = session ?: return@collect
+                for (id in CarBrowser.refreshedIds) current.notifyChildrenChanged(id, Int.MAX_VALUE, null)
+            }
     }
 
     private suspend fun resolve(items: List<MediaItem>): List<MediaItem> {
@@ -645,8 +764,7 @@ class PlaybackService : MediaSessionService() {
 
     private companion object {
         const val TAG = "PlaybackService"
-        val SHUFFLE_COMMAND = SessionCommand("app.attic.player.SHUFFLE", Bundle.EMPTY)
-        val LIKE_COMMAND = SessionCommand("app.attic.player.LIKE", Bundle.EMPTY)
+        const val CAR_REFRESH_DEBOUNCE_MS = 1_000L
         const val SAVE_DEBOUNCE_MS = 400L
         const val SAVE_INTERVAL_MS = 15_000L
         const val RADIO_UP_NEXT = 10
