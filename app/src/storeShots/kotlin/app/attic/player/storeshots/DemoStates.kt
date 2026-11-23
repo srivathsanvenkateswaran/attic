@@ -13,6 +13,7 @@ import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.Tab
 import app.attic.player.ui.mosaicIds
 import app.attic.player.ui.model.AlbumActions
+import app.attic.player.ui.model.BackupUiState
 import app.attic.player.ui.model.AlbumState
 import app.attic.player.ui.model.ArtistActions
 import app.attic.player.ui.model.ArtistState
@@ -302,9 +303,10 @@ object DemoStates {
         savedLyricsCount = 51,
         songCount = lib.tracks.size,
         analysis = AnalysisProgress(lib.tracks.size, lib.tracks.size, running = false),
+        backup = BackupUiState(saving = false, restoring = false, confirm = null, restored = null, problem = null),
     )
 
-    val settingsActions = SettingsActions(noop, {}, {}, {}, noop, noop)
+    val settingsActions = SettingsActions(noop, {}, {}, {}, noop, noop, noop, noop, noop, noop, noop)
 
     // Recap
 
