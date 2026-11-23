@@ -5,6 +5,7 @@ import android.content.Context
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.data.AppSettings
 import app.attic.player.data.LibraryRepository
+import app.attic.player.data.LocalLyricsFinder
 import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
 import app.attic.player.data.UserData
@@ -26,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -38,7 +40,12 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val userData by lazy { UserData(database.dao(), scope) }
     val lyrics by lazy {
         val version = packageManager.getPackageInfo(packageName, 0).versionName
-        LyricsRepository(database.dao(), scope, userAgent = "Attic/$version (https://github.com/srivathsanvenkateswaran/attic)")
+        LyricsRepository(
+            database.dao(),
+            scope,
+            userAgent = "Attic/$version (https://github.com/srivathsanvenkateswaran/attic)",
+            finder = LocalLyricsFinder(this),
+        )
     }
     val settings by lazy { AppSettings(this) }
     val player by lazy { PlayerClient(this, library, scope) }
@@ -67,6 +74,10 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
         // New files get analysed the next time the phone charges.
         scope.launch {
             library.library.filterNotNull().collect { if (it.tracks.isNotEmpty()) AnalysisWorker.scheduleWhileCharging(this@AtticApp) }
+        }
+        // Lyrics in the songs' files and in .lrc files beside them, read again whenever the library changes.
+        scope.launch {
+            library.library.filterNotNull().collectLatest { lyrics.syncLocal(it.tracks) }
         }
         // The widget is drawn in the app's style, so a new style redraws it at once.
         scope.launch {

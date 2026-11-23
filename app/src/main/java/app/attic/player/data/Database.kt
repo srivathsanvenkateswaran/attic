@@ -80,6 +80,19 @@ data class LyricsEntity(
     val instrumental: Boolean,
     val found: Boolean,
     val fetchedAt: Long,
+    /** A [LyricsSource] ID. Lyrics read from the song's files replace downloaded ones. */
+    @ColumnInfo(defaultValue = "lrclib") val source: String = LyricsSource.Lrclib.id,
+)
+
+/**
+ * When a song's files were last read for lyrics, so unchanged files aren't read again. Times are
+ * MediaStore's DATE_MODIFIED in seconds; a null [sidecarModifiedSec] means there was no `.lrc` file.
+ */
+@Entity(tableName = "local_lyrics_checks")
+data class LocalLyricsCheckEntity(
+    @PrimaryKey val trackKey: String,
+    val audioModifiedSec: Long,
+    val sidecarModifiedSec: Long?,
 )
 
 /** One row per listen, kept for good: radio learns from it and it can answer "what did I play this year?". */
@@ -140,6 +153,24 @@ interface MusicDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveLyrics(entity: LyricsEntity)
+
+    @Query("SELECT * FROM lyrics WHERE trackKey = :key")
+    suspend fun lyricsNow(key: String): LyricsEntity?
+
+    @Query("SELECT * FROM lyrics")
+    suspend fun allLyrics(): List<LyricsEntity>
+
+    @Query("DELETE FROM lyrics WHERE trackKey = :key")
+    suspend fun deleteLyrics(key: String)
+
+    @Query("SELECT * FROM local_lyrics_checks")
+    suspend fun localLyricsChecks(): List<LocalLyricsCheckEntity>
+
+    @Query("SELECT * FROM local_lyrics_checks WHERE trackKey = :key")
+    suspend fun localLyricsCheck(key: String): LocalLyricsCheckEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLocalLyricsCheck(entity: LocalLyricsCheckEntity)
 
 
     @Query("SELECT trackKey FROM liked ORDER BY likedAt DESC")
@@ -320,10 +351,11 @@ object PlaylistOrder {
         ListeningEventEntity::class,
         SongAnalysisEntity::class,
         SongLanguageEntity::class,
+        LocalLyricsCheckEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class AtticDatabase : RoomDatabase() {
     abstract fun dao(): MusicDao
