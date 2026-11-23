@@ -131,7 +131,11 @@ object DemoStates {
                 yearEnded = false,
             ),
             speedDial = listOf("Porch Light", "Platform Ettu", "Patang", "Glasshouse", "Azulejo", "Drift Mode").map(DemoLibrary::track),
+            tasteMixes = emptyList(),
             recentTracks = recent,
+            onRepeat = emptyList(),
+            notLately = emptyList(),
+            newlyAdded = emptyList(),
             startListening = listOf("Moth Letters", "Kadalkarai", "Sheher Ki Shaam", "Rain on the Skylight").map(DemoLibrary::track),
             folders = lib.folders,
             biggestAlbums = albums.sortedByDescending { it.tracks.size },
@@ -144,7 +148,7 @@ object DemoStates {
         )
     }
 
-    val homeActions = HomeActions({}, noop, {}, noop, {}, {}, {}, {}, {}, {}, {})
+    val homeActions = HomeActions({}, noop, {}, noop, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
 
     // Collections
 

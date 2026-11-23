@@ -160,7 +160,7 @@ house until they are redrawn.
 | `.swipe` | `SwipeToRemove(onRemove, resetKey) { SongRow(…) }` | the swipe starts over when `resetKey` changes; the queue passes its up-next list, because a row's key passes to the song's next copy after a removal |
 | `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode |
 | `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | |
-| `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick)` | |
+| `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick, titleLines = 1)` | `titleLines = 2` for a name that needs it (Home's taste mixes) |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 12dp gaps |
 | `.grid`, `.grid.c3` | `TileGrid(items, columns = 2) { Tile(…, width = null) }` | not lazy |
 | `.hero` | `HeroCarousel(count, leading = { FavouritesPill(…) }, caption = { HeroCaption(…) }, onItemClick) { index -> Cover(…, Modifier.fillMaxSize(), shape = RectangleShape) }` | Material multi-browse carousel |

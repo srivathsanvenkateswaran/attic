@@ -185,4 +185,7 @@ fun isFavouritesContext(name: String?): Boolean = name == FAVOURITES_CONTEXT || 
 /** True when [playing], the name the player holds, is the collection called [name], under either Favourites name. */
 fun isSameContext(playing: String?, name: String): Boolean =
     playing == name || (isFavouritesContext(playing) && isFavouritesContext(name))
-private val FIXED_CONTEXTS = setOf("Recently played", "Start listening", "Search results", "All songs", "Your top songs")
+private val FIXED_CONTEXTS = setOf(
+    "Recently played", "Start listening", "Search results", "All songs", "Your top songs",
+    "On repeat", "Haven't heard in a while", "Newly added",
+)

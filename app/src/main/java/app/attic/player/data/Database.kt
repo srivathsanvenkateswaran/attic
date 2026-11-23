@@ -138,6 +138,8 @@ class PlayCount(val trackKey: String, val playCount: Int)
 
 class EventStart(val trackKey: String, val startedAt: Long)
 
+class RecentListen(val trackKey: String, val startedAt: Long, val outcome: String)
+
 class ListenRow(val trackKey: String, val startedAt: Long, val listenedMs: Long, val outcome: String, val contextName: String?)
 
 @Dao
@@ -291,6 +293,10 @@ interface MusicDao {
 
     @Query("SELECT COUNT(*) FROM listening_events WHERE listenedMs > 0")
     fun listenCount(): Flow<Int>
+
+    /** Listens from [since] on, for Home's "On repeat". Uses the startedAt index. */
+    @Query("SELECT trackKey, startedAt, outcome FROM listening_events WHERE startedAt >= :since AND listenedMs > 0")
+    suspend fun listensSince(since: Long): List<RecentListen>
 
     // Backup and restore read whole tables and write in bulk.
 

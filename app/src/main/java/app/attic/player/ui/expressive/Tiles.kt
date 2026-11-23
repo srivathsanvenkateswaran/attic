@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
  * A tile (`.tile`): a cover with a title and subtitle under it, in a shelf or grid. [art] draws the
  * picture (a [Cover], [Mosaic], [FavouritesArt] or [ArtistCover]) filling the width it is given.
  * [artist] centres the text under a cookie (`.tile.artist`). [now] marks the song that is playing:
- * the title turns primary with the wave before it.
+ * the title turns primary with the wave before it. [titleLines] lets a long name wrap (a taste mix).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -61,6 +61,7 @@ fun Tile(
     now: Boolean = false,
     playing: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    titleLines: Int = 1,
 ) {
     Column(
         modifier
@@ -79,7 +80,7 @@ fun Tile(
                 title,
                 style = MaterialTheme.typography.titleSmall.copy(letterSpacing = 0.sp),
                 color = if (now) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
+                maxLines = titleLines,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = if (artist) TextAlign.Center else TextAlign.Start,
             )

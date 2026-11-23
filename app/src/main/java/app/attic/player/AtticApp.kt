@@ -10,6 +10,7 @@ import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
 import app.attic.player.data.OnboardingGate
 import app.attic.player.data.UserData
+import app.attic.player.home.HomeFeed
 import app.attic.player.data.backup.BackupRepository
 import app.attic.player.playback.PlayerClient
 import app.attic.player.radio.LanguageImport
@@ -63,6 +64,7 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     }
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
+    val homeFeed by lazy { HomeFeed(this) }
     val wrapped by lazy { WrappedRepository(this) }
     val backup by lazy {
         BackupRepository(database, settings, library, packageManager.getPackageInfo(packageName, 0).versionName, filesDir, noBackupFilesDir)

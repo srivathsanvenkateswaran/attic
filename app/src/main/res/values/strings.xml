@@ -66,6 +66,16 @@
     <string name="home_recently_played">Recently played</string>
     <string name="home_start_listening_overline">Picked at random from your songs</string>
     <string name="home_start_listening">Start listening</string>
+    <string name="home_on_repeat">On repeat</string>
+    <string name="home_not_lately">Haven\'t heard in a while</string>
+    <string name="home_newly_added">Newly added</string>
+    <string name="home_mixes">Mixes</string>
+    <string name="home_mixes_overline">Songs you play, grouped by sound</string>
+    <!-- A taste mix, named after the artists it plays most. -->
+    <string name="home_mix_name_two">Mix: %1$s, %2$s and more</string>
+    <string name="home_mix_name_one">Mix: %1$s and more</string>
+    <!-- A taste mix whose songs have no artist tags. -->
+    <string name="home_mix_name_numbered">Mix %1$s</string>
     <string name="home_your_folders">Your folders</string>
     <string name="home_albums">Albums</string>
     <string name="home_more_from">More from</string>
