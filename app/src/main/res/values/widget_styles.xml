@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's views, per style. PlayerWidget recolours them from the cover. -->
+<resources>
+    <style name="WidgetText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="WidgetText.Expressive" />
+    <style name="WidgetText.Comfort" />
+    <style name="WidgetSkip" />
+    <style name="WidgetPlay" />
+    <style name="WidgetTile" />
+
+    <!-- pixel/10-system: the system font, as today. -->
+    <style name="WidgetText.Expressive.Title">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/expressive_widget_on</item>
+        <item name="android:text">@string/app_name</item>
+    </style>
+
+    <style name="WidgetText.Expressive.Artist">
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:textColor">@color/expressive_widget_on_variant</item>
+        <item name="android:text">@string/widget_empty</item>
+    </style>
+
+    <!-- oneui/10-system draws the widget in Onest, the app's face. -->
+    <style name="WidgetText.Comfort.Title">
+        <item name="android:fontFamily">@font/onest_widget</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/comfort_widget_on</item>
+        <item name="android:text">@string/app_name</item>
+    </style>
+
+    <style name="WidgetText.Comfort.Artist">
+        <item name="android:fontFamily">@font/onest_widget</item>
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/comfort_widget_on_2</item>
+        <item name="android:text">@string/widget_empty</item>
+    </style>
+
+    <!-- pixel/kit.css .ib.tonal: a 40dp fill in a 48dp target. -->
+    <style name="WidgetSkip.Expressive">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">@drawable/widget_expressive_skip</item>
+        <item name="android:backgroundTint">@color/expressive_widget_tonal</item>
+        <item name="android:tint">@color/expressive_widget_on_tonal</item>
+        <item name="android:scaleType">center</item>
+    </style>
+
+    <!-- .ib.tonal.narrow, in the 4 x 1 size. -->
+    <style name="WidgetSkip.Expressive.Narrow">
+        <item name="android:layout_width">40dp</item>
+    </style>
+
+    <!-- pixel/kit.css .pp: a 36dp button in a 52dp box, round while paused, squared off while playing. -->
+    <style name="WidgetPlay.Expressive">
+        <item name="android:layout_width">52dp</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:background">@drawable/widget_expressive_play_paused</item>
+        <item name="android:backgroundTint">@color/expressive_widget_primary</item>
+        <item name="android:src">@drawable/ic_play</item>
+        <item name="android:tint">@color/expressive_widget_on_primary</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:padding">15dp</item>
+        <item name="android:contentDescription">@string/widget_play_pause</item>
+    </style>
+
+    <!-- Five album covers of equal width, 12dp corners. -->
+    <style name="WidgetTile.Expressive">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/widget_corner_12</item>
+        <item name="android:backgroundTint">@color/expressive_widget_tonal</item>
+        <item name="android:clipToOutline">true</item>
+        <item name="android:scaleType">centerCrop</item>
+        <item name="android:contentDescription">@string/widget_album</item>
+    </style>
+
+    <!-- oneui/kit.css .ib inside .wg-ctl: a bare 30dp glyph in a 44dp target. -->
+    <style name="WidgetSkip.Comfort">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:tint">@color/comfort_widget_on</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:padding">7dp</item>
+    </style>
+
+    <style name="WidgetSkip.Comfort.Narrow">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:paddingStart">5dp</item>
+        <item name="android:paddingEnd">5dp</item>
+    </style>
+
+    <!-- oneui/kit.css .play.sm: a 44dp superellipse in the accent with a 26dp glyph. -->
+    <style name="WidgetPlay.Comfort">
+        <item name="android:layout_width">44dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@drawable/widget_squircle</item>
+        <item name="android:backgroundTint">@color/comfort_widget_accent</item>
+        <item name="android:src">@drawable/ic_play</item>
+        <item name="android:tint">@color/comfort_widget_on_accent</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:padding">9dp</item>
+        <item name="android:contentDescription">@string/widget_play_pause</item>
+    </style>
+
+    <!-- A 56dp album cover in the tray, already cut to the superellipse by PlayerWidget. -->
+    <style name="WidgetTile.Comfort">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:contentDescription">@string/widget_album</item>
+    </style>
+
+    <!-- A spacer that shares out the room between fixed-size views. -->
+    <style name="WidgetGap">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+</resources>

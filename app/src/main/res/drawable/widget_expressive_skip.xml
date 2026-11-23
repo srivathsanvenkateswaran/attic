@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Expressive's tonal icon button: a full-round fill 4dp inside its touch target (pixel/kit.css .ib.tonal). -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="4dp">
+    <shape>
+        <solid android:color="#FFFFFFFF" />
+        <corners android:radius="999dp" />
+    </shape>
+</inset>

@@ -1,0 +1,639 @@
+/* Attic · UI directions 2026-11-21 · pixel/kit.css
+   Material 3 Expressive as it ships on Pixel, applied to Attic.
+
+   Everything here is scoped to .phone and .strip (page.css owns the review page).
+   Dark is the default; add .light to the .phone or .strip for the light scheme.
+   Components take colour from role variables only. KIT.md has the markup.
+
+   Contents
+     1  Tokens: app scheme (dark, light), art scheme (.from-art), shape, type
+     2  Base, icons, the Attic mark, the wave
+     3  Buttons, icon buttons, FAB, split button, button group, toolbar
+     4  Navigation bar, dock, mini player, play control
+     5  App bars, search bar, chips, connected button group, section header
+     6  Carousel, shelf, tile, grid, instant-mix pills, Recap card, browse tile
+     7  Lists: group, song row, collection row
+     8  Collection and artist header
+     9  Now Playing
+    10  Sheet, dialog, menu, snackbar
+    11  Switch, radio, progress, loading indicator
+    12  Settings, empty state, stat tile                                        */
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wdth,wght,ROND@6..144,25..151,1..1000,0..100&family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
+
+/* ── 1 · TOKENS ─────────────────────────────────────────────────────────────
+   App scheme. In the app this is the system's wallpaper scheme (dynamicDark/
+   LightColorScheme). The mock needs one concrete scheme: seed #3F6FD8,
+   SchemeTonalSpot, 2025 colour spec, generated with material-color-utilities. */
+.phone,.strip{
+  --primary:#b9c6ee;--on-primary:#333f61;--primary-container:#455274;--on-primary-container:#dbe2ff;
+  --secondary:#c0c6dd;--on-secondary:#3a4052;--secondary-container:#353b4d;--on-secondary-container:#b9bfd5;
+  --tertiary:#eed7ff;--on-tertiary:#5c4870;--tertiary-container:#e2c8f8;--on-tertiary-container:#533f66;
+  --error:#fa746f;--on-error:#490006;--error-container:#871f21;--on-error-container:#ff9993;
+  --surface:#0d0e12;--surface-dim:#0d0e12;--surface-bright:#292c34;--surface-container-lowest:#000000;
+  --surface-container-low:#121318;--surface-container:#18191f;--surface-container-high:#1d1f26;--surface-container-highest:#23262e;
+  --on-surface:#e4e5f0;--on-surface-variant:#a9aab5;--outline:#73757f;--outline-variant:#454850;
+  --inverse-surface:#faf8fe;--inverse-on-surface:#545559;--inverse-primary:#525e81;--scrim:#000000;
+  --font:'Google Sans Flex','Roboto Flex',Roboto,system-ui,sans-serif;
+  /* corner scale */
+  --r-xs:4px;--r-s:8px;--r-m:12px;--r-l:16px;--r-li:20px;--r-xl:28px;--r-xli:32px;--r-xxl:48px;--r-full:999px;
+  /* shapes */
+  --shape-cookie:polygon(50.0% 0.0%,52.6% 0.3%,55.1% 1.1%,57.5% 2.5%,59.8% 4.1%,61.8% 5.9%,63.8% 7.5%,65.9% 8.6%,68.4% 8.6%,71.1% 8.6%,73.9% 8.7%,76.6% 9.1%,79.2% 9.9%,81.4% 11.2%,83.4% 12.9%,84.9% 15.1%,86.0% 17.6%,86.8% 20.2%,87.3% 22.9%,87.7% 25.5%,88.3% 27.9%,90.1% 29.6%,92.1% 31.3%,94.2% 33.0%,96.1% 35.0%,97.7% 37.2%,98.8% 39.6%,99.4% 42.2%,99.3% 44.8%,98.8% 47.4%,97.7% 50.0%,96.4% 52.4%,95.1% 54.7%,93.9% 56.9%,93.7% 59.3%,94.1% 61.8%,94.6% 64.5%,94.9% 67.2%,94.9% 70.0%,94.3% 72.6%,93.3% 75.0%,91.7% 77.1%,89.7% 78.9%,87.4% 80.3%,84.9% 81.4%,82.3% 82.3%,79.9% 83.2%,77.9% 84.5%,76.6% 86.7%,75.3% 89.0%,73.9% 91.3%,72.2% 93.5%,70.2% 95.3%,67.9% 96.7%,65.4% 97.5%,62.8% 97.7%,60.1% 97.4%,57.4% 96.8%,54.8% 95.8%,52.4% 94.9%,50.0% 94.2%,47.6% 94.9%,45.2% 95.8%,42.6% 96.8%,39.9% 97.4%,37.2% 97.7%,34.6% 97.5%,32.1% 96.7%,29.8% 95.3%,27.8% 93.5%,26.1% 91.3%,24.7% 89.0%,23.4% 86.7%,22.1% 84.5%,20.1% 83.2%,17.7% 82.3%,15.1% 81.4%,12.6% 80.3%,10.3% 78.9%,8.3% 77.1%,6.7% 75.0%,5.7% 72.6%,5.1% 70.0%,5.1% 67.2%,5.4% 64.5%,5.9% 61.8%,6.3% 59.3%,6.1% 56.9%,4.9% 54.7%,3.6% 52.4%,2.3% 50.0%,1.2% 47.4%,0.7% 44.8%,0.6% 42.2%,1.2% 39.6%,2.3% 37.2%,3.9% 35.0%,5.8% 33.0%,7.9% 31.3%,9.9% 29.6%,11.7% 27.9%,12.3% 25.5%,12.7% 22.9%,13.2% 20.2%,14.0% 17.6%,15.1% 15.1%,16.6% 12.9%,18.6% 11.2%,20.8% 9.9%,23.4% 9.1%,26.1% 8.7%,28.9% 8.6%,31.6% 8.6%,34.1% 8.6%,36.2% 7.5%,38.2% 5.9%,40.2% 4.1%,42.5% 2.5%,44.9% 1.1%,47.4% 0.3%);
+  --shape-burst:polygon(50.0% 0.0%,53.2% 0.8%,56.2% 2.9%,58.8% 5.9%,61.0% 8.9%,63.1% 11.5%,65.3% 13.0%,68.0% 13.5%,71.2% 13.2%,75.0% 12.6%,78.9% 12.3%,82.5% 12.9%,85.4% 14.6%,87.1% 17.5%,87.7% 21.1%,87.4% 25.0%,86.8% 28.7%,86.5% 32.0%,87.0% 34.7%,88.5% 36.9%,91.1% 39.0%,94.1% 41.2%,97.1% 43.8%,99.2% 46.8%,100.0% 50.0%,99.2% 53.2%,97.1% 56.2%,94.1% 58.8%,91.1% 61.0%,88.5% 63.1%,87.0% 65.3%,86.5% 68.0%,86.8% 71.2%,87.4% 75.0%,87.7% 78.9%,87.1% 82.5%,85.4% 85.4%,82.5% 87.1%,78.9% 87.7%,75.0% 87.4%,71.2% 86.8%,68.0% 86.5%,65.3% 87.0%,63.1% 88.5%,61.0% 91.1%,58.8% 94.1%,56.2% 97.1%,53.2% 99.2%,50.0% 100.0%,46.8% 99.2%,43.8% 97.1%,41.2% 94.1%,39.0% 91.1%,36.9% 88.5%,34.7% 87.0%,32.0% 86.5%,28.8% 86.8%,25.0% 87.4%,21.1% 87.7%,17.5% 87.1%,14.6% 85.4%,12.9% 82.5%,12.3% 78.9%,12.6% 75.0%,13.2% 71.3%,13.5% 68.0%,13.0% 65.3%,11.5% 63.1%,8.9% 61.0%,5.9% 58.8%,2.9% 56.2%,0.8% 53.2%,0.0% 50.0%,0.8% 46.8%,2.9% 43.8%,5.9% 41.2%,8.9% 39.0%,11.5% 36.9%,13.0% 34.7%,13.5% 32.0%,13.2% 28.7%,12.6% 25.0%,12.3% 21.1%,12.9% 17.5%,14.6% 14.6%,17.5% 12.9%,21.1% 12.3%,25.0% 12.6%,28.7% 13.2%,32.0% 13.5%,34.7% 13.0%,36.9% 11.5%,39.0% 8.9%,41.2% 5.9%,43.8% 2.9%,46.8% 0.8%);
+  --wave:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='14' viewBox='0 0 32 14'%3E%3Cpath d='M-8 7Q0 0 8 7T24 7T40 7' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
+  --wave-s:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M-2.5 5Q0 1 2.5 5T7.5 5T12.5 5' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  --ring-on:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52'%3E%3Cpath d='M26.0 2.5L26.6 2.5L27.2 2.5L27.8 2.6L28.4 2.6L28.9 2.7L29.5 2.8L30.1 2.9L30.7 3.0L31.3 3.1L31.8 3.2L32.4 3.4L33.0 3.6L33.5 3.7L34.1 3.9L34.6 4.1L35.2 4.4L35.7 4.6L36.3 4.9L36.8 5.1L37.3 5.4L37.8 5.7L38.3 6.0L38.8 6.3L39.3 6.6L39.8 7.0L40.3 7.3L40.7 7.7L41.2 8.1L41.6 8.4L42.1 8.8L42.5 9.2L42.9 9.7L43.3 10.1L43.7 10.5L44.1 11.0L44.4 11.4L44.8 11.9L45.2 12.4L45.5 12.9L45.8 13.4L46.1 13.9L46.4 14.4L46.7 14.9L47.0 15.4L47.2 15.9L47.5 16.5L47.7 17.0L47.9 17.6L48.1 18.1L48.3 18.7L48.5 19.2L48.7 19.8L48.8 20.4L49.0 20.9L49.1 21.5L49.2 22.1L49.3 22.7L49.3 23.3L49.4 23.9L49.4 24.4L49.5 25.0L49.5 25.6L49.5 26.2L49.5 26.8L49.5 27.4L49.4 28.0L49.4 28.6L49.3 29.1L49.2 29.7L49.1 30.3L49.0 30.9L48.9 31.5L48.7 32.0L48.6 32.6L48.4 33.2L48.2 33.7L48.0 34.3L47.8 34.8L47.6 35.4L47.3 35.9L47.1 36.4' fill='none' stroke='black' stroke-width='3.0' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --ring-off:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52'%3E%3Cpath d='M44.0 41.1L42.2 43.0L40.2 44.7L38.0 46.2L35.7 47.4L33.3 48.3L30.8 49.0L28.2 49.4L25.6 49.5L23.0 49.3L20.4 48.8L17.9 48.1L15.5 47.0L13.3 45.8L11.2 44.2L9.2 42.5L7.5 40.5L6.0 38.4L4.8 36.1L3.8 33.7L3.1 31.2L2.6 28.6L2.5 26.0L2.6 23.4L3.1 20.8L3.8 18.3L4.8 15.9L6.0 13.6L7.5 11.5L9.2 9.5L11.2 7.8L13.3 6.3L15.5 5.0L17.9 3.9L20.4 3.2' fill='none' stroke='black' stroke-width='3.0' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --elev-2:0 1px 2px rgba(0,0,0,.3),0 2px 6px 2px rgba(0,0,0,.15);
+  --elev-3:0 1px 3px rgba(0,0,0,.3),0 4px 8px 3px rgba(0,0,0,.15);
+  background:var(--surface);color:var(--on-surface);
+  font-family:var(--font);font-size:14px;line-height:20px;font-weight:400;
+  font-variation-settings:'ROND' 0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+.phone.light,.strip.light{
+  --primary:#4d5e8b;--on-primary:#f9f8ff;--primary-container:#b4c5f9;--on-primary-container:#2d3f6a;
+  --secondary:#585f72;--on-secondary:#f9f8ff;--secondary-container:#dce2f9;--on-secondary-container:#4b5164;
+  --tertiary:#6b577f;--on-tertiary:#fff6ff;--tertiary-container:#e2c8f8;--on-tertiary-container:#533f66;
+  --error:#a83836;--on-error:#fff7f6;--error-container:#fa746f;--on-error-container:#6e0a12;
+  --surface:#faf8fe;--surface-dim:#d8d9e4;--surface-bright:#faf8fe;--surface-container-lowest:#ffffff;
+  --surface-container-low:#f4f3fa;--surface-container:#ededf6;--surface-container-high:#e7e7f1;--surface-container-highest:#e1e2ed;
+  --on-surface:#30323a;--on-surface-variant:#5d5f68;--outline:#787a84;--outline-variant:#b0b1bc;
+  --inverse-surface:#0d0e12;--inverse-on-surface:#9d9ca2;--inverse-primary:#b4c5f9;--scrim:#000000;
+}
+
+/* Art scheme. Any element that carries or sits inside an .art-<key> class can
+   add .from-art: every role below is then rebuilt from that cover's --tint, so
+   the same components draw themselves in the album's colours. The tint only
+   supplies the hue (and a tenth of its own tone and chroma); the tone and
+   chroma of each role are fixed, the way a tonal palette fixes them. In the app
+   this is a ColorScheme built from the cover with material-color-utilities.
+   Tertiary keeps the cover's hue: color-mix() cannot rotate one. */
+.phone.from-art,.phone .from-art,.strip.from-art,.strip .from-art{
+  --primary:color-mix(in oklch,var(--tint) 10%,oklch(.86 .1 none));
+  --on-primary:color-mix(in oklch,var(--tint) 10%,oklch(.26 .06 none));
+  --primary-container:color-mix(in oklch,var(--tint) 10%,oklch(.42 .085 none));
+  --on-primary-container:color-mix(in oklch,var(--tint) 10%,oklch(.93 .05 none));
+  --secondary:color-mix(in oklch,var(--tint) 10%,oklch(.84 .05 none));
+  --on-secondary:color-mix(in oklch,var(--tint) 10%,oklch(.27 .04 none));
+  --secondary-container:color-mix(in oklch,var(--tint) 10%,oklch(.36 .055 none));
+  --on-secondary-container:color-mix(in oklch,var(--tint) 10%,oklch(.91 .04 none));
+  --tertiary:color-mix(in oklch,var(--tint) 10%,oklch(.93 .06 none));
+  --on-tertiary:color-mix(in oklch,var(--tint) 10%,oklch(.38 .08 none));
+  --tertiary-container:color-mix(in oklch,var(--tint) 10%,oklch(.9 .075 none));
+  --on-tertiary-container:color-mix(in oklch,var(--tint) 10%,oklch(.34 .08 none));
+  --surface:color-mix(in oklch,var(--tint) 8%,oklch(.185 .03 none));
+  --surface-dim:var(--surface);
+  --surface-bright:color-mix(in oklch,var(--tint) 8%,oklch(.36 .04 none));
+  --surface-container-lowest:color-mix(in oklch,var(--tint) 6%,oklch(.14 .025 none));
+  --surface-container-low:color-mix(in oklch,var(--tint) 8%,oklch(.215 .034 none));
+  --surface-container:color-mix(in oklch,var(--tint) 8%,oklch(.245 .038 none));
+  --surface-container-high:color-mix(in oklch,var(--tint) 8%,oklch(.275 .042 none));
+  --surface-container-highest:color-mix(in oklch,var(--tint) 8%,oklch(.31 .045 none));
+  --on-surface:color-mix(in oklch,var(--tint) 4%,oklch(.94 .02 none));
+  --on-surface-variant:color-mix(in oklch,var(--tint) 6%,oklch(.82 .035 none));
+  --outline:color-mix(in oklch,var(--tint) 8%,oklch(.64 .035 none));
+  --outline-variant:color-mix(in oklch,var(--tint) 8%,oklch(.4 .04 none));
+  --inverse-surface:color-mix(in oklch,var(--tint) 4%,oklch(.94 .02 none));
+  --inverse-on-surface:color-mix(in oklch,var(--tint) 8%,oklch(.3 .03 none));
+  --inverse-primary:color-mix(in oklch,var(--tint) 10%,oklch(.48 .11 none));
+  color:var(--on-surface);
+}
+.phone.light.from-art,.phone.light .from-art,.strip.light.from-art,.strip.light .from-art{
+  --primary:color-mix(in oklch,var(--tint) 10%,oklch(.47 .115 none));
+  --on-primary:color-mix(in oklch,var(--tint) 3%,oklch(.99 .01 none));
+  --primary-container:color-mix(in oklch,var(--tint) 10%,oklch(.87 .075 none));
+  --on-primary-container:color-mix(in oklch,var(--tint) 10%,oklch(.33 .09 none));
+  --secondary:color-mix(in oklch,var(--tint) 10%,oklch(.46 .055 none));
+  --on-secondary:color-mix(in oklch,var(--tint) 3%,oklch(.99 .01 none));
+  --secondary-container:color-mix(in oklch,var(--tint) 8%,oklch(.895 .045 none));
+  --on-secondary-container:color-mix(in oklch,var(--tint) 10%,oklch(.35 .055 none));
+  --tertiary:color-mix(in oklch,var(--tint) 10%,oklch(.44 .09 none));
+  --on-tertiary:color-mix(in oklch,var(--tint) 3%,oklch(.99 .01 none));
+  --tertiary-container:color-mix(in oklch,var(--tint) 10%,oklch(.9 .075 none));
+  --on-tertiary-container:color-mix(in oklch,var(--tint) 10%,oklch(.34 .08 none));
+  --surface:color-mix(in oklch,var(--tint) 4%,oklch(.968 .018 none));
+  --surface-dim:color-mix(in oklch,var(--tint) 6%,oklch(.89 .03 none));
+  --surface-bright:var(--surface);
+  --surface-container-lowest:color-mix(in oklch,var(--tint) 2%,oklch(.995 .006 none));
+  --surface-container-low:color-mix(in oklch,var(--tint) 4%,oklch(.95 .023 none));
+  --surface-container:color-mix(in oklch,var(--tint) 5%,oklch(.933 .028 none));
+  --surface-container-high:color-mix(in oklch,var(--tint) 5%,oklch(.915 .032 none));
+  --surface-container-highest:color-mix(in oklch,var(--tint) 6%,oklch(.895 .036 none));
+  --on-surface:color-mix(in oklch,var(--tint) 10%,oklch(.22 .03 none));
+  --on-surface-variant:color-mix(in oklch,var(--tint) 10%,oklch(.4 .04 none));
+  --outline:color-mix(in oklch,var(--tint) 10%,oklch(.58 .04 none));
+  --outline-variant:color-mix(in oklch,var(--tint) 8%,oklch(.82 .04 none));
+  --inverse-surface:color-mix(in oklch,var(--tint) 10%,oklch(.26 .03 none));
+  --inverse-on-surface:color-mix(in oklch,var(--tint) 4%,oklch(.95 .02 none));
+  --inverse-primary:color-mix(in oklch,var(--tint) 10%,oklch(.86 .1 none));
+  color:var(--on-surface);
+}
+
+/* ── 2 · BASE ─────────────────────────────────────────────────────────────── */
+:where(.phone,.strip) button{font:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;
+  background:none;border:0;padding:0;margin:0;text-align:inherit}
+:where(.phone,.strip) :is(h1,h2,h3,h4,p){margin:0;font-size:inherit;font-weight:inherit}
+:where(.phone,.strip) a{color:inherit;text-decoration:none}
+:where(.phone,.strip) b{font-weight:500}
+:where(.phone,.strip) small{font-size:inherit}
+:where(.phone,.strip) i{font-style:normal}
+.phone .sbar,.strip .sbar{font-weight:500}
+/* A surface that runs under the status bar (a tinted header, a scrolled app bar). */
+.under-sbar{margin-top:-44px;padding-top:44px}
+/* The scrolling content of a screen. clear-dock leaves room for nav bar + mini player. */
+.page{position:relative}
+.page.clear-dock{padding-bottom:184px}
+.page.clear-nav{padding-bottom:112px}
+
+/* covers: albums, playlists and folders are rounded squares; radius follows size */
+.phone .cv,.strip .cv,.phone .mosaic,.strip .mosaic{border-radius:var(--r-s)}
+.phone .mosaic .cv,.strip .mosaic .cv{border-radius:0}
+/* artists are the nine-lobed cookie, at every size */
+.phone .cookie,.strip .cookie{clip-path:var(--shape-cookie);border-radius:0}
+.phone .cv.cookie::after,.strip .cv.cookie::after{content:none}
+/* Favourites: a heart on the tertiary container. Sized by its width. */
+.fav-art{display:grid;place-items:center;aspect-ratio:1;flex:none;container-type:inline-size;
+  border-radius:var(--r-s);background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.fav-art .ms{font-size:50cqw}
+/* placeholder when a file has no cover */
+.no-art{display:grid;place-items:center;aspect-ratio:1;flex:none;container-type:inline-size;
+  border-radius:var(--r-s);background:var(--surface-container-highest);color:var(--on-surface-variant)}
+.no-art .ms{font-size:46cqw}
+
+/* Material Symbols Rounded. <span class="ms">home</span>; add .fill for the selected state. */
+.ms{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;
+  letter-spacing:normal;text-transform:none;white-space:nowrap;direction:ltr;display:inline-block;flex:none;
+  width:1em;height:1em;overflow:hidden;font-feature-settings:'liga';-webkit-font-feature-settings:'liga';
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.ms.fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.ms.s18{font-size:18px}.ms.s20{font-size:20px}.ms.s28{font-size:28px}.ms.s32{font-size:32px}.ms.s40{font-size:40px}
+
+/* the Attic mark, drawn in currentColor */
+.mark{display:block;flex:none;width:24px;height:24px;fill:currentColor;stroke:currentColor;stroke-width:5;stroke-linejoin:round}
+
+/* The wave: the sign that something is playing. .still is the paused form. */
+.wave{display:block;flex:none;width:20px;height:10px;background:var(--primary);
+  -webkit-mask:var(--wave-s) 2.5px 50%/10px 10px repeat-x;mask:var(--wave-s) 2.5px 50%/10px 10px repeat-x}
+.wave.still{-webkit-mask:none;mask:none;height:2.5px;border-radius:2px}
+
+/* type helpers for one-off text; components carry their own type */
+.t-display{font-size:45px;line-height:52px;font-weight:400;letter-spacing:-.5px}
+.t-display-s{font-size:36px;line-height:44px;font-weight:400;letter-spacing:-.3px}
+.t-headline-l{font-size:32px;line-height:40px;font-weight:400}
+.t-headline{font-size:28px;line-height:36px;font-weight:400}
+.t-headline-s{font-size:24px;line-height:32px;font-weight:400}
+.t-title-l{font-size:22px;line-height:28px;font-weight:400}
+.t-title{font-size:16px;line-height:24px;font-weight:500;letter-spacing:.1px}
+.t-title-s{font-size:14px;line-height:20px;font-weight:500;letter-spacing:.1px}
+.t-body-l{font-size:16px;line-height:24px;font-weight:400}
+.t-body{font-size:14px;line-height:20px;font-weight:400}
+.t-body-s{font-size:12px;line-height:16px;font-weight:400}
+.t-label-l{font-size:14px;line-height:20px;font-weight:500}
+.t-label{font-size:12px;line-height:16px;font-weight:500}
+.t-label-s{font-size:11px;line-height:16px;font-weight:500}
+/* emphasised: heavier and fully rounded */
+.em{font-weight:700;font-variation-settings:'ROND' 100}
+.t-title.em,.t-title-s.em,.t-label-l.em,.t-label.em,.t-body-l.em,.t-body.em{font-weight:600}
+.dim{color:var(--on-surface-variant)}
+.clip1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* a title that does not fit narrows before it is cut: try .w75, then .w50, then let it ellipsize */
+.w75{font-stretch:75%}.w50{font-stretch:50%}
+
+/* ── 3 · BUTTONS ──────────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;height:40px;padding:0 16px;
+  border-radius:var(--r-full);font-size:14px;line-height:20px;font-weight:600;white-space:nowrap;color:var(--primary)}
+.btn .ms{font-size:20px;margin-left:-4px}
+.btn .ms:last-child:not(:first-child){margin:0 -4px 0 0}
+.btn.filled{background:var(--primary);color:var(--on-primary)}
+.btn.tonal{background:var(--secondary-container);color:var(--on-secondary-container)}
+.btn.outlined{box-shadow:inset 0 0 0 1px var(--outline-variant);color:var(--on-surface-variant)}
+.btn.text{padding:0 12px}
+.btn.m{height:56px;padding:0 24px;font-size:16px;line-height:24px}
+.btn.m .ms{font-size:24px}
+.btn.wide{flex:1}
+.btn.sq{border-radius:var(--r-m)}.btn.m.sq{border-radius:var(--r-l)}
+.btn.off{opacity:.38}
+
+/* icon button: 48 target, 40 container. .m is 56. .narrow / .wide change the width.
+   .on is the selected toggle: the container squares off and fills. */
+.ib{position:relative;isolation:isolate;display:inline-grid;place-items:center;flex:none;width:48px;height:48px;
+  color:var(--on-surface-variant)}
+.ib::before{content:"";position:absolute;inset:4px;border-radius:var(--r-full);z-index:-1}
+.ib.filled{color:var(--on-primary)}.ib.filled::before{background:var(--primary)}
+.ib.tonal{color:var(--on-secondary-container)}.ib.tonal::before{background:var(--secondary-container)}
+.ib.outlined::before{box-shadow:inset 0 0 0 1px var(--outline-variant)}
+.ib.narrow{width:40px}.ib.wide{width:60px}
+.ib.m{width:56px;height:56px}.ib.m::before{inset:0}
+.ib.m.narrow{width:48px}.ib.m.wide{width:72px}
+.ib.on{color:var(--on-primary)}
+.ib.on::before{background:var(--primary);border-radius:var(--r-m)}
+.ib.m.on::before{border-radius:var(--r-l)}
+.ib.on .ms{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.ib.off{opacity:.38}
+/* the favourite heart: outline, then filled in primary. No container. */
+.ib.heart.on{color:var(--primary)}
+.ib.heart.on::before{background:none}
+
+.btn-group{display:flex;align-items:center;gap:8px}
+.fab{display:inline-flex;align-items:center;justify-content:center;gap:12px;flex:none;width:56px;height:56px;
+  border-radius:var(--r-l);background:var(--primary-container);color:var(--on-primary-container);box-shadow:var(--elev-3)}
+.fab.ext{width:auto;padding:0 20px 0 16px;font-size:16px;line-height:24px;font-weight:600}
+.fab.primary{background:var(--primary);color:var(--on-primary)}
+/* split button: an action and its menu, 2dp apart, inner corners 4 */
+.split{display:inline-flex;gap:2px;flex:none}
+.split > *{height:40px;display:inline-flex;align-items:center;gap:8px;background:var(--secondary-container);
+  color:var(--on-secondary-container);font-size:14px;font-weight:600}
+.split > :first-child{padding:0 12px 0 16px;border-radius:20px 4px 4px 20px}
+.split > :last-child{padding:0 12px 0 10px;border-radius:4px 20px 20px 4px}
+.split .ms{font-size:20px}
+/* floating toolbar: one pill that holds a few icon buttons */
+.toolbar{display:flex;align-items:center;justify-content:space-around;gap:4px;height:64px;padding:0 8px;
+  border-radius:var(--r-full);background:var(--surface-container-high)}
+.toolbar.vibrant{background:var(--primary-container);color:var(--on-primary-container)}
+.toolbar.vibrant .ib{color:var(--on-primary-container)}
+.toolbar.floating{box-shadow:var(--elev-3)}
+
+/* ── 4 · NAVIGATION BAR, DOCK, MINI PLAYER, PLAY CONTROL ─────────────────── */
+.dock{position:absolute;left:0;right:0;bottom:0;z-index:6}
+.dock .mini{margin:0 12px 8px}
+.nav{display:flex;height:88px;padding:0 8px 24px;background:var(--surface-container)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--on-surface-variant);font-size:12px;line-height:16px;font-weight:500}
+.nav-item .ind{display:grid;place-items:center;width:56px;height:32px;border-radius:16px}
+.nav-item.on{color:var(--on-surface);font-weight:700}
+.nav-item.on .ind{background:var(--secondary-container);color:var(--on-secondary-container)}
+.nav-item.on .ms{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+
+/* The play control. Paused it is round; playing it squares off. With .ring it
+   also carries progress, for places with no seek bar (mini player, widget,
+   compact header). The ring is drawn for 1:47 of 5:31, the position every
+   sheet shows. */
+.pp{position:relative;display:grid;place-items:center;flex:none;width:52px;height:52px}
+.pp > .ms{display:grid;place-items:center;width:36px;height:36px;border-radius:18px;font-size:22px;
+  background:var(--primary);color:var(--on-primary);font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.pp.playing > .ms{border-radius:11px}
+.pp.ring::before,.pp.ring::after{content:"";position:absolute;inset:0}
+.pp.ring::before{background:var(--outline-variant);-webkit-mask:var(--ring-off) center/100% 100% no-repeat;mask:var(--ring-off) center/100% 100% no-repeat}
+.pp.ring::after{background:var(--primary);-webkit-mask:var(--ring-on) center/100% 100% no-repeat;mask:var(--ring-on) center/100% 100% no-repeat}
+.pp.l{width:56px;height:56px}
+.pp.l > .ms{width:56px;height:56px;border-radius:28px;font-size:32px}
+.pp.l.playing > .ms{border-radius:18px}
+.pp.xl{width:152px;height:80px}
+.pp.xl > .ms{width:100%;height:100%;border-radius:40px;font-size:44px}
+.pp.xl.playing{width:128px}
+.pp.xl.playing > .ms{border-radius:28px}
+.pp.tonal > .ms{background:var(--secondary-container);color:var(--on-secondary-container)}
+
+/* Mini player. Add .from-art and the song's .art-<key>. */
+.mini{display:flex;align-items:center;gap:12px;height:64px;padding:0 6px 0 8px;border-radius:32px;
+  background:var(--surface-container-high);color:var(--on-surface)}
+.mini > .cv{width:48px;border-radius:var(--r-l)}
+.mini-meta{flex:1;min-width:0}
+.mini-meta b{display:block;font-size:14px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-meta span{display:block;font-size:12px;line-height:16px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* an artist line too long to fit scrolls as a marquee; drawn mid-scroll with a faded edge */
+.mini-meta span.marquee{text-overflow:clip;-webkit-mask:linear-gradient(90deg,#000 80%,transparent);mask:linear-gradient(90deg,#000 80%,transparent)}
+.mini .ib{margin:0 -6px}
+
+/* ── 5 · APP BARS, SEARCH BAR, CHIPS, CONNECTED GROUP, SECTION HEADER ────── */
+.appbar{position:relative;z-index:4;display:flex;align-items:center;gap:4px;height:64px;padding:0 4px}
+.appbar .title{flex:1;min-width:0;padding:0 4px;font-size:22px;line-height:28px;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* root: one row, a large rounded title and the actions */
+.appbar.root{height:72px;padding:0 8px 0 16px}
+.appbar.root .title{display:flex;align-items:center;gap:10px;padding:0;font-size:36px;line-height:44px;
+  font-weight:700;letter-spacing:-.4px;font-variation-settings:'ROND' 100}
+.appbar.root .mark{width:32px;height:32px;color:var(--primary)}
+/* scrolled: the bar takes a container colour and runs under the status bar */
+.appbar.scrolled{height:108px;margin-top:-44px;padding-top:44px;background:var(--surface-container)}
+.appbar.root.scrolled .title{font-size:22px;line-height:28px;letter-spacing:0}
+.appbar.root.scrolled .mark{width:24px;height:24px}
+/* over: floating over a header image or tinted block; buttons get a scrim */
+.appbar.over{position:absolute;left:0;right:0;top:44px}
+.appbar.over .ib{color:var(--on-surface)}
+.appbar.over .ib::before{background:color-mix(in srgb,var(--surface) 62%,transparent)}
+
+.searchbar{display:flex;align-items:center;gap:12px;height:56px;margin:0 16px;padding:0 4px 0 16px;
+  border-radius:var(--r-full);background:var(--surface-container-high);color:var(--on-surface)}
+.searchbar .q{flex:1;min-width:0;font-size:16px;line-height:24px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden}
+.searchbar .q.typed{color:var(--on-surface)}
+.searchbar .q.typed::after{content:"";display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:var(--primary)}
+
+.chips{display:flex;gap:8px;padding:0 16px;overflow:hidden}
+.chip{display:inline-flex;align-items:center;gap:8px;flex:none;height:32px;padding:0 16px;border-radius:var(--r-s);
+  box-shadow:inset 0 0 0 1px var(--outline-variant);color:var(--on-surface-variant);font-size:14px;line-height:20px;font-weight:500}
+.chip .ms{font-size:18px;margin-left:-8px}
+.chip.on{box-shadow:none;background:var(--secondary-container);color:var(--on-secondary-container)}
+
+/* connected button group: a one-of-N view switch. The selected segment goes fully round. */
+.seg{display:flex;gap:2px;padding:4px 16px}
+.seg-item{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:40px;border-radius:var(--r-s);
+  background:var(--surface-container-high);color:var(--on-surface-variant);font-size:14px;line-height:20px;font-weight:500}
+.seg-item:first-child{border-radius:20px 8px 8px 20px}
+.seg-item:last-child{border-radius:8px 20px 20px 8px}
+.seg-item.on{flex:1.15;border-radius:20px;background:var(--primary);color:var(--on-primary);font-weight:600}
+.seg-item .ms{font-size:18px}
+
+.sec{display:flex;align-items:flex-end;gap:8px;padding:28px 16px 12px}
+.sec > div{flex:1;min-width:0}
+.sec h3{font-size:22px;line-height:28px;font-weight:700;font-variation-settings:'ROND' 100}
+.sec .over{font-size:14px;line-height:20px;color:var(--on-surface-variant);margin-bottom:2px}
+.sec .ib,.sec .btn,.sec .pp{margin:-10px -8px -10px 0}
+
+/* ── 6 · CAROUSEL, SHELF, TILE, GRID, MIXES, RECAP CARD, BROWSE TILE ─────── */
+/* Hero carousel. Favourites is pinned as a pill; the covers scroll beside it.
+   Items share a height and differ in width; the caption names the large one. */
+.hero{display:flex;gap:8px;padding-left:16px;overflow:hidden}
+.hero-fav{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:64px;
+  padding:18px 0 16px;border-radius:32px;background:var(--tertiary-container);color:var(--on-tertiary-container)}
+.hero-fav b{display:block;text-align:center;font-size:22px;line-height:24px;font-weight:700;font-variation-settings:'ROND' 100}
+.hero-fav small{display:block;text-align:center;font-size:11px;line-height:16px;font-weight:500}
+.hero-main{flex:1;min-width:0}
+.hero-items{display:flex;gap:8px;height:200px}
+.hero-item{position:relative;flex:none;height:200px;border-radius:var(--r-xl);overflow:hidden;background:var(--surface-container-high)}
+.hero-item.lg{width:200px}.hero-item.md{width:120px}.hero-item.sm{width:56px}
+.hero-item > .cv,.hero-item > .mosaic{position:absolute;left:50%;top:0;width:200px;margin-left:-100px;border-radius:0}
+.hero-cap{display:block;width:200px;padding:10px 4px 0}
+.hero-cap b{display:block;font-size:16px;line-height:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-cap span{display:block;font-size:12px;line-height:16px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* shelf: an uncontained carousel of tiles */
+.shelf{display:flex;gap:12px;padding:0 16px;overflow:hidden}
+.tile{flex:none;width:var(--w,148px);min-width:0}
+.tile > .cv,.tile > .mosaic,.tile > .fav-art,.tile > .no-art{width:100%;border-radius:var(--r-li)}
+.tile.s > .cv,.tile.s > .mosaic,.tile.s > .fav-art{border-radius:var(--r-l)}
+.tile b{display:block;margin-top:8px;font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile span{display:block;font-size:12px;line-height:16px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.artist{text-align:center}
+.tile.artist > .cv{border-radius:0}
+.tile.now b{color:var(--primary)}
+.tile .wave{display:inline-block;margin-right:6px;vertical-align:1px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px 12px;padding:0 16px}
+.grid.c3{grid-template-columns:repeat(3,1fr);gap:16px 12px}
+.grid .tile{width:auto}
+
+/* instant mixes: a pill starts radio from that song */
+.mixes{display:flex;flex-direction:column;gap:8px;padding:0 16px;overflow:hidden}
+.mix-row{display:flex;gap:8px}
+.mix{display:flex;align-items:center;gap:10px;flex:none;height:56px;padding:0 20px 0 8px;border-radius:28px;
+  background:var(--surface-container-high);color:var(--on-surface);font-size:14px;line-height:20px;font-weight:600;white-space:nowrap}
+.mix .cv{width:40px;border-radius:50%}
+.mix .cv::after{content:"";inset:auto;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;
+  background:var(--surface-container-high);text-shadow:none}
+.mix.now{background:var(--secondary-container);color:var(--on-surface)}
+.mix.now .cv::after{background:var(--secondary-container)}
+
+.recap-card{display:flex;align-items:center;gap:16px;margin:16px 16px 0;padding:20px 20px 20px 24px;border-radius:var(--r-xl);
+  background:var(--primary-container);color:var(--on-primary-container)}
+.recap-card > div:first-child{flex:1;min-width:0}
+.recap-card h3{font-size:24px;line-height:28px;font-weight:700;letter-spacing:-.2px;font-variation-settings:'ROND' 100}
+.recap-card p{margin-top:6px;font-size:14px;line-height:20px}
+.recap-card .mosaic{width:72px;border-radius:var(--r-l)}
+
+/* spotlight: a contained block with its own head and shelf ("More from") */
+.spot{margin:28px 16px 0;padding:16px 0;border-radius:var(--r-xl);background:var(--surface-container);overflow:hidden}
+.spot-head{display:flex;align-items:center;gap:12px;padding:0 8px 16px 16px}
+.spot-head .cv{width:56px}
+.spot-head > div:not(.cv){flex:1;min-width:0}
+.spot-head small{display:block;font-size:12px;line-height:16px;font-weight:500;color:var(--on-surface-variant)}
+.spot-head b{display:block;font-size:22px;line-height:28px;font-weight:700;font-variation-settings:'ROND' 100}
+.spot .shelf{padding:0 16px}
+
+/* browse tile (Search): takes .from-art and an .art-<key> */
+.browse{display:flex;align-items:center;gap:8px;height:72px;padding:0 8px 0 16px;border-radius:var(--r-li);
+  background:var(--secondary-container);color:var(--on-secondary-container)}
+.browse b{flex:1;min-width:0;font-size:16px;line-height:20px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.browse .cv,.browse .mosaic{width:56px;border-radius:var(--r-m)}
+.browse-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px}
+
+/* ── 7 · LISTS ────────────────────────────────────────────────────────────── */
+/* group: rows 2dp apart; outer corners 20, inner corners 4. Every list sits in one. */
+.group{display:flex;flex-direction:column;gap:2px;margin:0 16px}
+.group > *{background:var(--surface-container);border-radius:var(--r-xs)}
+.group > :first-child{border-top-left-radius:var(--r-li);border-top-right-radius:var(--r-li)}
+.group > :last-child{border-bottom-left-radius:var(--r-li);border-bottom-right-radius:var(--r-li)}
+.group + .group{margin-top:12px}
+
+/* song row */
+.row{position:relative;display:flex;align-items:center;gap:12px;min-height:64px;padding:8px 4px 8px 12px}
+.row .lead{position:relative;display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:var(--r-s)}
+.row .lead > .cv,.row .lead > .mosaic,.row .lead > .fav-art,.row .lead > .no-art{width:48px;border-radius:var(--r-s)}
+.row .lead.num{width:28px;font-size:14px;line-height:20px;font-weight:500;color:var(--on-surface-variant);font-variant-numeric:tabular-nums}
+.row .rank{flex:none;width:18px;margin-right:-2px;text-align:center;font-size:14px;line-height:20px;font-weight:600;
+  color:var(--on-surface-variant);font-variant-numeric:tabular-nums}
+.row-text{flex:1;min-width:0}
+.row-text b{display:block;font-size:16px;line-height:22px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-text span{display:block;font-size:14px;line-height:20px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .count{flex:none;padding-right:12px;font-size:12px;line-height:16px;font-weight:500;color:var(--on-surface-variant);font-variant-numeric:tabular-nums}
+.row > .ms{margin-right:12px;color:var(--on-surface-variant)}
+/* the song that is playing: tonal fill, heavier title, the wave over its cover or in place of its number */
+.row.now{background:var(--secondary-container)}
+.row.now .row-text b{font-weight:700;color:var(--on-surface)}
+.row.now .row-text span{color:var(--on-secondary-container)}
+.row.now .lead::after{content:"";position:absolute;inset:0;border-radius:inherit;background:color-mix(in srgb,var(--secondary-container) 80%,transparent)}
+.row.now .lead.num::after{content:none}
+.row .lead > .wave{position:absolute;z-index:1;left:50%;top:50%;margin:-5px 0 0 -10px}
+.row .lead > .wave.still{margin-top:-1px}
+.row.now .lead.num > .wave{position:static;margin:0}
+/* a row being dragged */
+.row.lifted{z-index:2;border-radius:var(--r-li);background:var(--surface-container-highest);box-shadow:var(--elev-3)}
+/* swipe to remove: wrap the row; it is drawn part-way through the swipe */
+.swipe{position:relative;overflow:hidden}
+.group > .swipe{background:var(--error-container)}
+.swipe > .row{transform:translateX(-112px);background:var(--surface-container);color:var(--on-surface);border-radius:var(--r-xs) var(--r-li) var(--r-li) var(--r-xs)}
+.swipe-label{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:6px;width:112px;
+  color:var(--on-error-container);font-size:14px;line-height:20px;font-weight:600}
+.swipe-label .ms{font-size:20px}
+/* collection row: album, artist, playlist, folder */
+.row.coll{min-height:72px}
+.row.coll .lead{width:56px;height:56px;border-radius:var(--r-m)}
+.row.coll .lead > .cv,.row.coll .lead > .mosaic,.row.coll .lead > .fav-art{width:56px;border-radius:var(--r-m)}
+.row.coll .lead > .cookie{border-radius:0}
+/* small heading above a group */
+.list-label{padding:20px 32px 8px;font-size:14px;line-height:20px;font-weight:600;color:var(--on-surface-variant)}
+
+/* ── 8 · COLLECTION AND ARTIST HEADER ─────────────────────────────────────── */
+/* Add .from-art and the collection's .art-<key>: a solid tonal block, no gradient. */
+.chead{position:relative;margin-top:-44px;padding:116px 16px 20px;border-radius:0 0 var(--r-xli) var(--r-xli);
+  background:var(--surface-container);color:var(--on-surface)}
+.chead > .appbar{position:absolute;left:0;right:0;top:44px}
+.chead > .cv,.chead > .mosaic,.chead > .fav-art{width:208px;border-radius:var(--r-xl)}
+.chead > .cookie{border-radius:0}
+.chead h1{margin-top:20px;font-size:32px;line-height:36px;font-weight:700;letter-spacing:-.4px;font-variation-settings:'ROND' 100;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.chead.artist h1{font-size:45px;line-height:48px;letter-spacing:-.8px}
+.chead .byline{display:inline-flex;align-items:center;gap:8px;margin-top:10px;font-size:16px;line-height:24px;font-weight:600;color:var(--primary)}
+.chead .byline .cv{width:28px}
+.chead .meta{margin-top:6px;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.cactions{display:flex;align-items:center;gap:8px;margin-top:18px}
+.cactions .btn.m{flex:1}
+
+/* ── 9 · NOW PLAYING ──────────────────────────────────────────────────────── */
+.np-top{display:flex;align-items:center;gap:4px;height:64px;padding:0 8px}
+.np-ctx{flex:1;min-width:0}
+.np-ctx small{display:block;font-size:12px;line-height:16px;font-weight:500;color:var(--on-surface-variant)}
+.np-ctx b{display:flex;align-items:center;gap:6px;font-size:14px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden}
+.np-ctx b .ms{font-size:18px;color:var(--primary)}
+/* the cover pager: the current cover, and the next queue entry as a sliver */
+.np-pager{display:flex;align-items:center;gap:8px;height:302px;margin-top:4px;padding:0 20px;overflow:hidden}
+.np-cover{flex:none;width:302px}
+.np-cover .cv,.np-cover .no-art{width:302px;border-radius:var(--r-xl)}
+.np-next{position:relative;flex:none;width:40px;height:302px;border-radius:20px;overflow:hidden}
+.np-next .cv{position:absolute;left:50%;top:0;width:302px;margin-left:-151px;border-radius:0}
+.np-next .cv::after{content:none}
+.np-pager.paused .np-cover .cv{transform:scale(.86);border-radius:48px}
+.np-pager.paused .np-next{height:260px}
+.np-info{padding:26px 24px 0}
+.np-lyric{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px;line-height:20px;font-weight:600;color:var(--primary)}
+.np-lyric span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-title{font-size:32px;line-height:40px;font-weight:700;letter-spacing:-.3px;font-variation-settings:'ROND' 100;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-artist{margin-top:2px;font-size:16px;line-height:24px;color:var(--on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* seek bar: wavy while playing, flat when paused. --p is the position. */
+.seek{display:flex;align-items:center;height:44px;margin:10px 24px 0}
+.seek-on{flex:none;width:var(--p,32.3%);height:14px;border-radius:2px;background:var(--primary);
+  -webkit-mask:var(--wave) 8px 50%/32px 14px repeat-x;mask:var(--wave) 8px 50%/32px 14px repeat-x}
+.seek-thumb{flex:none;width:4px;height:28px;margin:0 6px;border-radius:2px;background:var(--primary)}
+.seek-off{flex:1;height:4px;border-radius:2px;background:var(--outline-variant)}
+.seek.paused .seek-on{-webkit-mask:none;mask:none;height:4px}
+.seek-times{display:flex;justify-content:space-between;margin:0 24px;font-size:12px;line-height:16px;font-weight:500;
+  color:var(--on-surface-variant);font-variant-numeric:tabular-nums}
+
+.transport{display:flex;align-items:center;justify-content:center;gap:8px;margin:22px 24px 0}
+.skip{display:grid;place-items:center;flex:none;width:76px;height:80px;border-radius:40px;
+  background:var(--secondary-container);color:var(--on-secondary-container)}
+.skip .ms{font-size:36px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 40}
+.np-tools{display:flex;align-items:center;justify-content:space-between;height:56px;margin:20px 24px 24px;padding:0 12px;
+  border-radius:28px;background:var(--surface-container)}
+
+/* cards under the player */
+.np-card{margin:0 16px 12px;padding:20px;border-radius:var(--r-xl);background:var(--surface-container)}
+.np-card > h4{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:14px;line-height:20px;font-weight:600;color:var(--on-surface-variant)}
+.np-card > h4 .ms{font-size:20px}
+.np-card .note{font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.np-card .btn{margin-top:16px}
+/* lyric lines: sung, current, still to come */
+.lyrics p{margin-bottom:10px;font-size:22px;line-height:28px;font-weight:700;font-variation-settings:'ROND' 100;color:var(--outline)}
+.lyrics p.past{color:var(--on-surface-variant)}
+.lyrics p.now{color:var(--on-surface)}
+.lyrics.l p{margin-bottom:16px;font-size:28px;line-height:36px}
+.lyrics.plain p{color:var(--on-surface)}
+.artist-card{display:flex;align-items:center;gap:16px}
+.artist-card .cv{width:88px}
+.artist-card > div:not(.cv){flex:1;min-width:0}
+.artist-card small{display:block;font-size:12px;line-height:16px;font-weight:500;color:var(--on-surface-variant)}
+.artist-card b{display:block;margin-top:2px;font-size:22px;line-height:28px;font-weight:700;font-variation-settings:'ROND' 100}
+.artist-card span:not(.ms){display:block;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.kv{padding:8px 0}
+.kv:last-child{padding-bottom:0}
+.kv small{display:block;font-size:12px;line-height:16px;font-weight:500;color:var(--on-surface-variant)}
+.kv b{display:block;font-size:16px;line-height:24px;font-weight:400}
+/* compact header once the player page has scrolled */
+.np-sticky{position:absolute;left:0;right:0;top:0;z-index:7;display:flex;align-items:center;gap:6px;height:116px;
+  padding:44px 10px 0 24px;border-radius:0 0 var(--r-xl) var(--r-xl);background:var(--surface-container-high)}
+.np-sticky .mini-meta b{font-size:16px;line-height:22px}
+
+/* ── 10 · SHEET, DIALOG, MENU, SNACKBAR ───────────────────────────────────── */
+.scrim{position:absolute;inset:0;z-index:10;background:color-mix(in srgb,var(--scrim) 48%,transparent)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:11;padding:0 0 32px;border-radius:var(--r-xl) var(--r-xl) 0 0;
+  background:var(--surface-container-low);color:var(--on-surface)}
+.sheet .handle{width:32px;height:4px;margin:16px auto 12px;border-radius:2px;background:var(--outline)}
+.sheet-head{display:flex;align-items:center;gap:16px;padding:4px 24px 12px}
+.sheet-head .cv,.sheet-head .mosaic{width:56px;border-radius:var(--r-m)}
+.sheet-head b{display:block;font-size:16px;line-height:22px;font-weight:600}
+.sheet-head span{display:block;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.sheet-title{padding:4px 24px 12px;font-size:24px;line-height:32px;font-weight:700;font-variation-settings:'ROND' 100}
+.sheet-row{display:flex;align-items:center;gap:16px;min-height:56px;padding:0 24px;font-size:16px;line-height:24px}
+.sheet-row > .ms:first-child{color:var(--on-surface-variant)}
+.sheet-row > span:not(.ms){flex:1;min-width:0}
+.sheet-row.on{color:var(--primary);font-weight:600}
+.sheet-row.on > .ms{color:var(--primary)}
+.sheet .group{margin:0 16px}
+.sheet .group > *{background:var(--surface-container-high)}
+.divider{height:1px;margin:8px 24px;background:var(--outline-variant)}
+
+.dialog{position:absolute;left:39px;right:39px;top:50%;z-index:12;transform:translateY(-50%);padding:24px;border-radius:var(--r-xl);
+  background:var(--surface-container-high);color:var(--on-surface)}
+.dialog h2{font-size:24px;line-height:32px;font-weight:700;font-variation-settings:'ROND' 100}
+.dialog p{margin-top:16px;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin:24px -8px -8px 0}
+/* outlined text field */
+.field{position:relative;display:flex;align-items:center;height:56px;margin-top:20px;padding:0 16px;border-radius:var(--r-xs);
+  box-shadow:inset 0 0 0 1px var(--outline);font-size:16px;line-height:24px;color:var(--on-surface)}
+.field label{position:absolute;left:12px;top:-8px;padding:0 4px;background:var(--surface-container-high);
+  font-size:12px;line-height:16px;color:var(--on-surface-variant)}
+.field.focus{box-shadow:inset 0 0 0 2px var(--primary)}
+.field.focus label{color:var(--primary)}
+.field.focus .val::after{content:"";display:inline-block;width:2px;height:20px;margin-left:1px;vertical-align:-4px;background:var(--primary)}
+
+.menu{position:absolute;z-index:12;min-width:196px;padding:8px;border-radius:var(--r-l);background:var(--surface-container);
+  color:var(--on-surface);box-shadow:var(--elev-2)}
+.menu-item{display:flex;align-items:center;gap:12px;height:48px;padding:0 12px;border-radius:var(--r-s);font-size:14px;line-height:20px;font-weight:500}
+.menu-item .ms{color:var(--on-surface-variant)}
+.menu-item.danger,.menu-item.danger .ms{color:var(--error)}
+
+/* snackbar: above the dock by default; .low when a full-screen overlay is open */
+.snack{position:absolute;left:16px;right:16px;bottom:176px;z-index:9;display:flex;align-items:center;min-height:48px;padding:14px 16px;
+  border-radius:var(--r-s);background:var(--inverse-surface);color:var(--inverse-on-surface);font-size:14px;line-height:20px;box-shadow:var(--elev-3)}
+.snack.low{bottom:48px}
+.snack.static{position:static}
+
+/* ── 11 · SWITCH, RADIO, PROGRESS, LOADING INDICATOR ──────────────────────── */
+.switch{position:relative;flex:none;width:52px;height:32px;border-radius:16px;background:var(--surface-container-highest);
+  box-shadow:inset 0 0 0 2px var(--outline)}
+.switch .ms{position:absolute;left:4px;top:4px;display:grid;place-items:center;width:24px;height:24px;border-radius:12px;
+  font-size:16px;background:var(--outline);color:var(--surface-container-highest)}
+.switch.on{background:var(--primary);box-shadow:none}
+.switch.on .ms{left:24px;background:var(--on-primary);color:var(--primary)}
+.radio{position:relative;flex:none;width:20px;height:20px;margin:14px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--on-surface-variant)}
+.radio.on{box-shadow:inset 0 0 0 2px var(--primary)}
+.radio.on::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--primary)}
+
+/* linear progress: active part, 4dp gap, track, stop dot. --p is the fraction done. */
+.progress{position:relative;display:flex;align-items:center;gap:4px;height:10px}
+.progress::before{content:"";flex:none;width:var(--p,40%);height:4px;border-radius:2px;background:var(--primary)}
+.progress::after{content:"";flex:1;height:4px;border-radius:2px;
+  background:radial-gradient(circle at calc(100% - 2px) 50%,var(--primary) 0 2px,transparent 2.5px),var(--secondary-container)}
+.progress.wavy::before{height:10px;border-radius:0;-webkit-mask:var(--wave-s) 2.5px 50%/10px 10px repeat-x;mask:var(--wave-s) 2.5px 50%/10px 10px repeat-x}
+/* circular progress: --p in percent; .busy draws the indeterminate arc */
+.spinner{flex:none;width:40px;height:40px;border-radius:50%;
+  background:conic-gradient(var(--primary) calc(var(--p,65) * 1%),var(--secondary-container) 0);
+  -webkit-mask:radial-gradient(circle,transparent 15px,#000 15.5px);mask:radial-gradient(circle,transparent 15px,#000 15.5px)}
+.spinner.busy{background:conic-gradient(from 40deg,var(--primary) 68%,transparent 0)}
+.spinner.s{width:24px;height:24px;-webkit-mask:radial-gradient(circle,transparent 8.5px,#000 9px);mask:radial-gradient(circle,transparent 8.5px,#000 9px)}
+/* loading indicator: one shape that morphs through the set while it turns. Drawn mid-morph. */
+.loader{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:50%}
+.loader::before{content:"";width:38px;height:38px;background:var(--primary);clip-path:var(--shape-burst);transform:rotate(14deg)}
+.loader.contained{background:var(--primary-container)}
+.loader.contained::before{width:30px;height:30px;background:var(--on-primary-container)}
+
+/* ── 12 · SETTINGS, EMPTY STATE, STAT TILE ────────────────────────────────── */
+.set-sec{padding:24px 32px 8px;font-size:14px;line-height:20px;font-weight:600;color:var(--primary)}
+.set-row{display:flex;align-items:center;gap:16px;min-height:64px;padding:12px 16px}
+.set-row > .ms:first-child{color:var(--on-surface-variant)}
+.set-row > div{flex:1;min-width:0}
+.set-row b{display:block;font-size:16px;line-height:24px;font-weight:500}
+.set-row span:not(.ms){display:block;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.set-row .radio{margin:0 2px}
+.set-note{padding:16px;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.set-note small{display:block;margin-top:8px;font-size:12px;line-height:16px}
+.set-note .progress{margin:12px 0 6px}
+.set-note .btn{margin:12px 0 0 -4px}
+
+.empty{display:flex;flex-direction:column;align-items:center;padding:48px 32px;text-align:center}
+.empty-art{display:grid;place-items:center;width:112px;height:112px;margin-bottom:24px;border-radius:36px;
+  background:var(--secondary-container);color:var(--on-secondary-container)}
+.empty-art .ms{font-size:48px}
+.empty-art .mark{width:56px;height:56px}
+.empty h2{font-size:24px;line-height:32px;font-weight:700;font-variation-settings:'ROND' 100}
+.empty p{margin-top:8px;font-size:14px;line-height:20px;color:var(--on-surface-variant)}
+.empty .btn{margin-top:24px}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px}
+.stat{padding:16px;border-radius:var(--r-li);background:var(--surface-container)}
+.stat b{display:block;font-size:28px;line-height:36px;font-weight:700;letter-spacing:-.3px;font-variation-settings:'ROND' 100}
+.stat span{display:block;font-size:12px;line-height:16px;color:var(--on-surface-variant)}
+.stat.accent{background:var(--primary-container);color:var(--on-primary-container)}
+.stat.accent span{color:var(--on-primary-container)}

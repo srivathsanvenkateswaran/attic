@@ -6,12 +6,21 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Shader
 import android.util.Size
 import android.util.SizeF
 import android.view.KeyEvent
 import android.widget.RemoteViews
 import androidx.annotation.OptIn
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaButtonReceiver
 import androidx.media3.session.MediaController
@@ -20,13 +29,18 @@ import app.attic.player.MainActivity
 import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.LibraryRepository
+import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlaybackService
+import app.attic.player.ui.comfort.ComfortShapes
+import app.attic.player.ui.comfort.SuperellipseShape
+import app.attic.player.ui.coverSwatch
 import app.attic.player.ui.coverTint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 data class WidgetState(
     val title: String?,
@@ -36,8 +50,10 @@ data class WidgetState(
 )
 
 /**
- * Home-screen player. One widget that reshapes as it's resized: a cover with a play button when
- * small, a single row at 4x1, and a large cover with controls at 4x2 and up.
+ * Home-screen player. One widget that reshapes as it's resized: the cover and play when small, a
+ * single row at 4x1, and the song with five album shortcuts at 4x2 and up. Each UI style has its
+ * own three layouts (pixel/ and oneui/ 10-system, frame A). Colours come
+ * from the cover by the style's rule, in light and dark, and the launcher picks by night mode.
  */
 class PlayerWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
@@ -72,9 +88,18 @@ class PlayerWidget : AppWidgetProvider() {
         }
     }
 
+    private enum class Layout { Small, Wide, Large }
+
+    /** Both themes' colours. */
+    private class Look(val light: WidgetPalette, val dark: WidgetPalette)
+
+    /** The art for one render, already cut to the style's shapes. Null where a file has no cover. */
+    private class Art(val cover: Bitmap?, val smallCover: Bitmap?, val tiles: List<Tile>)
+
+    private class Tile(val albumKey: String, val art: Bitmap?)
+
     companion object {
         const val EXTRA_ALBUM_KEY = "app.attic.player.widget.ALBUM"
-        private const val DEFAULT_TINT = 0xFF333333.toInt()
         private const val TILE_PX = 160
         private const val TILE_REQUEST_BASE = 100
         private val TILE_IDS = listOf(R.id.widget_tile1, R.id.widget_tile2, R.id.widget_tile3, R.id.widget_tile4, R.id.widget_tile5)
@@ -82,6 +107,12 @@ class PlayerWidget : AppWidgetProvider() {
         private const val ACTION_PREVIOUS = "app.attic.player.widget.PREVIOUS"
         private const val PREFS = "player_widget"
         private const val COVER_PX = 360
+
+        /** The smallest size each layout is drawn at; the launcher picks the largest that fits. */
+        private val SMALL = SizeF(110f, 110f)
+        private val WIDE = SizeF(180f, 50f)
+        private val LARGE = SizeF(250f, 180f)
+
         /** The real state while the service has published in this process. */
         private var live: WidgetState? = null
         private var lastCoverId: Long? = null
@@ -97,6 +128,11 @@ class PlayerWidget : AppWidgetProvider() {
                 .putBoolean("playing", state.isPlaying)
                 .apply()
             context.attic.scope.launch { render(context, state) }
+        }
+
+        /** Redraws every widget as things stand, for when the UI style changes in Settings. */
+        fun refresh(context: Context) {
+            context.attic.scope.launch { render(context, read(context)) }
         }
 
         private fun read(context: Context): WidgetState {
@@ -115,17 +151,71 @@ class PlayerWidget : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, PlayerWidget::class.java))
             if (ids.isEmpty()) return
+            manager.updateAppWidget(ids, RemoteViews(views(context, state)))
+        }
+
+        /** What the widget shows for [state] in the current style: a layout per smallest size, the launcher picks. */
+        internal suspend fun views(context: Context, state: WidgetState = read(context)): Map<SizeF, RemoteViews> {
+            val comfort = context.attic.settings.uiStyle.value == UiStyle.Comfort
             val cover = cover(context, state.mediaId)
-            val tint = state.mediaId?.let { id -> withContext(Dispatchers.IO) { coverTint(context, id) } } ?: DEFAULT_TINT
             val tiles = recentAlbums(context)
-            val views = RemoteViews(
-                mapOf(
-                    SizeF(110f, 110f) to build(context, R.layout.widget_small, state, cover, tint, tiles),
-                    SizeF(180f, 50f) to build(context, R.layout.widget_wide, state, cover, tint, tiles),
-                    SizeF(250f, 110f) to build(context, R.layout.widget_large, state, cover, tint, tiles),
-                ),
+            val (look, art) = withContext(Dispatchers.Default) {
+                look(context, comfort, state.mediaId) to art(comfort, cover, tiles)
+            }
+            return mapOf(
+                SMALL to build(context, comfort, Layout.Small, state, art, look),
+                WIDE to build(context, comfort, Layout.Wide, state, art, look),
+                LARGE to build(context, comfort, Layout.Large, state, art, look),
             )
-            manager.updateAppWidget(ids, views)
+        }
+
+        /**
+         * Expressive takes the cover's scheme from its tint, as FromArt does, or the wallpaper's scheme
+         * with no cover. Comfort washes its card toward the cover's swatch, as Tinted does.
+         */
+        private fun look(context: Context, comfort: Boolean, mediaId: Long?): Look {
+            if (comfort) {
+                val swatch = mediaId?.let { coverSwatch(context, it) }
+                return Look(WidgetColors.comfort(swatch, dark = false), WidgetColors.comfort(swatch, dark = true))
+            }
+            val tint = mediaId?.let { coverTint(context, it) }
+            return if (tint != null) {
+                Look(WidgetColors.expressive(tint, dark = false), WidgetColors.expressive(tint, dark = true))
+            } else {
+                Look(WidgetColors.expressive(dynamicLightColorScheme(context)), WidgetColors.expressive(dynamicDarkColorScheme(context)))
+            }
+        }
+
+        /** Expressive clips art with the views' rounded outlines. Comfort's superellipse has to be cut into the bitmap. */
+        private fun art(comfort: Boolean, cover: Bitmap?, tiles: List<Tile>): Art =
+            if (!comfort) {
+                Art(cover, cover, tiles)
+            } else {
+                Art(
+                    cover = cover?.let { cutTo(it, ComfortShapes.Squircle) },
+                    // The 2 x 2 cover is drawn at about 148dp, where the kit switches to the larger curve.
+                    smallCover = cover?.let { cutTo(it, ComfortShapes.SquircleLarge) },
+                    tiles = tiles.map { Tile(it.albumKey, it.art?.let { art -> cutTo(art, ComfortShapes.Squircle) }) },
+                )
+            }
+
+        /** The centre square of [source] inside [shape], transparent outside it. */
+        private fun cutTo(source: Bitmap, shape: SuperellipseShape): Bitmap {
+            val size = min(source.width, source.height)
+            val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+                setLocalMatrix(Matrix().apply { setTranslate(-(source.width - size) / 2f, -(source.height - size) / 2f) })
+            }
+            val points = shape.unitPoints
+            val path = Path()
+            for (i in 0 until points.size / 2) {
+                val x = points[i * 2] * size
+                val y = points[i * 2 + 1] * size
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close()
+            Canvas(out).drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader })
+            return out
         }
 
         private suspend fun cover(context: Context, mediaId: Long?): Bitmap? {
@@ -158,15 +248,64 @@ class PlayerWidget : AppWidgetProvider() {
             }
         }
 
-        private class Tile(val albumKey: String, val art: Bitmap?)
+        private fun layoutFor(comfort: Boolean, layout: Layout): Int = when (layout) {
+            Layout.Small -> if (comfort) R.layout.widget_comfort_small else R.layout.widget_expressive_small
+            Layout.Wide -> if (comfort) R.layout.widget_comfort_wide else R.layout.widget_expressive_wide
+            Layout.Large -> if (comfort) R.layout.widget_comfort_large else R.layout.widget_expressive_large
+        }
 
-        private fun build(context: Context, layout: Int, state: WidgetState, cover: Bitmap?, tint: Int, tiles: List<Tile>): RemoteViews {
-            val views = RemoteViews(context.packageName, layout)
-            views.setInt(R.id.widget_bg, "setColorFilter", tint)
-            if (layout == R.layout.widget_large) {
+        private fun build(context: Context, comfort: Boolean, layout: Layout, state: WidgetState, art: Art, look: Look): RemoteViews {
+            val views = RemoteViews(context.packageName, layoutFor(comfort, layout))
+            views.backgroundTint(android.R.id.background, look) { it.container }
+            views.setOnClickPendingIntent(
+                android.R.id.background,
+                PendingIntent.getActivity(
+                    context,
+                    0,
+                    Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
+
+            // Expressive's small size has a title; Comfort's, like today's, has none.
+            if (layout != Layout.Small || !comfort) {
+                views.setTextViewText(R.id.widget_title, state.title ?: context.getString(R.string.app_name))
+                views.color(R.id.widget_title, "setTextColor", look) { it.title }
+            }
+            if (layout != Layout.Small) {
+                views.setTextViewText(R.id.widget_artist, state.artist ?: context.getString(R.string.widget_empty))
+                views.color(R.id.widget_artist, "setTextColor", look) { it.artist }
+                for (id in listOf(R.id.widget_prev, R.id.widget_next)) {
+                    views.color(id, "setColorFilter", look) { it.onSkip }
+                    if (!comfort) views.backgroundTint(id, look) { it.skip ?: it.container }
+                }
+                views.setOnClickPendingIntent(R.id.widget_prev, skip(context, ACTION_PREVIOUS))
+                views.setOnClickPendingIntent(R.id.widget_next, skip(context, ACTION_NEXT))
+            }
+
+            val cover = if (layout == Layout.Small) art.smallCover else art.cover
+            views.artOrMark(R.id.widget_art, cover, comfort, if (layout == Layout.Small) R.drawable.widget_squircle_large else R.drawable.widget_squircle, look)
+
+            // The play control: the kit's own in each style. Expressive's squares off while playing.
+            views.setImageViewResource(R.id.widget_play, if (state.isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
+            if (!comfort) {
+                views.setInt(
+                    R.id.widget_play,
+                    "setBackgroundResource",
+                    if (state.isPlaying) R.drawable.widget_expressive_play_playing else R.drawable.widget_expressive_play_paused,
+                )
+            }
+            views.backgroundTint(R.id.widget_play, look) { it.play }
+            views.color(R.id.widget_play, "setColorFilter", look) { it.onPlay }
+            views.setOnClickPendingIntent(R.id.widget_play, mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+            if (comfort && layout == Layout.Small) views.backgroundTint(R.id.widget_play_ring, look) { it.container }
+
+            if (layout == Layout.Large) {
+                views.color(R.id.widget_mark, "setColorFilter", look) { it.mark }
+                if (comfort) views.color(R.id.widget_line, "setColorFilter", look) { it.line }
                 TILE_IDS.forEachIndexed { index, id ->
-                    val tile = tiles.getOrNull(index)
-                    if (tile?.art != null) views.setImageViewBitmap(id, tile.art) else views.setImageViewResource(id, R.drawable.widget_placeholder)
+                    val tile = art.tiles.getOrNull(index)
+                    views.artOrMark(id, tile?.art, comfort, R.drawable.widget_squircle, look)
                     if (tile != null) {
                         views.setOnClickPendingIntent(
                             id,
@@ -182,34 +321,30 @@ class PlayerWidget : AppWidgetProvider() {
                     }
                 }
             }
-            if (layout != R.layout.widget_small) {
-                views.setTextViewText(R.id.widget_title, state.title ?: context.getString(R.string.app_name))
-                views.setTextViewText(R.id.widget_artist, state.artist ?: context.getString(R.string.widget_empty))
-                views.setOnClickPendingIntent(R.id.widget_prev, skip(context, ACTION_PREVIOUS))
-                views.setOnClickPendingIntent(R.id.widget_next, skip(context, ACTION_NEXT))
-            }
-            if (cover != null) views.setImageViewBitmap(R.id.widget_art, cover) else views.setImageViewResource(R.id.widget_art, R.drawable.widget_placeholder)
-            views.setImageViewResource(
-                R.id.widget_play,
-                when {
-                    layout == R.layout.widget_large && state.isPlaying -> R.drawable.widget_pause_black
-                    layout == R.layout.widget_large -> R.drawable.widget_play_black
-                    state.isPlaying -> R.drawable.widget_pause
-                    else -> R.drawable.widget_play
-                },
-            )
-            views.setOnClickPendingIntent(R.id.widget_play, mediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
-            views.setOnClickPendingIntent(
-                R.id.widget_root,
-                PendingIntent.getActivity(
-                    context,
-                    0,
-                    Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                    PendingIntent.FLAG_IMMUTABLE,
-                ),
-            )
             return views
         }
+
+        /**
+         * A cover, or with none the style's empty art box: Expressive's `.no-art` (the view's own rounded
+         * fill) and Comfort's neutral `.ibox` (a superellipse [box]), each with the mark in it.
+         */
+        private fun RemoteViews.artOrMark(id: Int, bitmap: Bitmap?, comfort: Boolean, box: Int, look: Look) {
+            if (bitmap != null) {
+                setImageViewBitmap(id, bitmap)
+                return
+            }
+            if (comfort) setInt(id, "setBackgroundResource", box)
+            backgroundTint(id, look) { it.empty }
+            setImageViewResource(id, R.drawable.ic_launcher_monochrome)
+            color(id, "setColorFilter", look) { it.onEmpty }
+        }
+
+        /** Calls [method] with the light colour, or the dark one when the launcher is in night mode. */
+        private fun RemoteViews.color(id: Int, method: String, look: Look, pick: (WidgetPalette) -> Int) =
+            setColorInt(id, method, pick(look.light), pick(look.dark))
+
+        private fun RemoteViews.backgroundTint(id: Int, look: Look, pick: (WidgetPalette) -> Int) =
+            setColorStateList(id, "setBackgroundTintList", ColorStateList.valueOf(pick(look.light)), ColorStateList.valueOf(pick(look.dark)))
 
         /** Media3's button receiver only accepts play keys, so skipping uses a short-lived controller instead. */
         private fun skip(context: Context, action: String): PendingIntent =

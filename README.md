@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="docs/logo.svg" width="96" alt="Attic logo: a green gabled roof with a round window">
+  <img src="docs/logo.svg" width="96" alt="Attic logo: a speaker cabinet cut to the slope of a roof">
 </p>
 
 <h1 align="center">Attic</h1>
 
 <p align="center">
-  <b>A Spotify-style player for the MP3s already on your phone.</b><br>
+  <b>A music player for the songs already on your phone.</b><br>
   No account, no streaming, no ads. It plays in airplane mode.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Android-13%2B-1ED760?logo=android&logoColor=white" alt="Android 13 or newer">
-  <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-1ED760?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
-  <img src="https://img.shields.io/badge/APK-4.7%20MB-1ED760" alt="APK size 4.7 MB">
+  <img src="https://img.shields.io/badge/Android-13%2B-C6533A?logo=android&logoColor=white" alt="Android 13 or newer">
+  <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C6533A?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
+  <img src="https://img.shields.io/badge/APK-53%20MB-C6533A" alt="APK size 53 MB">
 </p>
 
 <p align="center">
@@ -24,18 +24,27 @@
 
 ## Why it exists
 
-Local music players tend to look like file managers. Attic gives a folder of MP3s the layout and navigation of a modern streaming app: tinted album headers, a floating mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
+Local music players tend to look like file managers. Attic gives a folder of music files album and artist pages tinted from their covers, a mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
 
-It was built for one phone and one library of 279 songs, and every number below was measured on that phone.
+It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Every number below was measured on that phone, and the counts out of 279 cover the MP3s.
 
 ## What it does
 
 **Plays your library**
-- Home, Search and Your Library tabs, with album, artist and playlist screens
+- Home, Search and Library tabs, with album, artist and playlist screens
 - A mini player and a full Now Playing screen, tinted from the cover art
 - Shuffle, repeat, and a queue with drag to reorder and swipe to remove
-- Liked songs and your own playlists, stored on the device
+- Favourites and your own playlists, stored on the device
+- MP3, M4A, FLAC, Ogg, Opus and WAV files
 - Dark and light themes, or match the phone
+- Two styles to pick from in Settings, Expressive and Comfort. The default depends on the phone
+
+**Finds what to play next, offline**
+- Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
+- Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
+- Stays in the language you're listening to, with about one song in ten from another language when the match is strong
+- Plays one version of a song, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both
+- Learns from skips, finishes and likes in a listening log kept on the phone
 
 **Keeps playing outside the app**
 - Background playback with notification and lock-screen controls, including shuffle and like
@@ -53,7 +62,7 @@ It was built for one phone and one library of 279 songs, and every number below 
 
 **Cleans up messy tags**
 
-61 of the 279 songs it was built around are YouTube downloads with no album tag and an uploader name where the artist should be, so Attic works out what the tags meant. Nothing is written back to your files.
+61 of the 279 MP3s it was built around are YouTube downloads with no album tag and an uploader name where the artist should be, so Attic works out what the tags meant. Nothing is written back to your files.
 
 | In the file | In Attic |
 |---|---|
@@ -80,16 +89,20 @@ Measured on a POCO M4 Pro 4G running Android 16, scrolling the full song list.
 | Cold start | 0.7 s | 1.8 s |
 | APK size | 4.7 MB | 75 MB |
 
+Those numbers predate song radio. The release APK is now 53 MB because it carries the analysis model and its runtime, and only runs on 64-bit ARM phones.
+
+Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.
+
 Install the release build for everyday use. Compose runs far slower in a debug build.
 
 ## Install
 
 1. Download `attic-v1.0.0.apk` from [Releases](../../releases).
 2. Open it on your phone and allow the install.
-3. Put your MP3s in `Music/Offline` on the phone. Attic only looks in that folder.
+3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.
 
-Folders work like this: `Music/Offline/Artist/Album/song.mp3` becomes an artist and an album. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names and the `Music/Offline` path are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
+Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
 
 ## Build from source
 
@@ -121,29 +134,39 @@ Worth reading if you open the code:
 - **Shuffle reorders the real playlist** instead of keeping a separate play order, so the queue screen always shows what will actually play. See [`PhysicalShuffle.kt`](app/src/main/java/app/attic/player/playback/PhysicalShuffle.kt).
 - **Saved data points at file paths, not MediaStore IDs**, so likes and playlists survive a media rescan.
 
+## How radio works
+
+Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
+
+Language comes from the folder or album name, or from Tamil or Devanagari script in saved lyrics. You can correct any song from its menu, and your choice is kept. To label many songs at once, place `language-labels.tsv` in `Android/data/app.attic.player/files/`, with one `Music/path/to/song.m4a<TAB>ta` per line, where the path is relative to the phone's storage or SD card.
+
 ## Privacy
 
-Attic has no account, analytics or ads, and playback never touches the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
+Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net, with the app's version and homepage in the User-Agent. Your music files are never uploaded. ONNX Runtime's usage reporting is turned off. [`PRIVACY.md`](PRIVACY.md) is the full policy.
 
 | Permission | Used for |
 |---|---|
 | `READ_MEDIA_AUDIO` | Reading your music |
-| `POST_NOTIFICATIONS` | Playback controls |
+| `POST_NOTIFICATIONS` | Playback controls, and progress while songs are analysed |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK` | Playing with the screen off |
+| `FOREGROUND_SERVICE_DATA_SYNC` | Keeping song analysis running with its progress notification |
 | `INTERNET` | Lyrics downloads only |
+| `RECEIVE_BOOT_COMPLETED` | Added by WorkManager, the Android library that schedules song analysis, so scheduled work survives a restart |
 
 ## Known limits
 
-- It reads `Music/Offline` only, and the release build has been tested on one phone.
-- Artists use cover art because there are no artist photos, and "Popular" means what you played recently.
+- The release build has been tested on one phone, whose library sits in `Music/Offline` and holds only MP3 and M4A files.
+- Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
-- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 songs tested.
+- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 MP3s tested.
+- Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
+- Radio doesn't yet match tempo or energy between neighbouring songs.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
 
 ## Credits and legal
 
-Attic is an independent personal project, and it is not affiliated with or endorsed by Spotify. Spotify is a trademark of Spotify AB. Attic contains no Spotify code, logos or assets.
+Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra (Alonso-Jiménez et al., ISMIR 2022), licensed for non-commercial use, and [ONNX Runtime](https://onnxruntime.ai) under the MIT License. See [`third_party/discogs-effnet-NOTICE.txt`](third_party/discogs-effnet-NOTICE.txt).
 
-Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Figtree](https://github.com/erikdkennedy/figtree) font is bundled under the [SIL Open Font License](third_party/OFL-figtree.txt).
+Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Google Sans Flex](https://github.com/googlefonts/googlesans-flex) and [Onest](https://github.com/simpals/onest) fonts are bundled under the SIL Open Font License ([Google Sans Flex](third_party/OFL-google-sans-flex.txt), [Onest](third_party/OFL-onest.txt)), and a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) under the [Apache License 2.0](third_party/LICENSE-material-symbols.txt). See [`third_party/fonts-NOTICE.txt`](third_party/fonts-NOTICE.txt).
 
-Cover art in the screenshots belongs to its respective owners. No license has been chosen for this code yet, so all rights are reserved.
+Cover art in the screenshots belongs to its respective owners. Attic's code is licensed under the [GNU General Public License v3.0 or later](LICENSE). The song analysis model, the fonts and the icons keep their own licences, listed above.

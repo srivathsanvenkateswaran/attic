@@ -1,0 +1,513 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Apple direction · 00 Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* direction sheet only: specimen layouts */
+  .lab{color:#98a2ad;font-size:12.5px;line-height:1.5;margin:16px 0 7px 2px}
+  .lab b{color:#dfe4ea}
+  .strip + .strip{margin-top:14px}
+  .strip .under{position:absolute;inset:0}
+  .strip .brow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+  .strip.w{width:808px}
+  .strip .pal{display:grid;grid-template-columns:repeat(5,1fr);gap:16px 12px}
+  .strip .pal i{display:block;height:58px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--line);margin-bottom:8px}
+  .strip .pal b{display:block;font:600 14px/18px var(--font)}
+  .strip .pal span{display:block;font:500 12px/16px var(--font);color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .strip .pal em{display:block;font:400 12px/16px var(--font);font-style:normal;color:var(--ink-3)}
+  .strip .spec-type > div{padding:10px 0;border-top:1px solid var(--line)}
+  .strip .spec-type > div:first-child{border-top:0;padding-top:0}
+  .strip .spec-type span{display:block;font:500 11.5px/15px var(--font);color:var(--ink-3);margin-bottom:2px}
+  .strip .shapes{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px}
+  .strip .shapes i{display:block;width:64px;height:64px;background:var(--fill-strong);margin-bottom:8px}
+  .strip .shapes b{display:block;font:600 14px/18px var(--font)}
+  .strip .shapes span{display:block;font:400 12px/15px var(--font);color:var(--ink-2)}
+  .strip .icons{display:grid;grid-template-columns:repeat(6,1fr);gap:16px 2px}
+  .strip .icons div{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .strip .icons span{font:500 9.5px/12px var(--font);color:var(--ink-3);white-space:nowrap}
+  .strip .lits{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .strip .panel{height:150px;border-radius:22px;padding:14px;display:flex;flex-direction:column;justify-content:space-between}
+  .strip .panel .pic{width:56px;border-radius:10px}
+  .strip .panel .pic .cv::after{content:none}
+  .strip .panel b{display:block;font:700 17px/21px var(--font)}
+  .strip .panel .txt span{font:400 13px/17px var(--font);color:var(--ink-2)}
+</style>
+
+<div class="intro">
+  <h1>Direction: Attic in the Apple idiom</h1>
+  <div class="date">2026-11-21 · UI directions · apple · sheet 00</div>
+  <p>This folder takes the grammar of Apple's Music app and the iOS design language around it and writes
+     Attic in it: large titles that collapse, lists divided by hairlines that start at the text, glass bars
+     that float over the content, and a player coloured by its artwork. It runs on Android, so the status
+     bar, the gesture pill, system back, the notification and the widget are Android's.</p>
+  <p>It is not Apple Music with the logo changed. The typeface is Instrument Sans, the accent is a warm
+     orange called Ember on warm near-black and paper white, the icons are drawn for this kit, and Home,
+     the mini player and the player's control rows are arranged differently from Apple's. <b>The one thing
+     to remember it by is lamplight:</b> the song that is playing is the only thing that colours the
+     chrome. Its artwork fills the player, leaks into the mini player's glass from the cover's side, and
+     fills the widget. Everything that is not playing stays Soot, Paper and Ember.</p>
+</div>
+
+<div class="rowset">
+  <div class="col wide">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Palette, dark</p>
+    <p class="why">Warm neutrals, not the #121212 ramp and not pure black. One accent. Ember marks what can be pressed: text buttons, tinted icons, the selected tab, the filled heart, switches. It is never a background for a whole surface.</p>
+    <div class="strip w">
+      <div class="pal"><div><i style="background:var(--bg)"></i><b>Soot</b><span>#0F0E0D</span><em>every screen</em></div><div><i style="background:var(--card)"></i><b>Card</b><span>#1C1A18</span><em>grouped lists</em></div><div><i style="background:var(--ink)"></i><b>Chalk</b><span>#F6F3EE</span><em>text, glyphs</em></div><div><i style="background:var(--ink-2)"></i><b>Chalk 64%</b><span>#F6F3EE · 64%</span><em>secondary text</em></div><div><i style="background:var(--ink-3)"></i><b>Chalk 36%</b><span>#F6F3EE · 36%</span><em>chevrons, hints</em></div><div><i style="background:var(--line)"></i><b>Hairline</b><span>#F6F3EE · 12%</span><em>separators</em></div><div><i style="background:var(--fill)"></i><b>Fill</b><span>#F6F3EE · 10%</span><em>fields, chips</em></div><div><i style="background:var(--accent)"></i><b>Ember</b><span>#FF8055</span><em>things you can press</em></div><div><i style="background:var(--accent-wash)"></i><b>Ember wash</b><span>#FF8055 · 17%</span><em>tinted buttons</em></div><div><i style="background:var(--danger)"></i><b>Signal</b><span>#FF5D6C</span><em>delete, remove</em></div></div>
+    </div>
+  </div>
+
+  <div class="col wide">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">Palette, light</p>
+    <p class="why">Paper is slightly warm so covers sit on it without glare. Ember is deepened until link-sized text holds 4.9:1. Secondary ink is 5.2:1 on Paper.</p>
+    <div class="strip w light">
+      <div class="pal"><div><i style="background:var(--bg)"></i><b>Paper</b><span>#FBFAF8</span><em>every screen</em></div><div><i style="background:var(--card)"></i><b>Card</b><span>#FFFFFF</span><em>on #F2F0EC</em></div><div><i style="background:var(--ink)"></i><b>Soot ink</b><span>#191715</span><em>text, glyphs</em></div><div><i style="background:var(--ink-2)"></i><b>Ink 64%</b><span>#191715 · 64%</span><em>secondary text</em></div><div><i style="background:var(--ink-3)"></i><b>Ink 34%</b><span>#191715 · 34%</span><em>chevrons, hints</em></div><div><i style="background:var(--line)"></i><b>Hairline</b><span>#191715 · 11%</span><em>separators</em></div><div><i style="background:var(--fill)"></i><b>Fill</b><span>#3C3024 · 7.5%</span><em>fields, chips</em></div><div><i style="background:var(--accent)"></i><b>Ember</b><span>#BF3F17</span><em>4.9:1 on Paper</em></div><div><i style="background:var(--accent-wash)"></i><b>Ember wash</b><span>#BF3F17 · 11%</span><em>tinted buttons</em></div><div><i style="background:var(--danger)"></i><b>Signal</b><span>#C22A3C</span><em>delete, remove</em></div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span></div>
+    <p class="cap">Type: Instrument Sans</p>
+    <p class="why">One family, weights 400 to 700. It is a little narrower than most grotesques, which matters here: "Yeh Jawaani Hai Deewani" and "Dhurandhar: The Revenge" fit a two-column grid at 15sp. Bold at 34sp is heavy enough to lead a page without a second display face. Open licence (OFL), on Google Fonts.</p>
+    <div class="strip">
+      <div class="spec-type">
+        <div><span>Large title · 34/40 Bold · −0.022em</span><p class="t-large">Library</p></div>
+        <div><span>Lyric line · 30/36 Bold · −0.02em</span><p style="font:700 30px/36px var(--font);letter-spacing:-.02em">I carry what the night forgot</p></div>
+        <div><span>Title · 22/27 Bold · −0.015em</span><p class="t-title">Recently played</p></div>
+        <div><span>Headline · 17/22 Semibold</span><p class="t-head">Dhurandhar: The Revenge</p></div>
+        <div><span>Body · 16/21 Medium</span><p class="t-body">Jaan Se Guzarte Hain</p></div>
+        <div><span>Sub · 14/18 Regular</span><p class="t-sub dim">Khan Saab, Shashwat Sachdev</p></div>
+        <div><span>Footnote · 13/17 Regular</span><p class="t-foot dim">Counted from Attic's listening log, which began on 3 January 2026.</p></div>
+        <div><span>Caption · 11/13 Semibold</span><p class="t-cap">Home &nbsp; Search &nbsp; Library</p></div>
+        <div><span>Figures · tabular</span><p class="t-title tn">1:47 &nbsp; 5:31 &nbsp; 18,460 &nbsp; 6,212</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span></div>
+    <p class="cap">Shape</p>
+    <p class="why">Radius grows with the size of the thing. Covers are never square-cornered and never circles; circles mean "artist". Bars and chips are capsules. Nothing has a border, and the only shadows are under covers and floating glass.</p>
+    <div class="strip">
+      <div class="shapes"><div><i style="border-radius:8px"></i><b>8</b><span>covers to 56dp</span></div><div><i style="border-radius:10px"></i><b>10</b><span>shelf covers</span></div><div><i style="border-radius:14px"></i><b>14</b><span>buttons, fields, header cover</span></div><div><i style="border-radius:18px"></i><b>18</b><span>Now Playing cover</span></div><div><i style="border-radius:22px"></i><b>22</b><span>cards, menus</span></div><div><i style="border-radius:30px 30px 0 0"></i><b>30</b><span>sheets, alerts</span></div><div><i style="border-radius:999px"></i><b>capsule</b><span>bars, chips</span></div><div><i style="border-radius:50%"></i><b>circle</b><span>artists</span></div></div>
+    </div><p class="lab"><b>Icons.</b> Drawn for this kit on a 24 grid: 1.9 stroke, round caps and joins. Transport glyphs and the selected tab are solid. The Home tab is the Attic house.</p><div class="strip" style="padding:16px 8px">
+      <div class="icons"><div><i class="ic ic-home"></i><span>home</span></div><div><i class="ic ic-home-fill"></i><span>home-fill</span></div><div><i class="ic ic-mark"></i><span>mark</span></div><div><i class="ic ic-search"></i><span>search</span></div><div><i class="ic ic-search-fill"></i><span>search-fill</span></div><div><i class="ic ic-library"></i><span>library</span></div><div><i class="ic ic-library-fill"></i><span>library-fill</span></div><div><i class="ic ic-chev"></i><span>chev</span></div><div><i class="ic ic-chev-left"></i><span>chev-left</span></div><div><i class="ic ic-chev-down"></i><span>chev-down</span></div><div><i class="ic ic-pull"></i><span>pull</span></div><div><i class="ic ic-arrow-left"></i><span>arrow-left</span></div><div><i class="ic ic-more"></i><span>more</span></div><div><i class="ic ic-heart"></i><span>heart</span></div><div><i class="ic ic-heart-fill"></i><span>heart-fill</span></div><div><i class="ic ic-play"></i><span>play</span></div><div><i class="ic ic-pause"></i><span>pause</span></div><div><i class="ic ic-next"></i><span>next</span></div><div><i class="ic ic-prev"></i><span>prev</span></div><div><i class="ic ic-shuffle"></i><span>shuffle</span></div><div><i class="ic ic-repeat"></i><span>repeat</span></div><div><i class="ic ic-repeat-one"></i><span>repeat-one</span></div><div><i class="ic ic-queue"></i><span>queue</span></div><div><i class="ic ic-lyrics"></i><span>lyrics</span></div><div><i class="ic ic-plus"></i><span>plus</span></div><div><i class="ic ic-check"></i><span>check</span></div><div><i class="ic ic-close"></i><span>close</span></div><div><i class="ic ic-settings"></i><span>settings</span></div><div><i class="ic ic-radio"></i><span>radio</span></div><div><i class="ic ic-play-next"></i><span>play-next</span></div><div><i class="ic ic-add-queue"></i><span>add-queue</span></div><div><i class="ic ic-add-playlist"></i><span>add-playlist</span></div><div><i class="ic ic-playlist"></i><span>playlist</span></div><div><i class="ic ic-language"></i><span>language</span></div><div><i class="ic ic-remove"></i><span>remove</span></div><div><i class="ic ic-album"></i><span>album</span></div><div><i class="ic ic-artist"></i><span>artist</span></div><div><i class="ic ic-drag"></i><span>drag</span></div><div><i class="ic ic-sort"></i><span>sort</span></div><div><i class="ic ic-grid"></i><span>grid</span></div><div><i class="ic ic-rows"></i><span>rows</span></div><div><i class="ic ic-trash"></i><span>trash</span></div><div><i class="ic ic-pencil"></i><span>pencil</span></div><div><i class="ic ic-save"></i><span>save</span></div><div><i class="ic ic-share"></i><span>share</span></div><div><i class="ic ic-folder"></i><span>folder</span></div><div><i class="ic ic-note"></i><span>note</span></div><div><i class="ic ic-bars"></i><span>bars</span></div><div><i class="ic ic-bars-off"></i><span>bars-off</span></div><div><i class="ic ic-clock"></i><span>clock</span></div><div><i class="ic ic-stop"></i><span>stop</span></div><div><i class="ic ic-info"></i><span>info</span></div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span></div>
+    <p class="cap">Artwork colour: <code>.lit</code></p>
+    <p class="why">A surface with <code>lit</code> and an <code>art-…</code> class is filled with that cover&#39;s own gradients, enlarged and blurred, then dimmed with the cover&#39;s dark shade (dark theme) or lifted with its pale shade (light theme). Ink, hairlines and fills switch with it. Measured on eight covers, secondary text stays above 4:1.</p>
+    <div class="strip bare" style="padding:12px">
+      <div class="tone-dark"><div class="lits"><div class="panel lit art-revenge"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span></div><div class="panel lit art-viva"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span></div><div class="panel lit art-oso"><span class="pic"><div class="cv art-oso"></div></span><span class="txt"><b>Ajab Si</b><span>Vishal-Shekhar</span></span></div><div class="panel lit art-anbe"><span class="pic"><div class="cv art-anbe"></div></span><span class="txt"><b>Aaruyire</b><span>A. R. Rahman</span></span></div></div></div>
+    </div><div class="strip bare light" style="padding:12px">
+      <div class="tone-light"><div class="lits"><div class="panel lit art-revenge"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span></div><div class="panel lit art-viva"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span></div><div class="panel lit art-oso"><span class="pic"><div class="cv art-oso"></div></span><span class="txt"><b>Ajab Si</b><span>Vishal-Shekhar</span></span></div><div class="panel lit art-anbe"><span class="pic"><div class="cv art-anbe"></div></span><span class="txt"><b>Aaruyire</b><span>A. R. Rahman</span></span></div></div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span></div>
+    <p class="cap">Artwork colour: glow and bloom</p>
+    <p class="why">The same source at lower strength. <code>.art.glow</code>: a header cover throws its colour on the page under it, in place of a full-width gradient. <code>.bloom</code>: glass takes the artwork&#39;s light from its leading edge and keeps the theme&#39;s ink.</p>
+    <div class="strip bare" style="padding:0 0 20px">
+      <div class="hero" style="padding-top:20px">
+        <div class="art glow art-revenge"><div class="cv art-revenge"></div></div>
+        <h1>Dhurandhar: The Revenge</h1>
+        <a class="by">Shashwat Sachdev</a>
+        <p class="meta">Album · 2026</p>
+      </div>
+      <div class="actions">
+        <button class="btn fill"><i class="ic ic-play"></i>Play</button>
+        <button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button>
+        <button class="btn gray icon" aria-label="Add Dhurandhar: The Revenge to a playlist"><i class="ic ic-add-playlist"></i></button>
+      </div>
+    </div><div class="strip bare light" style="padding:0 0 20px">
+      <div class="hero" style="padding-top:20px">
+        <div class="art glow art-revenge"><div class="cv art-revenge"></div></div>
+        <h1>Dhurandhar: The Revenge</h1>
+        <a class="by">Shashwat Sachdev</a>
+        <p class="meta">Album · 2026</p>
+      </div>
+      <div class="actions">
+        <button class="btn fill"><i class="ic ic-play"></i>Play</button>
+        <button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button>
+        <button class="btn gray icon" aria-label="Add Dhurandhar: The Revenge to a playlist"><i class="ic ic-add-playlist"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Buttons and controls</p>
+    <p class="why">Filled Ember is for the one main action on a screen, Ember-tinted for its partner, grey for neutral. Plain text buttons are Ember. The favourite is a heart, outline to filled. Switches are Ember when on.</p>
+    <div class="strip">
+      <div class="actions" style="padding:0"><button class="btn fill"><i class="ic ic-play"></i>Play</button><button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button></div>
+      <div class="brow"><button class="btn fill">Allow access</button><button class="btn tint">Download lyrics</button><button class="btn gray">Cancel</button></div>
+      <div class="brow"><button class="btn plain">Clear</button><button class="btn plain danger">Delete playlist</button><button class="btn sm tint"><i class="ic ic-play"></i>Play recap</button><button class="btn sm gray">Close</button><button class="btn fill off">Create</button></div>
+      <div class="brow"><button class="heart" aria-label="Add to favourites"></button><button class="heart on" aria-label="Remove from favourites"></button><button class="ibtn"><i class="ic ic-more"></i></button><button class="ibtn acc"><i class="ic ic-plus"></i></button><button class="ibtn round"><i class="ic ic-chev-left"></i></button><button class="ibtn round"><i class="ic ic-settings"></i></button><i class="switch"></i><i class="switch on"></i><i class="spin"></i></div>
+    </div><div class="strip light">
+      <div class="actions" style="padding:0"><button class="btn fill"><i class="ic ic-play"></i>Play</button><button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button></div>
+      <div class="brow"><button class="btn fill">Allow access</button><button class="btn tint">Download lyrics</button><button class="btn gray">Cancel</button></div>
+      <div class="brow"><button class="btn plain">Clear</button><button class="btn plain danger">Delete playlist</button><button class="btn sm tint"><i class="ic ic-play"></i>Play recap</button><button class="btn sm gray">Close</button><button class="btn fill off">Create</button></div>
+      <div class="brow"><button class="heart" aria-label="Add to favourites"></button><button class="heart on" aria-label="Remove from favourites"></button><button class="ibtn"><i class="ic ic-more"></i></button><button class="ibtn acc"><i class="ic ic-plus"></i></button><button class="ibtn round"><i class="ic ic-chev-left"></i></button><button class="ibtn round"><i class="ic ic-settings"></i></button><i class="switch"></i><i class="switch on"></i><i class="spin"></i></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Titles, chips, search field, segmented control</p>
+    <p class="why">Chips are for filters that can all be off (Library). The segmented control is for a choice that always has a value (Home filter, Recap period). A selected chip inverts to ink; neither control spends the accent.</p>
+    <div class="strip bare" style="padding:0 0 18px">
+      <header class="lt"><h1>Library</h1><span class="trail"><button class="ibtn acc" aria-label="Search your library"><i class="ic ic-search"></i></button><button class="ibtn acc" aria-label="Create playlist"><i class="ic ic-plus"></i></button></span></header>
+      <div class="chips" style="margin:6px 0 18px"><span class="chip on">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Songs</span></div>
+      <div class="search"><span class="q"><i class="ic ic-search"></i><span class="ph" style="margin-left:9px">Search your music</span></span></div>
+      <div class="search" style="margin-top:10px"><i class="ic ic-search"></i><span class="q">dhur<i class="caret"></i></span><button class="clear" aria-label="Clear search"></button></div>
+      <div class="seg" style="margin-top:16px"><span>This week</span><span>This month</span><span class="on">This year</span><span>All time</span></div>
+    </div><div class="strip bare light" style="padding:0 0 18px">
+      <header class="lt"><h1>Library</h1><span class="trail"><button class="ibtn acc" aria-label="Search your library"><i class="ic ic-search"></i></button><button class="ibtn acc" aria-label="Create playlist"><i class="ic ic-plus"></i></button></span></header>
+      <div class="chips" style="margin:6px 0 18px"><span class="chip on">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Songs</span></div>
+      <div class="search"><span class="q"><i class="ic ic-search"></i><span class="ph" style="margin-left:9px">Search your music</span></span></div>
+      <div class="search" style="margin-top:10px"><i class="ic ic-search"></i><span class="q">dhur<i class="caret"></i></span><button class="clear" aria-label="Clear search"></button></div>
+      <div class="seg" style="margin-top:16px"><span>This week</span><span>This month</span><span class="on">This year</span><span>All time</span></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Song rows</p>
+    <p class="why">Title 16sp Medium over artist 14sp. The hairline starts at the title, not at the cover. The row that is playing dims its cover under three bars, or swaps its number for them; its title stays in ink. Paused flattens the bars.</p>
+    <div class="strip bare">
+      <div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div>
+      <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+      <div class="row now paused"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div>
+    </div><div class="strip bare">
+      <div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+    </div><div class="strip bare">
+      <div class="row rank"><span class="n">1</span><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><span class="end">214 plays</span></div>
+      <div class="row rank"><span class="n">2</span><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end">187 plays</span></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Tab bar, mini player, seek bar</p>
+    <p class="why">The tab bar and mini player are glass capsules with rows passing under them. Progress is the ring around play and pause. On the player the seek bar is 8dp with no handle, play is a bare glyph, and a toggle that is on becomes a lozenge.</p>
+    <div class="strip bare" style="height:300px">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div>
+      <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+      <div class="row now paused"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row rank"><span class="n">1</span><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><span class="end">214 plays</span></div>
+      <div class="row rank"><span class="n">2</span><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end">187 plays</span></div></div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+    </div><div class="strip bare light" style="height:300px">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div>
+      <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+      <div class="row now paused"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row rank"><span class="n">1</span><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><span class="end">214 plays</span></div>
+      <div class="row rank"><span class="n">2</span><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end">187 plays</span></div></div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+    </div><div class="strip bare lit art-revenge" style="padding:24px 0 16px">
+      <div class="scrub" style="--v:.323;margin-top:0"><div class="bar"></div><div class="times"><span>1:47</span><span>5:31</span></div></div>
+      <div class="transport"><button aria-label="Previous"><i class="ic ic-prev"></i></button><button class="main" aria-label="Pause"><i class="ic ic-pause"></i></button><button aria-label="Next"><i class="ic ic-next"></i></button></div>
+      <div class="np-tools"><button class="tool on"><i class="ic ic-shuffle"></i></button><button class="tool"><i class="ic ic-queue"></i></button><button class="tool on"><i class="ic ic-repeat-one"></i></button></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Rows that move, add or link</p>
+    <p class="why">Drag handle; the lifted row while dragging; swipe revealing "Remove"; add and added in the Add songs sheet; and the taller row for a playlist, folder, artist or album.</p>
+    <div class="strip bare">
+      <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn"><i class="ic ic-drag"></i></button></div>
+      <div class="row lift"><span class="pic"><div class="cv art-uddgaye"></div></span><span class="txt"><b>Udd Gaye</b><span>Ritviz</span></span><button class="ibtn"><i class="ic ic-drag"></i></button></div>
+      <div class="row"><span class="pic"><div class="cv art-lootera"></div></span><span class="txt"><b>Monta Re</b><span>Amitabh Bhattacharya &amp; Swanand Kirkire</span></span><button class="ibtn"><i class="ic ic-drag"></i></button></div>
+      <div class="swipe"><span class="lbl">Remove</span><div class="row"><span class="pic"><div class="cv art-ghost"></div></span><span class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></span><button class="ibtn"><i class="ic ic-drag"></i></button></div></div>
+    </div><div class="strip bare">
+      <div class="row"><span class="pic"><div class="cv art-jodhaa"></div></span><span class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></span><button class="tick" aria-label="Add Khwaja Mere Khwaja"></button></div>
+      <div class="row"><span class="pic"><div class="cv art-anbe"></div></span><span class="txt"><b>Aaruyire</b><span>A. R. Rahman</span></span><button class="tick on" aria-label="Remove Aaruyire"></button></div>
+    </div><div class="strip bare">
+      <div class="row lg link"><span class="pic fav"></span><span class="txt"><b>Favourites</b><span>Playlist, 31 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-ghost"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div></div></span><span class="txt"><b>Late drive</b><span>Playlist, 12 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="txt"><b>Hindi</b><span>Playlist, 46 songs</span></span></div>
+      <div class="row lg link"><span class="pic round"><div class="cv art-anbe"></div></span><span class="txt"><b>A. R. Rahman</b><span>Artist</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva la Vida</b><span>Album, Coldplay</span></span></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Category list, tiles, artist header</p>
+    <p class="why">Category rows carry an Ember icon, a count and a chevron. Browse tiles are the cover&#39;s own field with a small upright cover. An artist header is a round crop with the name as a large title.</p>
+    <div class="strip bare">
+      <a class="cat"><i class="ic ic-playlist"></i><span class="lbl">Playlists</span><span class="val">7</span></a>
+      <a class="cat"><i class="ic ic-artist"></i><span class="lbl">Artists</span><span class="val">96</span></a>
+      <a class="cat"><i class="ic ic-album"></i><span class="lbl">Albums</span><span class="val">16</span></a>
+      <a class="cat"><i class="ic ic-note"></i><span class="lbl">Songs</span><span class="val">127</span></a>
+    </div><div class="strip bare" style="padding:14px 0">
+      <div class="browse"><a class="tile lit deep art-viva"><b>English</b><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span></a><a class="tile lit deep art-oso"><b>Hindi</b><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span></a><a class="tile lit deep art-revenge"><b>Dhurandhar: The Revenge</b><span class="pic"><div class="cv art-revenge"></div></span></a><a class="tile lit deep art-rockstar"><b>Rockstar</b><span class="pic"><div class="cv art-rockstar"></div></span></a></div>
+    </div><div class="strip bare" style="padding:0 0 20px">
+      <div class="hero artist" style="padding-top:20px">
+        <div class="art glow art-anbe"><div class="cv plain art-anbe"></div></div>
+        <h1>A. R. Rahman</h1>
+        <p class="meta">14 songs, 1 hr 13 min</p>
+      </div>
+      <div class="actions">
+        <button class="btn fill"><i class="ic ic-pause"></i>Pause</button>
+        <button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button>
+        <button class="btn gray icon" aria-label="Add A. R. Rahman to a playlist"><i class="ic ic-add-playlist"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Sheet, menu, toast</p>
+    <p class="why">Sheets and menus are thick glass. Labels lead and icons trail. A destructive row is Signal red. The toast is a glass pill with text only.</p>
+    <div class="strip bare" style="height:560px">
+      <div class="under"><div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div></div>
+      <div class="scrim"></div>
+      <div class="sheet glass thick">
+        <div class="sheet-head"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span></div>
+        <button class="mrow"><span class="lbl">Start radio</span><i class="ic ic-radio"></i></button>
+        <button class="mrow"><span class="lbl">Add to favourites</span><i class="ic ic-heart"></i></button>
+        <button class="mrow"><span class="lbl">Play next</span><i class="ic ic-play-next"></i></button>
+        <button class="mrow"><span class="lbl">Add to queue</span><i class="ic ic-add-queue"></i></button>
+        <button class="mrow"><span class="lbl">Add to playlist</span><i class="ic ic-add-playlist"></i></button>
+        <button class="mrow"><span class="lbl">Language</span><span class="val">Hindi</span><i class="ic ic-language"></i></button>
+        <button class="mrow"><span class="lbl">Go to album</span><i class="ic ic-album"></i></button>
+        <button class="mrow"><span class="lbl">Go to artist</span><i class="ic ic-artist"></i></button>
+      </div>
+    </div><div class="strip bare" style="height:300px">
+      <div class="under"><div class="row lg link"><span class="pic fav"></span><span class="txt"><b>Favourites</b><span>Playlist, 31 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-ghost"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div></div></span><span class="txt"><b>Late drive</b><span>Playlist, 12 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="txt"><b>Hindi</b><span>Playlist, 46 songs</span></span></div>
+      <div class="row lg link"><span class="pic round"><div class="cv art-anbe"></div></span><span class="txt"><b>A. R. Rahman</b><span>Artist</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva la Vida</b><span>Album, Coldplay</span></span></div></div>
+      <div class="menu glass thick" style="right:14px;top:14px">
+        <button class="mrow"><span class="lbl">Rename</span><i class="ic ic-pencil"></i></button>
+        <button class="mrow danger"><span class="lbl">Delete playlist</span><i class="ic ic-trash"></i></button>
+      </div>
+      <div class="toast glass thick" style="bottom:18px">Added to Late drive</div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Navigation bars</p>
+    <p class="why">A detail screen opens with round glass buttons over its header and no title. Once the header has scrolled away the title appears, centred, on a blurred edge that fades out downward. Back is a chevron; system back does the same thing.</p>
+    <div class="strip bare" style="padding:0 0 20px">
+      <header class="nav"><span class="lead"><button class="ibtn round" aria-label="Back"><i class="ic ic-chev-left"></i></button></span><span class="ttl"></span><span class="trail"><button class="ibtn round" aria-label="Playlist options"><i class="ic ic-more"></i></button></span></header><div class="hero" style="padding-top:20px">
+        <div class="art glow art-revenge"><div class="cv art-revenge"></div></div>
+        <h1>Dhurandhar: The Revenge</h1>
+        <a class="by">Shashwat Sachdev</a>
+        <p class="meta">Album · 2026</p>
+      </div>
+      <div class="actions">
+        <button class="btn fill"><i class="ic ic-play"></i>Play</button>
+        <button class="btn tint"><i class="ic ic-shuffle"></i>Shuffle</button>
+        <button class="btn gray icon" aria-label="Add Dhurandhar: The Revenge to a playlist"><i class="ic ic-add-playlist"></i></button>
+      </div>
+    </div><div class="strip bare" style="height:250px">
+      <div class="under" style="top:20px"><div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div><div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div></div>
+      <header class="nav pinned" style="padding-top:0;height:52px"><span class="lead"><button class="ibtn" aria-label="Back"><i class="ic ic-chev-left"></i></button></span><span class="ttl">Dhurandhar: The Revenge</span><span class="trail"><button class="ibtn" aria-label="Playlist options"><i class="ic ic-more"></i></button></span></header>
+    </div><div class="strip bare light" style="height:250px">
+      <div class="under" style="top:20px"><div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div><div class="row num"><span class="n">1</span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">2</span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num now"><span class="n">3</span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div>
+      <div class="row num"><span class="n">4</span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn"><i class="ic ic-more"></i></button></div></div>
+      <header class="nav pinned" style="padding-top:0;height:52px"><span class="lead"><button class="ibtn" aria-label="Back"><i class="ic ic-chev-left"></i></button></span><span class="ttl">Dhurandhar: The Revenge</span><span class="trail"><button class="ibtn" aria-label="Playlist options"><i class="ic ic-more"></i></button></span></header>
+    </div>
+  </div>
+
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Alerts and empty state</p>
+    <p class="why">Alerts are left-aligned with two capsule buttons, cancel on the left. An empty state is an icon, a title and one sentence, with a tinted button only when there is somewhere to go.</p>
+    <div class="strip bare" style="height:260px">
+      <div class="under"><div class="row lg link"><span class="pic fav"></span><span class="txt"><b>Favourites</b><span>Playlist, 31 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-ghost"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div></div></span><span class="txt"><b>Late drive</b><span>Playlist, 12 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="txt"><b>Hindi</b><span>Playlist, 46 songs</span></span></div>
+      <div class="row lg link"><span class="pic round"><div class="cv art-anbe"></div></span><span class="txt"><b>A. R. Rahman</b><span>Artist</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva la Vida</b><span>Album, Coldplay</span></span></div></div>
+      <div class="scrim"></div>
+      <div class="alert glass thick">
+        <h2>Delete Late drive?</h2>
+        <p>The playlist goes away. The songs stay in your library.</p>
+        <div class="btns"><button class="btn gray">Cancel</button><button class="btn fill danger">Delete playlist</button></div>
+      </div>
+    </div><div class="strip bare light" style="height:290px">
+      <div class="under"><div class="row lg link"><span class="pic fav"></span><span class="txt"><b>Favourites</b><span>Playlist, 31 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-ghost"></div><div class="cv art-uddgaye"></div><div class="cv art-dreams"></div></div></span><span class="txt"><b>Late drive</b><span>Playlist, 12 songs</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="txt"><b>Hindi</b><span>Playlist, 46 songs</span></span></div>
+      <div class="row lg link"><span class="pic round"><div class="cv art-anbe"></div></span><span class="txt"><b>A. R. Rahman</b><span>Artist</span></span></div>
+      <div class="row lg link"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva la Vida</b><span>Album, Coldplay</span></span></div></div>
+      <div class="scrim"></div>
+      <div class="alert glass thick">
+        <h2>Name this playlist</h2>
+        <label class="field-label">Playlist name</label>
+        <div class="field focus">Rahman, slow<i class="caret"></i></div>
+        <div class="btns"><button class="btn gray">Cancel</button><button class="btn fill">Create</button></div>
+      </div>
+    </div><div class="strip bare">
+      <div class="empty"><i class="ic ic-heart"></i><h2>Songs you like will appear here</h2><p>Tap the heart on a song to save it.</p><button class="btn tint">Browse</button></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Settings: grouped inset lists</p>
+    <p class="why">Sections are cards on the page with a sentence-case label above and small print below. A single choice is marked with a check, not a radio button. An action is a row of Ember text.</p>
+    <div class="strip bare" style="padding:10px 0 16px;background:var(--bg-grouped)">
+      <p class="group-head" style="padding-top:6px">Appearance</p>
+      <div class="group">
+        <div class="cell opt"><span class="txt">Match phone</span></div>
+        <div class="cell opt on"><span class="txt">Dark</span></div>
+        <div class="cell opt"><span class="txt">Light</span></div>
+      </div>
+      <p class="group-head">Song radio</p>
+      <div class="group">
+        <div class="cell"><span class="txt">Autoplay<span>When a queue reaches its last song, radio keeps going with similar songs.</span></span><i class="switch on"></i></div>
+        <div class="cell stack"><div class="prog" style="--v:.66"></div><p>Analysing songs: 84 of 127</p></div>
+        <button class="cell act">Analyse now without a charger</button>
+      </div>
+      <p class="group-foot">Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">Settings, light</p>
+    <p class="why">In light theme the page drops to #F2F0EC so the white cards separate without a border or shadow.</p>
+    <div class="strip bare light" style="padding:10px 0 16px;background:var(--bg-grouped)">
+      <p class="group-head" style="padding-top:6px">Appearance</p>
+      <div class="group">
+        <div class="cell opt"><span class="txt">Match phone</span></div>
+        <div class="cell opt on"><span class="txt">Dark</span></div>
+        <div class="cell opt"><span class="txt">Light</span></div>
+      </div>
+      <p class="group-head">Song radio</p>
+      <div class="group">
+        <div class="cell"><span class="txt">Autoplay<span>When a queue reaches its last song, radio keeps going with similar songs.</span></span><i class="switch on"></i></div>
+        <div class="cell stack"><div class="prog" style="--v:.66"></div><p>Analysing songs: 84 of 127</p></div>
+        <button class="cell act">Analyse now without a charger</button>
+      </div>
+      <p class="group-foot">Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">Stats and lyric lines</p>
+    <p class="why">Recap figures are a ruled table, not six tiles. In full-screen lyrics the line being sung is white, sung lines stay sharp at half strength, and lines still to come are dimmer and slightly blurred.</p>
+    <div class="strip bare" style="padding:14px 0">
+      <div class="stats">
+        <div class="stat"><b>18,460</b><span>Minutes</span></div><div class="stat"><b>6,212</b><span>Plays</span></div>
+        <div class="stat"><b>412</b><span>Songs</span></div><div class="stat"><b>96</b><span>Artists</span></div>
+        <div class="stat"><b>251</b><span>Days with music</span></div><div class="stat"><b>34 days</b><span>Longest streak</span></div>
+      </div>
+    </div><div class="strip bare lit art-revenge" style="padding:14px 0">
+      <span class="ll sung">The road keeps every step we leave</span>
+      <span class="ll cur">I carry what the night forgot</span>
+      <span class="ll">A lantern for the miles ahead</span>
+      <span class="ll far">And nothing here can hold me back</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="spec">
+  <h2>Borrowed from the platform</h2>
+  <ul>
+    <li><b>Large titles that collapse.</b> Root screens open on a 34sp bold title. On scroll it becomes a 17sp centred title over a blurred edge.</li>
+    <li><b>Lists, not cards.</b> Rows are divided by a hairline that starts at the text edge. Boxes appear only where iOS uses them: grouped Settings lists and the panels under the player.</li>
+    <li><b>Glass.</b> The tab bar, mini player, round buttons, sheets, menus, alerts and toasts are translucent and blurred, float clear of the screen edges, and always have content behind them.</li>
+    <li><b>Artwork as the colour.</b> The player's background is made from the cover. Collection pages get the cover's light under the cover only.</li>
+    <li><b>Controls.</b> Bare transport glyphs, a thick seek bar without a handle, two equal buttons for play and shuffle, menus with the icon at the trailing edge, a check for the chosen option, segmented controls.</li>
+  </ul>
+
+  <h2>Attic's own</h2>
+  <ul>
+    <li><b>Ember and warm neutrals.</b> Not Apple Music's red-pink, not the green in use today. The accent appears only on things that respond to a tap.</li>
+    <li><b>Instrument Sans</b> in place of a system face, for its narrower set and firm bold.</li>
+    <li><b>The icon set</b>, including the Attic house as the Home tab. The mark is otherwise used as a mark: permission screen, Recap cards, widget, launcher.</li>
+    <li><b>Home.</b> Covers for shortcuts, paged rows for instant mixes, a list for folders. Apple's Home is a column of large editorial cards; today's is tiles and shelves. This is neither.</li>
+    <li><b>The mini player.</b> One capsule lit by the artwork, with a progress ring. Apple's shows no progress; today's draws a line along the bottom.</li>
+    <li><b>The player's second row.</b> Shuffle, queue, repeat, with a lozenge for "on". There is no volume slider or output button because Attic has neither.</li>
+    <li><b>A light-theme player</b> built from the cover's pale shade. Apple keeps its player dark.</li>
+    <li><b>Android behaviour.</b> System back closes Lyrics, then Queue, then the player. Sheets are attached to the bottom edge. The notification, lock screen and widget are drawn by Android's rules in sheet 10.</li>
+  </ul>
+
+  <h2>The signature: lamplight</h2>
+  <p>An attic is dark until something is switched on. The chrome here is two neutrals and one accent, and the
+     only other colour allowed into it is the artwork of the song that is playing. It fills a
+     whole surface (<code>.lit</code>: player, lyrics, widget, Recap card), falls as light under a cover
+     (<code>.art.glow</code>: collection headers), or blooms inside glass (<code>.bloom</code>: mini player). A screen with nothing playing has no colour but Ember and the covers themselves.</p>
+
+  <h2>Rules the other sheets should hold to</h2>
+  <ul>
+    <li>Glass needs something behind it. Do not place a glass bar over an empty background.</li>
+    <li>One filled Ember button per screen at most. Its partner is tinted.</li>
+    <li>No heading in capitals, no label above a heading. A heading may have one line of explanation under it.</li>
+    <li>No gradient that is not made from a cover.</li>
+    <li>The title of the playing song is never coloured. The bars are the mark.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Ember.</b> It sits between orange and red. If it reads too close to another product you know, the accent is <code>--accent</code> and <code>--accent-wash</code> in each theme, and nothing else depends on its hue.</li>
+    <li><b>Player in light theme.</b> See sheet 05, frame D.</li>
+    <li><b>Typeface weight.</b> Instrument Sans stops at Bold. If you want heavier titles than this specimen shows, the family has to change, not the weight.</li>
+  </ul>
+</div>

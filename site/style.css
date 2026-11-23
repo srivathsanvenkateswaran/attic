@@ -1,0 +1,239 @@
+/* Attic site. One family (Onest, bundled with the app under the OFL), no scripts, no third-party requests. */
+
+@font-face {
+  font-family: "Onest";
+  src: url("fonts/onest.ttf") format("truetype");
+  font-weight: 400 800;
+  font-display: swap;
+}
+
+:root {
+  --terracotta: #c6533a;
+  --terracotta-ink: #a2402b; /* small text on cream; #c6533a is too light there for AA */
+  --cream: #f5eddd;
+  --paper: #fbf7ef;
+  --ink: #2a211c;
+  --ink-2: #5a4a40;
+  --measure: 68ch;
+  --slope: 6.5vw; /* rise of the hero's 30-degree-ish cut, the angle of the Headroom cabinet */
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1.0625rem/1.6 "Onest", system-ui, sans-serif;
+}
+
+a { color: var(--terracotta-ink); text-underline-offset: 0.18em; }
+a:hover { color: var(--ink); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; }
+
+/* Header and hero share the terracotta ground. */
+.top {
+  background: var(--terracotta);
+  color: var(--cream);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--slope)), 0 100%);
+  padding-bottom: calc(var(--slope) + 3rem);
+}
+
+.top a { color: var(--cream); }
+.top a:hover { color: var(--ink); }
+.top :focus-visible { outline-color: var(--cream); }
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-decoration: none;
+}
+
+.brand svg { width: 2rem; height: 2rem; }
+
+.bar nav { display: flex; gap: 1.5rem; font-weight: 500; }
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
+  padding-top: 3rem;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2.5rem, 6.4vw, 5.25rem);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  max-width: 40ch;
+  margin: 1.5rem 0 0;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+/* The mark at hero size: the cream cabinet standing on the cut. */
+.hero .mark { width: clamp(9rem, 22vw, 17rem); height: auto; margin-bottom: -1rem; }
+
+.get {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.top .button.solid { background: var(--cream); color: var(--ink); }
+.top .button.solid:hover { background: var(--ink); color: var(--cream); }
+.top .button.line { border: 2px solid var(--cream); }
+.top .button.line:hover { background: var(--cream); color: var(--ink); }
+
+/* Stands in for the official Google Play badge until the listing is live. See site/README.md. */
+.play-placeholder {
+  border: 2px dashed rgba(245, 237, 221, 0.7);
+  color: var(--cream);
+  font-weight: 500;
+}
+
+main section { padding: 4rem 0 0; }
+
+main h2 {
+  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+main h3 { margin: 0 0 0.35rem; font-size: 1.125rem; font-weight: 700; }
+
+.lead { max-width: var(--measure); margin: 0 0 2rem; color: var(--ink-2); }
+
+/* Two styles, side by side. */
+.styles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.5rem;
+  margin: 0;
+}
+
+.styles figure { margin: 0; }
+
+.phone {
+  aspect-ratio: 1080 / 2400;
+  max-width: 16rem;
+  border: 0.6rem solid var(--ink);
+  border-radius: 2.25rem;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+.phone img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Shown until real screenshots replace it. */
+.phone .placeholder {
+  display: grid;
+  place-content: center;
+  height: 100%;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.styles figcaption { max-width: 34ch; margin-top: 1.25rem; }
+.styles figcaption p { margin: 0; color: var(--ink-2); }
+
+/* Feature groups: a two-column list, not cards. */
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 3rem;
+  max-width: 60rem;
+  margin: 0;
+}
+
+.features div { border-top: 3px solid var(--terracotta); padding-top: 1rem; }
+.features ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); }
+.features li + li { margin-top: 0.3rem; }
+
+.privacy {
+  max-width: var(--measure);
+  background: var(--cream);
+  border-radius: 1.5rem;
+  padding: 2rem;
+}
+
+.privacy p { margin: 0 0 1rem; }
+.privacy p:last-child { margin-bottom: 0; }
+
+.install ol { max-width: var(--measure); padding-left: 1.3rem; margin: 0; }
+.install li + li { margin-top: 0.5rem; }
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.9em;
+  background: var(--cream);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3em;
+}
+
+footer.wrap {
+  margin-top: 5rem;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  border-top: 1px solid rgba(42, 33, 28, 0.15);
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+footer p { max-width: var(--measure); margin: 0 0 0.5rem; }
+
+/* Privacy policy page: a single reading column. */
+.doc { max-width: var(--measure); padding-top: 1rem; }
+.doc h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin: 0 0 0.5rem; }
+.doc h2 { font-size: 1.5rem; margin: 2.5rem 0 0.75rem; }
+.doc .effective { color: var(--ink-2); margin: 0 0 2rem; }
+.doc table { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
+.doc th, .doc td { text-align: left; vertical-align: top; padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid rgba(42, 33, 28, 0.15); }
+.doc td code { white-space: nowrap; }
+
+.top.slim { padding-bottom: calc(var(--slope) + 1rem); }
+
+@media (max-width: 720px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero .mark { width: 8rem; margin: 0; order: -1; }
+  .styles, .features { grid-template-columns: 1fr; }
+  .phone { max-width: 16rem; }
+  .bar nav { gap: 1rem; }
+  .doc td code { white-space: normal; }
+}

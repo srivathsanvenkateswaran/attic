@@ -1,0 +1,686 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 07 Sheets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:6.32em}   /* captions here run to four lines; keeps the phones level */
+  .strips{display:flex;flex-direction:column;gap:14px}
+  .strips .cap2{color:#98a2ad;font-size:12px;font-weight:600;margin:6px 0 -6px 2px}
+
+  /* track menu: the four queue-and-favourite actions as a row of toggles, the shape the Now Playing deck uses */
+  .phone .quick{display:grid;grid-template-columns:repeat(4,1fr);padding:2px 12px 8px}
+  .phone .qa{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:104px;padding-top:6px;text-align:center;
+    font-size:12.5px;line-height:16px;font-weight:500;color:var(--on)}
+  .phone .qa span.t{max-width:86px}
+  /* on a sheet the tonal fill is one step up, so it shows against the raised surface */
+  .phone .sheet .qa .ib.tonal{background:var(--fill-2)}
+  .phone.light .sheet .qa .ib.tonal{background:var(--fill)}
+  .phone .sheet .qa .ib.tonal.on,.phone.light .sheet .qa .ib.tonal.on{background:var(--accent)}
+  .phone .quick + .sheet-row::before{content:"";position:absolute;top:0;left:24px;right:24px;height:1px;background:var(--line)}
+  /* a row that opens something in place ends in a quiet glyph */
+  .phone .sheet-row .end.go{color:var(--on-3)}
+
+  /* a collection row inside a sheet lines up with the sheet's 24dp margin */
+  .phone .sheet .row{padding-left:24px;padding-right:18px}
+  .phone .sheet .row + .row::before{right:24px}
+  .phone .sheet .row > .ms.in{color:var(--accent-ink)}
+  .phone .sheet-title small{display:block;margin-top:2px;font-size:13.5px;line-height:18px;font-weight:400;letter-spacing:0;color:var(--on-2)}
+
+  .phone .sheet .ibox.neutral{background:var(--fill-2)}
+  .phone.light .sheet .ibox.neutral{background:var(--fill)}
+  /* a sheet taller than its content area scrolls inside itself and fades out at the bottom edge */
+  .phone .sheet.tall{overflow:hidden}
+  .phone .sheet.tall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64px;z-index:2;
+    background:linear-gradient(to bottom,transparent,var(--raised) 62%)}
+  /* a pop-over opened from a row of a sheet: the sheet dims a little and the menu sits one step above it */
+  .phone .scrim.over-sheet{z-index:21;opacity:.55}
+  .phone .menu.on-sheet{background:var(--fill)}
+  .phone .menu-cap{padding:10px 22px 6px;font-size:13px;line-height:18px;font-weight:600;color:var(--on-2)}
+  .phone .menu-row .ms.end{margin-left:auto;padding-left:18px;width:auto}
+  .phone .menu-row.on .ms{color:inherit}
+
+  /* the gesture pill is drawn by the system, above sheets, dialogs and their scrim */
+  .phone > .gpill{z-index:40}
+  /* collection header as a backdrop */
+  .phone .c-list{margin-top:14px}
+  .strip .toasts{display:flex;flex-direction:column;align-items:center;padding:10px 0}
+  .strip .toasts .toast{margin:7px 16px}
+  .phone .q-now{background:var(--mini-base)}
+  .phone .q-now .song{min-height:72px}
+  .phone .q-now .song.now::after{inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:0 22px 22px 0;background:var(--mini-fill)}
+  .phone .label .end{min-width:0;white-space:nowrap;align-self:center}
+</style>
+
+<div class="intro">
+  <h1>Sheets, dialogs and menus</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 07</div>
+  <p>One UI keeps things that need a decision at the bottom of the screen and things that are a short choice beside
+     whatever opened them. This sheet sorts Attic's sheets, dialogs and menus by that rule. The track menu, the
+     playlist picker and Add songs <b>stay bottom sheets</b>, because their length varies or they need a header. The
+     playlist's overflow and the language picker, which is a bottom sheet today, <b>are pop-overs</b>. Naming and
+     deleting a playlist <b>are bottom dialogs</b> with side-by-side text buttons.</p>
+  <p>It also settles the track menu's layout. Radio, favourite, play next and add to queue are a row of toggles in
+     the shape the Now Playing deck uses, and the rest are rows. Every action keeps its label.</p>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Track menu</p>
+    <p class="why">The top row is the deck's toggle shape with a label under each: radio, favourite, play next, add to queue. Below it only the rows that go somewhere or open something. The sheet is about two rows shorter than a plain list of eight.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><h2>Home</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="label tight">Start listening <small>Picked at random from your songs</small></div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></div><button class="ib" aria-label="More options for Naina Da Kya Kasoor"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Your folders</div>
+    <div class="group pad">
+      <div class="grid4 tray">
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><b>English</b><span>24 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><b>Hindi</b><span>46 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><b>Tamil</b><span>19 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b>Phonk</b><span>38 songs</span></a>
+      </div>
+    </div>
+    <div class="label">Albums</div>
+    <div class="shelf">
+      <a class="tile" style="--w:132px"><div class="cv art-yjhd sq-lg"></div><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-rockstar sq-lg"></div><b>Rockstar</b><span>A. R. Rahman</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-revenge sq-lg"></div><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><div class="cv art-rockstar sq w48 plain"></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div></div>
+    <div class="quick">
+      <a class="qa"><span class="ib tonal lg"><span class="ms">sensors</span></span><span class="t">Start radio</span></a>
+      <a class="qa"><span class="ib tonal lg heart"><span class="ms">favorite</span></span><span class="t">Add to favourites</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">playlist_play</span></span><span class="t">Play next</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">queue_music</span></span><span class="t">Add to queue</span></a>
+    </div>
+    <div class="sheet-row"><span class="ms">playlist_add</span>Add to playlist<span class="ms end go">chevron_right</span></div>
+    <div class="sheet-row"><span class="ms">language</span>Language: Hindi<span class="ms end go">unfold_more</span></div>
+    <div class="sheet-row"><span class="ms">album</span>Go to album</div>
+    <div class="sheet-row"><span class="ms">person</span>Go to artist</div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Playlist picker</p>
+    <p class="why">A playlist is a collection, so it is drawn as one: its mosaic, its name, its count. The tick at the end means the song is already in it. "New playlist" is the first row and opens the bottom dialog.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><h2>Home</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="label tight">Start listening <small>Picked at random from your songs</small></div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></div><button class="ib" aria-label="More options for Naina Da Kya Kasoor"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Your folders</div>
+    <div class="group pad">
+      <div class="grid4 tray">
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><b>English</b><span>24 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><b>Hindi</b><span>46 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><b>Tamil</b><span>19 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b>Phonk</b><span>38 songs</span></a>
+      </div>
+    </div>
+    <div class="label">Albums</div>
+    <div class="shelf">
+      <a class="tile" style="--w:132px"><div class="cv art-yjhd sq-lg"></div><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-rockstar sq-lg"></div><b>Rockstar</b><span>A. R. Rahman</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-revenge sq-lg"></div><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-title">Add to playlist</div>
+    <a class="row"><div class="ibox sq neutral w56"><span class="ms">add</span></div><div class="txt"><b>New playlist</b></div></a>
+    <a class="row"><div class="mosaic sq w56"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-rockstar"></div><div class="cv art-revenge"></div></div><div class="txt"><b>Late drive</b><span>12 songs</span></div></a>
+    <a class="row"><div class="mosaic sq w56"><div class="cv art-anbe"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div><div class="cv art-rockstar"></div></div><div class="txt"><b>Rahman, slow</b><span>9 songs</span></div><span class="ms in">check</span></a>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">C · Language picker</p>
+    <p class="why">Seven fixed choices is a pop-over, not a second sheet. It opens over the "Language" row that asked for it, the track menu stays where it was, and the row reads the new value when the pop-over closes.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><h2>Home</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="label tight">Start listening <small>Picked at random from your songs</small></div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></div><button class="ib" aria-label="More options for Naina Da Kya Kasoor"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Your folders</div>
+    <div class="group pad">
+      <div class="grid4 tray">
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><b>English</b><span>24 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><b>Hindi</b><span>46 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><b>Tamil</b><span>19 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b>Phonk</b><span>38 songs</span></a>
+      </div>
+    </div>
+    <div class="label">Albums</div>
+    <div class="shelf">
+      <a class="tile" style="--w:132px"><div class="cv art-yjhd sq-lg"></div><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-rockstar sq-lg"></div><b>Rockstar</b><span>A. R. Rahman</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-revenge sq-lg"></div><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><div class="cv art-rockstar sq w48 plain"></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div></div>
+    <div class="quick">
+      <a class="qa"><span class="ib tonal lg"><span class="ms">sensors</span></span><span class="t">Start radio</span></a>
+      <a class="qa"><span class="ib tonal lg heart"><span class="ms">favorite</span></span><span class="t">Add to favourites</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">playlist_play</span></span><span class="t">Play next</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">queue_music</span></span><span class="t">Add to queue</span></a>
+    </div>
+    <div class="sheet-row"><span class="ms">playlist_add</span>Add to playlist<span class="ms end go">chevron_right</span></div>
+    <div class="sheet-row"><span class="ms">language</span>Language: Hindi<span class="ms end go">unfold_more</span></div>
+    <div class="sheet-row"><span class="ms">album</span>Go to album</div>
+    <div class="sheet-row"><span class="ms">person</span>Go to artist</div>
+  </div>
+  <div class="scrim over-sheet"></div>
+  <div class="menu on-sheet" style="right:14px;bottom:128px">
+    <div class="menu-cap">Song language</div>
+    <div class="menu-row">Tamil</div>
+    <div class="menu-row on">Hindi<span class="ms end">check</span></div>
+    <div class="menu-row">Telugu</div>
+    <div class="menu-row">Malayalam</div>
+    <div class="menu-row">Kannada</div>
+    <div class="menu-row">English</div>
+    <div class="menu-row">No vocals</div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">D · Add songs</p>
+    <p class="why">The one tall sheet. The line under the title is the playlist and its count, which changes as rows are tapped, because nothing else confirms an add. A song already in the playlist shows a tick in the accent.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2></h2><button class="ib" aria-label="Playlist options"><span class="ms">more_vert</span></button></div>
+    <div class="c-head">
+      <div class="mosaic sq-lg w196"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-rockstar"></div><div class="cv art-revenge"></div></div>
+      <h1>Late drive</h1>
+      <p class="meta">12 songs, 49 min</p>
+    </div>
+    <div class="c-actions">
+      <button class="btn filled"><span class="ms fill">play_arrow</span>Play</button>
+      <button class="ib tonal lg" aria-label="Shuffle Late drive"><span class="ms">shuffle</span></button>
+      <button class="ib tonal lg" aria-label="Add Late drive to a playlist"><span class="ms">playlist_add</span></button>
+      <button class="ib tonal lg" aria-label="Add songs"><span class="ms">add</span></button>
+      <button class="ib tonal lg" aria-label="Reorder songs"><span class="ms">swap_vert</span></button>
+    </div>
+    <div class="group c-list">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="More options for Udd Gaye"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="More options for Daryaa"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet tall" style="top:88px">
+    <div class="grab"></div>
+    <div class="sheet-title">Add songs<small>Late drive, 12 songs</small></div>
+    <div class="search"><span class="ms">search</span><span class="q"><span class="ph">Find a song</span></span></div>
+    <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib add" aria-label="Add Aakhri Ishq"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib added" aria-label="Remove Aari Aari"><span class="ms">check</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-anbe sq w48 plain"></div></div><div class="txt"><b>Aaruyire</b><span>A. R. Rahman</span></div><button class="ib add" aria-label="Add Aaruyire"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-dreams sq w48 plain"></div></div><div class="txt"><b>Adventure of a Lifetime</b><span>Coldplay</span></div><button class="ib added" aria-label="Remove Adventure of a Lifetime"><span class="ms">check</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-oso sq w48 plain"></div></div><div class="txt"><b>Ajab Si</b><span>Vishal-Shekhar</span></div><button class="ib add" aria-label="Add Ajab Si"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Aluva Puzha</b><span>Rajesh Murugesan</span></div><button class="ib add" aria-label="Add Aluva Puzha"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-yjhd sq w48 plain"></div></div><div class="txt"><b>Badtameez Dil</b><span>Pritam</span></div><button class="ib add" aria-label="Add Badtameez Dil"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-yjhd sq w48 plain"></div></div><div class="txt"><b>Balam Pichkari</b><span>Pritam</span></div><button class="ib add" aria-label="Add Balam Pichkari"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-raanjhanaa sq w48 plain"></div></div><div class="txt"><b>Banarasiya</b><span>A. R. Rahman</span></div><button class="ib add" aria-label="Add Banarasiya"><span class="ms">add</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib added" aria-label="Remove Daryaa"><span class="ms">check</span></button></div>
+    <div class="song"><div class="lead"><div class="cv art-oso sq w48 plain"></div></div><div class="txt"><b>Deewangi Deewangi</b><span>Vishal-Shekhar</span></div><button class="ib add" aria-label="Add Deewangi Deewangi"><span class="ms">add</span></button></div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">E1 · Playlist name dialog</p>
+    <p class="why">Dialogs sit at the bottom, above the keyboard when there is one, with two text buttons split by a divider. Shown as "Rename playlist"; the other two titles are in frame I.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2>Late drive</h2><button class="ib" aria-label="Playlist options"><span class="ms">more_vert</span></button></div>
+    <div class="group c-list">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="More options for Udd Gaye"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="More options for Daryaa"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dreams sq w48 plain"></div></div><div class="txt"><b>Adventure of a Lifetime</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Adventure of a Lifetime"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><button class="ib" aria-label="More options for Malare"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-troubadour sq w48 plain"></div></div><div class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></div><button class="ib" aria-label="More options for Wavin' Flag"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="dialog above-kbd">
+    <h3>Rename playlist</h3>
+    <div class="field"><label>Playlist name</label><div class="q">Late drive<i class="caret"></i></div></div>
+    <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text">Rename</button></div>
+  </div>
+  <div class="kbd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w2"></i><i class="sp"></i><i class="w2"></i><i></i></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">E2 · Delete dialog</p>
+    <p class="why">Same dialog, no field. The confirming button is the only red on the screen and sits under the right thumb; "Cancel" is the same size beside it.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2></h2><button class="ib" aria-label="Playlist options"><span class="ms">more_vert</span></button></div>
+    <div class="c-head">
+      <div class="mosaic sq-lg w196"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-rockstar"></div><div class="cv art-revenge"></div></div>
+      <h1>Late drive</h1>
+      <p class="meta">12 songs, 49 min</p>
+    </div>
+    <div class="c-actions">
+      <button class="btn filled"><span class="ms fill">play_arrow</span>Play</button>
+      <button class="ib tonal lg" aria-label="Shuffle Late drive"><span class="ms">shuffle</span></button>
+      <button class="ib tonal lg" aria-label="Add Late drive to a playlist"><span class="ms">playlist_add</span></button>
+      <button class="ib tonal lg" aria-label="Add songs"><span class="ms">add</span></button>
+      <button class="ib tonal lg" aria-label="Reorder songs"><span class="ms">swap_vert</span></button>
+    </div>
+    <div class="group c-list">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="More options for Udd Gaye"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="More options for Daryaa"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="dialog">
+    <h3>Delete Late drive?</h3>
+    <p>The playlist goes away. The songs stay in your library.</p>
+    <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text danger">Delete playlist</button></div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">F1 · Playlist overflow menu</p>
+    <p class="why">Two choices open beside the button that asked for them, with no scrim. "Delete playlist" is red here and again in the dialog it leads to.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2></h2><button class="ib" aria-label="Playlist options"><span class="ms">more_vert</span></button></div>
+    <div class="c-head">
+      <div class="mosaic sq-lg w196"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-rockstar"></div><div class="cv art-revenge"></div></div>
+      <h1>Late drive</h1>
+      <p class="meta">12 songs, 49 min</p>
+    </div>
+    <div class="c-actions">
+      <button class="btn filled"><span class="ms fill">play_arrow</span>Play</button>
+      <button class="ib tonal lg" aria-label="Shuffle Late drive"><span class="ms">shuffle</span></button>
+      <button class="ib tonal lg" aria-label="Add Late drive to a playlist"><span class="ms">playlist_add</span></button>
+      <button class="ib tonal lg" aria-label="Add songs"><span class="ms">add</span></button>
+      <button class="ib tonal lg" aria-label="Reorder songs"><span class="ms">swap_vert</span></button>
+    </div>
+    <div class="group c-list">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="More options for Udd Gaye"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="More options for Daryaa"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="menu" style="top:90px;right:12px">
+    <div class="menu-row"><span class="ms">edit</span>Rename</div>
+    <div class="menu-row danger"><span class="ms">delete</span>Delete playlist</div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">F2 · Snackbar</p>
+    <p class="why">A capsule of text above the dock. It has no action and replaces whatever message was showing. Over a full-screen overlay it sits 56dp from the bottom.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><h2>Home</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="label tight">Start listening <small>Picked at random from your songs</small></div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></div><button class="ib" aria-label="More options for Naina Da Kya Kasoor"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Your folders</div>
+    <div class="group pad">
+      <div class="grid4 tray">
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><b>English</b><span>24 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><b>Hindi</b><span>46 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><b>Tamil</b><span>19 songs</span></a>
+        <a class="tile center"><div class="mosaic sq"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b>Phonk</b><span>38 songs</span></a>
+      </div>
+    </div>
+    <div class="label">Albums</div>
+    <div class="shelf">
+      <a class="tile" style="--w:132px"><div class="cv art-yjhd sq-lg"></div><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-rockstar sq-lg"></div><b>Rockstar</b><span>A. R. Rahman</span></a>
+      <a class="tile" style="--w:132px"><div class="cv art-revenge sq-lg"></div><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="toast">Added to queue</div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">G · Track menu inside a playlist</p>
+    <p class="why">Light, on a song that is a favourite. The lit toggle is the state, and its label has become "Remove from favourites". "Remove from this playlist" is added as the last row, in red.</p>
+<div class="phone light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2>Late drive</h2><button class="ib" aria-label="Playlist options"><span class="ms">more_vert</span></button></div>
+    <div class="group c-list">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="More options for Udd Gaye"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Viva La Vida"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="More options for Kun Faya Kun"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="More options for Daryaa"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dreams sq w48 plain"></div></div><div class="txt"><b>Adventure of a Lifetime</b><span>Coldplay</span></div><button class="ib" aria-label="More options for Adventure of a Lifetime"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><button class="ib" aria-label="More options for Malare"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-troubadour sq w48 plain"></div></div><div class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></div><button class="ib" aria-label="More options for Wavin' Flag"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><div class="cv art-uddgaye sq w48 plain"></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div></div>
+    <div class="quick">
+      <a class="qa"><span class="ib tonal lg"><span class="ms">sensors</span></span><span class="t">Start radio</span></a>
+      <a class="qa"><span class="ib tonal lg heart on"><span class="ms">favorite</span></span><span class="t">Remove from favourites</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">playlist_play</span></span><span class="t">Play next</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">queue_music</span></span><span class="t">Add to queue</span></a>
+    </div>
+    <div class="sheet-row"><span class="ms">playlist_add</span>Add to playlist<span class="ms end go">chevron_right</span></div>
+    <div class="sheet-row"><span class="ms">language</span>Language: Hindi<span class="ms end go">unfold_more</span></div>
+    <div class="sheet-row"><span class="ms">album</span>Go to album</div>
+    <div class="sheet-row"><span class="ms">person</span>Go to artist</div>
+    <div class="sheet-row danger"><span class="ms">do_not_disturb_on</span>Remove from this playlist</div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">H · Track menu over the Queue</p>
+    <p class="why">Opened by a long press on a queue row, the sheet takes the player's washed surfaces. This song's first artist is not in the library, so "Go to artist" is absent.</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar"><button class="ib" aria-label="Close queue"><span class="ms">expand_more</span></button><h2>Queue</h2></div>
+    <div class="label tight">Now playing <span class="end"><span class="ms s18">album</span>Dhurandhar: The Revenge</span></div>
+    <div class="group q-now" style="--p:.323">
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Up next, 6 songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="Drag Udd Gaye to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="Drag Aakhri Ishq to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="Drag Vaari Jaavan to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="Drag Phir Se to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="Drag Kun Faya Kun to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><button class="ib" aria-label="Drag Malare to reorder"><span class="ms">drag_handle</span></button></div>
+    </div>
+  </div>
+
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheet-head"><div class="cv art-revenge sq w48 plain"></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div></div>
+    <div class="quick">
+      <a class="qa"><span class="ib tonal lg"><span class="ms">sensors</span></span><span class="t">Start radio</span></a>
+      <a class="qa"><span class="ib tonal lg heart"><span class="ms">favorite</span></span><span class="t">Add to favourites</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">playlist_play</span></span><span class="t">Play next</span></a>
+      <a class="qa"><span class="ib tonal lg"><span class="ms">queue_music</span></span><span class="t">Add to queue</span></a>
+    </div>
+    <div class="sheet-row"><span class="ms">playlist_add</span>Add to playlist<span class="ms end go">chevron_right</span></div>
+    <div class="sheet-row"><span class="ms">language</span>Language: Hindi<span class="ms end go">unfold_more</span></div>
+    <div class="sheet-row"><span class="ms">album</span>Go to album</div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">I · Name dialog, the other two titles</p>
+    <p class="why">"Name this playlist" replaces "Give your playlist a name". With nothing typed the confirming button is disabled.</p>
+<div class="strips"><p class="cap2">From the Library's add button, nothing typed yet</p><div class="strip" style="width:390px">
+  <div class="dialog">
+    <h3>Name this playlist</h3>
+    <div class="field"><label>Playlist name</label><div class="q"><i class="caret"></i></div></div>
+    <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text off">Create</button></div>
+  </div>
+</div><p class="cap2">From "New playlist" in the picker</p><div class="strip" style="width:390px">
+  <div class="dialog">
+    <h3>New playlist</h3>
+    <div class="field"><label>Playlist name</label><div class="q">Sunday, slow<i class="caret"></i></div></div>
+    <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text">Create</button></div>
+  </div>
+</div><p class="cap2">From the picker, light</p><div class="strip light" style="width:390px">
+  <div class="dialog">
+    <h3>New playlist</h3>
+    <div class="field"><label>Playlist name</label><div class="q">Sunday, slow<i class="caret"></i></div></div>
+    <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text">Create</button></div>
+  </div>
+</div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">J · Every snackbar message</p>
+    <p class="why">Each message the app can show, with fixture values filled in. A long one wraps to two lines inside the same capsule.</p>
+<div class="strips"><div class="strip" style="width:390px">
+  <div class="toasts"><div class="toast">Playing next</div><div class="toast">Added to queue</div><div class="toast">Added to Late drive</div><div class="toast">Already in Rahman, slow</div><div class="toast">No lyrics found for Udd Gaye</div><div class="toast">Connect to the internet to download lyrics</div><div class="toast">Saved to Pictures/Attic</div><div class="toast">Couldn't save the image</div><div class="toast">Radio couldn't read this song</div><div class="toast">Radio is using 84 of 127 songs until analysis finishes</div><div class="toast">Skipped GHOST! because it can't be played</div></div>
+</div><div class="strip light" style="width:390px">
+  <div class="toasts"><div class="toast">Playing next</div><div class="toast">Added to queue</div><div class="toast">Added to Late drive</div></div>
+</div></div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Track menu: cover-title-artist header, a divider, then up to nine icon-and-label rows ending in "Go to album" and "Go to artist"</td>
+        <td>The header stays. "Start radio", "Add to favourites", "Play next" and "Add to queue" become a row of superellipse toggles with labels. "Add to playlist", "Language: {name}", "Go to album" and "Go to artist" are rows. "Remove from this playlist" moves to the end, in red.</td>
+        <td>The long single-column action list under a song header, which is the track menu's whole silhouette.</td></tr>
+    <tr><td>Favourite state as a heart row in this menu and a plus or check everywhere else</td>
+        <td>A heart everywhere. Here it is a toggle that lights when the song is a favourite.</td>
+        <td>The plus-to-check control, and the inconsistency between the two.</td></tr>
+    <tr><td>Language picker: a second bottom sheet titled "Song language" that replaces the track menu, each row with a globe icon</td>
+        <td>A pop-over over the "Language: {name}" row. The current choice is in the accent with a tick. No per-row icon. "Song language" is a small caption at its top.</td>
+        <td>None. It removes a sheet-swaps-for-a-sheet step.</td></tr>
+    <tr><td>Playlist picker rows as "{name} ({n} songs)" with a queue icon, or a tick when the song is already there</td>
+        <td>A collection row: mosaic, name, "{n} songs" underneath, a tick at the end when the song is already there.</td>
+        <td>The icon-and-label sheet row used for everything.</td></tr>
+    <tr><td>Add songs: title, a grey filled field, rows with a plus or a green tick</td>
+        <td>Title with the playlist and its live count under it, a capsule field, rows with a plus or a tick in the accent.</td>
+        <td>The green tick.</td></tr>
+    <tr><td>Centred Material alert dialogs</td>
+        <td>Bottom dialogs: 30dp corners, floating above the gesture area or the keyboard, two equal text buttons with a divider between them.</td>
+        <td>None. This is the platform change.</td></tr>
+    <tr><td>Stock dropdown for the playlist overflow</td>
+        <td>A 22dp pop-over beside the kebab. "Delete playlist" in red.</td>
+        <td>None.</td></tr>
+    <tr><td>Snackbar: a white rectangle with black text in dark mode</td>
+        <td>A grey capsule with light text in both themes.</td>
+        <td>The inverse-colour bar.</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>Every track-menu action and its label: "Start radio", "Add to favourites" / "Remove from favourites" (renamed from liked songs), "Play next", "Add to queue", "Add to playlist", "Language: {name}", "Remove from this playlist" in playlists only, "Go to album" and "Go to artist" only when that album or artist is in the library.</li>
+    <li>How it opens: the kebab or a long press on any song row, a long press on an Instant mixes tile, a top-songs row in Recap or a queue row, and the kebab in Now Playing.</li>
+    <li>Language choices in today's order: "Tamil", "Hindi", "Telugu", "Malayalam", "Kannada", "English", "No vocals". "Unknown" shows in the row when nothing is set, and then no choice is ticked. Tapping a choice saves and closes; tapping outside changes nothing.</li>
+    <li>Playlist picker: "Add to playlist", "New playlist" first, one row per user playlist, opened for one song or for a whole collection, followed by "Added to {name}" or "Already in {name}".</li>
+    <li>Add songs: "Add songs", "Find a song" filtering by title and artist, every library song, tap a row or its button to add or remove at once, the sheet stays open.</li>
+    <li>Name dialog: the field label "Playlist name", "Cancel", and the three title-and-confirm pairs: "Name this playlist" / "Create", "New playlist" / "Create", "Rename playlist" / "Rename". Confirm is disabled while the field is blank.</li>
+    <li>Delete dialog: "Delete {name}?", "The playlist goes away. The songs stay in your library.", "Cancel", "Delete playlist".</li>
+    <li>Overflow: "Rename", "Delete playlist".</li>
+    <li>Every snackbar message, text only, one at a time.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Actions drawn as toggles.</b> "Start radio", "Play next" and "Add to queue" are one-shot actions, not states; only the heart can be lit. If the row reads as a set of switches, the fallback is the same actions as the first rows of the list, which is today's order.</li>
+    <li><b>Order.</b> "Remove from this playlist" moves from the middle of the list to the end, where One UI puts the destructive choice. Today it sits before "Go to album".</li>
+    <li><b>Language as a pop-over on a sheet.</b> It is two floating layers at once. The pop-over is seven rows tall and covers the right half of the track menu while it is open. If that is too much, the picker goes back to being its own sheet, drawn like the playlist picker.</li>
+    <li><b>Picker row text.</b> "{name} ({n} songs)" is now two lines, "{name}" over "{n} songs". The words are the same; the brackets are gone.</li>
+    <li><b>New words.</b> The line under "Add songs" ("Late drive, 12 songs") is not in the app today.</li>
+    <li><b>Sheet colour.</b> A sheet opened over Now Playing, Queue or Lyrics takes their washed surfaces (frame H). Opened anywhere else it is neutral and its lit heart is amber (frame G).</li>
+  </ul>
+</div>

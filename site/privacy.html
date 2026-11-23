@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attic privacy policy</title>
+  <meta name="description" content="What Attic reads, stores and sends. Attic has no account, analytics or ads; lyrics lookups go to lrclib.net.">
+  <meta name="theme-color" content="#c6533a">
+  <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Generated from PRIVACY.md by scripts/render_privacy_page.py. Edit that file, not this one. -->
+  <div class="top slim">
+    <header class="wrap bar">
+      <a class="brand" href="./" aria-label="Attic home">
+        <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="24" fill="#F5EDDD"/><path fill="#C6533A" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5Z"/><path fill="#F5EDDD" fill-rule="evenodd" d="M41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
+        Attic
+      </a>
+      <nav aria-label="Site">
+        <a href="./">Home</a>
+        <a href="https://github.com/srivathsanvenkateswaran/attic">GitHub</a>
+      </nav>
+    </header>
+  </div>
+  <main class="wrap">
+    <div class="doc">
+      <h1>Attic privacy policy</h1>
+      <p class="effective">Effective 23 November 2026. Applies to Attic for Android, package <code>app.attic.player</code>, version 1.0
+      and later.</p>
+      <p>Attic is a music player for the audio files already on your phone. It has no account, no ads, no
+      analytics and no crash reporting. The developer receives no data from the app.</p>
+      <h2>What Attic reads on your phone</h2>
+      <ul>
+      <li><strong>Your music.</strong> With the audio permission you grant, Attic reads the songs Android's media
+        library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
+        duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
+        alarm sounds, recordings, podcasts, audiobooks and voice notes.</li>
+      <li><strong>A language label file, if you add one.</strong> Attic reads <code>language-labels.tsv</code> from its own folder
+        under <code>Android/data/app.attic.player/files/</code> if you put one there.</li>
+      </ul>
+      <h2>What Attic stores on your phone</h2>
+      <p>All of this stays in the app's private storage on the device:</p>
+      <ul>
+      <li>favourites and playlists</li>
+      <li>a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap</li>
+      <li>the saved play queue and your settings</li>
+      <li>lyrics you have downloaded</li>
+      <li>the results of song analysis, which turns each song's sound into a list of numbers so radio can
+        find similar songs, and any language you set for a song</li>
+      </ul>
+      <p>Song analysis runs on the phone. No audio, and no analysis result, leaves the device.</p>
+      <p>Attic opts out of Android's cloud backup, so none of this is copied to Google's servers. When you
+      move to a new phone, Android's device-to-device transfer may copy it directly from the old phone
+      to the new one. Uninstalling Attic, or clearing its storage in Android settings, deletes all of it. Your
+      music files are never changed or deleted, and neither are Recap images you saved to <code>Pictures</code>.</p>
+      <h2>What leaves your phone: lyrics lookups</h2>
+      <p>Attic connects to the internet for one thing: downloading lyrics from
+      <a href="https://lrclib.net">LRCLIB</a>, a free lyrics service with no account. It does this only when you
+      tap to download lyrics for a song, or start a download for the whole library in Settings.</p>
+      <p>For each song, Attic sends an HTTPS request to <code>lrclib.net</code> containing:</p>
+      <ul>
+      <li>the song's title</li>
+      <li>the first artist listed for the song</li>
+      <li>the album name, if the song has one</li>
+      <li>the song's length in whole seconds</li>
+      </ul>
+      <p>If that finds no match, Attic sends a second request with a search query made of the title and
+      the first artist. Each request also carries the header
+      <code>User-Agent: Attic/&lt;version&gt; (https://github.com/srivathsanvenkateswaran/attic)</code>, which gives the
+      app's version number and the address of its source code.</p>
+      <p>No file, cover art, account, device identifier or listening history is sent. As with any web
+      request, LRCLIB sees your IP address. LRCLIB is run independently of Attic and its own terms apply
+      to what it does with requests.</p>
+      <h2>Sharing and saving Recap cards</h2>
+      <p>When you tap Share on a Recap card, Attic renders the card as an image and hands it to the app
+      you pick in Android's share sheet. When you tap Save, it writes the image to <code>Pictures/Attic</code> on
+      your phone. Nothing is sent anywhere unless you choose to share it.</p>
+      <h2>Permissions</h2>
+      <table>
+      <thead>
+      <tr>
+      <th>Permission</th>
+      <th>Used for</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+      <td><code>READ_MEDIA_AUDIO</code></td>
+      <td>Reading your music</td>
+      </tr>
+      <tr>
+      <td><code>POST_NOTIFICATIONS</code></td>
+      <td>Playback controls, and progress while songs are analysed</td>
+      </tr>
+      <tr>
+      <td><code>FOREGROUND_SERVICE</code>, <code>FOREGROUND_SERVICE_MEDIA_PLAYBACK</code>, <code>WAKE_LOCK</code></td>
+      <td>Playing with the screen off</td>
+      </tr>
+      <tr>
+      <td><code>FOREGROUND_SERVICE_DATA_SYNC</code></td>
+      <td>Keeping song analysis running with its progress notification</td>
+      </tr>
+      <tr>
+      <td><code>INTERNET</code></td>
+      <td>Lyrics downloads only</td>
+      </tr>
+      <tr>
+      <td><code>RECEIVE_BOOT_COMPLETED</code></td>
+      <td>Added by WorkManager, the Android library that schedules song analysis, so scheduled work survives a restart</td>
+      </tr>
+      </tbody>
+      </table>
+      <h2>What Attic does not do</h2>
+      <ul>
+      <li>No account or sign-in.</li>
+      <li>No analytics, telemetry or crash reporting. Attic includes no analytics or crash reporting
+        library. ONNX Runtime, the library that runs song analysis, can report usage to Microsoft; Attic
+        turns that off, so it sends nothing.</li>
+      <li>No ads and no advertising identifier.</li>
+      <li>No location, contacts, camera, microphone or other personal data.</li>
+      <li>No selling or sharing of data with anyone, because the developer collects none.</li>
+      </ul>
+      <h2>Children</h2>
+      <p>Attic is not directed at children under 13 and collects no personal information from anyone.</p>
+      <h2>Changes</h2>
+      <p>Changes to this policy are published at this address and in <code>PRIVACY.md</code> in the source
+      repository, whose history shows every earlier version. The effective date at the top changes with
+      each revision.</p>
+      <h2>Contact</h2>
+      <p>Open an issue at
+      <a href="https://github.com/srivathsanvenkateswaran/attic/issues">github.com/srivathsanvenkateswaran/attic/issues</a>.
+      For a security problem, follow <a href="https://github.com/srivathsanvenkateswaran/attic/blob/main/SECURITY.md">SECURITY.md</a> instead of filing a public issue.</p>
+    </div>
+  </main>
+  <footer class="wrap">
+    <p>The source of this page is <a href="https://github.com/srivathsanvenkateswaran/attic/blob/main/PRIVACY.md">PRIVACY.md</a>, and its history lists every change.</p>
+  </footer>
+</body>
+</html>

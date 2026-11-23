@@ -1,0 +1,351 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 05 Now Playing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:6.32em}   /* captions here run to four lines; keeps the phones level */
+  .strips{display:flex;flex-direction:column;gap:14px}
+  .strips .cap2{color:#98a2ad;font-size:12px;font-weight:600;margin:6px 0 -6px 2px}
+  .strip .peek{height:84px;overflow:hidden;padding-top:14px}
+</style>
+
+<div class="intro">
+  <h1>Now Playing</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 05</div>
+  <p>The player is split the way One UI splits a screen. What you look at is high: the cover, the title, the line being
+     sung. What you touch is low, gathered in one card, the <b>deck</b>. The heart moves off the title row and into the
+     deck with the other toggles, because it is a control and the title is not.</p>
+  <p>The sheet settles the seek bar and what album-art colour is spent on. The seek bar is a thick track in the style
+     of a quick-panel slider, and its fill carries the elapsed time. The cover's colour goes to <b>whatever shows
+     progress or state</b>: the seek fill, the play button, a lit toggle, the played part of the mini player. Surfaces
+     only lean toward it.</p>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Now Playing, playing</p>
+    <p class="why">Everything above the deck is for looking. The deck holds seek, transport and four toggles in the lower third of the screen. The fill of the seek bar is the cover's colour and the elapsed time sits inside it.</p>
+    <div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="np-page">
+      <div class="np-head">
+        <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+        <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+        <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+      </div>
+      <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+      <div class="np-title">
+        <h1>Jaan Se Guzarte Hain</h1>
+        <p class="by">Khan Saab, Shashwat Sachdev</p>
+      </div>
+      <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+      <div class="deck">
+        <div class="seek" style="--p:0.323" aria-label="Seek in Jaan Se Guzarte Hain"><span class="at">1:47</span><span class="end">5:31</span></div>
+        <div class="transport">
+          <button class="tp" aria-label="Previous"><span class="ms">skip_previous</span></button>
+          <button class="play" aria-label="Pause"><span class="ms">pause</span></button>
+          <button class="tp" aria-label="Next"><span class="ms">skip_next</span></button>
+        </div>
+        <div class="toggles">
+          <button class="ib tonal lg" aria-label="Turn shuffle on"><span class="ms">shuffle</span></button>
+          <button class="ib tonal lg" aria-label="Repeat off, tap to repeat all"><span class="ms">repeat</span></button>
+          <button class="ib tonal lg heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+          <button class="ib tonal lg" aria-label="Open queue"><span class="ms">queue_music</span></button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Scrolled, full length</p>
+    <p class="why">Below the player page the same grouped cards as the rest of the app: the lyrics card, then "About the artist" and "Credits" as labelled groups. "About the artist" is a row with the artist's picture, not an image with text over it.</p>
+    <div class="phone long art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="np-page">
+      <div class="np-head">
+        <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+        <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+        <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+      </div>
+      <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+      <div class="np-title">
+        <h1>Jaan Se Guzarte Hain</h1>
+        <p class="by">Khan Saab, Shashwat Sachdev</p>
+      </div>
+      <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+      <div class="deck">
+        <div class="seek" style="--p:0.323" aria-label="Seek in Jaan Se Guzarte Hain"><span class="at">1:47</span><span class="end">5:31</span></div>
+        <div class="transport">
+          <button class="tp" aria-label="Previous"><span class="ms">skip_previous</span></button>
+          <button class="play" aria-label="Pause"><span class="ms">pause</span></button>
+          <button class="tp" aria-label="Next"><span class="ms">skip_next</span></button>
+        </div>
+        <div class="toggles">
+          <button class="ib tonal lg" aria-label="Turn shuffle on"><span class="ms">shuffle</span></button>
+          <button class="ib tonal lg" aria-label="Repeat off, tap to repeat all"><span class="ms">repeat</span></button>
+          <button class="ib tonal lg heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+          <button class="ib tonal lg" aria-label="Open queue"><span class="ms">queue_music</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="lyrics-card">
+      <div class="hd">Lyrics</div>
+      <p class="ln cur">The window lamp stays lit</p>
+      <p class="ln">We cross on borrowed time</p>
+      <p class="ln">Count miles, not the scars</p>
+      <p class="ln">Morning asks who we were</p>
+      <button class="btn tonal sm">Open lyrics</button>
+    </div>
+    <div class="label">About the artist</div>
+    <div class="group">
+      <a class="row lg">
+        <div class="cv art-revenge sq-soft w64"></div>
+        <div class="txt"><b>Khan Saab</b><span>3 songs in your library</span></div>
+        <span class="ms">chevron_right</span>
+      </a>
+    </div>
+    <div class="label">Credits</div>
+    <div class="group">
+      <div class="kv"><em>Performed by</em><b>Khan Saab, Shashwat Sachdev</b></div>
+      <div class="kv"><em>Album</em><b>Dhurandhar: The Revenge</b></div>
+      <div class="kv"><em>Year</em><b>2026</b></div>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · Paused, radio, shuffle on, repeat one</p>
+    <p class="why">A lit toggle is a filled superellipse, the way a quick-panel button lights. There is no dot under the icon. Paused draws the cover smaller and swaps the glyph; the radio context reads in the header.</p>
+    <div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="np-page">
+      <div class="np-head">
+        <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+        <div class="txt"><em>Playing from</em><b>Radio · Jaan Se Guzarte Hain</b></div>
+        <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+      </div>
+      <div class="np-cover paused"><div class="cv art-revenge sq-lg"></div></div>
+      <div class="np-title">
+        <h1>Jaan Se Guzarte Hain</h1>
+        <p class="by">Khan Saab, Shashwat Sachdev</p>
+      </div>
+      <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+      <div class="deck">
+        <div class="seek" style="--p:0.323" aria-label="Seek in Jaan Se Guzarte Hain"><span class="at">1:47</span><span class="end">5:31</span></div>
+        <div class="transport">
+          <button class="tp" aria-label="Previous"><span class="ms">skip_previous</span></button>
+          <button class="play" aria-label="Play"><span class="ms">play_arrow</span></button>
+          <button class="tp" aria-label="Next"><span class="ms">skip_next</span></button>
+        </div>
+        <div class="toggles">
+          <button class="ib tonal lg on" aria-label="Turn shuffle off"><span class="ms">shuffle</span></button>
+          <button class="ib tonal lg on" aria-label="Repeat one, tap to turn off"><span class="ms">repeat_one</span></button>
+          <button class="ib tonal lg heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+          <button class="ib tonal lg" aria-label="Open queue"><span class="ms">queue_music</span></button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">D · Frame A in light</p>
+    <p class="why">The player follows the theme instead of forcing dark. The ground is the cover's pale tone mixed into plaster, the deck is near-white, and the fill darkens so the time inside it stays readable.</p>
+    <div class="phone art-revenge tinted wash light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="np-page">
+      <div class="np-head">
+        <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+        <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+        <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+      </div>
+      <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+      <div class="np-title">
+        <h1>Jaan Se Guzarte Hain</h1>
+        <p class="by">Khan Saab, Shashwat Sachdev</p>
+      </div>
+      <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+      <div class="deck">
+        <div class="seek" style="--p:0.323" aria-label="Seek in Jaan Se Guzarte Hain"><span class="at">1:47</span><span class="end">5:31</span></div>
+        <div class="transport">
+          <button class="tp" aria-label="Previous"><span class="ms">skip_previous</span></button>
+          <button class="play" aria-label="Pause"><span class="ms">pause</span></button>
+          <button class="tp" aria-label="Next"><span class="ms">skip_next</span></button>
+        </div>
+        <div class="toggles">
+          <button class="ib tonal lg" aria-label="Turn shuffle on"><span class="ms">shuffle</span></button>
+          <button class="ib tonal lg" aria-label="Repeat off, tap to repeat all"><span class="ms">repeat</span></button>
+          <button class="ib tonal lg heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+          <button class="ib tonal lg" aria-label="Open queue"><span class="ms">queue_music</span></button>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">E · Mini player states</p>
+    <p class="why">The mini player is the first row of the dock. The played part of the row is filled; there is no progress line. Top to bottom: playing, paused with the song in favourites, a long title on a different cover, playing in light.</p>
+    <div class="strips"><div class="strip" style="width:390px">
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:0.32">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+</div><div class="strip" style="width:390px">
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:0.32">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart on" aria-label="Remove from favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Play"><span class="ms fill">play_arrow</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+</div><div class="strip" style="width:390px">
+  <div class="dock">
+    <div class="mini tinted art-jodhaa" style="--p:0.71">
+      <div class="cv art-jodhaa sq w44 plain"></div>
+      <div class="txt"><b>In Lamhon Ke Daaman Mein, from the 2008 film</b><span>A. R. Rahman</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+</div><div class="strip light" style="width:390px">
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:0.32">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+</div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">F · Compact header, once the page has scrolled</p>
+    <p class="why">Past the player page the title, heart and play button pin to the top as the same row the dock uses, filled to the same point. Dark and light.</p>
+    <div class="strips"><div class="strip art-revenge tinted wash" style="width:390px">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="mini top" style="--p:.323">
+    <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+    <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+    <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+  </div>
+  <div class="peek"><div class="lyrics-card"><div class="hd">Lyrics</div><p class="ln cur">The window lamp stays lit</p></div></div>
+</div><div class="strip art-revenge tinted wash light" style="width:390px">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="mini top" style="--p:.323">
+    <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+    <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+    <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+  </div>
+  <div class="peek"><div class="lyrics-card"><div class="hd">Lyrics</div><p class="ln cur">The window lamp stays lit</p></div></div>
+</div></div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Background gradient from the cover colour down to near-black; always dark</td>
+        <td>A flat ground a short step toward the cover, with the deck one step above it. Follows the theme.</td>
+        <td>The cover-colour-to-black gradient.</td></tr>
+    <tr><td>Centred "Playing from" over the context, chevron left, kebab right</td>
+        <td>The same three things laid out as a One UI detail bar: chevron, then "Playing from" and the context left-aligned as a two-line title, then more options.</td>
+        <td>The centred two-line header.</td></tr>
+    <tr><td>Square cover, 8dp corners</td>
+        <td>A superellipse, the large version of the shape every piece of artwork has in this direction.</td>
+        <td>4dp and 8dp cover corners.</td></tr>
+    <tr><td>Title and artist left, plus-in-circle at the right</td>
+        <td>Title and artist alone. The favourite is a heart in the toggle row.</td>
+        <td>The title row with the like control at its end, and the plus-to-check control.</td></tr>
+    <tr><td>3dp white line with a 6dp round handle, times underneath at each end</td>
+        <td>A 48dp track. The fill is the played part, in the cover's colour, with the elapsed time inside it and the total at the far end. The fill never gets narrower than its label, so at 0:00 it is a 64dp thumb.</td>
+        <td>The hairline seek bar with a dot handle and times below.</td></tr>
+    <tr><td>Shuffle, previous, white play circle, next, repeat in one row; active toggles green with a dot</td>
+        <td>Transport is previous, play, next. Shuffle, repeat, favourite and queue are a row of superellipse toggles under it. On is a filled toggle.</td>
+        <td>The five-across transport row, the white play circle, the green icon with a dot.</td></tr>
+    <tr><td>Green "Downloaded" label bottom-left, queue icon bottom-right</td>
+        <td>No label. Queue is the fourth button in the toggle row.</td>
+        <td>The downloaded badge.</td></tr>
+    <tr><td>Lyrics card in a lighter shade of the cover colour, white "Show lyrics" pill</td>
+        <td>A card in the washed card colour. Current line in full ink, the next three muted. "Open lyrics" is a tonal button.</td>
+        <td>The coloured lyrics card and its white pill.</td></tr>
+    <tr><td>"About the artist" over a wide image; "Credits" in a grey card with its own heading</td>
+        <td>Both are labelled groups. The artist is one large row with a superellipse picture; credits are three key-and-value rows.</td>
+        <td>The image-topped artist card.</td></tr>
+    <tr><td>Mini player: floating bar in the cover colour, 2dp progress line</td>
+        <td>First row of the dock, filled as far as the song has played.</td>
+        <td>The floating coloured bar with a progress line on its bottom edge.</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>Every control: close, track menu, seek by tap or drag, shuffle, previous, play or pause, next, repeat off / all / one, favourite, queue.</li>
+    <li>"Playing from" and every context string, including "Radio · {song title}".</li>
+    <li>Swipe the cover sideways to change song, pull down to close, tap the artist to open them.</li>
+    <li>The paused state on the cover (it is drawn at 86%).</li>
+    <li>The inline lyric line, the lyrics card, "About the artist", "Credits" with "Performed by", "Album", "Year", and the compact header after scrolling.</li>
+    <li>Elapsed and total time, both as <code>m:ss</code>. No time remaining.</li>
+  </ul>
+
+  <h2>How the colour is computed</h2>
+  <p><code>.tinted</code> on the phone replaces the accent tokens with mixes of the cover's <code>--tint</code>, so the
+     seek fill, play button and lit toggles change with the song and no component rule mentions artwork.
+     <code>.wash</code> moves the surface tokens: the ground is 44% of the cover's deep tone over black in dark, and 56%
+     of its pale tone over plaster in light. In the app the three inputs come from the Palette swatch the code already
+     extracts (<code>ui/Art.kt:99-141</code>), with one lighter and one darker step derived from it.</p>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Favourite in the deck.</b> It is one row lower than today and no longer beside the title. If it should stay
+        next to the title, the toggle row drops to three and spreads out.</li>
+    <li><b>Lit toggles in the cover's colour.</b> Shuffle-on reads clearly on this cover. On a very dark cover the fill
+        is lifted toward white by the same mix, which keeps it visible but makes it paler. Lamplight amber for lit
+        toggles on every song is the alternative; it would be the only amber on this screen.</li>
+    <li><b>Light Now Playing.</b> Today the player is always dark. Frame D assumes it follows the theme. Forcing dark
+        is one class on the screen.</li>
+    <li><b>No peek of the lyrics card.</b> The player page is exactly one screen, as today, so nothing shows that the
+        page scrolls. Shortening the cover by 40dp would let the top of the lyrics card show.</li>
+  </ul>
+</div>

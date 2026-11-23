@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            Debug builds only: the Expressive and Comfort kits laid out as strips, for checking against the mocks.
+            The adb commands that open it are in ui/expressive/KIT.md and ui/comfort/KIT.md.
+        -->
+        <activity
+            android:name=".debug.KitGalleryActivity"
+            android:exported="true"
+            android:label="Kit gallery"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Attic" />
+
+        <!-- Debug builds only: the home-screen widget at its three sizes, light or dark. See the class. -->
+        <activity
+            android:name=".debug.WidgetHostActivity"
+            android:exported="true"
+            android:label="Widget host"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Attic" />
+
+        <!-- Debug builds only: readies the media notification without sound, and switches style. See the class. -->
+        <receiver
+            android:name=".debug.SystemSurfacesReceiver"
+            android:exported="true" />
+    </application>
+</manifest>

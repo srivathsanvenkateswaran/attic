@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Comfort, 4 x 2 and up (oneui/10-system frame A): a card washed with the cover, 30dp corners. The
+    cover, song and controls on top; five albums under an inset hairline. Art is cut to the kit's
+    superellipse by PlayerWidget, and the cover's colour goes to the play button.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_comfort_bg"
+    android:backgroundTint="@color/comfort_widget_card"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp">
+
+                <ImageView
+                    android:id="@+id/widget_art"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    android:contentDescription="@null"
+                    android:scaleType="fitCenter" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/widget_title"
+                        style="@style/WidgetText.Comfort.Title"
+                        android:paddingEnd="30dp" />
+
+                    <TextView
+                        android:id="@+id/widget_artist"
+                        style="@style/WidgetText.Comfort.Artist"
+                        android:paddingEnd="30dp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-11dp"
+                        android:layout_marginTop="3dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/widget_prev"
+                            style="@style/WidgetSkip.Comfort"
+                            android:contentDescription="@string/widget_previous"
+                            android:src="@drawable/ic_comfort_previous" />
+
+                        <ImageButton
+                            android:id="@+id/widget_play"
+                            style="@style/WidgetPlay.Comfort"
+                            android:layout_marginHorizontal="8dp" />
+
+                        <ImageButton
+                            android:id="@+id/widget_next"
+                            style="@style/WidgetSkip.Comfort"
+                            android:contentDescription="@string/widget_next"
+                            android:src="@drawable/ic_comfort_next" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/widget_mark"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="15dp"
+                android:layout_marginEnd="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_mark"
+                android:tint="@color/comfort_widget_accent" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/widget_line"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="16dp"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/widget_fill"
+            android:tint="@color/comfort_widget_line" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
+
+            <ImageView android:id="@+id/widget_tile1" style="@style/WidgetTile.Comfort" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/widget_tile2" style="@style/WidgetTile.Comfort" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/widget_tile3" style="@style/WidgetTile.Comfort" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/widget_tile4" style="@style/WidgetTile.Comfort" />
+            <FrameLayout style="@style/WidgetGap" />
+            <ImageView android:id="@+id/widget_tile5" style="@style/WidgetTile.Comfort" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

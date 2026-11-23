@@ -1,0 +1,493 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 08 Settings and states</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:6.32em}   /* captions here run to four lines; keeps the phones level */
+  .strips{display:flex;flex-direction:column;gap:14px}
+  .strips .cap2{color:#98a2ad;font-size:12px;font-weight:600;margin:6px 0 -6px 2px}
+
+  /* the row that closes the viewing area, holding a back arrow instead of actions */
+  .phone .tools.lead{justify-content:flex-start;padding-left:8px}
+  /* Settings blocks */
+  :is(.phone,.strip) .set-block p + small{margin-top:10px}
+  /* status and small print carry strings the listener has to read, so they take the second ink, not the third */
+  :is(.phone,.strip) .set-block small{color:var(--on-2)}
+  :is(.phone,.strip) .set-block .warn{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:13.5px;line-height:19px;color:var(--on)}
+  :is(.phone,.strip) .set-block .warn .ms{font-size:20px;color:var(--danger);margin-top:-1px}
+  :is(.phone,.strip) .set-block.about{display:flex;align-items:center;gap:16px;padding-top:16px}
+  :is(.phone,.strip) .set-block.about .ibox{width:52px}
+  /* a card that ends in a text button: the button's own height is the bottom padding */
+  :is(.phone,.strip) .set-block:has(> .btn.text:last-child){padding-bottom:6px}
+  .strip.pads{padding:16px 0}
+
+  /* permission screen: mark, title and sentence high, the one button at the bottom edge */
+  .phone .perm{height:800px;display:flex;flex-direction:column;padding:0 24px 40px}
+  .phone .perm .top{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 12px 96px}
+  .phone .perm .ibox{width:96px;margin-bottom:30px}
+  .phone .perm h1{font-size:30px;line-height:36px;font-weight:700;letter-spacing:-.022em}
+  .phone .perm p{margin-top:14px;font-size:16px;line-height:23px;color:var(--on-2)}
+  /* first-scan loading */
+  .phone .load{position:absolute;inset:0;display:grid;place-items:center}
+  .phone .load .spinner{width:44px;height:44px}
+</style>
+
+<div class="intro">
+  <h1>Settings and system states</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 08</div>
+  <p>Settings is the screen a Galaxy owner has seen most, so it is built exactly to pattern: a large title alone in
+     the upper third, section labels on the ground, one card per section, radios leading their rows, a pill switch
+     trailing its row with the explanation under the label. Paragraphs, progress and the buttons that belong to them
+     sit inside the card they describe.</p>
+  <p>The states on this sheet are the ones with nothing to show: before permission, during the first scan, an empty
+     library, an item that has been removed. Each uses the kit's empty block and says what to do next. The permission
+     screen keeps its words and moves its one button to the bottom edge.</p>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Settings, dark</p>
+    <p class="why">The whole page: one labelled card per section, in today's order. The count of saved lyrics and the song count are the only bold words inside the paragraphs. Analysis is idle with songs left, so its status line and "Analyse now without a charger" are both showing.</p>
+<div class="phone long">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <header class="hero"><h1>Settings</h1></header>
+    <div class="tools lead"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button></div>
+    <div class="label">Appearance</div>
+    <div class="group">
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Match phone</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio on"></span><div class="txt"><b>Dark</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Light</b></div></div>
+    </div>
+    <div class="label">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>52 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <button class="btn text">Download lyrics for all songs</button>
+      </div>
+    </div>
+    <div class="label">Song radio</div>
+    <div class="group">
+      <div class="set-row"><div class="txt"><b>Autoplay</b><span>When a queue reaches its last song, radio keeps going with similar songs.</span></div><span class="switch on"></span></div>
+      <div class="set-block">
+        <p>Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+        <div class="progress" style="--p:0.661"></div>
+        <small>84 of 127 songs analysed. The rest continue next time the phone charges.</small>
+        <button class="btn text">Analyse now without a charger</button>
+      </div>
+    </div>
+    <div class="label">About</div>
+    <div class="group">
+      <div class="set-block about">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <p>Attic plays the music in Music/Offline. It has no account and no streaming. <b>127 songs on this phone.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">B · Settings, light, analysis running</p>
+    <p class="why">While songs are being analysed the bar is filling, the status reads "Analysing songs: 96 of 127" and the button is gone. Lamplight on paper: the fill is the lighter amber, text buttons are Brass.</p>
+<div class="phone long light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <header class="hero"><h1>Settings</h1></header>
+    <div class="tools lead"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button></div>
+    <div class="label">Appearance</div>
+    <div class="group">
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Match phone</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Dark</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio on"></span><div class="txt"><b>Light</b></div></div>
+    </div>
+    <div class="label">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>52 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <button class="btn text">Download lyrics for all songs</button>
+      </div>
+    </div>
+    <div class="label">Song radio</div>
+    <div class="group">
+      <div class="set-row"><div class="txt"><b>Autoplay</b><span>When a queue reaches its last song, radio keeps going with similar songs.</span></div><span class="switch on"></span></div>
+      <div class="set-block">
+        <p>Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+        <div class="progress" style="--p:0.756"></div>
+        <small>Analysing songs: 96 of 127</small>
+      </div>
+    </div>
+    <div class="label">About</div>
+    <div class="group">
+      <div class="set-block about">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <p>Attic plays the music in Music/Offline. It has no account and no streaming. <b>127 songs on this phone.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">C · Permission screen</p>
+    <p class="why">Shown instead of the app until audio access is granted. The mark sits in a superellipse the way a system app's icon heads its permission page. Text is high, the one action is a full-width button under the thumb.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="perm">
+      <div class="top">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <h1>Attic plays the music on this phone</h1>
+        <p>Allow audio access so it can read your songs in Music/Offline. Notifications show the playback controls.</p>
+      </div>
+      <button class="btn filled lg block">Allow access</button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">D1 · Loading</p>
+    <p class="why">The first library scan. A spinner in the accent on the bare ground, with no text and no chrome, as today.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="load"><span class="spinner" aria-label="Reading your library"></span></div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">D2 · Empty library</p>
+    <p class="why">Home with nothing in Music/Offline. The title area and the settings button stay; sub-tabs and the mini player are left out because there is nothing to filter or play.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-tabs">
+    <header class="hero">
+      <svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg>
+      <h1>Home</h1>
+    </header>
+    <div class="tools"><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="empty">
+      <div class="ibox sq neutral"><span class="ms">folder_open</span></div>
+      <h3>No songs in Music/Offline</h3>
+      <p>Copy MP3s into Music/Offline on this phone and they will show up here.</p>
+    </div>
+  </div>
+  <div class="dock">
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">E · A missing item</p>
+    <p class="why">An album, artist or playlist that no longer exists. The message is centred, and a plain "Back" button under it saves the reach to the top corner. The dock stays, because whatever was playing still is.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2></h2></div>
+    <div class="empty fill">
+      <div class="ibox sq neutral"><span class="ms">album</span></div>
+      <h3>This album is gone</h3>
+      <p>It may have been removed from Music/Offline.</p>
+      <button class="btn plain">Back</button>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab on"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">F · Permission, already refused</p>
+    <p class="why">Same layout, in light, with the second sentence and "Open app permissions", which leads to the system page for the app.</p>
+<div class="phone light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="perm">
+      <div class="top">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <h1>Attic plays the music on this phone</h1>
+        <p>Audio access is off, so Attic can't see your songs. Turn on Music and audio in the app's permissions.</p>
+      </div>
+      <button class="btn filled lg block">Open app permissions</button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">G · Frame A as it opens</p>
+    <p class="why">What fits on the screen before any scroll: the title, the back arrow closing the viewing area, "Appearance", and the top of "Lyrics" behind the dock.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <header class="hero"><h1>Settings</h1></header>
+    <div class="tools lead"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button></div>
+    <div class="label">Appearance</div>
+    <div class="group">
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Match phone</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio on"></span><div class="txt"><b>Dark</b></div></div>
+      <div class="set-row lead-ctl"><span class="radio"></span><div class="txt"><b>Light</b></div></div>
+    </div>
+    <div class="label">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>52 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <button class="btn text">Download lyrics for all songs</button>
+      </div>
+    </div>
+    <div class="label">Song radio</div>
+    <div class="group">
+      <div class="set-row"><div class="txt"><b>Autoplay</b><span>When a queue reaches its last song, radio keeps going with similar songs.</span></div><span class="switch on"></span></div>
+      <div class="set-block">
+        <p>Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+        <div class="progress" style="--p:0.661"></div>
+        <small>84 of 127 songs analysed. The rest continue next time the phone charges.</small>
+        <button class="btn text">Analyse now without a charger</button>
+      </div>
+    </div>
+    <div class="label">About</div>
+    <div class="group">
+      <div class="set-block about">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <p>Attic plays the music in Music/Offline. It has no account and no streaming. <b>127 songs on this phone.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">H · Scrolled, lyrics download running</p>
+    <p class="why">The title has collapsed into the bar. "Download lyrics for all songs" has been replaced by a bar and "Checked 31 of 75, found 22"; the saved count above it climbs as songs are found.</p>
+<div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar lift"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2>Settings</h2></div>
+    <div class="label tight">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>74 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <div class="progress" style="--p:0.413"></div>
+        <small>Checked 31 of 75, found 22</small>
+      </div>
+    </div>
+    <div class="label">Song radio</div>
+    <div class="group">
+      <div class="set-row"><div class="txt"><b>Autoplay</b><span>When a queue reaches its last song, radio keeps going with similar songs.</span></div><span class="switch on"></span></div>
+      <div class="set-block">
+        <p>Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+        <div class="progress" style="--p:0.661"></div>
+        <small>84 of 127 songs analysed. The rest continue next time the phone charges.</small>
+        <button class="btn text">Analyse now without a charger</button>
+      </div>
+    </div>
+    <div class="label">About</div>
+    <div class="group">
+      <div class="set-block about">
+        <div class="ibox sq"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+        <p>Attic plays the music in Music/Offline. It has no account and no streaming. <b>127 songs on this phone.</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Play"><span class="ms fill">play_arrow</span></button>
+    </div>
+    <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">I · Section states</p>
+    <p class="why">The remaining status strings. A failed lyrics run adds one line with a red glyph above the button. A finished analysis is a full bar and one sentence.</p>
+<div class="strips"><p class="cap2">Lyrics, after a run that missed some</p><div class="strip pads" style="width:390px">
+    <div class="label tight">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>118 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <div class="warn"><span class="ms">error</span><span>6 songs couldn't be checked. Download again to retry them.</span></div>
+        <button class="btn text">Download lyrics for all songs</button>
+      </div>
+    </div>
+
+</div><p class="cap2">Lyrics, after the connection failed five times in a row</p><div class="strip pads" style="width:390px">
+    <div class="label tight">Lyrics</div>
+    <div class="group">
+      <div class="set-block">
+        <p><b>74 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+        <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+        <div class="warn"><span class="ms">error</span><span>Stopped because the connection failed. Check your internet, then download again to continue.</span></div>
+        <button class="btn text">Download lyrics for all songs</button>
+      </div>
+    </div>
+
+</div><p class="cap2">Song radio, everything analysed, Autoplay off</p><div class="strip pads" style="width:390px">
+    <div class="label tight">Song radio</div>
+    <div class="group">
+      <div class="set-row"><div class="txt"><b>Autoplay</b><span>When a queue reaches its last song, radio keeps going with similar songs.</span></div><span class="switch"></span></div>
+      <div class="set-block">
+        <p>Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded.</p>
+        <div class="progress" style="--p:1"></div>
+        <small>All 127 songs analysed.</small>
+      </div>
+    </div>
+
+</div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">J · Missing artist and playlist</p>
+    <p class="why">The other two titles for frame E, dark and light. The icon in the box changes with the kind of thing that is gone.</p>
+<div class="strips"><div class="strip" style="width:390px">
+    <div class="empty">
+      <div class="ibox sq neutral"><span class="ms">person</span></div>
+      <h3>This artist is gone</h3>
+      <p>It may have been removed from Music/Offline.</p>
+      <button class="btn plain">Back</button>
+    </div>
+
+</div><div class="strip light" style="width:390px">
+    <div class="empty">
+      <div class="ibox sq neutral"><span class="ms">queue_music</span></div>
+      <h3>This playlist is gone</h3>
+      <p>It may have been removed from Music/Offline.</p>
+      <button class="btn plain">Back</button>
+    </div>
+
+</div></div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Settings: a back arrow and "Settings" in a small header, then large bold section titles with content straight on the background</td>
+        <td>"Settings" at 40sp, centred in the upper third, collapsing to a bar. The back arrow sits in the row that closes the title area. Section names are small labels on the ground, and each section is one card.</td>
+        <td>Bold section titles over an ungrouped flat page, the layout of every screen in the app today.</td></tr>
+    <tr><td>Theme options with the radio at the right end of the row</td>
+        <td>The radio leads the row.</td>
+        <td>None. This is where One UI puts it.</td></tr>
+    <tr><td>Thin green Material progress lines for lyrics download and analysis</td>
+        <td>A 10dp capsule that fills, in Lamplight.</td>
+        <td>The hairline progress bar, and green.</td></tr>
+    <tr><td>Green text buttons, green switch, green radio</td>
+        <td>Lamplight for the switch, the selected radio and the fill. Text buttons in the accent ink (Brass in light).</td>
+        <td>Green as the one accent.</td></tr>
+    <tr><td>"About" as a bare paragraph</td>
+        <td>The same sentence in a card beside the mark in a superellipse.</td>
+        <td>None.</td></tr>
+    <tr><td>Permission screen: green mark, title, sentence and a green button, all centred in the middle of the screen</td>
+        <td>Mark in a tonal superellipse, title and sentence centred above the middle, the button full width at the bottom edge.</td>
+        <td>The green mark and green pill button.</td></tr>
+    <tr><td>Empty and missing states: a title and a sentence, centred, text only</td>
+        <td>The kit's empty block: an icon box that names the kind of thing, the same title and sentence. The missing-item state gains a "Back" button.</td>
+        <td>None.</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>Sections "Appearance", "Lyrics", "Song radio", "About", in that order, reached from the settings button on each tab root, with the mini player and tab bar still on screen.</li>
+    <li>"Match phone", "Dark", "Light", applied on tap.</li>
+    <li>Lyrics: "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline.", the lrclib.net sentence, "Download lyrics for all songs", the running state with "Checked {done} of {total}, found {found}" and no button, and both failure sentences.</li>
+    <li>Song radio: "Autoplay" with its sentence and a switch, the on-device sentence, the bar that is always visible, the three status lines, and "Analyse now without a charger" only when analysis is idle and songs remain.</li>
+    <li>About: the sentence with the song count.</li>
+    <li>Permission: the title, both body sentences, "Allow access" and "Open app permissions".</li>
+    <li>Loading: a spinner and nothing else.</li>
+    <li>"No songs in Music/Offline" and "{This album | This artist | This playlist} is gone" with their sentences.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Back arrow under the title.</b> One UI puts the back arrow in the bar at the foot of the expanded title, which is where it lands when the title collapses. On a screen this short of chrome it can look detached. The alternative is a bar at the very top with the arrow, and a shorter title area.</li>
+    <li><b>"Back" on a missing item.</b> A button that does what the arrow does. It is there for reach. Drop it if a duplicate control is worse than a stretch.</li>
+    <li><b>Empty Home without sub-tabs.</b> Frame D2 hides "All / Albums / Artists / Folders" when the library is empty. If the app keeps them visible today, keeping them is one line.</li>
+    <li><b>Theme previews.</b> One UI's own display settings show a small picture of each theme above its radio. Three plain rows were kept because the kit defines radios as rows and the change is instant on tap.</li>
+    <li><b>Failure line colour.</b> The two lyrics failure sentences get a red glyph and stay in ink. Fully red text was avoided because "6 songs couldn't be checked" is not an error the listener caused.</li>
+    <li><b>Light permission screen.</b> A fresh install defaults to "Dark", so frame F in light only happens after a theme change and a revoked permission. It is drawn in light to check the layout in both themes.</li>
+  </ul>
+</div>

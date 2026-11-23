@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in Attic doesn't work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a security problem, don't file it here. Use the Security tab's "Report a vulnerability" instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what Attic did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open an album
+        2. Start radio from the second song
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Attic version
+      description: From Android Settings > Apps > Attic, or the APK file name.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - Google Play
+        - GitHub Releases
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone and Android version
+      placeholder: "POCO M4 Pro 4G, Android 16"
+    validations:
+      required: true
+  - type: dropdown
+    id: style
+    attributes:
+      label: Style
+      options:
+        - Expressive
+        - Comfort
+        - Both
+        - Not about the look
+    validations:
+      required: true
+  - type: dropdown
+    id: theme
+    attributes:
+      label: Theme
+      options:
+        - Dark
+        - Light
+        - Match the phone
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots, recordings or logs
+      description: Drag files in. For a crash, `adb logcat` output from around the crash helps most.

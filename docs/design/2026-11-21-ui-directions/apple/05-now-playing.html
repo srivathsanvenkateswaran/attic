@@ -1,0 +1,391 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Apple direction · 05 Now Playing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* strips: the mini player over a few rows, so the glass has something to blur */
+  .strip.ms{width:390px;height:118px}
+  .strip.ms .under{position:absolute;inset:-34px 0 0}
+  .strip.ms .mini{position:absolute;left:12px;right:12px;top:30px}
+  .strip.sc{width:390px;padding:22px 0 20px}
+  .lab{color:#98a2ad;font-size:12.5px;line-height:1.5;margin:16px 0 7px 2px}
+  .lab b{color:#dfe4ea}
+  .lab:first-of-type{margin-top:0}
+</style>
+
+<div class="intro">
+  <h1>Now Playing</h1>
+  <div class="date">2026-11-21 · UI directions · apple · sheet 05</div>
+  <p>The player is the one screen where the chrome gives up its own colour. The background is the cover's
+     own gradients, enlarged, blurred and dimmed with the cover's darkest shade, and every control on it is
+     white. Play, previous and next are bare glyphs. The seek bar is a thick bar with no handle. Shuffle,
+     queue and repeat sit in a second row, and a toggle that is on becomes a white lozenge with the glyph
+     knocked out.</p>
+  <p>The same field, at lower strength, is what lights the mini player on every other screen.</p>
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Now Playing, playing</p>
+    <p class="why">Top to bottom: a pull-down glyph that closes the player with "Playing from" on one line under it, the cover at full width, the current lyric line, the title with the heart and menu beside it, the seek bar, then two rows of controls. No circle sits behind play.</p>
+    <div class="phone np lit art-revenge">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="np-page">
+        <header class="np-top">
+          <button class="ibtn" aria-label="Close player"><i class="ic ic-pull"></i></button>
+          <p class="ctx">Playing from <b>Dhurandhar: The Revenge</b></p>
+        </header>
+        <div class="np-art"><div class="cv art-revenge"></div></div>
+        <p class="np-line"><i class="ic ic-lyrics"></i><span>I carry what the night forgot</span></p>
+        <div class="np-title">
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button>
+        </div>
+        <div class="scrub" style="--v:.323" role="slider" aria-label="Seek in Jaan Se Guzarte Hain">
+          <div class="bar"></div>
+          <div class="times"><span>1:47</span><span>5:31</span></div>
+        </div>
+        <div class="transport">
+          <button aria-label="Previous"><i class="ic ic-prev"></i></button>
+          <button class="main" aria-label="Pause"><i class="ic ic-pause"></i></button>
+          <button aria-label="Next"><i class="ic ic-next"></i></button>
+        </div>
+        <div class="np-tools">
+          <button class="tool" aria-label="Turn shuffle on"><i class="ic ic-shuffle"></i></button>
+          <button class="tool" aria-label="Open queue"><i class="ic ic-queue"></i></button>
+          <button class="tool" aria-label="Repeat off, tap to repeat all"><i class="ic ic-repeat"></i></button>
+        </div>
+        </div>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Scrolled, at full length</p>
+    <p class="why">Lyrics, "About the artist" and "Credits" are lighter panels of the same field, not grey cards. The lyrics card dims the lines that have not been sung yet. Credits are label and value on one line with hairlines between.</p>
+    <div class="phone np lit art-revenge long">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="np-page">
+        <header class="np-top">
+          <button class="ibtn" aria-label="Close player"><i class="ic ic-pull"></i></button>
+          <p class="ctx">Playing from <b>Dhurandhar: The Revenge</b></p>
+        </header>
+        <div class="np-art"><div class="cv art-revenge"></div></div>
+        <p class="np-line"><i class="ic ic-lyrics"></i><span>I carry what the night forgot</span></p>
+        <div class="np-title">
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button>
+        </div>
+        <div class="scrub" style="--v:.323" role="slider" aria-label="Seek in Jaan Se Guzarte Hain">
+          <div class="bar"></div>
+          <div class="times"><span>1:47</span><span>5:31</span></div>
+        </div>
+        <div class="transport">
+          <button aria-label="Previous"><i class="ic ic-prev"></i></button>
+          <button class="main" aria-label="Pause"><i class="ic ic-pause"></i></button>
+          <button aria-label="Next"><i class="ic ic-next"></i></button>
+        </div>
+        <div class="np-tools">
+          <button class="tool" aria-label="Turn shuffle on"><i class="ic ic-shuffle"></i></button>
+          <button class="tool" aria-label="Open queue"><i class="ic ic-queue"></i></button>
+          <button class="tool" aria-label="Repeat off, tap to repeat all"><i class="ic ic-repeat"></i></button>
+        </div>
+        </div>
+        <section class="np-card">
+          <h3>Lyrics</h3>
+          <div class="lyr">
+            <span class="cur">I carry what the night forgot</span>
+            <span>A lantern for the miles ahead</span>
+            <span>The road keeps every step we leave</span>
+            <span>And nothing here can hold me back</span>
+          </div>
+          <button class="btn sm on-art">Open lyrics</button>
+        </section>
+        <a class="np-card about">
+          <span class="img"><h3>About the artist</h3><div class="cv art-revenge"></div></span>
+          <span class="body"><span class="txt"><b>Khan Saab</b><span>3 songs in your library</span></span><i class="ic ic-chev"></i></span>
+        </a>
+        <section class="np-card credits">
+          <h3>Credits</h3>
+          <dl>
+            <div><dt>Performed by</dt><dd>Khan Saab, Shashwat Sachdev</dd></div>
+            <div><dt>Album</dt><dd>Dhurandhar: The Revenge</dd></div>
+            <div><dt>Year</dt><dd>2026</dd></div>
+          </dl>
+        </section>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · Paused, radio, shuffle on, repeat one</p>
+    <p class="why">The cover drops to 80% and loses most of its shadow, so paused is visible from across a room. The context line reads "Radio · {song}". Shuffle and repeat-one show the "on" lozenge; the heart is filled.</p>
+    <div class="phone np lit art-revenge">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="np-page">
+        <header class="np-top">
+          <button class="ibtn" aria-label="Close player"><i class="ic ic-pull"></i></button>
+          <p class="ctx">Playing from <b>Radio · Jaan Se Guzarte Hain</b></p>
+        </header>
+        <div class="np-art paused"><div class="cv art-revenge"></div></div>
+        <p class="np-line"></p>
+        <div class="np-title">
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart on" aria-label="Remove from favourites"></button>
+          <button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button>
+        </div>
+        <div class="scrub" style="--v:.323" role="slider" aria-label="Seek in Jaan Se Guzarte Hain">
+          <div class="bar"></div>
+          <div class="times"><span>1:47</span><span>5:31</span></div>
+        </div>
+        <div class="transport">
+          <button aria-label="Previous"><i class="ic ic-prev"></i></button>
+          <button class="main" aria-label="Play"><i class="ic ic-play"></i></button>
+          <button aria-label="Next"><i class="ic ic-next"></i></button>
+        </div>
+        <div class="np-tools">
+          <button class="tool on" aria-label="Turn shuffle off"><i class="ic ic-shuffle"></i></button>
+          <button class="tool" aria-label="Open queue"><i class="ic ic-queue"></i></button>
+          <button class="tool on" aria-label="Repeat one, tap to turn off"><i class="ic ic-repeat-one"></i></button>
+        </div>
+        </div>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">D · Frame A in light</p>
+    <p class="why">In light theme the field is built from the cover's pale shade and the ink becomes the cover's dark shade. This is a change from today, where the player is always dark. The spec asks whether to keep it.</p>
+    <div class="phone np lit art-revenge light">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="np-page">
+        <header class="np-top">
+          <button class="ibtn" aria-label="Close player"><i class="ic ic-pull"></i></button>
+          <p class="ctx">Playing from <b>Dhurandhar: The Revenge</b></p>
+        </header>
+        <div class="np-art"><div class="cv art-revenge"></div></div>
+        <p class="np-line"><i class="ic ic-lyrics"></i><span>I carry what the night forgot</span></p>
+        <div class="np-title">
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button>
+        </div>
+        <div class="scrub" style="--v:.323" role="slider" aria-label="Seek in Jaan Se Guzarte Hain">
+          <div class="bar"></div>
+          <div class="times"><span>1:47</span><span>5:31</span></div>
+        </div>
+        <div class="transport">
+          <button aria-label="Previous"><i class="ic ic-prev"></i></button>
+          <button class="main" aria-label="Pause"><i class="ic ic-pause"></i></button>
+          <button aria-label="Next"><i class="ic ic-next"></i></button>
+        </div>
+        <div class="np-tools">
+          <button class="tool" aria-label="Turn shuffle on"><i class="ic ic-shuffle"></i></button>
+          <button class="tool" aria-label="Open queue"><i class="ic ic-queue"></i></button>
+          <button class="tool" aria-label="Repeat off, tap to repeat all"><i class="ic ic-repeat"></i></button>
+        </div>
+        </div>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">E · Mini player states</p>
+    <p class="why">One glass capsule above the tab bar. Artwork light enters from the cover's side and fades before the controls. Progress is the ring around play and pause, so there is no line along the bottom edge.</p>
+    <p class="lab"><b>Playing.</b> Ring at 1:47 of 5:31, pause glyph, heart off.</p>
+    <div class="strip bare ms">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div></div>
+      <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+    </div>
+    <p class="lab"><b>Paused, favourite.</b> Play glyph; the ring holds its position. The heart is Ember.</p>
+    <div class="strip bare ms">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div></div>
+      <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart on" aria-label="Remove from favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Play"><i class="ic ic-play"></i></button>
+        </div>
+    </div>
+    <p class="lab"><b>Long title.</b> Title and artist scroll after 2.5 s and fade out at the trailing end.</p>
+    <div class="strip bare ms">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div></div>
+      <div class="mini glass bloom art-jodhaa">
+          <span class="pic"><div class="cv art-jodhaa"></div></span>
+          <span class="txt run"><b>In Lamhon Ke Daaman Mein (From "Jodhaa Akbar")</b><span>A. R. Rahman, Sonu Nigam, Madhushree</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.61" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+    </div>
+    <p class="lab"><b>Light.</b> Pale glass, dark ink, a weaker bloom.</p>
+    <div class="strip bare ms light">
+      <div class="under"><div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><button class="ibtn" aria-label="More options for Kun Faya Kun"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div><div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div></div>
+      <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+    </div>
+    <p class="lab"><b>Seek bar, at rest and while dragged.</b> Dragging thickens the bar and brightens the times. Tap anywhere to jump.</p>
+    <div class="strip bare sc lit art-revenge">
+      <div class="scrub" style="--v:.323;margin-top:0"><div class="bar"></div><div class="times"><span>1:47</span><span>5:31</span></div></div>
+      <div class="scrub drag" style="--v:.58;margin-top:26px"><div class="bar"></div><div class="times"><span>3:12</span><span>5:31</span></div></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">F · Compact header after scrolling</p>
+    <p class="why">Past 55% of a screen a bar fades in over the status area: title, artist, heart, and play or pause in the same progress ring the mini player uses.</p>
+    <div class="phone np lit art-revenge">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="scrolled" style="--y:640px"><div class="np-page">
+        <header class="np-top">
+          <button class="ibtn" aria-label="Close player"><i class="ic ic-pull"></i></button>
+          <p class="ctx">Playing from <b>Dhurandhar: The Revenge</b></p>
+        </header>
+        <div class="np-art"><div class="cv art-revenge"></div></div>
+        <p class="np-line"><i class="ic ic-lyrics"></i><span>I carry what the night forgot</span></p>
+        <div class="np-title">
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button>
+        </div>
+        <div class="scrub" style="--v:.323" role="slider" aria-label="Seek in Jaan Se Guzarte Hain">
+          <div class="bar"></div>
+          <div class="times"><span>1:47</span><span>5:31</span></div>
+        </div>
+        <div class="transport">
+          <button aria-label="Previous"><i class="ic ic-prev"></i></button>
+          <button class="main" aria-label="Pause"><i class="ic ic-pause"></i></button>
+          <button aria-label="Next"><i class="ic ic-next"></i></button>
+        </div>
+        <div class="np-tools">
+          <button class="tool" aria-label="Turn shuffle on"><i class="ic ic-shuffle"></i></button>
+          <button class="tool" aria-label="Open queue"><i class="ic ic-queue"></i></button>
+          <button class="tool" aria-label="Repeat off, tap to repeat all"><i class="ic ic-repeat"></i></button>
+        </div>
+        </div>
+        <section class="np-card">
+          <h3>Lyrics</h3>
+          <div class="lyr">
+            <span class="cur">I carry what the night forgot</span>
+            <span>A lantern for the miles ahead</span>
+            <span>The road keeps every step we leave</span>
+            <span>And nothing here can hold me back</span>
+          </div>
+          <button class="btn sm on-art">Open lyrics</button>
+        </section>
+        <a class="np-card about">
+          <span class="img"><h3>About the artist</h3><div class="cv art-revenge"></div></span>
+          <span class="body"><span class="txt"><b>Khan Saab</b><span>3 songs in your library</span></span><i class="ic ic-chev"></i></span>
+        </a>
+        <section class="np-card credits">
+          <h3>Credits</h3>
+          <dl>
+            <div><dt>Performed by</dt><dd>Khan Saab, Shashwat Sachdev</dd></div>
+            <div><dt>Album</dt><dd>Dhurandhar: The Revenge</dd></div>
+            <div><dt>Year</dt><dd>2026</dd></div>
+          </dl>
+        </section></div>
+      </div>
+      <header class="np-bar">
+        <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+        <button class="heart" aria-label="Add to favourites"></button>
+        <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+      </header>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Why</th></tr>
+    <tr><td>Vertical gradient from the cover tint to #121212</td><td>A blurred field made from the cover's own gradients, dimmed with <code>--tint-deep</code></td><td>Removes the tint-to-black gradient. The field keeps several of the cover's colours, not one.</td></tr>
+    <tr><td>Header: down chevron, two-line "Playing from" + context, kebab</td><td>A centred pull-down glyph with "Playing from {context}" on one line under it. The menu moves down beside the heart.</td><td>Removes the three-part header. The glyph is still a 88 × 48dp button and swipe-down still closes.</td></tr>
+    <tr><td>Cover 8dp radius, inset 14dp when paused</td><td>18dp radius, deep soft shadow, 80% scale and a weak shadow when paused</td><td>Same idea, stronger signal.</td></tr>
+    <tr><td>Plus-in-circle that becomes a green check</td><td>Heart, outline to filled</td><td>Shared naming table.</td></tr>
+    <tr><td>3dp line with a round handle that turns green while dragged</td><td>8dp bar with no handle; 16dp while dragged</td><td>Removes the thin line and the green drag state. Elapsed and total time stay under it.</td></tr>
+    <tr><td>One row: shuffle, previous, white play circle, next, repeat; active toggles green with a dot</td><td>Row one: previous, play or pause, next, bare. Row two: shuffle, queue, repeat. "On" is a white lozenge.</td><td>Removes the white play circle and the green-plus-dot toggle. Shuffle and repeat stay at the left and right ends.</td></tr>
+    <tr><td>Green "Downloaded" badge and label bottom left</td><td>Gone</td><td>It never changes state.</td></tr>
+    <tr><td>Cards in #282828 and tint; white "Show lyrics" pill</td><td>Translucent panels of the field; "Open lyrics" as a small white button; credits as label–value rows</td><td>Removes the grey cards. Label per the naming table.</td></tr>
+    <tr><td>Mini player: solid cover tint, 2dp line on the bottom edge, plus icon</td><td>Glass with a bloom of the artwork, progress ring around play, heart</td><td>Removes the tinted bar and its progress line.</td></tr>
+  </table>
+
+  <h2>Kept</h2>
+  <ul>
+    <li>Everything in the Now Playing and mini player parts of the contract: context name, close and swipe-down, menu, cover you can swipe sideways, artist tap-through, seek by tap and drag with elapsed and total, shuffle, repeat off / all / one, queue, the inline lyric line, the three cards, the compact header.</li>
+    <li>No volume slider, no output picker, no time-remaining display. The row under the transport has only controls that exist.</li>
+    <li>Every button is at least 48dp in both directions. Transport targets are 76dp.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Light-theme player (frame D).</b> Today Now Playing, Lyrics and the mini player ignore the theme. Here the field follows it. If you prefer the dark field in both themes, add <code>deep</code> to the frame and D becomes A; nothing else changes.</li>
+    <li><b>Queue in the middle.</b> Shuffle and repeat sit at the two ends where they are today, with queue between them. The alternative is shuffle and repeat together on the left and queue alone on the right.</li>
+    <li><b>Radio.</b> As today, the only sign of radio on this screen is the context line. A radio glyph before the context name would cost nothing; it is not drawn because the contract lists no radio indicator.</li>
+  </ul>
+</div>

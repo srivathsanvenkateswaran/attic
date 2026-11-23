@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attic: a music player for the songs already on your phone</title>
+  <meta name="description" content="Attic is an offline Android music player for the songs already on your phone. No account, no streaming, no ads. Free software under the GPL.">
+  <meta property="og:title" content="Attic">
+  <meta property="og:description" content="A music player for the songs already on your phone. No account, no streaming, no ads.">
+  <meta property="og:image" content="img/og.png">
+  <meta name="theme-color" content="#c6533a">
+  <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/onest.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top">
+    <header class="wrap bar">
+      <a class="brand" href="./" aria-label="Attic home">
+        <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="24" fill="#F5EDDD"/><path fill="#C6533A" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5Z"/><path fill="#F5EDDD" fill-rule="evenodd" d="M41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
+        Attic
+      </a>
+      <nav aria-label="Site">
+        <a href="privacy.html">Privacy</a>
+        <!-- GitHub link: update if the repository moves. -->
+        <a href="https://github.com/srivathsanvenkateswaran/attic">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="wrap hero">
+      <div>
+        <h1>A music player for the songs already on your phone.</h1>
+        <p>No account, no streaming, no ads. It plays in airplane mode.</p>
+        <div class="get">
+          <!--
+            Google Play badge placeholder. Once the listing is live, replace this span with the
+            official badge from https://play.google.com/intl/en_us/badges/ (keep Google's
+            artwork unmodified), linking to
+            https://play.google.com/store/apps/details?id=app.attic.player
+          -->
+          <span class="button play-placeholder">Coming to Google Play</span>
+          <a class="button solid" href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">Download the APK</a>
+          <a class="button line" href="https://github.com/srivathsanvenkateswaran/attic">Source on GitHub</a>
+        </div>
+      </div>
+      <!-- The Headroom mark: a speaker cabinet cut to the slope of a roof. -->
+      <svg class="mark" viewBox="35.2 27 36 51.5" role="img" aria-label="Attic logo: a speaker cabinet with a sloping top">
+        <path fill="#F5EDDD" fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/>
+      </svg>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section aria-labelledby="styles">
+      <h2 id="styles">Two styles, one app</h2>
+      <p class="lead">Pick one in Settings, under Appearance. Both come in light and dark, and you can switch at any time.</p>
+      <div class="styles">
+        <figure>
+          <div class="phone">
+            <!-- Replace this placeholder with <img src="img/expressive.png" alt="Attic's Home screen in the Expressive style" width="1080" height="2400"> -->
+            <div class="placeholder">Expressive screenshot</div>
+          </div>
+          <figcaption>
+            <h3>Expressive</h3>
+            <p>Takes its colours from your wallpaper, with rounded shapes, pill buttons and a carousel of covers on Home.</p>
+          </figcaption>
+        </figure>
+        <figure>
+          <div class="phone">
+            <!-- Replace this placeholder with <img src="img/comfort.png" alt="Attic's Library screen in the Comfort style" width="1080" height="2400"> -->
+            <div class="placeholder">Comfort screenshot</div>
+          </div>
+          <figcaption>
+            <h3>Comfort</h3>
+            <p>A fixed warm palette, large titles with room above them, and lists grouped into rounded blocks.</p>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section aria-labelledby="what">
+      <h2 id="what">What it does</h2>
+      <div class="features">
+        <div>
+          <h3>Plays your library</h3>
+          <ul>
+            <li>Album, artist and playlist screens, tinted from the cover art</li>
+            <li>A queue you drag to reorder and swipe to remove from</li>
+            <li>Favourites and your own playlists, stored on the phone</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Finds what to play next, offline</h3>
+          <ul>
+            <li>Start radio from any song, and Attic keeps ten similar songs in the queue</li>
+            <li>Nine instant mixes on Home, changing daily</li>
+            <li>Learns from skips, finishes and likes in a listening log kept on the phone</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Keeps playing outside the app</h3>
+          <ul>
+            <li>Notification and lock-screen controls, including shuffle and like</li>
+            <li>Bluetooth and headset media buttons</li>
+            <li>A resizable home-screen widget with five recent albums</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Shows lyrics, then keeps them</h3>
+          <ul>
+            <li>Synced lyrics highlight the current line; tap a line to jump to it</li>
+            <li>Download from LRCLIB for one song or the whole library, then read them offline</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Cleans up messy tags</h3>
+          <ul>
+            <li>"Artist - Song (Lyrics)" by an uploader shows as Song by Artist</li>
+            <li>Three spellings of one artist become one artist page</li>
+            <li>Nothing is written back to your files</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Recap</h3>
+          <ul>
+            <li>Your top songs, artists and listening clock for the week, month, year or all time</li>
+            <li>Cards you can save or share as images</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="privacy">
+      <h2 id="privacy">Privacy</h2>
+      <div class="privacy">
+        <p>Attic has no account, analytics or ads, and playback and song analysis never touch the network.</p>
+        <p>The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net, with the app's version and homepage in the User-Agent. Your music files are never uploaded.</p>
+        <p><a href="privacy.html">Read the privacy policy</a></p>
+      </div>
+    </section>
+
+    <section class="install" aria-labelledby="install">
+      <h2 id="install">Install</h2>
+      <p class="lead">Attic needs Android 13 or newer and a 64-bit ARM phone.</p>
+      <ol>
+        <li>Download the latest APK from <a href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">GitHub Releases</a> and open it on your phone.</li>
+        <li>Copy your music onto the phone, in <code>Music</code>, <code>Download</code> or any other folder. Attic plays MP3, M4A, FLAC, Ogg, Opus and WAV files, and leaves out ringtones, recordings, podcasts, audiobooks and voice notes.</li>
+        <li>Open Attic and allow audio access and notifications.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>Attic is free software under the <a href="https://github.com/srivathsanvenkateswaran/attic/blob/main/LICENSE">GNU General Public License v3.0 or later</a>. Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, licensed for non-commercial use. Lyrics come from <a href="https://lrclib.net">LRCLIB</a>.</p>
+    <p><a href="privacy.html">Privacy policy</a>. <a href="https://github.com/srivathsanvenkateswaran/attic/issues">Report a problem</a>.</p>
+    <p>This site sets no cookies and loads nothing from other servers.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,189 @@
+package app.attic.player.radio
+
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
+
+/** What the engine knows about one analysed song. [vector] must have length 1. */
+class RadioSong(
+    val key: String,
+    val vector: FloatArray,
+    val language: String?,
+    val artistKey: String?,
+    val albumKey: String?,
+    val affinity: Float = 0f,
+) {
+    companion object {
+        const val NO_VOCALS = "none"
+    }
+}
+
+/** One radio session. [crossEvery] is how often a song from another language may appear. */
+class RadioState(
+    val seedKey: String,
+    val crossEvery: Int,
+    val recent: Set<String> = emptySet(),
+) {
+    internal val playedKeys = ArrayList<String>().apply { add(seedKey) }
+    internal val skippedKeys = HashSet<String>()
+    internal var sinceCross = 0
+    internal var pendingCross: String? = null
+
+    /** Records a song as queued, so it can't be picked again and steers what comes next. */
+    fun played(key: String) {
+        playedKeys += key
+        if (key == pendingCross) sinceCross = 0 else sinceCross++
+        pendingCross = null
+    }
+
+    /** A skipped or removed song is never queued again, and the session moves away from its sound. */
+    fun skipped(key: String) {
+        skippedKeys += key
+    }
+}
+
+/**
+ * Picks the next song: nearest in sound to the session so far, then adjusted for composer and taste,
+ * filtered to the session's language and to one version of each song.
+ */
+class RadioEngine(
+    private val songs: List<RadioSong>,
+    /** Whether two close-sounding songs are really one song. Slow, so it runs on as few pairs as possible. */
+    private val isSameSong: (RadioSong, RadioSong) -> Boolean,
+) {
+    private val byKey = songs.associateBy { it.key }
+    private val sameSongAnswers = HashMap<Pair<String, String>, Boolean>()
+
+    /** Nothing, if no song is close enough. [queueWouldEnd] accepts the closest left, so music keeps playing. */
+    fun next(state: RadioState, queueWouldEnd: Boolean = false): RadioSong? {
+        val seed = byKey[state.seedKey] ?: return null
+        val played = state.playedKeys.mapNotNull(byKey::get)
+        val sessionLanguage = sessionLanguage(played) ?: seed.language
+        val query = query(seed, played, state.skippedKeys)
+
+        val ranked = songs
+            .filter { it.key !in state.playedKeys && it.key !in state.skippedKeys }
+            .map { Candidate(it, dot(query, it.vector)) }
+            .sortedByDescending { it.scoreFor(seed) }
+
+        if (state.sinceCross + 1 >= state.crossEvery) {
+            val cross = firstUsable(ranked, played) { c ->
+                isOtherLanguage(c.song, sessionLanguage) && c.similarity >= CROSS_MIN_SIMILARITY && fitsCaps(c.song, played) && c.song.key !in state.recent
+            }
+            if (cross != null) {
+                state.pendingCross = cross.key
+                return cross
+            }
+        }
+
+        val close = { c: Candidate -> c.similarity >= MIN_SIMILARITY }
+        val inLanguage = { c: Candidate ->
+            if (c.song.language == RadioSong.NO_VOCALS) c.similarity >= CROSS_MIN_SIMILARITY else isSessionLanguage(c.song, sessionLanguage)
+        }
+        return firstUsable(ranked, played) { close(it) && inLanguage(it) && fitsCaps(it.song, played) && it.song.key !in state.recent }
+            ?: firstUsable(ranked, played) { close(it) && inLanguage(it) && fitsCaps(it.song, played) }
+            ?: firstUsable(ranked, played) { close(it) && inLanguage(it) }
+            ?: if (queueWouldEnd) firstUsable(ranked, played) { close(it) } ?: firstUsable(ranked, played) { true } else null
+    }
+
+    private inner class Candidate(val song: RadioSong, val similarity: Float) {
+        fun scoreFor(seed: RadioSong): Float {
+            var score = similarity + song.affinity
+            if (song.artistKey != null && song.artistKey == seed.artistKey) score += COMPOSER_BOOST
+            if (song.language == null) score -= UNLABELLED_PENALTY
+            return score
+        }
+    }
+
+    private fun firstUsable(ranked: List<Candidate>, played: List<RadioSong>, allowed: (Candidate) -> Boolean): RadioSong? =
+        ranked.firstOrNull { allowed(it) && played.none { p -> same(p, it.song) } }?.song
+
+    private fun same(played: RadioSong, candidate: RadioSong): Boolean {
+        val similarity = dot(played.vector, candidate.vector)
+        if (similarity >= DUPLICATE_SIMILARITY) return true
+        if (similarity < VERSION_MIN_SIMILARITY) return false
+        val pair = if (played.key < candidate.key) played.key to candidate.key else candidate.key to played.key
+        return sameSongAnswers.getOrPut(pair) { isSameSong(played, candidate) }
+    }
+
+    private fun isSessionLanguage(song: RadioSong, session: String?): Boolean =
+        song.language == null || session == null || song.language == session
+
+    private fun isOtherLanguage(song: RadioSong, session: String?): Boolean =
+        song.language != null && song.language != RadioSong.NO_VOCALS && song.language != session
+
+    private fun fitsCaps(song: RadioSong, played: List<RadioSong>): Boolean {
+        if (song.albumKey != null && played.count { it.albumKey == song.albumKey } >= MAX_PER_ALBUM) return false
+        if (song.artistKey != null && played.size >= MAX_IN_A_ROW &&
+            played.takeLast(MAX_IN_A_ROW).all { it.artistKey == song.artistKey }
+        ) return false
+        return true
+    }
+
+    /** The most common known language in the last few songs. A tie goes to the most recent. */
+    private fun sessionLanguage(played: List<RadioSong>): String? =
+        played.takeLast(LANGUAGE_WINDOW)
+            .mapNotNull { it.language?.takeUnless { l -> l == RadioSong.NO_VOCALS } }
+            .asReversed()
+            .let { recentFirst ->
+                recentFirst.distinct().maxByOrNull { language -> recentFirst.count { it == language } }
+            }
+
+    /** Half the seed, half recent songs with newer ones counting more. Skipped songs count against. */
+    private fun query(seed: RadioSong, played: List<RadioSong>, skipped: Set<String>): FloatArray {
+        val out = seed.vector.copyOf()
+        for (i in out.indices) out[i] *= SEED_WEIGHT
+        var weight = (1 - SEED_WEIGHT) / 2
+        for (song in played.asReversed()) {
+            val signed = if (song.key in skipped) -weight else weight
+            for (i in out.indices) out[i] += signed * song.vector[i]
+            weight /= 2
+        }
+        var norm = 0f
+        for (value in out) norm += value * value
+        norm = sqrt(norm)
+        if (norm > 0) for (i in out.indices) out[i] /= norm
+        return out
+    }
+
+    private fun dot(a: FloatArray, b: FloatArray): Float {
+        var sum = 0f
+        for (i in a.indices) sum += a[i] * b[i]
+        return sum
+    }
+
+    private companion object {
+        const val SEED_WEIGHT = 0.5f
+        const val COMPOSER_BOOST = 0.03f
+        const val UNLABELLED_PENALTY = 0.03f
+        const val CROSS_MIN_SIMILARITY = 0.72f
+
+        /** A typical pair of songs in the test library scored 0.54, so this keeps out unrelated music. */
+        const val MIN_SIMILARITY = 0.62f
+        const val VERSION_MIN_SIMILARITY = 0.80f
+        const val DUPLICATE_SIMILARITY = 0.985f
+        const val MAX_PER_ALBUM = 2
+        const val MAX_IN_A_ROW = 2
+        const val LANGUAGE_WINDOW = 5
+    }
+}
+
+/** Turns the listening log into the numbers radio uses. */
+object RadioTaste {
+    private const val BASE_SHARE = 0.1
+    private const val SMOOTHING = 4.0
+
+    /** One song in this many comes from another language, adjusted by how those picks went. */
+    fun crossEvery(finished: Int, skipped: Int): Int {
+        val share = BASE_SHARE * (finished + SMOOTHING) / (skipped + SMOOTHING)
+        return (1 / share).roundToInt().coerceIn(3, 30)
+    }
+
+    /** A small nudge up or down, kept below the differences that sound similarity makes. */
+    fun affinity(liked: Boolean, finished: Int, skipped: Int): Float {
+        var score = if (liked) 0.03f else 0f
+        score += 0.01f * min(finished, 3)
+        score -= 0.03f * min(skipped, 3)
+        return score
+    }
+}

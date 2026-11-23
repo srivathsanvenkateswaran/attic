@@ -14,7 +14,8 @@ splash = "1.2.0"
 palette = "1.1.0"
 coroutines = "1.11.0"
 reorderable = "3.1.0"
-iconsExtended = "1.7.8"
+onnxruntime = "1.31.1"
+work = "2.12.0"
 junit = "4.13.2"
 
 [libraries]
@@ -22,7 +23,6 @@ compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeB
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
-compose-icons = { module = "androidx.compose.material:material-icons-extended", version.ref = "iconsExtended" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 lifecycle-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
@@ -37,6 +37,8 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
+work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 junit = { module = "junit:junit", version.ref = "junit" }
 
 [plugins]

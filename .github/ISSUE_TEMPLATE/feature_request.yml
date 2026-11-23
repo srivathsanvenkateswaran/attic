@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest something Attic could do.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Attic plays local files with no account and no streaming, and only goes online for lyrics. Requests that need a server, an account or tracking are out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you're trying to do
+      description: The situation and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like Attic to do
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead now

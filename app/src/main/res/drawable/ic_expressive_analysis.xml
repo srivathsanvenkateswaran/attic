@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- graphic_eq: the song analysis notification. Material Symbols Rounded, weight 400. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7 17V7Q7 6.57 7.29 6.29Q7.58 6 8 6Q8.43 6 8.71 6.29Q9 6.57 9 7V17Q9 17.43 8.71 17.71Q8.43 18 8 18Q7.58 18 7.29 17.71Q7 17.43 7 17ZM11 21V3Q11 2.57 11.29 2.29Q11.58 2 12 2Q12.43 2 12.71 2.29Q13 2.57 13 3V21Q13 21.43 12.71 21.71Q12.43 22 12 22Q11.58 22 11.29 21.71Q11 21.43 11 21ZM3 13V11Q3 10.57 3.29 10.29Q3.58 10 4 10Q4.42 10 4.71 10.29Q5 10.57 5 11V13Q5 13.42 4.71 13.71Q4.42 14 4 14Q3.58 14 3.29 13.71Q3 13.42 3 13ZM15 17V7Q15 6.57 15.29 6.29Q15.58 6 16 6Q16.43 6 16.71 6.29Q17 6.57 17 7V17Q17 17.43 16.71 17.71Q16.43 18 16 18Q15.58 18 15.29 17.71Q15 17.43 15 17ZM19 13V11Q19 10.57 19.29 10.29Q19.58 10 20 10Q20.43 10 20.71 10.29Q21 10.57 21 11V13Q21 13.42 20.71 13.71Q20.43 14 20 14Q19.58 14 19.29 13.71Q19 13.42 19 13Z" />
+</vector>

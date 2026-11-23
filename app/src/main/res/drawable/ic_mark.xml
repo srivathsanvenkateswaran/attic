@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The Headroom mark in one colour, square, for the widget's corner mark. Tinted where used.
+    The mark's 36 x 51.5 bounding box from the 108 canvas, centred and 22/24 of the icon tall.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="56.18"
+    android:viewportHeight="56.18">
+    <group
+        android:translateX="-25.11"
+        android:translateY="-24.66">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z" />
+    </group>
+</vector>

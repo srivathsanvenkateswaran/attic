@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="expressive_window">@android:color/system_neutral1_900</color>
+    <color name="comfort_window">#000000</color>
+
+    <color name="expressive_widget_container">@android:color/system_neutral1_800</color>
+    <color name="expressive_widget_on">@android:color/system_neutral1_50</color>
+    <color name="expressive_widget_on_variant">@android:color/system_neutral2_200</color>
+    <color name="expressive_widget_primary">@android:color/system_accent1_200</color>
+    <color name="expressive_widget_on_primary">@android:color/system_accent1_800</color>
+    <color name="expressive_widget_tonal">@android:color/system_accent2_700</color>
+    <color name="expressive_widget_on_tonal">@android:color/system_accent2_100</color>
+    <color name="comfort_widget_card">#171716</color>
+    <color name="comfort_widget_on">#F5F4F1</color>
+    <color name="comfort_widget_on_2">#AAA7A2</color>
+    <color name="comfort_widget_accent">#FFB347</color>
+    <color name="comfort_widget_on_accent">#2A1800</color>
+    <color name="comfort_widget_fill">#2C2B29</color>
+    <color name="comfort_widget_line">#2A2928</color>
+</resources>

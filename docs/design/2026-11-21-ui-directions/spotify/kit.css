@@ -1,0 +1,713 @@
+/* Attic mocks · spotify/ · the UI as it ships today
+   ---------------------------------------------------------------------------
+   Tokens and components copied from app/src/main/java/app/attic/player/ui/.
+   Nothing here is a proposal. Measurements are dp from the Kotlin, 1dp = 1px.
+   Class reference with markup: KIT.md in this folder.
+
+   Scope: every rule sits inside `.phone, .strip { … }` (native CSS nesting), or
+   is a token rule whose selectors start with .phone / .strip, so nothing in
+   here can touch the review page.
+
+   Theme: dark is the default. `.phone.light` / `.strip.light` is the light
+   scheme. `.theme-dark` on an element inside a light phone restores the dark
+   scheme for that subtree (Now Playing and full-screen Lyrics are always dark).
+
+   Fonts: Figtree (the app bundles it) and Material Icons Round / Outlined, the
+   web builds of androidx Icons.Rounded / Icons.Outlined. Loaded here, so a
+   sheet needs no <link> of its own. */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Material+Icons+Round&family=Material+Icons+Outlined&display=block');
+
+/* ── tokens: dark scheme (ui/Theme.kt:65-85) ───────────────────────────────── */
+.phone, .strip, .phone .theme-dark, .strip .theme-dark {
+  --primary: #1ED760;
+  --on-primary: #000000;
+  --background: #121212;
+  --on-surface: #FFFFFF;
+  --surface-variant: #282828;
+  --on-surface-variant: #B3B3B3;
+  --sc-lowest: #000000;
+  --sc-low: #181818;
+  --sc: #282828;                 /* surfaceContainer */
+  --sc-high: #2A2A2A;
+  --sc-highest: #333333;
+  --outline: #727272;
+  --outline-variant: #333333;
+  --inverse-surface: #FFFFFF;
+  --inverse-on-surface: #000000;
+  --secondary-container: #4A4458; /* NOT set in Theme.kt: Material 3 baseline. Linear progress track. */
+  --art-header-mix: 100%;         /* collection header uses the tint as is in dark */
+}
+
+/* ── tokens: light scheme (ui/Theme.kt:88-108) ─────────────────────────────── */
+.phone.light, .strip.light {
+  --primary: #12A84A;
+  --on-primary: #FFFFFF;
+  --background: #FFFFFF;
+  --on-surface: #121212;
+  --surface-variant: #EDEDED;
+  --on-surface-variant: #5E5E5E;
+  --sc-lowest: #FFFFFF;
+  --sc-low: #F7F7F7;
+  --sc: #F0F0F0;
+  --sc-high: #EBEBEB;
+  --sc-highest: #E2E2E2;
+  --outline: #8A8A8A;
+  --outline-variant: #E2E2E2;
+  --inverse-surface: #121212;
+  --inverse-on-surface: #FFFFFF;
+  --secondary-container: #E8DEF8; /* Material 3 baseline, as above */
+  --art-header-mix: 40%;          /* tint at 40% over white (ui/CollectionScreens.kt:72) */
+}
+
+/* ── tokens: fixed colours, the same in both themes ────────────────────────── */
+.phone, .strip {
+  --white: #FFFFFF;
+  --black: #000000;
+  --mark: #1ED760;               /* the Attic mark's own fill; does not darken in light mode */
+  --tint-fallback: #333333;      /* cover with no usable colour */
+  --np-card: #282828;            /* "About the artist" and "Credits" */
+  --liked-a: #4A17E0;            /* Liked Songs tile gradient */
+  --liked-b: #C4EFD9;
+  --plum: #2A0E3D;               /* Wrapped palette */
+  --marigold: #FFB627;
+  --pink: #FF5D8F;
+  --cobalt: #2B59FF;
+  --mint: #9FF0C9;
+  --browse-1: #8D67AB; --browse-2: #E13300; --browse-3: #1E3264; --browse-4: #148A08;
+  --browse-5: #BA5D07; --browse-6: #503750; --browse-7: #0D73EC; --browse-8: #AF2896;
+  --lang-tamil: #FFB627; --lang-hindi: #FF5D8F; --lang-english: #2B59FF; --lang-telugu: #7A3CFF;
+  --lang-malayalam: #00A86B; --lang-kannada: #FF7A1A; --lang-novocals: #2A0E3D; --lang-other: #8C8C8C;
+
+  /* white and black at the alphas the code uses */
+  --w10: rgb(255 255 255 / .10); --w14: rgb(255 255 255 / .14); --w20: rgb(255 255 255 / .20);
+  --w25: rgb(255 255 255 / .25); --w30: rgb(255 255 255 / .30); --w55: rgb(255 255 255 / .55);
+  --w70: rgb(255 255 255 / .70); --w75: rgb(255 255 255 / .75); --w78: rgb(255 255 255 / .78);
+  --w80: rgb(255 255 255 / .80); --w85: rgb(255 255 255 / .85);
+  --k15: rgb(0 0 0 / .15); --k32: rgb(0 0 0 / .32); --k35: rgb(0 0 0 / .35); --k55: rgb(0 0 0 / .55);
+  --k60: rgb(0 0 0 / .60); --k72: rgb(0 0 0 / .72); --k75: rgb(0 0 0 / .75); --k80: rgb(0 0 0 / .80);
+  --shadow-menu: 0 2px 6px 2px rgb(0 0 0 / .15), 0 1px 2px rgb(0 0 0 / .3);
+  --shadow-snack: 0 4px 8px 3px rgb(0 0 0 / .15), 0 1px 3px rgb(0 0 0 / .3);
+
+  /* type scale (ui/Theme.kt:49-61). Headings also take letter-spacing -.02em. */
+  --f-display-s: 700 36px/40px 'Figtree', sans-serif;
+  --f-headline:  700 26px/31px 'Figtree', sans-serif;
+  --f-title-l:   700 22px/27px 'Figtree', sans-serif;
+  --f-title-m:   500 16px/21px 'Figtree', sans-serif;
+  --f-title-s:   600 14px/18px 'Figtree', sans-serif;
+  --f-body-l:    400 16px/22px 'Figtree', sans-serif;
+  --f-body-m:    400 14px/19px 'Figtree', sans-serif;
+  --f-body-s:    400 12px/16px 'Figtree', sans-serif;
+  --f-label-l:   600 14px/18px 'Figtree', sans-serif;
+  --f-label-m:   500 12px/15px 'Figtree', sans-serif;
+  --f-label-s:   500 11px/14px 'Figtree', sans-serif;
+  --tight: -.02em;
+
+  /* frame measures */
+  --sb: 44px;       /* status bar inset (the .sbar from shared/page.css) */
+  --nav: 24px;      /* gesture-navigation inset */
+  --tab-h: 58px;    /* TAB_BAR_HEIGHT */
+  --mini-h: 64px;   /* MINI_PLAYER_HEIGHT as the code reserves it; the bar plus its 4dp gap is 68 */
+}
+
+/* ── tint: the colour taken from a cover (ui/Art.kt:135-141) ──────────────────
+   covers.css gives --tint, the cover's mid-tone colour. The app keeps the hue,
+   caps saturation at 62% and clamps lightness to 20-30%. --art is that result.
+   --art-header is what collection headers use: --art in dark, --art at 40% over
+   white in light. Recomputed on every element that carries an art-* class, so
+   put art-<key> on the surface that should take the colour (or any ancestor). */
+.phone, .strip, .phone [class*="art-"], .strip [class*="art-"], .phone .theme-dark, .strip .theme-dark {
+  --art: color-mix(in srgb, var(--tint, var(--tint-fallback)) 72%, var(--black));
+  --art-header: color-mix(in srgb, var(--art) var(--art-header-mix), var(--background));
+}
+@supports (color: hsl(from red h s l)) {
+  .phone, .strip, .phone [class*="art-"], .strip [class*="art-"], .phone .theme-dark, .strip .theme-dark {
+    --art: hsl(from var(--tint, var(--tint-fallback)) h min(s, 62) clamp(20, l, 30));
+  }
+}
+
+/* ══ components ══════════════════════════════════════════════════════════════ */
+.phone, .strip {
+  font-family: 'Figtree', system-ui, sans-serif;
+  font-synthesis: none;
+  color: var(--on-surface);
+  background: var(--background);
+  text-align: left;
+
+  /* ── frame: status bar, screen, bottom dock ─────────────────────────────── */
+  /* The app draws edge to edge. The status bar floats over the screen and takes
+     the theme's content colour: white in dark, #121212 in light, including over
+     Now Playing in light mode (MainActivity.kt:29-33 sets it per theme, not per screen). */
+  & > .sbar { position: absolute; top: 0; left: 0; right: 0; color: var(--on-surface);
+              font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  & > .gpill { color: var(--on-surface); }
+
+  .screen { position: relative; min-height: 844px; padding-top: var(--sb);
+            background: var(--background); color: var(--on-surface); }
+  .screen.bleed { padding-top: 0; }            /* content runs under the status bar */
+  &:not(.long) > .screen { height: 844px; overflow: hidden; }
+  /* LocalBottomPadding: tab bar + mini player + nav inset + 12 (ui/AppRoot.kt:226-229) */
+  &.long > .screen { padding-bottom: calc(var(--tab-h) + var(--mini-h) + var(--nav) + 12px); }
+  &.long > .screen.no-mini { padding-bottom: calc(var(--tab-h) + var(--nav) + 12px); }
+  &.long > .screen.no-dock { padding-bottom: 0; }
+
+  .dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; }
+
+  /* ── icons ──────────────────────────────────────────────────────────────── */
+  .ic, .dl::before, .like::before, .playc::before {
+    font-family: 'Material Icons Round'; font-weight: 400; font-style: normal; line-height: 1;
+    letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr;
+    font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
+  }
+  .ic { font-size: var(--s, 24px); width: 1em; height: 1em; display: inline-block; overflow: hidden;
+        flex: none; user-select: none; }
+  .ic.o { font-family: 'Material Icons Outlined'; }
+  .s13 { --s: 13px; } .s16 { --s: 16px; } .s18 { --s: 18px; } .s20 { --s: 20px; } .s25 { --s: 25px; }
+  .s26 { --s: 26px; } .s28 { --s: 28px; } .s30 { --s: 30px; } .s40 { --s: 40px; }
+
+  /* Material IconButton: a 48dp target round a 24dp glyph */
+  .ib { width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center;
+        flex: none; position: relative; color: inherit; }
+  .ib.s56 { width: 56px; height: 56px; }
+  .ib.off { opacity: .38; }                    /* disabled */
+  .ib.shade { background: radial-gradient(circle closest-side, var(--k35) 0 20px, transparent 20.5px); }   /* black 35% disc behind a back arrow over art */
+
+  /* the Attic mark: <svg class="mark" viewBox="24 24 60 60"><path …/></svg> */
+  .mark { width: var(--s, 18px); height: var(--s, 18px); fill: var(--mark); display: block; flex: none; }
+  .mark.white { fill: var(--white); }
+
+  /* ── type helpers ───────────────────────────────────────────────────────── */
+  .t-display-s { font: var(--f-display-s); letter-spacing: var(--tight); }
+  .t-headline  { font: var(--f-headline);  letter-spacing: var(--tight); }
+  .t-title-l   { font: var(--f-title-l);   letter-spacing: var(--tight); }
+  .t-title-m   { font: var(--f-title-m); }
+  .t-title-s   { font: var(--f-title-s); }
+  .t-body-l    { font: var(--f-body-l); }
+  .t-body-m    { font: var(--f-body-m); }
+  .t-body-s    { font: var(--f-body-s); }
+  .t-label-l   { font: var(--f-label-l); }
+  .t-label-m   { font: var(--f-label-m); }
+  .t-label-s   { font: var(--f-label-s); }
+  .c-variant { color: var(--on-surface-variant); }
+  .c-primary { color: var(--primary); }
+  .l1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .l2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .grow { flex: 1; min-width: 0; }
+
+  /* ── small parts used inside other components ───────────────────────────── */
+  /* downloaded badge (ui/Components.kt:117-133): 13dp, or .lg 24dp */
+  .dl { --d: 13px; display: inline-block; width: var(--d); height: var(--d); border-radius: 50%;
+        background: var(--primary); position: relative; flex: none; }
+  .dl::before { content: "arrow_downward"; position: absolute; inset: 0; display: flex; align-items: center;
+                justify-content: center; font-size: calc(var(--d) * .78); color: var(--background); overflow: hidden; }
+  .dl.lg { --d: 24px; }
+
+  /* playing bars (ui/Components.kt:91-114): 14dp, three bars; .paused holds them at 30% */
+  .eq { display: inline-flex; align-items: flex-end; gap: 1.75px; width: 14px; height: 14px; flex: none; }
+  .eq i { display: block; width: 3.5px; border-radius: 1.2px; background: var(--primary); }
+  .eq i:nth-child(1) { height: 58%; } .eq i:nth-child(2) { height: 100%; } .eq i:nth-child(3) { height: 36%; }
+  .eq.paused i { height: 30%; }
+
+  /* like button (ui/Motion.kt:57-80): put on an .ib. Plus in a circle, or .on a green check. */
+  .like::before { content: "add_circle_outline"; font-size: var(--s, 26px); }
+  .like.on { color: var(--primary); }
+  .like.on::before { content: "check_circle"; }
+
+  /* play circle (ui/Components.kt:199-231): 56dp green; .pause, .white, .s66 */
+  .playc { --d: 56px; width: var(--d); height: var(--d); border-radius: 50%; flex: none;
+           background: var(--primary); color: var(--on-primary);
+           display: inline-flex; align-items: center; justify-content: center; }
+  .playc::before { content: "play_arrow"; font-size: calc(var(--d) * .58); }
+  .playc.pause::before { content: "pause"; }
+  .playc.white { background: var(--white); color: var(--black); }
+  .playc.s66 { --d: 66px; }
+
+  /* Liked Songs tile (ui/HomeScreen.kt:381-389). Size it with width. */
+  .liked { aspect-ratio: 1; flex: none; container-type: inline-size; color: var(--white);
+           background: linear-gradient(to bottom right, var(--liked-a), var(--liked-b));
+           display: flex; align-items: center; justify-content: center; }
+  .liked .ic { font-size: 46cqw; }
+
+  /* cover placeholder for a file with no art (ui/Art.kt:151-162). Size it with width. */
+  .noart { aspect-ratio: 1; flex: none; background: var(--sc-highest); color: var(--on-surface-variant);
+           display: flex; align-items: center; justify-content: center; }
+
+  /* ── tab bar (ui/AppRoot.kt:355-387) ────────────────────────────────────── */
+  .tabbar { display: flex; height: calc(var(--tab-h) + var(--nav)); padding-bottom: var(--nav);
+            background: linear-gradient(180deg,
+              color-mix(in srgb, var(--background) 72%, transparent) 0,
+              color-mix(in srgb, var(--background) 97%, transparent) 55%,
+              var(--background) 100%); }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+         color: var(--on-surface-variant); font: var(--f-label-s); }
+  .tab .ic { --s: 25px; margin-bottom: 3px; }
+  .tab.on { color: var(--on-surface); }
+
+  /* ── mini player (ui/NowPlaying.kt:116-206) ─────────────────────────────── */
+  /* Put art-<key> on .mini. Text and icons are white in both themes. */
+  .mini { margin: 0 8px 4px; border-radius: 6px; background: var(--art); color: var(--white); overflow: hidden; }
+  .mini .r { display: flex; align-items: center; padding: 8px 2px 6px 8px; }
+  .mini .cv, .mini .noart { width: 40px; border-radius: 4px; margin-right: 10px; }
+  .mini .tx { flex: 1; min-width: 0; }
+  .mini .t { font: var(--f-title-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini .s { font: var(--f-body-s); height: 16px; color: var(--w78); white-space: nowrap; overflow: hidden; }  /* marquee: clipped, no ellipsis */
+  .mini .s .dl { margin-right: 4px; vertical-align: -2px; }
+  .mini .p { margin: 0 8px; height: 2px; border-radius: 1px; background: var(--w25); overflow: hidden; }
+  .mini .p i { display: block; height: 100%; width: var(--p, 32.3%); background: var(--white); }
+
+  /* ── top-of-screen headers ──────────────────────────────────────────────── */
+  /* round settings button (ui/HomeScreen.kt:443-457) */
+  .setbtn { width: 36px; height: 36px; border-radius: 50%; background: var(--sc-highest); flex: none;
+            display: flex; align-items: center; justify-content: center; }
+
+  /* filter chips (ui/HomeScreen.kt:459-474) */
+  .chips { display: flex; gap: 8px; overflow: hidden; white-space: nowrap; }
+  .chips.lib { padding: 10px 16px; }           /* Library row */
+  .chips.wrapped { padding: 8px 16px; }        /* Wrapped period row */
+  .chip { font: var(--f-body-m); padding: 8px 14px; border-radius: 999px; flex: none;
+          background: var(--sc-highest); color: var(--on-surface); }
+  .chip.on { background: var(--primary); color: var(--on-primary); }
+
+  /* Home: settings button then chips (ui/HomeScreen.kt:102-116) */
+  .home-head { display: flex; align-items: center; gap: 8px; padding: 8px 0 8px 16px; }
+
+  /* Search and Your Library: settings button, title, optional icon buttons */
+  .head { display: flex; align-items: center; padding: 10px 16px 12px; }
+  .head h1 { flex: 1; margin: 0 0 0 12px; font: var(--f-headline); letter-spacing: var(--tight); }
+  .head.lib { padding: 8px 8px 0 16px; }
+
+  /* Settings, Wrapped: back arrow and title. Queue: .q with a down chevron and "Clear". */
+  .backbar { display: flex; align-items: center; padding: 0 4px; }
+  .backbar h1 { flex: 1; margin: 0 0 0 4px; font: var(--f-title-l); letter-spacing: var(--tight); }
+  .backbar.q h1 { margin-left: 0; }
+
+  /* ── section titles ─────────────────────────────────────────────────────── */
+  .sec { margin: 0; padding: 26px 16px 12px; font: var(--f-title-l); letter-spacing: var(--tight); }
+  .sec-over { margin: 0; padding: 26px 16px 0; font: var(--f-body-m); color: var(--on-surface-variant); }
+  .sec-over + .sec { padding: 2px 16px 8px; }  /* "Start listening" under its overline */
+  /* a section title with a play circle on its right (Wrapped "Top songs") */
+  .sec-row { display: flex; align-items: center; }
+  .sec-row .sec { flex: 1; }
+  .sec-row .playc { margin: 14px 16px 0 0; }
+  /* small grey heading in the Queue (ui/QueueScreen.kt:173-181) */
+  .subhead { margin: 0; padding: 16px 16px 4px; font: var(--f-title-s); color: var(--on-surface-variant); }
+
+  /* ── Home ───────────────────────────────────────────────────────────────── */
+  /* shortcut grid and tile (ui/HomeScreen.kt:119-129, 339-378) */
+  .shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 16px 0; }
+  .shortcut { height: 56px; border-radius: 4px; background: var(--sc); overflow: hidden;
+              display: flex; align-items: center; min-width: 0; }
+  .shortcut > .cv, .shortcut > .mosaic, .shortcut > .liked { width: 56px; }
+  .shortcut .t { padding: 0 10px; font: var(--f-title-s); min-width: 0;
+                 display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+  /* Wrapped entry card (ui/HomeScreen.kt:276-308) */
+  .wrapcard { margin: 16px 16px 0; padding: 14px; border-radius: 10px; background: var(--plum);
+              display: flex; align-items: center; }
+  .wrapcard > .mosaic, .wrapcard > .cv { width: 64px; border-radius: 4px; margin-right: 14px; }
+  .wrapcard .tx { flex: 1; min-width: 0; }
+  .wrapcard .t { font: var(--f-title-l); letter-spacing: var(--tight); color: var(--marigold);
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wrapcard .s { font: var(--f-body-m); color: var(--w85);
+                 display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+  /* Speed dial (ui/HomeScreen.kt:133-153, 312-336) */
+  .dial { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 16px; }
+  .dial-tile { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; }
+  .dial-tile .cv { width: 100%; }
+  .dial-tile .cv::after { content: none; }
+  .dial-tile::after { content: ""; position: absolute; inset: 0;
+                      background: linear-gradient(180deg, transparent 45%, var(--k80) 100%); }
+  .dial-tile .t { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 1; color: var(--white);
+                  font: var(--f-label-l);
+                  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .dial-tile.cur .t { color: var(--primary); }
+
+  /* shelf and shelf cards (ui/HomeScreen.kt:391-440) */
+  .shelf { display: flex; gap: 14px; padding: 0 16px; overflow: hidden; }
+  .card { width: 160px; flex: none; }
+  .card > .cv, .card > .mosaic { width: 160px; border-radius: 8px; }
+  .card .t { margin-top: 8px; font: var(--f-title-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .s { font: var(--f-body-s); color: var(--on-surface-variant);
+             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .card.cur .t { color: var(--primary); }
+  .card.round { width: 130px; text-align: center; }          /* ArtistCircle */
+  .card.round > .cv { width: 130px; border-radius: 50%; }
+
+  /* "More from" spotlight header (ui/HomeScreen.kt:216-231) */
+  .spot { display: flex; align-items: center; padding: 26px 16px 12px; }
+  .spot > .cv { width: 52px; border-radius: 50%; margin-right: 12px; }
+  .spot .s { font: var(--f-body-s); color: var(--on-surface-variant); }
+  .spot .t { font: var(--f-title-l); letter-spacing: var(--tight); }
+
+  /* ── rows ───────────────────────────────────────────────────────────────── */
+  /* track row (ui/Components.kt:136-196) */
+  .row { display: flex; align-items: center; padding: 7px 4px 7px 16px; }
+  .row > .cv, .row > .mosaic, .row > .noart { width: 50px; border-radius: 4px; margin-right: 12px; }
+  .row .tx { flex: 1; min-width: 0; }
+  .row .t { font: var(--f-title-m); height: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .t .eq { margin-right: 6px; vertical-align: -1px; }
+  .row .s { margin-top: 2px; font: var(--f-body-m); height: 19px; color: var(--on-surface-variant);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .s .dl { margin-right: 5px; vertical-align: -2px; }
+  .row.cur .t { color: var(--primary); }
+  .row > .ib { color: var(--on-surface-variant); }            /* kebab */
+  .row > .ib.plain { color: var(--on-surface); }              /* drag handle, add */
+  .row > .ib.ok { color: var(--primary); }                    /* check: already in the playlist */
+  .row.drag { background: var(--sc-highest); }                /* the row being dragged */
+
+  /* numbered row on the artist screen: the rank sits outside the track row (ui/CollectionScreens.kt:333-349) */
+  .ranked { display: flex; align-items: center; }
+  .ranked > .rk { width: 16px; margin-left: 16px; flex: none; font: var(--f-body-m); color: var(--on-surface-variant); }
+  .ranked > .row { flex: 1; min-width: 0; }
+
+  /* queue row being swiped away (ui/QueueScreen.kt:123-136). Shift .row with --dx. */
+  .swipe { position: relative; background: var(--sc-highest); overflow: hidden; }
+  .swipe::before { content: "Remove"; position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+                   font: var(--f-label-l); color: var(--on-surface); }
+  .swipe > .row { position: relative; background: var(--background); transform: translateX(var(--dx, -120px)); }
+
+  /* Wrapped "Top songs" / "Top artists" row: rank, cover, text, trailing value (ui/WrappedScreen.kt:269-316) */
+  .toprow { display: flex; align-items: center; padding: 6px 16px; }
+  .toprow .rk { width: 30px; flex: none; font: var(--f-title-m); color: var(--on-surface-variant); }
+  .toprow > .cv { width: 48px; border-radius: 4px; margin-right: 12px; }
+  .toprow > .cv.round { border-radius: 50%; }
+  .toprow .tx { flex: 1; min-width: 0; }
+  .toprow .t { font: var(--f-title-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toprow .s { font: var(--f-body-m); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .toprow .v { margin-left: 8px; font: var(--f-body-s); color: var(--on-surface-variant); white-space: nowrap; }
+  .toprow.cur .t { color: var(--primary); }
+
+  /* result row (ui/SearchScreen.kt:231-259): 56dp cover; .lib is the Library list row with a 64dp cover */
+  .res { display: flex; align-items: center; padding: 7px 16px; }
+  .res > .cv, .res > .mosaic, .res > .liked { width: 56px; border-radius: 4px; margin-right: 12px; }
+  .res > .cv.round { border-radius: 50%; }
+  .res.lib > .cv, .res.lib > .mosaic, .res.lib > .liked { width: 64px; }
+  .res .tx { flex: 1; min-width: 0; }
+  .res .t { font: var(--f-title-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .res .s { font: var(--f-body-m); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── Search ─────────────────────────────────────────────────────────────── */
+  /* search field (ui/SearchScreen.kt:118-136, 182-197): inverse colours */
+  .field { margin: 0 16px; height: 56px; border-radius: 6px; display: flex; align-items: center;
+           background: var(--inverse-surface); color: var(--inverse-on-surface); font: var(--f-body-l); }
+  .field > .ic:first-child { margin: 0 16px 0 12px; }
+  .field .v { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; }
+  .field .v.ph { color: var(--outline); }                     /* placeholder */
+  .field .caret { display: inline-block; width: 2px; height: 20px; margin-left: 1px; vertical-align: -4px; background: var(--primary); }
+  /* Add-songs field (ui/Sheets.kt:322-336): stock Material filled field, radius 8 */
+  .field.stock { margin: 4px 16px; border-radius: 8px; background: var(--sc-highest); color: var(--on-surface); }
+  .field.stock > .ic:first-child, .field.stock .v.ph { color: var(--on-surface-variant); }
+
+  /* browse grid and tile (ui/SearchScreen.kt:139-153, 199-228) */
+  .browse-title { margin: 0; padding: 18px 16px 12px; font: var(--f-title-m); }
+  .browse { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+  .btile { position: relative; height: 92px; border-radius: 6px; overflow: hidden; background: var(--browse-1); }
+  .btile.c2 { background: var(--browse-2); } .btile.c3 { background: var(--browse-3); }
+  .btile.c4 { background: var(--browse-4); } .btile.c5 { background: var(--browse-5); }
+  .btile.c6 { background: var(--browse-6); } .btile.c7 { background: var(--browse-7); }
+  .btile.c8 { background: var(--browse-8); }
+  .btile .t { padding: 12px 44px 0 12px; color: var(--white); font: var(--f-title-m); font-weight: 700;
+              display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .btile .cv { position: absolute; right: -14px; bottom: -8px; width: 68px; border-radius: 4px; transform: rotate(25deg); }
+
+  /* ── Your Library ───────────────────────────────────────────────────────── */
+  /* sort row (ui/LibraryScreen.kt:154-202): sort glyph, label, trailing icon button */
+  .sortrow { display: flex; align-items: center; padding: 0 8px 0 16px; font: var(--f-label-l); }
+  .sortrow > .ic:first-child { margin-right: 8px; }
+  .sortrow .lbl { flex: 1; margin: 0; font: var(--f-label-l); color: inherit; }
+  .sortrow.songs { padding-bottom: 4px; }
+
+  /* grid view (ui/LibraryScreen.kt:203-212, 248-262) */
+  .libgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 14px; padding: 0 16px; }
+  .gtile { min-width: 0; }
+  .gtile > .cv, .gtile > .mosaic, .gtile > .liked { width: 100%; border-radius: 4px; }
+  .gtile .t { margin-top: 6px; font: var(--f-title-s);
+              display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .gtile .s { font: var(--f-body-s); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gtile.round { display: flex; flex-direction: column; align-items: center; }
+  .gtile.round > .cv { border-radius: 50%; }
+  .gtile.round .t, .gtile.round .s { max-width: 100%; }
+
+  /* ── collection screens (ui/CollectionScreens.kt) ───────────────────────── */
+  /* Put art-<key> on .screen so the bar, the header and the status area share one tint. */
+  /* collapsing top bar: transparent with a scrimmed back arrow, or .collapsed with the tint and title */
+  .topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 4; display: flex; align-items: center;
+            padding: var(--sb) 4px 0; }
+  .topbar .t { flex: 1; min-width: 0; font: var(--f-title-m); visibility: hidden;
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar.collapsed { background: var(--art-header); }
+  .topbar.collapsed .t { visibility: visible; }
+
+  /* gradient header: cover, title, subtitle, detail */
+  .chead { padding-top: calc(var(--sb) + 52px); background: linear-gradient(180deg, var(--art-header), var(--background)); }
+  .chead > .cv, .chead > .mosaic, .chead > .liked { width: 62%; margin: 0 auto 18px; border-radius: 4px; }
+  .chead > .liked { width: 50%; }
+  .chead .ttl { margin: 0 0 6px; padding: 0 16px; font: var(--f-headline); letter-spacing: var(--tight);
+                display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .chead .by { display: flex; align-items: center; padding: 0 16px; font: var(--f-title-s); }   /* album artist line */
+  .chead .by .cv { width: 24px; border-radius: 50%; margin-right: 8px; }
+  .chead .det { margin: 0; padding: 4px 16px 0; font: var(--f-body-s); color: var(--on-surface-variant); }
+  /* plain grey subtitle: in .chead, and under the artist hero */
+  .csub { margin: 0; padding: 0 16px; font: var(--f-body-m); color: var(--on-surface-variant); }
+  .hero + .csub { margin-top: 12px; }
+
+  /* control row (ui/CollectionScreens.kt:189-231) */
+  .ctrl { display: flex; align-items: center; padding: 6px 16px; }
+  .ctrl .thumb { width: 34px; height: 44px; border-radius: 4px; overflow: hidden; position: relative; flex: none;
+                 background: var(--sc-highest); }
+  .ctrl .thumb .cv { position: absolute; width: 44px; left: -5px; top: 0; }
+  .ctrl > .ib { color: var(--on-surface-variant); }           /* add to playlist, shuffle */
+  .ctrl > .ib.plain { color: var(--on-surface); }             /* playlist extras: add songs, reorder */
+  .ctrl > .ib.on { color: var(--primary); }                   /* shuffle on for this collection */
+  .ctrl .playc { margin-left: 8px; }
+
+  /* artist hero (ui/CollectionScreens.kt:310-327) */
+  .hero { position: relative; aspect-ratio: 1.05; overflow: hidden; }
+  .hero .cv { position: absolute; left: 0; top: 50%; width: 100%; transform: translateY(-50%); }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, var(--k72) 100%); }
+  .hero h1 { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; margin: 0; padding: 8px 16px;
+             color: var(--white); font: 700 44px/48px 'Figtree', sans-serif; letter-spacing: var(--tight);
+             display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+  /* album footer: "6 songs • 26 min" */
+  .foot { margin: 0; padding: 16px; font: var(--f-title-s); }
+
+  /* ── Now Playing (ui/NowPlaying.kt:210-600) ─────────────────────────────── */
+  /* <div class="screen bleed theme-dark art-<key>"> holds .np-page then .np-cards */
+  .np-page { height: 844px; display: flex; flex-direction: column; color: var(--white);
+             padding: var(--sb) 24px var(--nav);
+             background: linear-gradient(180deg, var(--art) 0, color-mix(in srgb, var(--black) 72%, var(--art)) 72%, var(--background) 100%); }
+  .np-head { display: flex; align-items: center; margin-top: 4px; }
+  .np-head > .ib:first-child { margin-left: -12px; }
+  .np-head > .ib:last-child { margin-right: -12px; }
+  .np-head .ctx { flex: 1; min-width: 0; text-align: center; }
+  .np-head .ctx small { display: block; font: var(--f-label-s); color: var(--w70); }
+  .np-head .ctx b { display: block; font: var(--f-title-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-cover { aspect-ratio: 1; flex: none; display: flex; align-items: center; justify-content: center; }
+  .np-cover > .cv, .np-cover > .noart { width: 100%; border-radius: 8px; }
+  .np-cover.paused > .cv, .np-cover.paused > .noart { width: calc(100% - 28px); }   /* 14dp inset while paused */
+  .np-lyric { margin: 0 0 12px; font: var(--f-title-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-title { display: flex; align-items: center; }
+  .np-title .tx { flex: 1; min-width: 0; }
+  .np-title h1 { margin: 0 0 2px; font: var(--f-headline); letter-spacing: var(--tight);
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-title p { margin: 0; font: var(--f-body-l); color: var(--w70); white-space: nowrap; overflow: hidden; }
+  .np-title > .ib { margin-right: -10px; --s: 28px; }
+
+  /* seek bar (ui/NowPlaying.kt:471-516). --p is the elapsed share. .scrub while dragged. */
+  .seek { --p: 32.3%; height: 28px; position: relative; margin-top: 12px; }
+  .seek::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px;
+                  border-radius: 1.5px; background: var(--w25); }
+  .seek i { position: absolute; left: 0; top: 50%; width: var(--p); height: 3px; margin-top: -1.5px;
+            border-radius: 1.5px; background: var(--white); }
+  .seek i::after { content: ""; position: absolute; right: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+                   border-radius: 50%; background: inherit; }
+  .seek.scrub i { background: var(--primary); }
+  .seek.scrub i::after { right: -8px; width: 16px; height: 16px; margin-top: -8px; }
+  .times { display: flex; justify-content: space-between; font: var(--f-label-m); color: var(--w70); }
+
+  /* transport row and its toggles (ui/NowPlaying.kt:395-439) */
+  .transport { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+  .tog.on { color: var(--primary); }
+  .tog.on::after { content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: 14px 0 0 -2px;
+                   border-radius: 50%; background: currentColor; }
+
+  /* bottom row: "Downloaded" and the queue button */
+  .np-foot { display: flex; align-items: center; padding: 6px 0 4px; font: var(--f-label-m); color: var(--primary); }
+  .np-foot .dl { margin-right: 6px; }
+  .np-foot > .ib { margin-left: auto; margin-right: -10px; color: var(--white); }
+
+  /* the cards under the player page */
+  .np-cards { display: flex; flex-direction: column; gap: 14px; padding: 0 16px calc(24px + var(--nav));
+              background: var(--background); color: var(--white); }
+
+  /* lyrics card (ui/LyricsScreen.kt:90-155) */
+  .lyr-card { border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+              background: color-mix(in srgb, var(--white) 10%, var(--art)); color: var(--white); }
+  .lyr-card h3 { margin: 0; font: var(--f-title-s); }
+  .lyr-card .ln { margin: 0; font: 700 22px/28px 'Figtree', sans-serif; color: var(--w55);
+                  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .lyr-card .ln.now { color: var(--white); }
+  .lyr-card .plain { margin: 0; font: 700 22px/28px 'Figtree', sans-serif; white-space: pre-line;
+                     display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+  .lyr-card .msg { margin: 0; font: var(--f-body-m); color: var(--w80); }
+  .lyr-card .msg.big { font: var(--f-body-l); color: var(--white); }           /* "This song is instrumental." */
+  .lyr-card .pill { margin-top: 14px; }                                        /* 4dp spacer plus the column gap */
+  /* white pill: "Show lyrics" */
+  .pill { display: inline-block; padding: 8px 16px; border-radius: 999px; background: var(--white); color: var(--black);
+          font: var(--f-label-l); }
+
+  /* "About the artist" card (ui/NowPlaying.kt:549-575) */
+  .about { border-radius: 10px; overflow: hidden; background: var(--np-card); color: var(--white); }
+  .about .img { position: relative; aspect-ratio: 1.35; overflow: hidden; }
+  .about .img .cv { position: absolute; left: 0; top: 50%; width: 100%; transform: translateY(-50%); }
+  .about .img span { position: absolute; left: 16px; top: 16px; font: var(--f-title-s); }
+  .about .b { padding: 16px; }
+  .about .b b { display: block; font: var(--f-title-l); letter-spacing: var(--tight); }
+  .about .b span { font: var(--f-body-m); color: var(--w70); }
+
+  /* "Credits" card (ui/NowPlaying.kt:577-600) */
+  .credits { border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+             background: var(--np-card); color: var(--white); }
+  .credits h3 { margin: 0; font: var(--f-title-m); }
+  .credits div b { display: block; font: var(--f-body-l); }
+  .credits div span { display: block; font: var(--f-body-s); color: var(--w70); }
+
+  /* compact header once the page has scrolled 55% (ui/NowPlaying.kt:518-545) */
+  .np-sticky { position: absolute; top: 0; left: 0; right: 0; z-index: 4; padding-top: var(--sb); color: var(--white);
+               background: color-mix(in srgb, var(--black) 55%, var(--art)); }
+  .np-sticky .r { display: flex; align-items: center; padding: 6px 4px 6px 16px; }
+  .np-sticky .tx { flex: 1; min-width: 0; }
+  .np-sticky .t { font: var(--f-title-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-sticky .s { font: var(--f-body-s); color: var(--w70); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-sticky .p { height: 2px; background: var(--w20); }
+  .np-sticky .p i { display: block; height: 100%; width: var(--p, 32.3%); background: var(--white); }
+
+  /* ── full-screen lyrics (ui/LyricsScreen.kt:176-254) ────────────────────── */
+  /* <div class="screen theme-dark art-<key> lyr-screen"> */
+  .lyr-screen { background: var(--art); color: var(--white); display: flex; flex-direction: column; padding-bottom: var(--nav); }
+  .lyr-head { display: flex; align-items: center; padding: 0 4px; }
+  .lyr-head .ctx { flex: 1; min-width: 0; text-align: center; margin-right: 48px; }
+  .lyr-head .ctx b { display: block; font: var(--f-title-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lyr-head .ctx small { display: block; font: var(--f-body-s); color: var(--w75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lyr-body { flex: 1; min-height: 0; overflow: hidden; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .lyr-body .ln { margin: 0; font: 700 26px/33px 'Figtree', sans-serif; color: var(--k75); }   /* not yet sung */
+  .lyr-body .ln.sung { color: var(--white); }
+  .lyr-body .plain { margin: 0; font: 700 24px/33px 'Figtree', sans-serif; white-space: pre-line; }
+  .lyr-body.center { align-items: center; justify-content: center; }
+  .lyr-foot { display: flex; justify-content: center; padding: 8px 16px; }
+
+  /* ── bottom sheets (ui/Sheets.kt) ───────────────────────────────────────── */
+  /* scrim, then .sheet. Stock Material 3 modal sheet on surfaceContainer. */
+  .scrim { position: absolute; inset: 0; z-index: 7; background: var(--k32); }
+  .scrim.dialog { background: var(--k60); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8; border-radius: 28px 28px 0 0;
+           background: var(--sc); color: var(--on-surface); padding-bottom: calc(var(--nav) + 8px); overflow: hidden; }
+  .sheet::before { content: ""; display: block; width: 32px; height: 4px; margin: 22px auto; border-radius: 2px;
+                   background: var(--on-surface-variant); }
+  .sheet.flush { padding-bottom: var(--nav); }                 /* pickers: no extra 8dp */
+  .sheet.tall { height: 92%; padding-bottom: var(--nav); }     /* Add songs */
+  .sheet-head { display: flex; align-items: center; padding: 8px 20px; }      /* track menu: cover, title, artist */
+  .sheet-head .cv { width: 48px; border-radius: 4px; margin-right: 12px; }
+  .sheet-head .tx { flex: 1; min-width: 0; }
+  .sheet-head .t { font: var(--f-title-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet-head .s { font: var(--f-body-m); color: var(--on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet-title { margin: 0; padding: 8px 20px; font: var(--f-title-l); letter-spacing: var(--tight); }
+  .sheet.tall .sheet-title { padding: 8px 16px; }
+  .divider { height: 1px; margin: 6px 0; background: var(--outline-variant); }
+  .srow { display: flex; align-items: center; padding: 13px 20px; font: var(--f-body-l); }
+  .srow .ic { margin-right: 16px; color: var(--on-surface-variant); }
+
+  /* ── dialog, dropdown, snackbar (stock Material 3) ──────────────────────── */
+  .dialog { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 8; width: 328px;
+            padding: 24px; border-radius: 28px; background: var(--sc); color: var(--on-surface-variant); font: var(--f-body-m); }
+  .dialog h2 { margin: 0 0 16px; font: var(--f-title-l); letter-spacing: var(--tight); color: var(--on-surface); }
+  .dialog p { margin: 0; }
+  .dialog .acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+
+  /* outlined text field, focused, label floated */
+  .ofield { position: relative; width: 280px; height: 56px; margin-top: 8px; padding: 0 15px; border-radius: 4px;
+            border: 2px solid var(--primary); display: flex; align-items: center;
+            font: var(--f-body-l); color: var(--on-surface); }
+  .ofield label { position: absolute; left: 10px; top: -9px; padding: 0 4px; background: var(--sc);
+                  font: var(--f-body-s); color: var(--primary); }
+  .ofield .caret { display: inline-block; width: 2px; height: 20px; margin-left: 1px; background: var(--primary); }
+
+  .menu { position: absolute; z-index: 8; min-width: 112px; padding: 8px 0; border-radius: 4px;
+          background: var(--sc); color: var(--on-surface); box-shadow: var(--shadow-menu); }
+  .menu .mi { display: flex; align-items: center; height: 48px; padding: 0 12px; font: var(--f-label-l); white-space: nowrap; }
+  .menu .mi .ic { margin-right: 12px; color: var(--on-surface-variant); }
+
+  /* snackbar (ui/AppRoot.kt:290-302): above the bars, or .over 48dp up when an overlay is open */
+  .snack { position: absolute; left: 12px; right: 12px; z-index: 7; min-height: 48px; padding: 14px 16px; border-radius: 4px;
+           bottom: calc(var(--mini-h) + var(--tab-h) + var(--nav) + 12px);
+           background: var(--inverse-surface); color: var(--inverse-on-surface); font: var(--f-body-m);
+           box-shadow: var(--shadow-snack); }
+  .snack.over { bottom: 60px; }
+  .snack.no-mini { bottom: calc(var(--tab-h) + var(--nav) + 12px); }
+
+  /* ── stock Material controls, coloured by the theme ─────────────────────── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 24px;
+         border-radius: 20px; background: var(--primary); color: var(--on-primary); font: var(--f-label-l); white-space: nowrap; }
+  .btn.text { padding: 0 12px; background: none; color: var(--primary); }
+  .btn.text.off { color: color-mix(in srgb, var(--on-surface) 38%, transparent); }
+
+  .switch { position: relative; width: 52px; height: 32px; flex: none; border-radius: 16px;
+            border: 2px solid var(--outline); background: var(--sc-highest); }
+  .switch::before { content: ""; position: absolute; left: 6px; top: 50%; width: 16px; height: 16px; margin-top: -8px;
+                    border-radius: 50%; background: var(--outline); }
+  .switch.on { border-color: var(--primary); background: var(--primary); }
+  .switch.on::before { left: auto; right: 2px; width: 24px; height: 24px; margin-top: -12px; background: var(--on-primary); }
+
+  .radio { width: 48px; height: 48px; flex: none; display: inline-flex; align-items: center; justify-content: center; }
+  .radio::before { content: ""; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--on-surface-variant); }
+  .radio.on::before { border-color: var(--primary); background: radial-gradient(circle, var(--primary) 0 5px, transparent 5.5px); }
+
+  /* linear progress: --p is the done share. Track, 4dp gap and stop dot as Material 3 draws them. */
+  .prog { --p: 40%; position: relative; display: flex; gap: 4px; height: 4px; margin: 0 16px; }
+  .prog i { width: var(--p); height: 4px; border-radius: 2px; background: var(--primary); }
+  .prog::before { content: ""; order: 2; flex: 1; height: 4px; border-radius: 2px; background: var(--secondary-container); }
+  .prog::after { content: ""; position: absolute; right: 0; top: 0; width: 4px; height: 4px; border-radius: 50%; background: var(--primary); }
+
+  /* circular progress, drawn mid-turn. .white on tinted surfaces. .center wraps one. */
+  .spin { width: 40px; height: 40px; border-radius: 50%; flex: none; color: var(--primary);
+          background: conic-gradient(from 40deg, currentColor 0 62%, transparent 0);
+          -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), var(--black) calc(100% - 3.5px));
+                  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), var(--black) calc(100% - 3.5px)); }
+  .spin.white { color: var(--white); }
+  .center { display: flex; align-items: center; justify-content: center; }
+  .center.fill { position: absolute; inset: 0; }               /* loading screen */
+  .center.pad { padding: 48px; }                               /* Wrapped loading */
+
+  /* ── Settings (ui/SettingsScreen.kt) ────────────────────────────────────── */
+  /* a section is .sec then its rows and paragraphs */
+  .opt { display: flex; align-items: center; padding: 4px 16px; font: var(--f-body-l); }     /* radio option row */
+  .opt .lbl { flex: 1; margin: 0; font: var(--f-body-l); color: inherit; }
+  .setrow { display: flex; align-items: center; gap: 12px; padding: 0 16px 12px; }           /* label, description, switch */
+  .setrow .tx { flex: 1; min-width: 0; }
+  .setrow .t { font: var(--f-body-l); }
+  .setrow .s { font: var(--f-body-s); color: var(--on-surface-variant); }
+  .para { margin: 0; padding: 0 16px; font: var(--f-body-m); color: var(--on-surface-variant); }
+  .para.small { font: var(--f-body-s); }
+  .para.status { font: var(--f-body-s); color: var(--on-surface); padding-top: 6px; }       /* progress status line */
+  .setbtn-row { padding: 0 4px; }                                                            /* holds a .btn.text */
+
+  /* ── empty state (ui/Components.kt:277-297) ─────────────────────────────── */
+  .empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 32px; }
+  .empty h2 { margin: 0; font: var(--f-title-l); letter-spacing: var(--tight); }
+  .empty p { margin: 0; font: var(--f-body-m); color: var(--on-surface-variant); }
+  .empty .btn { margin-top: 8px; }
+
+  /* ── Wrapped page parts (ui/WrappedScreen.kt) ───────────────────────────── */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 16px; }
+  .stat { border-radius: 8px; padding: 12px 14px; background: var(--sc); min-width: 0; }
+  .stat b { display: block; font: var(--f-headline); letter-spacing: var(--tight); white-space: nowrap; }
+  .stat span { display: block; font: var(--f-body-s); color: var(--on-surface-variant); }
+
+  .banner { margin: 8px 16px; padding: 20px; border-radius: 12px; background: var(--plum); }
+  .banner h2 { margin: 0 0 6px; font: var(--f-display-s); font-weight: 800; letter-spacing: var(--tight); color: var(--marigold); }
+  .banner p { margin: 0 0 16px; font: var(--f-body-m); color: var(--w85); }
+  .banner .go { display: inline-flex; align-items: center; padding: 9px 18px 9px 12px; border-radius: 999px;
+                background: var(--pink); color: var(--plum); font: var(--f-label-l); }
+  .banner .go .ic { margin-right: 4px; }
+
+  .langbar { display: flex; height: 18px; margin: 0 16px 12px; border-radius: 9px; overflow: hidden; }
+  .langrow { display: flex; align-items: center; padding: 4px 16px; font: var(--f-body-l); }
+  .langrow i { width: 10px; height: 10px; border-radius: 50%; margin-right: 10px; flex: none; }
+  .langrow span { flex: 1; }
+  .langrow em { font: var(--f-body-m); color: var(--on-surface-variant); }
+  .lg-tamil { background: var(--lang-tamil); } .lg-hindi { background: var(--lang-hindi); }
+  .lg-english { background: var(--lang-english); } .lg-telugu { background: var(--lang-telugu); }
+  .lg-malayalam { background: var(--lang-malayalam); } .lg-kannada { background: var(--lang-kannada); }
+  .lg-novocals { background: var(--lang-novocals); } .lg-other { background: var(--lang-other); }
+
+  /* story chrome: progress segments and the pill buttons under a card (ui/WrappedScreen.kt:371-486) */
+  .segs { display: flex; gap: 4px; padding: 10px 12px; }
+  .segs i { flex: 1; height: 3px; border-radius: 1.5px; background: var(--w30); overflow: hidden; }
+  .segs i.done { background: var(--white); }
+  .segs i.now { background: linear-gradient(90deg, var(--white) var(--p, 40%), var(--w30) 0); }
+  .spill { display: inline-flex; align-items: center; padding: 10px 18px 10px 14px; border-radius: 999px;
+           background: var(--w14); color: var(--white); font: var(--f-label-l); }
+  .spill .ic { --s: 20px; margin-right: 6px; }
+  .spill.solid { background: var(--white); color: var(--black); }
+}

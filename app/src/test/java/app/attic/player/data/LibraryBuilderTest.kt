@@ -16,10 +16,13 @@ class LibraryBuilderTest {
         artist: String? = null,
         album: String? = null,
         track: String? = null,
-    ) = RawTrack(nextId++, file, "${LibraryBuilder.ROOT}$path", title, artist, album, track, 1000, null, 0)
+    ) = RawTrack(nextId++, file, "Music/Offline/$path", title, artist, album, track, 1000, null, 0)
+
+    /** These tests are about tag cleanup, so they fix the owner's root instead of detecting one. */
+    private fun build(rows: List<RawTrack>) = LibraryBuilder.build(rows, root = "Music/Offline/")
 
     private fun rip(path: String, title: String, artist: String) =
-        LibraryBuilder.build(listOf(raw("$path/", "x [kTpyO8iwlSY].mp3", title, artist, path))).tracks.single()
+        build(listOf(raw("$path/", "x [kTpyO8iwlSY].mp3", title, artist, path))).tracks.single()
 
     @Test
     fun `strips only eleven character youtube ids`() {
@@ -30,7 +33,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `missing tags fall back to the cleaned filename and folder artist`() {
-        val t = LibraryBuilder.build(
+        val t = build(
             listOf(raw("Coldplay/Parachutes/", "05 Yellow [kTpyO8iwlSY].mp3", null, "<unknown>", "Parachutes")),
         ).tracks.single()
         assertEquals("Yellow", t.title)
@@ -40,7 +43,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `title that mediastore copied from the filename is cleaned like a filename`() {
-        val t = LibraryBuilder.build(
+        val t = build(
             listOf(raw("Test Artist/Test Album/", "07 Fallback Song.mp3", "07 Fallback Song", "<unknown>", "Test Album")),
         ).tracks.single()
         assertEquals("Fallback Song", t.title)
@@ -50,7 +53,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `untagged file in a themed folder has unknown artist and no album`() {
-        val t = LibraryBuilder.build(listOf(raw("Hindi/", "Gulabi [kTpyO8iwlSY].mp3", null, null, "Hindi"))).tracks.single()
+        val t = build(listOf(raw("Hindi/", "Gulabi [kTpyO8iwlSY].mp3", null, null, "Hindi"))).tracks.single()
         assertEquals("Gulabi", t.title)
         assertEquals("Unknown artist", t.artist)
         assertNull(t.album)
@@ -59,14 +62,14 @@ class LibraryBuilderTest {
 
     @Test
     fun `album placeholder from mediastore is not an album`() {
-        val lib = LibraryBuilder.build(listOf(raw("English/", "a.mp3", "Avicii - The Nights", "Avicii", "English")))
+        val lib = build(listOf(raw("English/", "a.mp3", "Avicii - The Nights", "Avicii", "English")))
         assertTrue(lib.albums.isEmpty())
         assertEquals(listOf("English"), lib.folders.map { it.name })
     }
 
     @Test
     fun `themed folders are playlists not artists`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("English/", "a.mp3", "Avicii - The Nights", "Avicii", "English"),
                 raw("Phonk/", "b.mp3", "KORDHELL - SOUL", "KORDHELL", "Phonk"),
@@ -81,7 +84,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `various artists is not an artist but its performers are`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(raw("Various Artists/Tamasha/", "x.mp3", "AGAR TUM SAATH HO", "Alka Yagnik & Arijit Singh", "Tamasha")),
         )
         assertEquals(listOf("Alka Yagnik", "Arijit Singh"), lib.artists.map { it.name })
@@ -91,7 +94,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `artist spellings merge and folder name wins`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("A. R. Rahman/Roja/", "a.mp3", "Song", "A. R. Rahman & Naresh Iyer", "Roja"),
                 raw("Hindi/", "b.mp3", "Other", "RASHID ALI, A.R. RAHMAN", "Jaane Tu"),
@@ -105,7 +108,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `folder stand-in characters defer to the tagged artist spelling`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(raw("Axwell -- Ingrosso/More Than You Know/", "a.mp3", "More Than You Know", """Axwell /\ Ingrosso, Sebastian Ingrosso""", "More Than You Know")),
         )
         assertTrue("""Axwell /\ Ingrosso""" in lib.artists.map { it.name })
@@ -114,7 +117,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `themed single joins the full album of the same name`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("Various Artists/Yeh Jawaani Hai Deewani/", "a.mp3", "Balam Pichkari", "Vishal Dadlani", "Yeh Jawaani Hai Deewani"),
                 raw("Hindi/", "b [pnJriqNxpcc].mp3", "Subhanallah", "Pritam, Sreeram", "Yeh Jawaani Hai Deewani"),
@@ -127,7 +130,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `album sorts by track number and ignores a junk number shared by all`() {
-        val ordered = LibraryBuilder.build(
+        val ordered = build(
             listOf(
                 raw("S/D/", "11 Ramba Ho.mp3", "Ramba Ho", "M", "D", "11"),
                 raw("S/D/", "05 Run.mp3", "Run", "R", "D", "5"),
@@ -135,7 +138,7 @@ class LibraryBuilderTest {
         ).albums.single().tracks.map { it.title }
         assertEquals(listOf("Run", "Ramba Ho"), ordered)
 
-        val junk = LibraryBuilder.build(
+        val junk = build(
             listOf(raw("H/A/", "b.mp3", "B", "H", "A", "7"), raw("H/A/", "a.mp3", "A", "H", "A", "7")),
         ).albums.single().tracks
         assertEquals(listOf("A", "B"), junk.map { it.title })
@@ -144,13 +147,13 @@ class LibraryBuilderTest {
 
     @Test
     fun `track number past any real album length is discarded`() {
-        val t = LibraryBuilder.build(listOf(raw("H/A/", "a.mp3", "A", "H", "A", "63"))).tracks.single()
+        val t = build(listOf(raw("H/A/", "a.mp3", "A", "H", "A", "63"))).tracks.single()
         assertNull(t.trackNumber)
     }
 
     @Test
     fun `feat in an artist tag splits credits and repeated names are dropped`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("The Weeknd/Starboy/", "a.mp3", "Die For You", "The Weeknd feat. Anitta", "Starboy"),
                 raw("Hindi/", "b.mp3", "Ajab Si", "Vishal-Shekhar, K.K., Vishal-Shekhar", "Om Shanti Om"),
@@ -162,7 +165,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `tagged title drops a redundant artist prefix but keeps real dashes`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("OneRepublic/Top Gun/", "a.mp3", "OneRepublic - I Ain't Worried", "OneRepublic", "Top Gun"),
                 raw("S/D/", "b.mp3", "Run Down the City - Monica", "Reble", "D"),
@@ -192,7 +195,7 @@ class LibraryBuilderTest {
 
     @Test
     fun `rip credits collaborators and featured artists`() {
-        val lib = LibraryBuilder.build(
+        val lib = build(
             listOf(
                 raw("English/", "a.mp3", "Sean Paul - No Lie ft. Dua Lipa", "Sean Paul", "English"),
                 raw("Phonk/", "b.mp3", "KORDHELL x DUDEPLAYA - SOUL", "KORDHELL", "Phonk"),
@@ -231,14 +234,14 @@ class LibraryBuilderTest {
 
     @Test
     fun `uploader channels without a parsed artist never become browsable artists`() {
-        val lib = LibraryBuilder.build(listOf(raw("Phonk/", "a.mp3", "miguel phonk", "Adrenaline Rush 🅥 ", "Phonk")))
+        val lib = build(listOf(raw("Phonk/", "a.mp3", "miguel phonk", "Adrenaline Rush 🅥 ", "Phonk")))
         assertTrue(lib.artists.isEmpty())
         assertEquals("Adrenaline Rush 🅥", lib.tracks.single().artist)
     }
 
     @Test
     fun `key is the stable path and not the mediastore id`() {
-        val t = LibraryBuilder.build(listOf(raw("Hindi/", "G.mp3", "G", "A", "Hindi"))).tracks.single()
+        val t = build(listOf(raw("Hindi/", "G.mp3", "G", "A", "Hindi"))).tracks.single()
         assertEquals("Music/Offline/Hindi/G.mp3", t.key)
     }
 }

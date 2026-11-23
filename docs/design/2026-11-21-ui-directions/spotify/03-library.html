@@ -1,0 +1,556 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Your Library · today</title>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  .why{min-height:6.32em}
+  .sublabel{color:#98a2ad;font-size:11.5px;font-weight:600;margin:14px 0 6px 2px}
+  .sublabel:first-of-type{margin-top:0}
+  .libstrip.gap{margin-top:8px}
+  /* kit.css styles .dialog as the dialog box, and the scrim's modifier class is also "dialog", so the scrim
+     picks up the box's size, position and corners. Put it back to a full-frame dim. */
+  .phone .scrim.dialog{inset:0;width:auto;padding:0;border-radius:0;transform:none}
+</style>
+
+<div class="intro">
+  <h1>Your Library</h1>
+  <div class="date">2026-11-21 · UI directions · spotify · sheet 03</div>
+  <p>Your Library as it ships today, redrawn from <code>ui/LibraryScreen.kt</code>, <code>ui/SearchScreen.kt</code>
+     (the result row) and <code>ui/Sheets.kt</code> (the name dialog). This is the baseline the three proposals are
+     compared against, not a design. Where the current screen is awkward it is drawn awkward.</p>
+  <p><code>library.png</code> is the only screenshot of this screen and shows the list scrolled down to the artists.
+     Grid view, the "Downloaded" filter and the dialog have no screenshot and are drawn from the code.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · List, no filter</p>
+  <p class="why">No chip is selected by default. The list runs Liked Songs, the two user playlists, the four folders, then artists and albums by how recently they were played. Folders and user playlists carry the same "Playlist" label and cannot be told apart here.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="liked"><i class="ic">favorite</i></div><div class="tx"><div class="t">Liked Songs</div><div class="s">Playlist, 31 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-manmarziyaan"></div><div class="cv art-troubadour"></div></div><div class="tx"><div class="t">Late drive</div><div class="s">Playlist, 12 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-anbe"></div><div class="cv art-jodhaa"></div><div class="cv art-raanjhanaa"></div></div><div class="tx"><div class="t">Rahman, slow</div><div class="s">Playlist, 9 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div class="tx"><div class="t">English</div><div class="s">Playlist, 24 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div class="tx"><div class="t">Hindi</div><div class="s">Playlist, 46 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div class="tx"><div class="t">Phonk</div><div class="s">Playlist, 38 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div class="tx"><div class="t">Tamil</div><div class="s">Playlist, 19 songs</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Khan Saab</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-anbe round"></div><div class="tx"><div class="t">A. R. Rahman</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Javed Ali</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">B · Grid view</p>
+  <p class="why">The same items, three to a row. Artist tiles are round and centre their labels; the rest are square and left-aligned. A name long enough to wrap fills the tile and reads left-aligned, as "Shashwat Sachdev" does in the third row.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">view_list</i></span></div>
+<div class="libgrid">
+<div class="gtile"><div class="liked"><i class="ic">favorite</i></div><div class="t">Liked Songs</div><div class="s">Playlist, 31 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-manmarziyaan"></div><div class="cv art-troubadour"></div></div><div class="t">Late drive</div><div class="s">Playlist, 12 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-anbe"></div><div class="cv art-jodhaa"></div><div class="cv art-raanjhanaa"></div></div><div class="t">Rahman, slow</div><div class="s">Playlist, 9 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div class="t">English</div><div class="s">Playlist, 24 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div class="t">Hindi</div><div class="s">Playlist, 46 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div class="t">Phonk</div><div class="s">Playlist, 38 songs</div></div>
+<div class="gtile"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div class="t">Tamil</div><div class="s">Playlist, 19 songs</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Khan Saab</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-anbe round"></div><div class="t">A. R. Rahman</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-rockstar round"></div><div class="t">Javed Ali</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-rockstar round"></div><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-ghost round"></div><div class="t">KIIXSHI</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-ghost round"></div><div class="t">phonk.me</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-premam round"></div><div class="t">Vijay Yesudas</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-lootera round"></div><div class="t">Amit Trivedi</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-lootera round"></div><div class="t">Amitabh Bhattacharya</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Arijit Singh</div><div class="s">Artist</div></div>
+</div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">C · "Downloaded": every song</p>
+  <p class="why">The fourth chip swaps the collection list for all 127 songs. The label becomes the sort control, cycling Title, Artist, Recently added, and the grid toggle is replaced by "Shuffle all songs". Nothing here is downloaded: every song is a local file.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip on">Downloaded</span></div>
+<div class="sortrow songs"><i class="ic s18">sort</i><span class="lbl">Title, 127 songs</span><span class="ib"><i class="ic">shuffle</i></span></div>
+<div class="row"><div class="cv art-revenge"></div><div class="tx"><div class="t">Aakhri Ishq</div><div class="s"><span class="dl"></span>Jubin Nautiyal</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-revenge"></div><div class="tx"><div class="t">Aari Aari</div><div class="s"><span class="dl"></span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-anbe"></div><div class="tx"><div class="t">Aaruyire</div><div class="s"><span class="dl"></span>A. R. Rahman</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-dreams"></div><div class="tx"><div class="t">Adventure of a Lifetime</div><div class="s"><span class="dl"></span>Coldplay</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-oso"></div><div class="tx"><div class="t">Ajab Si</div><div class="s"><span class="dl"></span>Vishal-Shekhar</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-premam"></div><div class="tx"><div class="t">Aluva Puzha</div><div class="s"><span class="dl"></span>Rajesh Murugesan</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-yjhd"></div><div class="tx"><div class="t">Badtameez Dil</div><div class="s"><span class="dl"></span>Pritam</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-yjhd"></div><div class="tx"><div class="t">Balam Pichkari</div><div class="s"><span class="dl"></span>Pritam</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-raanjhanaa"></div><div class="tx"><div class="t">Banarasiya</div><div class="s"><span class="dl"></span>A. R. Rahman</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-manmarziyaan"></div><div class="tx"><div class="t">Daryaa</div><div class="s"><span class="dl"></span>Amit Trivedi</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-oso"></div><div class="tx"><div class="t">Deewangi Deewangi</div><div class="s"><span class="dl"></span>Vishal-Shekhar</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+<div class="row"><div class="cv art-dhurandhar"></div><div class="tx"><div class="t">Dhurandhar Title Track</div><div class="s"><span class="dl"></span>Shashwat Sachdev</div></div><span class="ib"><i class="ic">more_vert</i></span></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">D · Create playlist</p>
+  <p class="why">The "+" in the header opens a stock Material dialog. The field takes focus on open, so its label sits on the border, and "Create" is disabled until a name is typed. Confirming creates the playlist and opens it.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="liked"><i class="ic">favorite</i></div><div class="tx"><div class="t">Liked Songs</div><div class="s">Playlist, 31 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-manmarziyaan"></div><div class="cv art-troubadour"></div></div><div class="tx"><div class="t">Late drive</div><div class="s">Playlist, 12 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-anbe"></div><div class="cv art-jodhaa"></div><div class="cv art-raanjhanaa"></div></div><div class="tx"><div class="t">Rahman, slow</div><div class="s">Playlist, 9 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div class="tx"><div class="t">English</div><div class="s">Playlist, 24 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div class="tx"><div class="t">Hindi</div><div class="s">Playlist, 46 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div class="tx"><div class="t">Phonk</div><div class="s">Playlist, 38 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div class="tx"><div class="t">Tamil</div><div class="s">Playlist, 19 songs</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Khan Saab</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-anbe round"></div><div class="tx"><div class="t">A. R. Rahman</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Javed Ali</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+<div class="scrim dialog"></div>
+<div class="dialog">
+  <h2>Give your playlist a name</h2>
+  <div class="ofield"><label>Playlist name</label><i class="caret"></i></div>
+  <div class="acts"><span class="btn text">Cancel</span><span class="btn text off">Create</span></div>
+</div>
+<div class="gpill"></div>
+</div>
+</div>
+</div>
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">E · "Playlists"</p>
+  <p class="why">Liked Songs, user playlists and folders: seven rows, then empty space. The chip turns green; tapping it again clears the filter.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip on">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="liked"><i class="ic">favorite</i></div><div class="tx"><div class="t">Liked Songs</div><div class="s">Playlist, 31 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-manmarziyaan"></div><div class="cv art-troubadour"></div></div><div class="tx"><div class="t">Late drive</div><div class="s">Playlist, 12 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-anbe"></div><div class="cv art-jodhaa"></div><div class="cv art-raanjhanaa"></div></div><div class="tx"><div class="t">Rahman, slow</div><div class="s">Playlist, 9 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div class="tx"><div class="t">English</div><div class="s">Playlist, 24 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div class="tx"><div class="t">Hindi</div><div class="s">Playlist, 46 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div class="tx"><div class="t">Phonk</div><div class="s">Playlist, 38 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div class="tx"><div class="t">Tamil</div><div class="s">Playlist, 19 songs</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">F · "Albums"</p>
+  <p class="why">Every album, most recently played first and the rest by name. Singles are listed as "Album" here; the word "Single" appears only on the album screen.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip on">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="cv art-revenge"></div><div class="tx"><div class="t">Dhurandhar: The Revenge</div><div class="s">Album, Shashwat Sachdev</div></div></div>
+<div class="res lib"><div class="cv art-rockstar"></div><div class="tx"><div class="t">Rockstar</div><div class="s">Album, A. R. Rahman</div></div></div>
+<div class="res lib"><div class="cv art-ghost"></div><div class="tx"><div class="t">GHOST!</div><div class="s">Album, phonk.me, KIIXSHI</div></div></div>
+<div class="res lib"><div class="cv art-premam"></div><div class="tx"><div class="t">Premam</div><div class="s">Album, Rajesh Murugesan</div></div></div>
+<div class="res lib"><div class="cv art-dreams"></div><div class="tx"><div class="t">A Head Full of Dreams</div><div class="s">Album, Coldplay</div></div></div>
+<div class="res lib"><div class="cv art-anbe"></div><div class="tx"><div class="t">Anbe Aaruyire</div><div class="s">Album, A. R. Rahman</div></div></div>
+<div class="res lib"><div class="cv art-dhurandhar"></div><div class="tx"><div class="t">Dhurandhar</div><div class="s">Album, Shashwat Sachdev</div></div></div>
+<div class="res lib"><div class="cv art-jodhaa"></div><div class="tx"><div class="t">Jodhaa Akbar</div><div class="s">Album, A. R. Rahman</div></div></div>
+<div class="res lib"><div class="cv art-lootera"></div><div class="tx"><div class="t">Lootera</div><div class="s">Album, Amit Trivedi</div></div></div>
+<div class="res lib"><div class="cv art-manmarziyaan"></div><div class="tx"><div class="t">Manmarziyaan</div><div class="s">Album, Amit Trivedi</div></div></div>
+<div class="res lib"><div class="cv art-oso"></div><div class="tx"><div class="t">Om Shanti Om</div><div class="s">Album, Vishal-Shekhar</div></div></div>
+<div class="res lib"><div class="cv art-raanjhanaa"></div><div class="tx"><div class="t">Raanjhanaa</div><div class="s">Album, A. R. Rahman</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">G · "Artists"</p>
+  <p class="why">Every credited name is its own artist, each shown with the cover of one of their songs, so collaborators on one album repeat the same picture.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip on">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Khan Saab</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-anbe round"></div><div class="tx"><div class="t">A. R. Rahman</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Javed Ali</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-ghost round"></div><div class="tx"><div class="t">KIIXSHI</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-ghost round"></div><div class="tx"><div class="t">phonk.me</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-premam round"></div><div class="tx"><div class="t">Vijay Yesudas</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-lootera round"></div><div class="tx"><div class="t">Amit Trivedi</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-lootera round"></div><div class="tx"><div class="t">Amitabh Bhattacharya</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Arijit Singh</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Bombay Rockers</div><div class="s">Artist</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag light">light</span></div>
+  <p class="cap">H · Frame A, light</p>
+  <p class="why">Chips and the settings button go to light grey, text to <code>#121212</code>. The Liked Songs gradient, the mosaics and the mini player do not change.</p>
+<div class="phone light">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div>
+<div class="res lib"><div class="liked"><i class="ic">favorite</i></div><div class="tx"><div class="t">Liked Songs</div><div class="s">Playlist, 31 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-uddgaye"></div><div class="cv art-viva"></div><div class="cv art-manmarziyaan"></div><div class="cv art-troubadour"></div></div><div class="tx"><div class="t">Late drive</div><div class="s">Playlist, 12 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-rockstar"></div><div class="cv art-anbe"></div><div class="cv art-jodhaa"></div><div class="cv art-raanjhanaa"></div></div><div class="tx"><div class="t">Rahman, slow</div><div class="s">Playlist, 9 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div class="tx"><div class="t">English</div><div class="s">Playlist, 24 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div class="tx"><div class="t">Hindi</div><div class="s">Playlist, 46 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div class="tx"><div class="t">Phonk</div><div class="s">Playlist, 38 songs</div></div></div>
+<div class="res lib"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div class="tx"><div class="t">Tamil</div><div class="s">Playlist, 19 songs</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Khan Saab</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-revenge round"></div><div class="tx"><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-anbe round"></div><div class="tx"><div class="t">A. R. Rahman</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Javed Ali</div><div class="s">Artist</div></div></div>
+<div class="res lib"><div class="cv art-rockstar round"></div><div class="tx"><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div></div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+</div>
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+  <p class="cap">I · Grid view, artists</p>
+  <p class="why">With "Artists" selected the grid is all circles. One-line names are centred. A name that wraps takes the full tile width and starts at its left edge, over a centred "Artist", because the tile centres boxes and sets no text alignment.</p>
+<div class="phone">
+<div class="sbar">
+<span>9:41</span>
+<span class="sys">
+<svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+<svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+<svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+</span>
+</div>
+<div class="screen">
+<div class="head lib"><span class="setbtn"><svg class="mark" viewBox="24 24 60 60"><path fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM44,60a10,10 0 1,0 20,0a10,10 0 1,0 -20,0Z"/></svg></span><h1>Your Library</h1><span class="ib"><i class="ic s26">search</i></span><span class="ib"><i class="ic s28">add</i></span></div>
+<div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip on">Artists</span><span class="chip">Downloaded</span></div>
+<div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">view_list</i></span></div>
+<div class="libgrid">
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Khan Saab</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Shashwat Sachdev</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-anbe round"></div><div class="t">A. R. Rahman</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-rockstar round"></div><div class="t">Javed Ali</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-rockstar round"></div><div class="t">Mohit Chauhan</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-ghost round"></div><div class="t">KIIXSHI</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-ghost round"></div><div class="t">phonk.me</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-premam round"></div><div class="t">Vijay Yesudas</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-lootera round"></div><div class="t">Amit Trivedi</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-lootera round"></div><div class="t">Amitabh Bhattacharya</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Arijit Singh</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Bombay Rockers</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-viva round"></div><div class="t">Coldplay</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Jasmine Sandlas</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Jubin Nautiyal</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-revenge round"></div><div class="t">Jyoti Nooran</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-troubadour round"></div><div class="t">K&#x27;NAAN</div><div class="s">Artist</div></div>
+<div class="gtile round"><div class="cv art-yjhd round"></div><div class="t">Pritam</div><div class="s">Artist</div></div>
+</div>
+</div>
+<div class="dock">
+<div class="mini art-revenge">
+  <div class="r">
+    <div class="cv art-revenge plain"></div>
+    <div class="tx"><div class="t">Jaan Se Guzarte Hain</div><div class="s"><span class="dl"></span>Khan Saab, Shashwat Sachdev</div></div>
+    <span class="ib like"></span>
+    <span class="ib"><i class="ic s30">pause</i></span>
+  </div>
+  <div class="p" style="--p:32.3%"><i></i></div>
+</div>
+<div class="tabbar"><div class="tab"><i class="ic o">home</i><span>Home</span></div><div class="tab"><i class="ic">search</i><span>Search</span></div><div class="tab on"><i class="ic">library_books</i><span>Your Library</span></div></div>
+</div>
+
+<div class="gpill"></div>
+</div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag today">today</span><span class="tag dark">dark</span><span class="tag light">light</span><span class="tag state">state</span></div>
+  <p class="cap">J · Sort row and chips</p>
+  <p class="why">"Recents" is a fixed label and does nothing when tapped. In the "Downloaded" filter the same position is a real control. Both rows put a sort glyph before the label.</p>
+<p class="sublabel">List mode: the toggle offers the grid</p>
+<div class="strip libstrip"><div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div></div>
+<p class="sublabel">Grid mode: the toggle offers the list</p>
+<div class="strip libstrip"><div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">view_list</i></span></div></div>
+<p class="sublabel">"Downloaded": sort by title (the default)</p>
+<div class="strip libstrip"><div class="sortrow songs"><i class="ic s18">sort</i><span class="lbl">Title, 127 songs</span><span class="ib"><i class="ic">shuffle</i></span></div></div>
+<p class="sublabel">One tap on the label: by artist</p>
+<div class="strip libstrip"><div class="sortrow songs"><i class="ic s18">sort</i><span class="lbl">Artist, 127 songs</span><span class="ib"><i class="ic">shuffle</i></span></div></div>
+<p class="sublabel">A second tap: newest file first. A third returns to title.</p>
+<div class="strip libstrip"><div class="sortrow songs"><i class="ic s18">sort</i><span class="lbl">Recently added, 127 songs</span><span class="ib"><i class="ic">shuffle</i></span></div></div>
+<p class="sublabel">Light</p>
+<div class="strip light libstrip"><div class="sortrow"><i class="ic s18">sort</i><span class="lbl">Recents</span><span class="ib"><i class="ic s20">grid_view</i></span></div></div>
+<div class="strip light libstrip gap"><div class="sortrow songs"><i class="ic s18">sort</i><span class="lbl">Title, 127 songs</span><span class="ib"><i class="ic">shuffle</i></span></div></div>
+<p class="sublabel">Chips: none selected, and one selected</p>
+<div class="strip libstrip"><div class="chips lib"><span class="chip">Playlists</span><span class="chip">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div></div>
+<div class="strip libstrip gap"><div class="chips lib"><span class="chip">Playlists</span><span class="chip on">Albums</span><span class="chip">Artists</span><span class="chip">Downloaded</span></div></div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What is on this sheet</h2>
+  <p>A column under the status bar: the header row (36dp settings button, 12dp, "Your Library" in 26/31 bold, then
+     a 26dp search glyph and a 28dp plus glyph in 48dp targets; padding start 16, end 8, top 8), the chip row (16dp
+     side padding, 10dp above and below, 8dp between chips), the sort row (18dp sort glyph, 8dp, label in 14/18
+     semibold, a 48dp icon button at the right; padding start 16, end 8), then the list or grid. List rows are the
+     Search result row with a 64dp cover. Grid tiles are three across with 14dp between columns and 16dp between
+     rows.</p>
+
+  <h2>Spotify cues on this screen</h2>
+  <ul>
+    <li>"Your Library" as the tab label and the screen title, with the books icon
+        (<code>ui/LibraryScreen.kt:134</code>, <code>ui/AppRoot.kt:112-116</code>).</li>
+    <li>The header arrangement: avatar-style round button, bold title, search and plus icons at the right, a row of
+        pill chips beneath, then a sort label with a grid toggle (<code>ui/LibraryScreen.kt:126-202</code>).</li>
+    <li>"Recents" with a sort glyph (<code>:192-194</code>).</li>
+    <li>One list mixing playlists, artists (round) and albums, each with its type as a subtitle prefix: "Playlist, 31
+        songs", "Artist", "Album, Shashwat Sachdev" (<code>:99-114</code>).</li>
+    <li>"Liked Songs" and its violet-to-mint tile with a white heart (<code>ui/HomeScreen.kt:381-389</code>).</li>
+    <li>"Downloaded" as a filter (<code>ui/LibraryScreen.kt:55</code>), and the green down-arrow badge on every song
+        row under it.</li>
+    <li>The selected chip in the accent green with black text.</li>
+    <li>"Give your playlist a name" as the dialog title (<code>:225</code>).</li>
+    <li>The tab bar and the mini player, as on every sheet.</li>
+  </ul>
+
+  <h2>Things that look odd and are correct</h2>
+  <ul>
+    <li>"Recents" looks like the sort control it is modelled on and is a plain label. The order is fixed.</li>
+    <li>The search icon in the header does not search this screen. It switches to the Search tab.</li>
+    <li>The header's two icon buttons end 8dp from the screen edge and the grid toggle sits in the same column, so the
+        toggle's 20dp glyph is centred under the 28dp plus.</li>
+    <li>The filter named "Downloaded" shows every song in the library, and is the only way to reach a flat song
+        list.</li>
+    <li>Singles are "Album, {artist}" in the library and "Single" on their own screen.</li>
+    <li>Artists are split from credit lines, so one soundtrack contributes many artist rows with the same cover
+        (frame G, and <code>library.png</code>).</li>
+    <li>With no filter the list is long: seven playlists, up to 40 artists, then every album. Albums start several
+        screens down.</li>
+    <li>In the grid, a row is as tall as its tallest tile, so a two-line title pushes the next row down for all three
+        columns.</li>
+    <li>A round artist tile centres its name and "Artist" as boxes. A name that wraps becomes a full-width box, so its
+        two lines are left-aligned above a centred "Artist" (frames B and I; <code>ui/LibraryScreen.kt:250-253</code>).</li>
+  </ul>
+
+  <h2>Where the drawing departs from the screenshot</h2>
+  <table>
+    <tr><th>Screenshot</th><th>Drawn here</th><th>Why</th></tr>
+    <tr><td><code>library.png</code></td><td>Frame A starts at Liked Songs</td><td>The screenshot is scrolled to the artists. Unscrolled, the code puts Liked Songs, user playlists and folders first (<code>ui/LibraryScreen.kt:121</code>). Frame G shows the artist rows the screenshot shows.</td></tr>
+    <tr><td><code>library.png</code></td><td>390 × 844 frame; the screenshot is 411 × 914dp</td><td>The round's frame size. Fewer rows fit; widths and gaps are the code's dp values.</td></tr>
+  </table>
+
+  <h2>Guessed</h2>
+  <ul>
+    <li>Frame D has no keyboard. The field requests focus when the dialog opens, so on a phone the keyboard is up and
+        the dialog sits higher. The keyboard is the system's and is not drawn. Dialog width and dim are the kit's
+        platform defaults.</li>
+    <li>The order of the two user playlists. The code lists them in the order the database returns them.</li>
+    <li>"Recents" order beyond the four songs sheet 01 shows under "Recently played": everything not played recently
+        falls back to name order, as in the code.</li>
+    <li>Folder order is by name (English, Hindi, Phonk, Tamil), as <code>data/LibraryBuilder.kt:65</code> sorts
+        them.</li>
+    <li>Covers for artists the brief does not list are the cover of an album they appear on.</li>
+    <li>The first twelve song titles under "Downloaded" are the fixture's songs in title order. The other 76 songs of
+        the 127 are not named in the fixture and would be interleaved.</li>
+  </ul>
+
+  <h2>Not drawn here</h2>
+  <p>The playlist screen the dialog leads to is on sheet 04. The track menu and the other two titles of the name
+     dialog ("New playlist", "Rename playlist") are on sheet 07. Your Library with no songs has no layout of its own:
+     the list holds Liked Songs at "Playlist, 0 songs" and any user playlists.</p>
+</div>

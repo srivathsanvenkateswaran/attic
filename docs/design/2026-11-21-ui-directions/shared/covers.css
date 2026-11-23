@@ -1,0 +1,93 @@
+/* Generated cover art for the mock library.
+   No real artwork is used. Each cover is CSS gradients plus a short title.
+
+   .cv            a square cover. Size it with width; it keeps a 1:1 ratio.
+   .art-<key>     sets the cover's artwork AND its colour variables. Put it on
+                  the .cv to draw the cover, or on any ancestor (a phone, a
+                  mini player, a widget) to read the colours without drawing:
+                    --tint       the cover's dominant colour, mid tone
+                    --tint-deep  a dark shade of it (for dark surfaces)
+                    --tint-soft  a pale shade of it (for light surfaces)
+   .cv.round      circular crop, for artists (the app has no artist photos and
+                  uses one of the artist's covers)
+   .mosaic        a 2x2 grid of four .cv, for a folder's cover                */
+
+.cv{display:block;aspect-ratio:1;position:relative;overflow:hidden;flex:none;
+    container-type:inline-size;background:var(--art-bg,#444);background-color:var(--tint,#444)}
+.cv::after{content:var(--art-label,"");position:absolute;inset:auto 7cqw 7cqw 7cqw;
+    font:var(--art-weight,800) var(--art-size,13cqw)/.95 var(--art-font,'Arial Narrow','Helvetica Neue',Arial,sans-serif);
+    letter-spacing:var(--art-track,-.02em);color:var(--art-ink,#fff);text-align:var(--art-align,left);
+    white-space:pre-line;text-transform:var(--art-case,uppercase);text-shadow:0 .5cqw 3cqw rgba(0,0,0,.35)}
+.cv.round{border-radius:50%}
+.cv.round::after{content:none}
+.cv.plain::after{content:none}          /* artwork without the title, for very small sizes */
+.mosaic{display:grid;grid-template-columns:1fr 1fr;aspect-ratio:1;overflow:hidden;flex:none}
+.mosaic .cv::after{content:none}
+
+/* ── albums ─────────────────────────────────────────────────────────────── */
+.art-revenge{--tint:#a04e16;--tint-deep:#3a1a08;--tint-soft:#f6d9c0;
+  --art-label:"The\A Revenge";--art-font:Impact,'Arial Narrow',sans-serif;--art-weight:400;--art-size:17cqw;--art-ink:#1a0a03;--art-track:.01em;
+  --art-bg:radial-gradient(60% 45% at 50% 62%,#ffd27a 0,#f08a1c 38%,transparent 72%),
+           radial-gradient(90% 60% at 20% 100%,#7a1f06 0,transparent 70%),
+           linear-gradient(180deg,#2a1206 0,#8a3a0d 55%,#e2761a 100%)}
+.art-dhurandhar{--tint:#5d6470;--tint-deep:#1f2329;--tint-soft:#dfe3e9;
+  --art-label:"Dhurandhar";--art-font:Georgia,'Times New Roman',serif;--art-weight:700;--art-size:9.6cqw;--art-ink:#e9dcc3;--art-track:.05em;
+  --art-bg:linear-gradient(115deg,transparent 0 46%,rgba(255,255,255,.14) 46% 47%,transparent 47%),
+           radial-gradient(70% 55% at 70% 30%,#9aa3b0 0,transparent 70%),
+           linear-gradient(180deg,#70798a 0,#3a404b 60%,#16191e 100%)}
+.art-yjhd{--tint:#c9552e;--tint-deep:#47190b;--tint-soft:#fbe0cf;
+  --art-label:"Yeh Jawaani\A Hai Deewani";--art-size:10cqw;--art-ink:#fff7d6;
+  --art-bg:conic-gradient(from 210deg at 30% 35%,#ffd23f 0 18%,#f2542d 18% 44%,#e23a6b 44% 62%,#ffb22e 62% 100%)}
+.art-premam{--tint:#c8553d;--tint-deep:#42170f;--tint-soft:#fbded5;
+  --art-label:"Premam";--art-font:Georgia,serif;--art-weight:400;--art-case:none;--art-size:15cqw;--art-ink:#fff3e6;--art-track:0;
+  --art-bg:radial-gradient(22% 14% at 50% 34%,rgba(255,255,255,.55) 0,transparent 100%),
+           linear-gradient(180deg,#6fae8e 0,#3f8a70 46%,#e0583f 46.5%,#c8452f 100%)}
+.art-rockstar{--tint:#a62a2a;--tint-deep:#3a0c0c;--tint-soft:#f8d6d6;
+  --art-label:"Rockstar";--art-font:Impact,'Arial Narrow',sans-serif;--art-weight:400;--art-size:19cqw;--art-ink:#fff;--art-track:.02em;
+  --art-bg:repeating-linear-gradient(100deg,rgba(0,0,0,.16) 0 3cqw,transparent 3cqw 9cqw),
+           radial-gradient(70% 70% at 60% 30%,#ff6a3d 0,#c22a2a 45%,#4a0d0d 100%)}
+.art-viva{--tint:#284a70;--tint-deep:#0e1c2c;--tint-soft:#d6e3f2;
+  --art-label:"Viva\A la Vida";--art-font:Georgia,serif;--art-weight:400;--art-case:none;--art-size:13cqw;--art-ink:#f1ead6;--art-track:0;
+  --art-bg:radial-gradient(14% 30% at 43% 44%,#e9eef5 0,transparent 100%),radial-gradient(14% 30% at 57% 44%,#e9eef5 0,transparent 100%),
+           radial-gradient(90% 90% at 50% 40%,#3b6a9a 0,#1c3655 55%,#0c1a2b 100%)}
+.art-lootera{--tint:#7c2f2f;--tint-deep:#2b0f0f;--tint-soft:#f2d9d3;
+  --art-label:"Lootera";--art-font:Georgia,serif;--art-weight:400;--art-size:14cqw;--art-ink:#f6e7cf;--art-track:.12em;
+  --art-bg:radial-gradient(40% 40% at 34% 40%,#e6c59a 0,transparent 100%),radial-gradient(40% 40% at 66% 44%,#c48a62 0,transparent 100%),
+           linear-gradient(180deg,#8b3a34 0,#5a1f1f 60%,#2a0e0e 100%)}
+.art-raanjhanaa{--tint:#c98a1f;--tint-deep:#3f2a07;--tint-soft:#fbe9c4;
+  --art-label:"Raanjhanaa";--art-size:11.5cqw;--art-ink:#5a1238;
+  --art-bg:radial-gradient(50% 50% at 78% 20%,#ff5fa2 0,transparent 100%),
+           repeating-conic-gradient(from 0deg at 20% 80%,#f7b733 0 12deg,#f29f1c 12deg 24deg)}
+.art-anbe{--tint:#7fa32b;--tint-deep:#27340c;--tint-soft:#e7f1c9;
+  --art-label:"Anbe\A Aaruyire";--art-size:12cqw;--art-ink:#0c4a66;
+  --art-bg:radial-gradient(34% 34% at 68% 46%,#ffe27a 0,#f0a43a 60%,transparent 100%),
+           linear-gradient(160deg,#b9d84a 0,#86ad2d 60%,#4f7a1b 100%)}
+.art-oso{--tint:#a02c7a;--tint-deep:#360c29;--tint-soft:#f5d5ea;
+  --art-label:"Om\A Shanti Om";--art-size:13cqw;--art-ink:#ffe36e;
+  --art-bg:radial-gradient(circle at 50% 38%,#ffd84a 0 12%,transparent 12.5%),
+           repeating-conic-gradient(from 0deg at 50% 38%,#c2338f 0 10deg,#7d1f8f 10deg 20deg)}
+.art-uddgaye{--tint:#2c5f93;--tint-deep:#0f2238;--tint-soft:#d5e5f6;
+  --art-label:"Udd\A Gaye";--art-size:17cqw;--art-ink:#fff;
+  --art-bg:linear-gradient(135deg,transparent 0 58%,#ff5c8a 58% 74%,#ffd166 74% 86%,transparent 86%),
+           linear-gradient(180deg,#3d7fc0 0,#234f80 100%)}
+.art-manmarziyaan{--tint:#1f8aa8;--tint-deep:#082f3a;--tint-soft:#cfeef6;
+  --art-label:"Manmarziyaan";--art-size:9.5cqw;--art-ink:#fff;
+  --art-bg:repeating-linear-gradient(72deg,#fff 0 4cqw,#101418 4cqw 7cqw,#fff 7cqw 10cqw,transparent 10cqw 34cqw) 0 0/100% 64% no-repeat,
+           linear-gradient(180deg,#39c0dd 0,#1f8aa8 100%)}
+.art-ghost{--tint:#7a1616;--tint-deep:#1c0505;--tint-soft:#f3d2d2;
+  --art-label:"Ghost!";--art-font:Impact,'Arial Narrow',sans-serif;--art-weight:400;--art-size:20cqw;--art-ink:#e52b2b;--art-track:.03em;
+  --art-bg:radial-gradient(18% 22% at 50% 40%,#d9d2c5 0,#8f887c 70%,transparent 100%),
+           radial-gradient(70% 70% at 50% 45%,#3a0b0b 0,#0c0303 80%)}
+.art-dreams{--tint:#5d43a6;--tint-deep:#1d1438;--tint-soft:#e2daf7;
+  --art-label:"A Head Full\A of Dreams";--art-size:9.5cqw;--art-ink:#fff;--art-align:center;
+  --art-bg:radial-gradient(circle at 50% 42%,transparent 0 15%,rgba(255,255,255,.85) 15.5% 16.5%,transparent 17% 23%,rgba(255,255,255,.6) 23.5% 24.3%,transparent 25%),
+           conic-gradient(from 40deg at 50% 42%,#ff5e7e,#ffb347,#5ee0a0,#4aa8ff,#9b6bff,#ff5e7e)}
+.art-jodhaa{--tint:#6a7d2e;--tint-deep:#20270c;--tint-soft:#e9efcd;
+  --art-label:"Jodhaa\A Akbar";--art-font:Georgia,serif;--art-weight:700;--art-size:12.5cqw;--art-ink:#f4dc8f;--art-track:.05em;
+  --art-bg:radial-gradient(60% 50% at 50% 30%,#d9b750 0,transparent 100%),
+           repeating-linear-gradient(0deg,rgba(0,0,0,.1) 0 2cqw,transparent 2cqw 6cqw),
+           linear-gradient(180deg,#8a8f33 0,#4e5f1f 100%)}
+.art-troubadour{--tint:#3f8a4f;--tint-deep:#10301a;--tint-soft:#d3efd9;
+  --art-label:"Troubadour";--art-size:11cqw;--art-ink:#fff;
+  --art-bg:radial-gradient(26% 26% at 50% 40%,#fff 0 60%,transparent 62%),
+           linear-gradient(180deg,#7ed0f0 0 38%,#4fa35f 38% 100%)}

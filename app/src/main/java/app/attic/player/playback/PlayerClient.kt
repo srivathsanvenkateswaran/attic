@@ -173,7 +173,7 @@ fun Track.toMediaItem(): MediaItem =
     MediaItem.Builder()
         .setMediaId(key)
         .setUri(LibraryRepository.uriFor(mediaId))
-        .setMimeType("audio/mpeg")
+        .setMimeType(mimeTypeFor(key))
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(title)

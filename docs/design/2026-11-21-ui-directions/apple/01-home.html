@@ -1,0 +1,483 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Apple direction · 01 Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* Home only: the six shortcuts sit closer to the filter than a section does,
+     and the Recap card needs air on both sides of it. */
+  .phone .jump{margin-top:18px}
+  .phone .jump .card b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .phone .recap{margin-top:24px}
+  .phone .seg{margin-top:6px}
+  .phone .people{--w:112px;gap:16px}
+</style>
+
+<div class="intro">
+  <h1>Home</h1>
+  <div class="date">2026-11-21 · UI directions · apple · sheet 01</div>
+  <p>Home keeps every block it has today and changes the form of each one. The page opens on a large
+     title and a four-way segmented filter. The six shortcuts are covers in a 3 × 2 grid. Instant mixes
+     are song rows in columns that page sideways. Folders are a plain list with chevrons. Only albums,
+     recent songs and artists stay as horizontal shelves, so no two neighbouring sections share a shape.</p>
+  <p>Ember marks the things you can press. The only other colour in the chrome is the artwork of the song
+     that is playing, which lights the mini player's glass from its leading edge.</p>
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Home, top, "All"</p>
+    <p class="why">The title row carries Settings as a plain gear, so nothing sits where a profile picture would. The filter is one segmented control, not a row of pills. Rows of the first Instant mixes column pass under the mini player and tab bar, which is what makes the two capsules read as glass.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Home</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="seg" role="tablist"><span class="on">All</span><span>Albums</span><span>Artists</span><span>Folders</span></div>
+        <div class="grid c3 jump">
+          <a class="card"><span class="pic fav"></span><b>Favourites</b></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Premam</b></a>
+          <a class="card"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><b>Phonk</b></a>
+        </div>
+        <a class="recap lit deep art-revenge">
+          <span class="pic"><div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div></span>
+          <span class="txt"><b>Your 2026 so far</b><span>18,460 minutes. See your top songs and cards to share.</span></span>
+          <i class="ic ic-chev"></i>
+        </a>
+        <div class="sec"><div><h2>Instant mixes</h2></div></div>
+        <div class="pager">
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-uddgaye"></div></span><span class="txt"><b>Udd Gaye</b><span>Ritviz</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-lootera"></div></span><span class="txt"><b>Monta Re</b><span>Amitabh Bhattacharya &amp; Swanand Kirkire</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-jodhaa"></div></span><span class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-dreams"></div></span><span class="txt"><b>Hymn for the Weekend</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-troubadour"></div></span><span class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+        </div>
+        <div class="sec"><div><h2>Recently played</h2></div></div>
+        <div class="shelf sm">
+          <a class="card now"><span class="pic"><div class="cv art-revenge"></div></span><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Aari Aari</b><span>Bombay Rockers, Khan Saab</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Kun Faya Kun</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Udd Gaye</b><span>Ritviz</span></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Malare</b><span>Vijay Yesudas</span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Home at full length</p>
+    <p class="why">Read the order of shapes down the page: cover grid, lit card, paged rows, small shelf, list, chevron list, large shelf, small shelf, circles. "Start listening" puts its explanation under the heading. "More from" is a heading with a chevron, with no round thumbnail beside it.</p>
+    <div class="phone long">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Home</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="seg" role="tablist"><span class="on">All</span><span>Albums</span><span>Artists</span><span>Folders</span></div>
+        <div class="grid c3 jump">
+          <a class="card"><span class="pic fav"></span><b>Favourites</b></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Premam</b></a>
+          <a class="card"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><b>Phonk</b></a>
+        </div>
+        <a class="recap lit deep art-revenge">
+          <span class="pic"><div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div></span>
+          <span class="txt"><b>Your 2026 so far</b><span>18,460 minutes. See your top songs and cards to share.</span></span>
+          <i class="ic ic-chev"></i>
+        </a>
+        <div class="sec"><div><h2>Instant mixes</h2></div></div>
+        <div class="pager">
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-uddgaye"></div></span><span class="txt"><b>Udd Gaye</b><span>Ritviz</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-lootera"></div></span><span class="txt"><b>Monta Re</b><span>Amitabh Bhattacharya &amp; Swanand Kirkire</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-jodhaa"></div></span><span class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-dreams"></div></span><span class="txt"><b>Hymn for the Weekend</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-troubadour"></div></span><span class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+        </div>
+        <div class="sec"><div><h2>Recently played</h2></div></div>
+        <div class="shelf sm">
+          <a class="card now"><span class="pic"><div class="cv art-revenge"></div></span><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Aari Aari</b><span>Bombay Rockers, Khan Saab</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Kun Faya Kun</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Udd Gaye</b><span>Ritviz</span></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Malare</b><span>Vijay Yesudas</span></a>
+        </div>
+        <div class="sec"><div><h2>Start listening</h2><p>Picked at random from your songs</p></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><button class="ibtn" aria-label="More options for Naina Da Kya Kasoor"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-ghost"></div></span><span class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></span><button class="ibtn" aria-label="More options for GHOST!"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div>
+        </div>
+        <div class="sec"><div><h2>Your folders</h2></div></div>
+        <div class="list">
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span><span class="lbl">English</span><span class="val">24 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="lbl">Hindi</span><span class="val">46 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span><span class="lbl">Tamil</span><span class="val">19 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><span class="lbl">Phonk</span><span class="val">38 songs</span></a>
+        </div>
+        <div class="sec"><div><h2>Albums</h2></div></div>
+        <div class="shelf">
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-yjhd"></div></span><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b><span>Coldplay</span></a>
+        </div>
+        <div class="sec"><div><h2>More from A. R. Rahman<i class="ic ic-chev"></i></h2></div></div>
+        <div class="shelf sm more">
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b><span>2011</span></a>
+          <a class="card"><span class="pic"><div class="cv art-raanjhanaa"></div></span><b>Raanjhanaa</b><span>2013</span></a>
+          <a class="card"><span class="pic"><div class="cv art-jodhaa"></div></span><b>Jodhaa Akbar</b><span>2008</span></a>
+          <a class="card"><span class="pic"><div class="cv art-anbe"></div></span><b>Anbe Aaruyire</b><span>2005</span></a>
+        </div>
+        <div class="sec"><div><h2>Top artists</h2></div></div>
+        <div class="shelf sm people">
+          <a class="card round"><span class="pic"><div class="cv art-anbe"></div></span><b>A. R. Rahman</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-revenge"></div></span><b>Shashwat Sachdev</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-viva"></div></span><b>Coldplay</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-lootera"></div></span><b>Amit Trivedi</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-yjhd"></div></span><b>Pritam</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Ritviz</b></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · "Albums" selected</p>
+    <p class="why">With one section left, a single shelf would strand most of the screen. The same 14 albums in the same order are laid out as a two-column grid, the layout Library uses, so the filter gives a page worth scrolling.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Home</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="seg" role="tablist"><span>All</span><span class="on">Albums</span><span>Artists</span><span>Folders</span></div>
+        <div class="sec"><div><h2>Albums</h2></div></div>
+        <div class="grid">
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-yjhd"></div></span><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b><span>Coldplay</span></a>
+          <a class="card"><span class="pic"><div class="cv art-dhurandhar"></div></span><b>Dhurandhar</b><span>Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Premam</b><span>Rajesh Murugesan</span></a>
+          <a class="card"><span class="pic"><div class="cv art-lootera"></div></span><b>Lootera</b><span>Amit Trivedi</span></a>
+          <a class="card"><span class="pic"><div class="cv art-raanjhanaa"></div></span><b>Raanjhanaa</b><span>A. R. Rahman</span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">D · Frame A in light</p>
+    <p class="why">Paper background, Soot ink, Ember deepened to #BF3F17 so text links hold 4.5:1. The glass turns pale and takes less of the artwork light. The Recap card keeps its dark artwork field in both themes.</p>
+    <div class="phone light">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Home</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="seg" role="tablist"><span class="on">All</span><span>Albums</span><span>Artists</span><span>Folders</span></div>
+        <div class="grid c3 jump">
+          <a class="card"><span class="pic fav"></span><b>Favourites</b></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Premam</b></a>
+          <a class="card"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><b>Phonk</b></a>
+        </div>
+        <a class="recap lit deep art-revenge">
+          <span class="pic"><div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div></span>
+          <span class="txt"><b>Your 2026 so far</b><span>18,460 minutes. See your top songs and cards to share.</span></span>
+          <i class="ic ic-chev"></i>
+        </a>
+        <div class="sec"><div><h2>Instant mixes</h2></div></div>
+        <div class="pager">
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-uddgaye"></div></span><span class="txt"><b>Udd Gaye</b><span>Ritviz</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-lootera"></div></span><span class="txt"><b>Monta Re</b><span>Amitabh Bhattacharya &amp; Swanand Kirkire</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-jodhaa"></div></span><span class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-dreams"></div></span><span class="txt"><b>Hymn for the Weekend</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-troubadour"></div></span><span class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+        </div>
+        <div class="sec"><div><h2>Recently played</h2></div></div>
+        <div class="shelf sm">
+          <a class="card now"><span class="pic"><div class="cv art-revenge"></div></span><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Aari Aari</b><span>Bombay Rockers, Khan Saab</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Kun Faya Kun</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Udd Gaye</b><span>Ritviz</span></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Malare</b><span>Vijay Yesudas</span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">E · Scrolled, title collapsed</p>
+    <p class="why">Past the large title, "Home" becomes a 17sp centred title on a blurred edge that fades downward, with Settings still at the trailing end. There is no solid bar and no line under it.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="scrolled" style="--y:612px">
+        <header class="lt">
+          <h1>Home</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="seg" role="tablist"><span class="on">All</span><span>Albums</span><span>Artists</span><span>Folders</span></div>
+        <div class="grid c3 jump">
+          <a class="card"><span class="pic fav"></span><b>Favourites</b></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Premam</b></a>
+          <a class="card"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><b>Phonk</b></a>
+        </div>
+        <a class="recap lit deep art-revenge">
+          <span class="pic"><div class="mosaic"><div class="cv art-revenge"></div><div class="cv art-rockstar"></div><div class="cv art-premam"></div><div class="cv art-viva"></div></div></span>
+          <span class="txt"><b>Your 2026 so far</b><span>18,460 minutes. See your top songs and cards to share.</span></span>
+          <i class="ic ic-chev"></i>
+        </a>
+        <div class="sec"><div><h2>Instant mixes</h2></div></div>
+        <div class="pager">
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-rockstar"></div></span><span class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-uddgaye"></div></span><span class="txt"><b>Udd Gaye</b><span>Ritviz</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-lootera"></div></span><span class="txt"><b>Monta Re</b><span>Amitabh Bhattacharya &amp; Swanand Kirkire</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-jodhaa"></div></span><span class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+          <div class="colm">
+            <div class="row"><span class="pic"><div class="cv art-dreams"></div></span><span class="txt"><b>Hymn for the Weekend</b><span>Coldplay</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-troubadour"></div></span><span class="txt"><b>Wavin' Flag</b><span>K'NAAN</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+            <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><span class="end"><i class="ic ic-radio acc" style="--sz:21px"></i></span></div>
+          </div>
+        </div>
+        <div class="sec"><div><h2>Recently played</h2></div></div>
+        <div class="shelf sm">
+          <a class="card now"><span class="pic"><div class="cv art-revenge"></div></span><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Aari Aari</b><span>Bombay Rockers, Khan Saab</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Kun Faya Kun</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Udd Gaye</b><span>Ritviz</span></a>
+          <a class="card"><span class="pic"><div class="cv art-premam"></div></span><b>Malare</b><span>Vijay Yesudas</span></a>
+        </div>
+        <div class="sec"><div><h2>Start listening</h2><p>Picked at random from your songs</p></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-viva"></div></span><span class="txt"><b>Viva La Vida</b><span>Coldplay</span></span><button class="ibtn" aria-label="More options for Viva La Vida"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-manmarziyaan"></div></span><span class="txt"><b>Naina Da Kya Kasoor</b><span>Amit Trivedi &amp; Raftaar</span></span><button class="ibtn" aria-label="More options for Naina Da Kya Kasoor"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-ghost"></div></span><span class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></span><button class="ibtn" aria-label="More options for GHOST!"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-premam"></div></span><span class="txt"><b>Malare</b><span>Vijay Yesudas</span></span><button class="ibtn" aria-label="More options for Malare"><i class="ic ic-more"></i></button></div>
+        </div>
+        <div class="sec"><div><h2>Your folders</h2></div></div>
+        <div class="list">
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span><span class="lbl">English</span><span class="val">24 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span><span class="lbl">Hindi</span><span class="val">46 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span><span class="lbl">Tamil</span><span class="val">19 songs</span></a>
+          <a class="cat tall"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><span class="lbl">Phonk</span><span class="val">38 songs</span></a>
+        </div>
+        <div class="sec"><div><h2>Albums</h2></div></div>
+        <div class="shelf">
+          <a class="card"><span class="pic"><div class="cv art-revenge"></div></span><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></a>
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b><span>A. R. Rahman</span></a>
+          <a class="card"><span class="pic"><div class="cv art-yjhd"></div></span><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></a>
+          <a class="card"><span class="pic"><div class="cv art-viva"></div></span><b>Viva la Vida</b><span>Coldplay</span></a>
+        </div>
+        <div class="sec"><div><h2>More from A. R. Rahman<i class="ic ic-chev"></i></h2></div></div>
+        <div class="shelf sm more">
+          <a class="card"><span class="pic"><div class="cv art-rockstar"></div></span><b>Rockstar</b><span>2011</span></a>
+          <a class="card"><span class="pic"><div class="cv art-raanjhanaa"></div></span><b>Raanjhanaa</b><span>2013</span></a>
+          <a class="card"><span class="pic"><div class="cv art-jodhaa"></div></span><b>Jodhaa Akbar</b><span>2008</span></a>
+          <a class="card"><span class="pic"><div class="cv art-anbe"></div></span><b>Anbe Aaruyire</b><span>2005</span></a>
+        </div>
+        <div class="sec"><div><h2>Top artists</h2></div></div>
+        <div class="shelf sm people">
+          <a class="card round"><span class="pic"><div class="cv art-anbe"></div></span><b>A. R. Rahman</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-revenge"></div></span><b>Shashwat Sachdev</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-viva"></div></span><b>Coldplay</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-lootera"></div></span><b>Amit Trivedi</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-yjhd"></div></span><b>Pritam</b></a>
+          <a class="card round"><span class="pic"><div class="cv art-uddgaye"></div></span><b>Ritviz</b></a>
+        </div>
+        </div>
+      </div>
+      <header class="nav pinned"><span class="lead"></span><span class="ttl">Home</span><span class="trail"><button class="ibtn" aria-label="Settings"><i class="ic ic-settings" style="--sz:22px"></i></button></span></header>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab on"><i class="ic ic-home-fill"></i>Home</a><a class="tab"><i class="ic ic-search"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Why</th></tr>
+    <tr><td>Round Attic-mark button top left, then pill chips, selected chip green</td><td>Large title "Home", a gear at the trailing edge, and a segmented control</td><td>Removes the avatar-plus-chips header. The mark is no longer standing in for a profile picture. The selected filter is a raised neutral segment, so the accent is not spent on it.</td></tr>
+    <tr><td>Two-column grid of 56dp tiles, image flush left, two-line title</td><td>Six covers in a 3 × 2 grid with the name under each. Favourites is an Ember-tinted tile with a heart.</td><td>Removes the shortcut tiles and the violet-to-mint gradient. All six are still visible without scrolling.</td></tr>
+    <tr><td>Plum card with a marigold headline</td><td>A card filled with the blurred artwork of the year's top song, white text, chevron</td><td>Uses the artwork mechanism the rest of the app uses. Sheet 09 owns the card in detail.</td></tr>
+    <tr><td>"Speed dial": 3 × 3 cover tiles with titles over a dark fade</td><td>"Instant mixes": nine song rows in three columns that page sideways, each ending in a radio glyph</td><td>The rows show the artist, which the tiles could not, and the glyph says what a tap does. It also avoids a second cover grid directly under the shortcuts.</td></tr>
+    <tr><td>"Recently played" shelf, 160dp cards, current title green</td><td>A 108dp shelf. The current song carries a small playing mark on its cover and its title stays in ink.</td><td>Removes the green current title. Smaller covers separate this shelf from "Albums".</td></tr>
+    <tr><td>"Picked at random from your songs" as an overline above "Start listening"</td><td>The same sentence under the heading, song rows with hairlines inset to the text</td><td>Heading first, explanation second. No row carries a download badge.</td></tr>
+    <tr><td>"Your folders" shelf of 160dp mosaics</td><td>A list: mosaic, name, song count, chevron</td><td>There are four folders. A list shows all of them and their counts at once, and it breaks the run of shelves.</td></tr>
+    <tr><td>"More from" beside a 52dp round image, name in a second line</td><td>"More from A. R. Rahman" as one heading with a chevron; albums below with their year</td><td>Removes the round-thumbnail spotlight header.</td></tr>
+    <tr><td>"Your top artists"</td><td>"Top artists", circles at 112dp</td><td>Shared naming table. Circles stay because they mean "artist" everywhere in the app.</td></tr>
+    <tr><td>Tab bar that fades content out; mini player filled with the cover colour, thin progress line, plus-in-circle</td><td>Glass capsules. The mini player takes a bloom of the artwork at its leading edge, a heart, and play or pause inside a progress ring.</td><td>Removes the tinted bar, the bottom progress line and the plus-to-check control.</td></tr>
+  </table>
+
+  <h2>Kept</h2>
+  <ul>
+    <li>Every section, its order, its contents and its limits: six shortcuts with Favourites first, the Recap entry, nine instant mixes, twelve recent songs, four random songs, folders, the 14 biggest albums, the artist spotlight, the 14 biggest artists.</li>
+    <li>The four filters and what each leaves on the page. Exactly one is always selected.</li>
+    <li>Shelves, for recent songs, albums, the artist spotlight and top artists. A row of covers under a bold heading is on the list of Spotify cues, and it is also how every large music app shows a set too long to list. Here it is one shape among several on the page, and no two shelves share a cover size.</li>
+    <li>Tap targets: every row is at least 56dp tall, the segmented control and small buttons take the missing height as invisible slop.</li>
+    <li>Tap on an instant mix starts radio, long-press opens the track menu. Tap on a recent song plays the recents list from it.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Settings as a gear.</b> The Attic mark now appears in the app only as the Home tab icon (and on the permission screen, Recap cards, widget and launcher). If you want the mark on the title row, it can replace the gear, but it then reads as a logo and not as a button.</li>
+    <li><b>Instant mixes as rows.</b> Rows show three songs per column and need a swipe to reach the other six. If nine at a glance matters more than seeing the artist, the alternative is a 3 × 3 cover grid, which would then need the shortcuts to change shape.</li>
+    <li><b>"Albums" as a grid.</b> Frame C changes the layout when a filter is on, not only the contents. The same would apply to "Artists" (a grid of circles) and "Folders" (the list from frame B).</li>
+  </ul>
+</div>

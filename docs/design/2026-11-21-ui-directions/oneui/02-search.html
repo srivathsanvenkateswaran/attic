@@ -1,0 +1,345 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 02 Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:6.32em}   /* captions here run to four lines; keeps the phones level */
+  /* the row that closes the viewing area on Search: the field, then settings */
+  .phone .findrow{height:50px;display:flex;align-items:center;padding:0 8px 0 16px}
+  .phone .findrow .search{flex:1;min-width:0;margin:0}
+  /* a query with the keyboard down: the field pins under the collapsed bar */
+  .phone .pin{position:relative;z-index:3;padding:2px 0 12px;background:var(--ground);box-shadow:0 1px 0 var(--line)}
+  /* typing: the field rides on the keyboard, in a panel of the keyboard's surface (.kbd is 296dp tall) */
+  .phone .typebar{position:absolute;left:0;right:0;bottom:296px;z-index:21;padding:12px 12px 0;
+    border-radius:var(--r-float) var(--r-float) 0 0;background:var(--card);box-shadow:var(--shadow),0 0 0 1px var(--edge)}
+  .phone .typebar .search{margin:0;background:var(--fill)}
+  /* matching collections: a shelf of objects, each with its type on up to two lines under its name */
+  .phone .found{padding-top:16px}
+  .phone .found .tile > span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+</style>
+
+<div class="intro">
+  <h1>Search</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 02</div>
+  <p>Search keeps the shape of a root screen: a bare large title in the upper third, then the field and the settings
+     gear as the row that closes it. Under an empty field, every folder and the eight biggest albums are small
+     neutral cards that carry their own artwork, where today they are tiles in eight fixed colours.</p>
+  <p><b>Where the field sits:</b> under the title at rest and while results are being read, and on the keyboard
+     while it is open, because that is where the thumb already is. <b>How results are sorted:</b> a collection is an
+     object and a song is a row, so matching artists, folders and albums come first as a shelf and matching songs
+     follow in one card.</p>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Browse, empty field</p>
+    <p class="why">The field is a card-coloured capsule and shares its row with settings, at the height where Home has its sub-tabs. Browse tiles are neutral cards with the mosaic or cover upright in the corner. <b>No tile has a colour of its own.</b></p>
+    <div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <header class="hero">
+      <h1>Search</h1>
+    </header>
+    <div class="findrow">
+      <div class="search"><span class="ms">search</span><span class="q"><span class="ph">Search your music</span></span></div>
+      <button class="ib" aria-label="Settings"><span class="ms">settings</span></button>
+    </div>
+    <div class="label">Browse</div>
+    <div class="grid2">
+      <a class="browse"><div class="mosaic sq w56"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div><div><b>English</b><span>24 songs</span></div></a>
+      <a class="browse"><div class="mosaic sq w56"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div><div><b>Hindi</b><span>46 songs</span></div></a>
+      <a class="browse"><div class="mosaic sq w56"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><div><b>Phonk</b><span>38 songs</span></div></a>
+      <a class="browse"><div class="mosaic sq w56"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div><div><b>Tamil</b><span>19 songs</span></div></a>
+      <a class="browse"><div class="cv art-revenge sq w56 plain"></div><div><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div></a>
+      <a class="browse"><div class="cv art-dhurandhar sq w56 plain"></div><div><b>Dhurandhar</b><span>Shashwat Sachdev</span></div></a>
+      <a class="browse"><div class="cv art-rockstar sq w56 plain"></div><div><b>Rockstar</b><span>A. R. Rahman</span></div></a>
+      <a class="browse"><div class="cv art-viva sq w56 plain"></div><div><b>Viva la Vida</b><span>Coldplay</span></div></a>
+      <a class="browse"><div class="cv art-yjhd sq w56 plain"></div><div><b>Yeh Jawaani Hai Deewani</b><span>Pritam</span></div></a>
+      <a class="browse"><div class="cv art-dreams sq w56 plain"></div><div><b>A Head Full of Dreams</b><span>Coldplay</span></div></a>
+      <a class="browse"><div class="cv art-anbe sq w56 plain"></div><div><b>Anbe Aaruyire</b><span>A. R. Rahman</span></div></a>
+      <a class="browse"><div class="cv art-jodhaa sq w56 plain"></div><div><b>Jodhaa Akbar</b><span>A. R. Rahman</span></div></a>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab on"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">B · Results for "dhur"</p>
+    <p class="why">Matching albums come first, as a shelf with the type under each name, then the ten songs in one card. Today the two albums sit under all ten songs. No artist or folder is named "dhur", so neither appears; frame F has all four types.</p>
+    <div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="pin"><div class="search"><span class="ms">search</span><span class="q">dhur</span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+    <div class="shelf found">
+      <a class="tile" style="--w:104px"><div class="cv art-dhurandhar sq-lg"></div><b class="two">Dhurandhar</b><span>Album, Shashwat Sachdev</span></a>
+      <a class="tile" style="--w:104px"><div class="cv art-revenge sq-lg"></div><b class="two">Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></a>
+    </div>
+    <div class="label">Songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Dhurandhar Title Track"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="More options for Aakhri Ishq"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Gehra Hua"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Ishq Jalakar"><span class="ms">more_vert</span></button></div>
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Main Aur Tu"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="More options for Phir Se"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Shararat"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Vaari Jaavan"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab on"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · No results</p>
+    <p class="why">Drawn with the keyboard up, which is when this message is read. The field sits on the keyboard, in a panel of the keyboard's own colour, and the message takes the space above it.</p>
+    <div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar lift"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="empty">
+      <div class="ibox sq neutral"><span class="ms">search</span></div>
+      <h3>No results for "dhurx"</h3>
+      <p>Check the spelling, or try fewer words.</p>
+    </div>
+  </div>
+  <div class="typebar"><div class="search"><span class="ms">search</span><span class="q">dhurx<i class="caret"></i></span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+  <div class="kbd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w2"></i><i class="sp"></i><i class="w2"></i><i></i></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">D · Frame B in light</p>
+    <p class="why">Plaster ground, a white field and a white card. The current song is the one tonal row, with bars over its dimmed cover. Its title stays in ink.</p>
+    <div class="phone light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="pin"><div class="search"><span class="ms">search</span><span class="q">dhur</span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+    <div class="shelf found">
+      <a class="tile" style="--w:104px"><div class="cv art-dhurandhar sq-lg"></div><b class="two">Dhurandhar</b><span>Album, Shashwat Sachdev</span></a>
+      <a class="tile" style="--w:104px"><div class="cv art-revenge sq-lg"></div><b class="two">Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></a>
+    </div>
+    <div class="label">Songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Dhurandhar Title Track"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="More options for Aakhri Ishq"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Gehra Hua"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Ishq Jalakar"><span class="ms">more_vert</span></button></div>
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Main Aur Tu"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="More options for Phir Se"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Shararat"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Vaari Jaavan"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab on"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">E · Typing, keyboard up</p>
+    <p class="why">While the keyboard is open the field leaves the top and rides on it, so the keys, the caret and "Clear search" are one thumb zone. <b>The title bar does not move.</b> Results fill the space between and change on every key.</p>
+    <div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar lift"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="shelf found">
+      <a class="tile" style="--w:104px"><div class="cv art-dhurandhar sq-lg"></div><b class="two">Dhurandhar</b><span>Album, Shashwat Sachdev</span></a>
+      <a class="tile" style="--w:104px"><div class="cv art-revenge sq-lg"></div><b class="two">Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></a>
+    </div>
+    <div class="label">Songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Dhurandhar Title Track"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="More options for Aakhri Ishq"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Gehra Hua"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Ishq Jalakar"><span class="ms">more_vert</span></button></div>
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Main Aur Tu"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="More options for Phir Se"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Shararat"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Vaari Jaavan"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="typebar"><div class="search"><span class="ms">search</span><span class="q">dhur<i class="caret"></i></span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+  <div class="kbd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w2"></i><i class="sp"></i><i class="w2"></i><i></i></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">F · Results for "ph": all four types</p>
+    <p class="why">An artist in the rounder shape, a folder as its mosaic, an album, then songs as rows. The second line on the shelf is the type: "Artist", "Playlist", "Album, {artist}". The single turns up as an album and as a song, as it does today.</p>
+    <div class="phone">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-dock">
+    <div class="bar"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="pin"><div class="search"><span class="ms">search</span><span class="q">ph</span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+    <div class="shelf found">
+      <a class="tile" style="--w:104px"><div class="cv art-ghost sq-soft"></div><b class="two">phonk.me</b><span>Artist</span></a>
+      <a class="tile" style="--w:104px"><div class="mosaic sq-lg"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div><b class="two">Phonk</b><span>Playlist</span></a>
+      <a class="tile" style="--w:104px"><div class="cv art-ghost sq-lg"></div><b class="two">GHOST!</b><span>Album, phonk.me, KIIXSHI</span></a>
+    </div>
+    <div class="label">Songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="More options for Phir Se"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><button class="ib" aria-label="More options for GHOST!"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="dock">
+    <div class="mini tinted art-revenge" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+      <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+    </div>
+    <nav class="tabs"><a class="tab"><span class="ms">home</span>Home</a><a class="tab on"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">G · Frame E in light</p>
+    <p class="why">The panel and the keyboard are one white surface and the field is the putty fill inside it. The shadow above the panel is the only one on the screen.</p>
+    <div class="phone light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar lift"><h2>Search</h2><button class="ib" aria-label="Settings"><span class="ms">settings</span></button></div>
+    <div class="shelf found">
+      <a class="tile" style="--w:104px"><div class="cv art-dhurandhar sq-lg"></div><b class="two">Dhurandhar</b><span>Album, Shashwat Sachdev</span></a>
+      <a class="tile" style="--w:104px"><div class="cv art-revenge sq-lg"></div><b class="two">Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></a>
+    </div>
+    <div class="label">Songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Dhurandhar Title Track"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="More options for Aakhri Ishq"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Aari Aari"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Gehra Hua"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Ishq Jalakar"><span class="ms">more_vert</span></button></div>
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Main Aur Tu"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="More options for Phir Se"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Shararat"><span class="ms">more_vert</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="More options for Vaari Jaavan"><span class="ms">more_vert</span></button></div>
+    </div>
+  </div>
+  <div class="typebar"><div class="search"><span class="ms">search</span><span class="q">dhur<i class="caret"></i></span><button class="ib dim" aria-label="Clear search"><span class="ms">close</span></button></div></div>
+  <div class="kbd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w2"></i><i class="sp"></i><i class="w2"></i><i></i></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Round Attic-mark button, then "Search", in a header row</td>
+        <td>A bare large title that collapses to a 56dp bar. Settings is a gear at the end of the field's row, and moves into the bar when the title collapses.</td>
+        <td>The avatar-style button beside the screen title.</td></tr>
+    <tr><td>White field on the dark screen, 6dp corners, "What do you want to listen to?"</td>
+        <td>A capsule in the card colour with "Search your music". It follows the theme instead of inverting it.</td>
+        <td>The inverted white field and its phrase.</td></tr>
+    <tr><td>The field stays at the top; the list shortens above the keyboard</td>
+        <td>With the keyboard open the field sits on it, in a panel of the keyboard's colour with the 30dp floating radius. Closing the keyboard returns it to its place under the title.</td>
+        <td></td></tr>
+    <tr><td>"Start browsing" over 92dp tiles in eight fixed colours, each with a cover tilted 25° and clipped by the corner</td>
+        <td>"Browse" over 128dp cards in the card colour. The mosaic or cover is a 56dp superellipse, upright, top-left; name and a count or artist below.</td>
+        <td>Coloured category tiles with an angled cover, and the eight tile colours.</td></tr>
+    <tr><td>One flat list in a fixed order: artists, folders, songs, albums</td>
+        <td>Collections first, as a shelf of 104dp objects in the order artists, folders, albums. Then "Songs" as a label over one card of rows.</td>
+        <td>Result rows that mix round and square covers with a type word as the subtitle.</td></tr>
+    <tr><td>Artist results are circles</td>
+        <td>The rounder superellipse used for people everywhere in this direction.</td>
+        <td>Circles for artists, squares for albums.</td></tr>
+    <tr><td>Song rows with the green badge; the current title in green</td>
+        <td>No badge. The current song has a tonal bed, a heavier title and bars over its dimmed cover.</td>
+        <td>The downloaded badge and the green current title.</td></tr>
+    <tr><td>Empty message as two lines of text under the field</td>
+        <td>An icon box, the same two strings, centred in the space above the keyboard.</td>
+        <td></td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>Results on every keystroke. No submit step, no history, no suggestions.</li>
+    <li>The matching rule, including its limits: up to 5 artists and 10 albums, folders searched, user playlists not searched.</li>
+    <li>The type words "Artist", "Playlist" and "Album, {artist}", now as the second line under a shelf tile.</li>
+    <li>"Clear search" at the end of the field once there is text.</li>
+    <li>Tap a song to play every matching song from that row, context "Search results". Long-press or the more button opens the track menu.</li>
+    <li>Browse holds every folder, then the eight albums with the most songs. Tap opens it.</li>
+    <li>The no-results strings, word for word.</li>
+  </ul>
+
+  <h2>Where the sheet departs from the brief</h2>
+  <p>The brief asks frame B to mix an artist, albums, a playlist and songs for "dhur". Under the app's matching rule
+     that query returns two albums and ten songs and nothing else: artists and folders are matched on their own names
+     only. Frame B shows what the app would return, the same result set as the baseline sheet, and frame F uses "ph",
+     which returns all four types.</p>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>The field moves.</b> It is under the title until the keyboard opens, then on the keyboard. The gain is reach
+        while typing; the cost is that it travels about 380dp each time the keyboard opens or closes. The alternative is to leave it
+        pinned under the bar in every state, as frame B has it.</li>
+    <li><b>Collections before songs.</b> Today's order is artists, folders, songs, albums. The shelf puts albums ahead
+        of songs, which fixes the case in frame B and changes the order the owner is used to. A query with more than
+        three matching collections scrolls the shelf sideways.</li>
+    <li><b>Browse tiles without colour.</b> The kit lets a tile take a trace of its cover's colour
+        (<code>tinted wash</code>). The sheet leaves them neutral, because the direction spends cover colour only on
+        progress and state. Twelve tinted tiles would be livelier and would break that rule.</li>
+    <li><b>User playlists.</b> "Late drive" and "Rahman, slow" cannot be found by search today, and still cannot here.
+        If that is an oversight in the app, they would join the shelf as "Playlist".</li>
+  </ul>
+</div>

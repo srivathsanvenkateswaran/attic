@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Expressive, about 4 x 1 (pixel/10-system frame A): the cover, the song, then previous, play or
+    pause and next, with the skip buttons in their narrow width.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_expressive_bg"
+    android:backgroundTint="@color/expressive_widget_container"
+    android:clipToOutline="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp">
+
+        <ImageView
+            android:id="@+id/widget_art"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/widget_corner_16"
+            android:backgroundTint="@color/expressive_widget_tonal"
+            android:clipToOutline="true"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_title"
+                style="@style/WidgetText.Expressive.Title"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/widget_artist"
+                style="@style/WidgetText.Expressive.Artist"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/widget_prev"
+            style="@style/WidgetSkip.Expressive.Narrow"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/widget_previous"
+            android:src="@drawable/ic_expressive_previous" />
+
+        <ImageButton
+            android:id="@+id/widget_play"
+            style="@style/WidgetPlay.Expressive" />
+
+        <ImageButton
+            android:id="@+id/widget_next"
+            style="@style/WidgetSkip.Expressive.Narrow"
+            android:contentDescription="@string/widget_next"
+            android:src="@drawable/ic_expressive_next" />
+    </LinearLayout>
+</FrameLayout>

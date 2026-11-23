@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Expressive's widget container: the system's widget corner radius (28dp on Pixel). Tinted from the cover. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="@android:dimen/system_app_widget_background_radius" />
+</shape>

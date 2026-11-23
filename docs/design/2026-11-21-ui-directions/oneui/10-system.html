@@ -1,0 +1,530 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 10 System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:7.9em}   /* captions here run to five lines; keeps the phones level */
+  .strips{display:flex;flex-direction:column;gap:14px}
+  .cap2{color:#98a2ad;font-size:12px;line-height:1.5;font-weight:600;margin:6px 0 -6px 2px}
+  .cap2 code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:5px;font-size:11.5px}
+
+  /* Colours that belong to the system or to fixed assets, not to the kit's themes.
+     The launcher icon is one asset in both themes: its two values are the kit's dark --accent and --on-accent. */
+  :is(.phone,.strip){
+    --icon-lamp:#ffb347; --icon-soot:#2a1800; --icon-night:#141312;
+    --th-bg-l:#dfe3ff; --th-fg-l:#2c3a96; --th-bg-d:#272b47; --th-fg-d:#c6ccff;      /* themed icons: a palette the system takes from the wallpaper */
+    --wall:radial-gradient(120% 70% at 88% 108%,#5a3fd0 0,transparent 62%),radial-gradient(95% 60% at -12% 62%,#1f4fc4 0,transparent 60%),
+           radial-gradient(85% 50% at 62% -12%,#0e7c8c 0,transparent 65%),#0a0d24;
+    --sys:#ffffff; --sys-2:rgba(255,255,255,.66); --sys-card:rgba(255,255,255,.09); --sys-on:rgba(255,255,255,.92); --sys-on-ink:#15161c;
+    --panel:linear-gradient(rgba(9,10,16,.8),rgba(9,10,16,.8)),var(--wall)}
+  :is(.phone,.strip).light{
+    --wall:radial-gradient(120% 70% at 88% 108%,#b9a8ff 0,transparent 62%),radial-gradient(95% 60% at -12% 62%,#a9c8ff 0,transparent 60%),
+           radial-gradient(85% 50% at 62% -12%,#bfeee6 0,transparent 65%),#e9ebf7;
+    --sys:#1a1c2a; --sys-2:rgba(26,28,42,.62); --sys-card:rgba(255,255,255,.82); --sys-on:#1a1c2a; --sys-on-ink:#ffffff;
+    --panel:linear-gradient(rgba(240,241,248,.82),rgba(240,241,248,.82)),var(--wall)}
+
+  /* launcher icon: superellipse mask, flat ground, the stand-in mark at 46% */
+  :is(.phone,.strip) .aicon{display:grid;place-items:center;aspect-ratio:1;width:58px;flex:none;background:var(--icon-lamp);color:var(--icon-soot)}
+  :is(.phone,.strip) .aicon .mark{width:46%;height:46%;color:inherit}
+  :is(.phone,.strip) .aicon.night{background:var(--icon-night);color:var(--icon-lamp)}
+  :is(.phone,.strip) .aicon.themed,:is(.phone,.strip) .aicon.themed.td{background:var(--th-bg-d);color:var(--th-fg-d)}
+  :is(.phone,.strip).light .aicon.themed,:is(.phone,.strip) .aicon.themed.tl{background:var(--th-bg-l);color:var(--th-fg-l)}
+
+  /* home screen */
+  .phone.hs,.strip.wall{background:var(--wall)}
+  .phone:is(.hs,.panel,.lock) > :is(.sbar,.gpill){color:var(--sys)}
+  .phone .sbl{display:flex;align-items:center;gap:7px}
+  .phone .sbl .mark{width:14px;height:14px;color:inherit}
+  .phone .sbl .ms{font-size:16px}
+  .phone .hs-body{padding:10px 16px 0;display:flex;flex-direction:column;gap:18px}
+  .phone .hs-row{display:flex;gap:14px}
+  .phone .hs-four{flex:1;display:grid;grid-template-columns:1fr 1fr;align-content:space-between;justify-items:center}
+  .phone .hs-apps{display:flex;justify-content:space-between;padding:4px 4px 0}
+  .phone .app{display:flex;flex-direction:column;align-items:center;gap:6px;width:72px;font-size:12px;line-height:15px;font-weight:500;color:var(--sys)}
+  .phone .app i{display:grid;place-items:center;width:58px;height:58px;background:var(--ic);color:var(--on-art)}
+  .phone .app i .ms{font-size:30px}
+  .phone .app i.themed{background:var(--th-bg-d);color:var(--th-fg-d)}
+  .phone.light .app i.themed{background:var(--th-bg-l);color:var(--th-fg-l)}
+  .phone .hs-dots{position:absolute;left:0;right:0;bottom:122px;display:flex;justify-content:center;gap:7px}
+  .phone .hs-dots i{width:6px;height:6px;border-radius:3px;background:var(--sys-2)}
+  .phone .hs-dots i.on{width:16px;background:var(--sys)}
+  .phone .hs-dock{position:absolute;left:20px;right:20px;bottom:38px;display:flex;justify-content:space-between}
+
+  /* the widget: a washed card, 30dp corners, art in the app's shapes, play in the cover's colour */
+  :is(.phone,.strip) .wg{position:relative;overflow:hidden;border-radius:var(--r-float);background:var(--card);color:var(--on);box-shadow:var(--shadow-sm)}
+  :is(.phone,.strip) .wg .txt b{font-size:16px;line-height:21px;font-weight:700}
+  :is(.phone,.strip) .wg .txt span{font-size:13px;line-height:17px}
+  :is(.phone,.strip) .wg-ctl{display:flex;align-items:center;gap:8px}
+  :is(.phone,.strip) .wg-ctl .ib{width:44px;height:44px}
+  :is(.phone,.strip) .wg-ctl .ib .ms{font-size:30px}
+  :is(.phone,.strip) .wg-top{display:flex;align-items:center;gap:14px;padding:14px 14px 12px}
+  :is(.phone,.strip) .wg-top > .mark{position:absolute;top:15px;right:16px;width:18px;height:18px}
+  :is(.phone,.strip) .wg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  :is(.phone,.strip) .wg-main .txt{flex:none;padding-right:30px}
+  :is(.phone,.strip) .wg-main .wg-ctl{margin-left:-11px}
+  :is(.phone,.strip) .wg-tray{position:relative;display:flex;justify-content:space-between;padding:12px 16px 14px}
+  :is(.phone,.strip) .wg-tray::before{content:"";position:absolute;top:0;left:16px;right:16px;height:1px;background:var(--line)}
+  :is(.phone,.strip) .wg-tray .cv{width:56px}
+  :is(.phone,.strip) .wg-w{display:flex;align-items:center;gap:12px;height:80px;padding:0 8px 0 12px}
+  :is(.phone,.strip) .wg-w .wg-ctl{gap:2px;flex:none}
+  :is(.phone,.strip) .wg-w .wg-ctl .ib{width:40px}
+  :is(.phone,.strip) .wg-s{width:172px;height:172px;padding:12px;flex:none}
+  :is(.phone,.strip) .wg-s > :is(.cv,.ibox){width:148px}
+  :is(.phone,.strip) .wg-pb{position:absolute;right:7px;bottom:7px;width:58px;height:58px;display:grid;place-items:center;background:var(--card)}
+  .strip .pad{padding:16px}
+
+  /* notification panel and lock screen: system chrome, kept grey so it reads as not ours */
+  .phone.panel,.strip.sysbg{background:var(--panel)}
+  .phone.lock{background:linear-gradient(rgba(6,7,14,.34),rgba(6,7,14,.34)),var(--wall)}
+  .phone .qp{padding:6px 16px 0;color:var(--sys)}
+  .phone .qp-date{display:flex;align-items:center;gap:18px;padding:6px 8px 14px;font-size:15px;font-weight:500}
+  .phone .qp-date span:first-child{flex:1}
+  .phone .qp-tog{display:flex;justify-content:space-between;padding:0 4px}
+  .phone .qp-tog i{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--sys-card);color:var(--sys)}
+  .phone .qp-tog i.on{background:var(--sys-on);color:var(--sys-on-ink)}
+  .phone .qp-bright{position:relative;height:40px;margin:16px 0 18px;border-radius:20px;background:var(--sys-card);overflow:hidden;display:flex;align-items:center;padding:0 12px;color:var(--sys-on-ink)}
+  .phone .qp-bright::before{content:"";position:absolute;inset:0 auto 0 0;width:62%;border-radius:20px;background:var(--sys-on)}
+  .phone .qp-bright .ms{position:relative}
+  .phone .qp-lab{padding:22px 10px 10px;font-size:13.5px;font-weight:600;color:var(--sys-2)}
+  .phone .qp-foot{display:flex;justify-content:center;gap:12px;margin-top:18px}
+  .phone .qp-foot span{height:36px;padding:0 16px;border-radius:18px;display:flex;align-items:center;background:var(--sys-card);font-size:13.5px;font-weight:500}
+
+  /* media card: the system's layout, colours and shapes. Attic supplies the text, the artwork, the small icon and the action glyphs. */
+  :is(.phone,.strip) .mc{border-radius:26px;padding:14px 14px 8px 16px;background:var(--card);color:var(--on)}
+  :is(.phone,.strip) .mc.glass{background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(18px)}
+  :is(.phone,.strip) .mc-top{display:flex;align-items:center;justify-content:space-between;height:30px}
+  :is(.phone,.strip) .mc-app{display:flex;align-items:center}
+  :is(.phone,.strip) .mc-app .mark{width:20px;height:20px;color:var(--on)}
+  :is(.phone,.strip) .mc-out{height:30px;padding:0 12px 0 9px;border-radius:15px;display:flex;align-items:center;gap:5px;background:var(--on-accent-soft);color:var(--accent-soft);font-size:13px;font-weight:600}
+  :is(.phone,.strip) .mc-mid{display:flex;align-items:center;gap:12px;margin-top:10px}
+  :is(.phone,.strip) .mc-art{width:52px;height:52px;border-radius:12px;overflow:hidden;flex:none}
+  :is(.phone,.strip) .mc-art .cv{width:52px}
+  :is(.phone,.strip) .mc .txt b{font-size:16px;line-height:21px;font-weight:600}
+  :is(.phone,.strip) .mc .txt span{font-size:13.5px;line-height:18px}
+  :is(.phone,.strip) .mc-play{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;flex:none;background:var(--on-accent-soft);color:var(--accent-soft)}
+  :is(.phone,.strip) .mc-play .ms{font-size:30px}
+  :is(.phone,.strip) .mc-row{display:flex;align-items:center;margin:6px 0 0 -12px}
+  :is(.phone,.strip) .mc-b{width:44px;height:44px;display:grid;place-items:center;flex:none;color:var(--on)}
+  :is(.phone,.strip) .mc-b.dim{color:var(--on-3)}
+  :is(.phone,.strip) .mc-b .mark{width:20px;height:20px;color:inherit}
+  :is(.phone,.strip) .mc-seek{position:relative;flex:1;height:3px;margin:0 8px;border-radius:2px;background:var(--fill-2)}
+  :is(.phone,.strip) .mc-seek::before{content:"";position:absolute;inset:0 auto 0 0;width:calc(var(--p)*100%);border-radius:2px;background:var(--on)}
+  :is(.phone,.strip) .mc-seek::after{content:"";position:absolute;top:-7px;left:calc(var(--p)*100% - 2px);width:4px;height:17px;border-radius:2px;background:var(--on)}
+
+  /* analysis notification: a standard progress notification with one action */
+  :is(.phone,.strip) .nt{display:flex;gap:14px;border-radius:26px;padding:16px 16px 6px;background:var(--sys-card);color:var(--sys)}
+  :is(.phone,.strip) .nt .aicon{width:40px;height:40px;margin-top:2px;align-self:flex-start}
+  :is(.phone,.strip) .nt-main{flex:1;min-width:0}
+  :is(.phone,.strip) .nt-hd{display:flex;align-items:center;gap:8px}
+  :is(.phone,.strip) .nt-hd b{font-size:15.5px;line-height:21px;font-weight:600}
+  :is(.phone,.strip) .nt-hd em{flex:1;font-style:normal;font-size:12.5px;color:var(--sys-2)}
+  :is(.phone,.strip) .nt-hd .ms{color:var(--sys-2)}
+  :is(.phone,.strip) .nt p{font-size:14px;line-height:19px;color:var(--sys-2);font-variant-numeric:tabular-nums}
+  :is(.phone,.strip) .nt-bar{position:relative;height:4px;margin:11px 0 2px;border-radius:2px;background:var(--sys-card)}
+  :is(.phone,.strip) .nt-bar::before{content:"";position:absolute;inset:0 auto 0 0;width:calc(var(--p)*100%);border-radius:2px;background:var(--sys)}
+  :is(.phone,.strip) .nt-act{display:flex;margin-left:-12px}
+  :is(.phone,.strip) .nt-act span{height:48px;padding:0 12px;display:flex;align-items:center;font-size:14.5px;font-weight:600}
+
+  /* lock screen */
+  .phone .lk{padding:0 16px;color:var(--sys);display:flex;flex-direction:column;align-items:center}
+  .phone .lk-lock{margin-top:26px;opacity:.8}
+  .phone .lk-time{margin-top:18px;font-size:84px;line-height:88px;font-weight:500;letter-spacing:-.03em}
+  .phone .lk-date{margin-top:2px;font-size:17px;font-weight:500}
+  .phone .lk .mc{align-self:stretch;margin-top:34px}
+  .phone .lk-icons{display:flex;align-items:center;gap:12px;margin-top:20px;opacity:.9}
+  .phone .lk-icons .mark{width:18px;height:18px;color:inherit}
+  .phone .lk-short{position:absolute;left:28px;right:28px;bottom:44px;display:flex;justify-content:space-between;color:var(--sys)}
+  .phone .lk-short i{display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:var(--sys-card)}
+
+  /* launcher icon specimen */
+  .strip.iconsheet{background:var(--card);padding:22px 20px 20px}
+  .strip.iconsheet.wall{background:var(--wall)}
+  .strip.iconsheet.wall em{color:var(--sys);font-weight:500}
+  .strip .ic-row{display:flex;justify-content:space-around;text-align:center}
+  .strip .ic-row > div{display:flex;flex-direction:column;align-items:center;gap:10px;width:112px}
+  .strip.iconsheet em{font-style:normal;font-size:12px;line-height:16px;color:var(--on-2)}
+  .strip .ic-build{display:flex;gap:18px;align-items:center;margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+  .strip .ic-canvas{position:relative;width:162px;height:162px;flex:none;display:grid;place-items:center}
+  .strip .ic-canvas .lay{position:absolute}
+  .strip .ic-canvas .bg{inset:0;background:color-mix(in srgb,var(--icon-lamp) 22%,transparent);outline:1px dashed var(--on-3);outline-offset:-1px}
+  .strip .ic-canvas .mask{inset:27px;background:var(--icon-lamp)}
+  .strip .ic-canvas .safe{inset:31.5px;border-radius:50%;border:1.5px dashed var(--icon-soot);opacity:.55}
+  .strip .ic-canvas .mark{position:relative;width:50px;height:50px;color:var(--icon-soot)}
+  .strip .ic-build ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  .strip .ic-build li{font-size:12px;line-height:16px;color:var(--on-2)}
+  .strip .ic-build li b{display:block;font-size:12.5px;font-weight:600;color:var(--on)}
+  .strip .ic-sizes{display:flex;align-items:center;gap:14px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .strip .ic-sizes em{flex:1}
+  .strip .ic-sb{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--ground);flex:none}
+  .strip .ic-sb .mark{width:16px;height:16px;color:var(--on)}
+
+  /* what the app hands to the system */
+  .strip .acts{background:var(--card);margin:16px;border-radius:26px;padding:8px 8px 10px 10px}
+  .strip .ac-h{padding:10px 10px 0;font-size:12.5px;line-height:17px;font-weight:600;color:var(--on-2)}
+  .strip .ac{display:flex;align-items:center;gap:6px;height:46px}
+  .strip .ac .txt b{font-size:14.5px;font-weight:500}
+</style>
+
+<div class="intro">
+  <h1>Outside the app</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 10</div>
+  <p>The four places Attic shows up without being open: the home-screen widget, the media controls in the notification
+     panel and on the lock screen, the notification shown while songs are analysed, and the launcher icon. Attic draws
+     the widget and the icon. <b>The system draws the other two from what Attic hands it</b>, so those frames are in
+     grey system chrome, and frame F lists exactly what the app supplies.</p>
+  <p>The sheet settles the widget's surface (a card washed with the cover, where today it is a block of the cover's
+     colour), the favourite glyph in the media controls, and the icon's ground, colours and themed form. The mark
+     itself is a stand-in: the current house outline, recoloured, until the redesign in <code>logo/</code> is chosen.</p>
+</div>
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Widget, three sizes</p>
+    <p class="why">One widget, resized: 4 × 2 with five recent albums, 4 × 1, and 2 × 2. The surface is <b>a card washed with the cover, not a block of its colour</b>; the colour itself goes to the play button. Art keeps the app's superellipse. Attic's icon is last in the dock.</p>
+    <div class="phone hs">
+  <div class="sbar"><span class="sbl"><span>9:41</span><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg><span class="ms">graphic_eq</span></span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="hs-body">
+    <div class="wg wg-l tinted wash art-revenge">
+    <div class="wg-top">
+      <div class="cv art-revenge sq w88"></div>
+      <div class="wg-main">
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">pause</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+      </div>
+      <svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg>
+    </div>
+    <div class="wg-tray"><div class="cv art-revenge sq plain" role="link" aria-label="Open album"></div><div class="cv art-rockstar sq plain" role="link" aria-label="Open album"></div><div class="cv art-premam sq plain" role="link" aria-label="Open album"></div><div class="cv art-viva sq plain" role="link" aria-label="Open album"></div><div class="cv art-lootera sq plain" role="link" aria-label="Open album"></div></div>
+  </div>
+    <div class="wg wg-w tinted wash art-revenge">
+    <div class="cv art-revenge sq w56 plain"></div>
+    <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+    <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">pause</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+  </div>
+    <div class="hs-row">
+      <div class="wg wg-s tinted wash art-revenge">
+    <div class="cv art-revenge sq-lg"></div>
+    <span class="wg-pb sq"><button class="play sm" aria-label="Play or pause"><span class="ms">pause</span></button></span>
+  </div>
+      <div class="hs-four"><a class="app"><i class="sq" style="--ic:#5b5bd6"><span class="ms fill">schedule</span></i><span>Clock</span></a><a class="app"><i class="sq" style="--ic:#12a594"><span class="ms fill">calendar_month</span></i><span>Calendar</span></a><a class="app"><i class="sq" style="--ic:#d6409f"><span class="ms fill">image</span></i><span>Photos</span></a><a class="app"><i class="sq" style="--ic:#f5a524"><span class="ms fill">folder</span></i><span>Files</span></a></div>
+    </div>
+    <div class="hs-apps"><a class="app"><i class="sq" style="--ic:#f76b15"><span class="ms fill">edit_note</span></i><span>Notes</span></a><a class="app"><i class="sq" style="--ic:#0091ff"><span class="ms fill">partly_cloudy_day</span></i><span>Weather</span></a><a class="app"><i class="sq" style="--ic:#46a758"><span class="ms fill">map</span></i><span>Maps</span></a><a class="app"><i class="sq" style="--ic:#6f7682"><span class="ms fill">settings</span></i><span>Settings</span></a></div>
+  </div>
+  <div class="hs-dots"><i></i><i class="on"></i><i></i></div>
+  <div class="hs-dock"><a class="app"><i class="sq" style="--ic:#2faa5f"><span class="ms fill">call</span></i></a><a class="app"><i class="sq" style="--ic:#3b82f6"><span class="ms fill">chat_bubble</span></i></a><a class="app"><i class="sq" style="--ic:#e5484d"><span class="ms fill">photo_camera</span></i></a><a class="app"><span class="aicon sq colour"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span></a></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">A2 · Light, another song, paused</p>
+    <p class="why">The widget follows the theme, and its wash and play button change with the cover. The launcher's colour palette is switched on here, so every icon is drawn from its monochrome layer, Attic's included.</p>
+    <div class="phone hs light">
+  <div class="sbar"><span class="sbl"><span>9:41</span><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="hs-body">
+    <div class="wg wg-l tinted wash art-viva">
+    <div class="wg-top">
+      <div class="cv art-viva sq w88"></div>
+      <div class="wg-main">
+        <div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div>
+        <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">play_arrow</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+      </div>
+      <svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg>
+    </div>
+    <div class="wg-tray"><div class="cv art-revenge sq plain" role="link" aria-label="Open album"></div><div class="cv art-rockstar sq plain" role="link" aria-label="Open album"></div><div class="cv art-premam sq plain" role="link" aria-label="Open album"></div><div class="cv art-viva sq plain" role="link" aria-label="Open album"></div><div class="cv art-lootera sq plain" role="link" aria-label="Open album"></div></div>
+  </div>
+    <div class="wg wg-w tinted wash art-viva">
+    <div class="cv art-viva sq w56 plain"></div>
+    <div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div>
+    <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">play_arrow</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+  </div>
+    <div class="hs-row">
+      <div class="wg wg-s tinted wash art-viva">
+    <div class="cv art-viva sq-lg"></div>
+    <span class="wg-pb sq"><button class="play sm" aria-label="Play or pause"><span class="ms">play_arrow</span></button></span>
+  </div>
+      <div class="hs-four"><a class="app"><i class="sq themed" style="--ic:#5b5bd6"><span class="ms fill">schedule</span></i><span>Clock</span></a><a class="app"><i class="sq themed" style="--ic:#12a594"><span class="ms fill">calendar_month</span></i><span>Calendar</span></a><a class="app"><i class="sq themed" style="--ic:#d6409f"><span class="ms fill">image</span></i><span>Photos</span></a><a class="app"><i class="sq themed" style="--ic:#f5a524"><span class="ms fill">folder</span></i><span>Files</span></a></div>
+    </div>
+    <div class="hs-apps"><a class="app"><i class="sq themed" style="--ic:#f76b15"><span class="ms fill">edit_note</span></i><span>Notes</span></a><a class="app"><i class="sq themed" style="--ic:#0091ff"><span class="ms fill">partly_cloudy_day</span></i><span>Weather</span></a><a class="app"><i class="sq themed" style="--ic:#46a758"><span class="ms fill">map</span></i><span>Maps</span></a><a class="app"><i class="sq themed" style="--ic:#6f7682"><span class="ms fill">settings</span></i><span>Settings</span></a></div>
+  </div>
+  <div class="hs-dots"><i></i><i class="on"></i><i></i></div>
+  <div class="hs-dock"><a class="app"><i class="sq themed" style="--ic:#2faa5f"><span class="ms fill">call</span></i></a><a class="app"><i class="sq themed" style="--ic:#3b82f6"><span class="ms fill">chat_bubble</span></i></a><a class="app"><i class="sq themed" style="--ic:#e5484d"><span class="ms fill">photo_camera</span></i></a><a class="app"><span class="aicon sq themed"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span></a></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Media notification</p>
+    <p class="why">The system draws this card. Attic supplies the title, artist and artwork, the white mark, and five actions: previous, play or pause, next, shuffle, favourite. The layout, colours, thin seek line and "This phone" chip are the system's. <b>The favourite is a heart here too.</b></p>
+    <div class="phone panel">
+  <div class="sbar"><span class="sbl"><span>9:41</span><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg><span class="ms">graphic_eq</span></span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="qp">
+    <div class="qp-date"><span>Sat, 21 November</span><span class="ms s20">edit</span><span class="ms s20">settings</span></div>
+    <div class="qp-tog"><i class="on"><span class="ms">wifi</span></i><i class="on"><span class="ms">volume_up</span></i><i><span class="ms">bluetooth</span></i><i class="on"><span class="ms">screen_rotation</span></i><i><span class="ms">flashlight_on</span></i><i><span class="ms">airplanemode_active</span></i></div>
+    <div class="qp-bright"><span class="ms s20">light_mode</span></div>
+    <div class="mc tinted wash art-revenge">
+      <div class="mc-top"><span class="mc-app"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="mc-out"><span class="ms s18">smartphone</span> This phone</span></div>
+      <div class="mc-mid">
+        <span class="mc-art"><span class="cv art-revenge plain"></span></span>
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <span class="mc-play" aria-label="Pause"><span class="ms fill">pause</span></span>
+      </div>
+      <div class="mc-row">
+        <span class="mc-b" aria-label="Previous"><span class="ms fill">skip_previous</span></span>
+        <span class="mc-seek" style="--p:.323"></span>
+        <span class="mc-b" aria-label="Next"><span class="ms fill">skip_next</span></span>
+        <span class="mc-b dim" aria-label="Turn shuffle on"><span class="ms">shuffle</span></span>
+        <span class="mc-b" aria-label="Add to favourites"><span class="ms">favorite</span></span>
+      </div>
+    </div>
+    <div class="qp-lab">Silent notifications</div>
+    <div class="nt">
+      <span class="aicon sq colour"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span>
+      <div class="nt-main">
+        <div class="nt-hd"><b>Analysing your songs</b><em>now</em><span class="ms s20">expand_less</span></div>
+        <p>84 of 127</p>
+        <div class="nt-bar" style="--p:.66"></div>
+        <div class="nt-act"><span>Stop</span></div>
+      </div>
+    </div>
+    <div class="qp-foot"><span>Notification settings</span><span>Clear</span></div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B2 · Lock screen</p>
+    <p class="why">The same card, from the same data, over the wallpaper. Attic styles nothing in it, which is why the seek line is thin and the cover has the system's corners and not a superellipse.</p>
+    <div class="phone lock">
+  <div class="sbar"><span class="sbl"><span>9:41</span></span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="lk">
+    <div class="lk-lock"><span class="ms s20 fill">lock</span></div>
+    <div class="lk-time">9:41</div>
+    <div class="lk-date">Sat, 21 November</div>
+    <div class="mc tinted wash art-revenge glass">
+      <div class="mc-top"><span class="mc-app"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="mc-out"><span class="ms s18">smartphone</span> This phone</span></div>
+      <div class="mc-mid">
+        <span class="mc-art"><span class="cv art-revenge plain"></span></span>
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <span class="mc-play" aria-label="Pause"><span class="ms fill">pause</span></span>
+      </div>
+      <div class="mc-row">
+        <span class="mc-b" aria-label="Previous"><span class="ms fill">skip_previous</span></span>
+        <span class="mc-seek" style="--p:.323"></span>
+        <span class="mc-b" aria-label="Next"><span class="ms fill">skip_next</span></span>
+        <span class="mc-b dim" aria-label="Turn shuffle on"><span class="ms">shuffle</span></span>
+        <span class="mc-b" aria-label="Add to favourites"><span class="ms">favorite</span></span>
+      </div>
+    </div>
+    <div class="lk-icons"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg><span class="ms s18">graphic_eq</span></div>
+  </div>
+  <div class="lk-short"><i><span class="ms fill">call</span></i><i><span class="ms fill">photo_camera</span></i></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">C · Analysis notification</p>
+    <p class="why">A standard progress notification, ongoing and silent, on the "Song analysis" channel. Attic supplies the title, "{done} of {total}", the progress value, the equaliser icon for the status bar, and one action, "Stop". The system draws the bar.</p>
+    <div class="strips"><p class="cap2">Dark</p><div class="strip sysbg" style="width:390px"><div class="pad"><div class="nt">
+      <span class="aicon sq colour"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span>
+      <div class="nt-main">
+        <div class="nt-hd"><b>Analysing your songs</b><em>now</em><span class="ms s20">expand_less</span></div>
+        <p>84 of 127</p>
+        <div class="nt-bar" style="--p:.66"></div>
+        <div class="nt-act"><span>Stop</span></div>
+      </div>
+    </div></div></div><p class="cap2">Light</p><div class="strip sysbg light" style="width:390px"><div class="pad"><div class="nt">
+      <span class="aicon sq colour"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span>
+      <div class="nt-main">
+        <div class="nt-hd"><b>Analysing your songs</b><em>now</em><span class="ms s20">expand_less</span></div>
+        <p>84 of 127</p>
+        <div class="nt-bar" style="--p:.66"></div>
+        <div class="nt-act"><span>Stop</span></div>
+      </div>
+    </div></div></div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">D · Launcher icon</p>
+    <p class="why">An adaptive icon: a flat Lamplight ground and the mark in Soot, cut by the launcher's superellipse. The monochrome layer is the same silhouette with the window cut out, so the themed icon is recognisably the same one.</p>
+    <div class="strips">
+  <div class="strip iconsheet" style="width:390px">
+    <div class="ic-row">
+      <div><span class="aicon sq colour" style="width:96px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>Colour</em></div>
+      <div><span class="aicon sq themed tl" style="width:96px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>Themed, light</em></div>
+      <div><span class="aicon sq themed td" style="width:96px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>Themed, dark</em></div>
+    </div>
+    <div class="ic-build">
+      <div class="ic-canvas"><span class="lay bg"></span><span class="lay mask sq"></span><span class="lay safe"></span><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+      <ul>
+        <li><b>Background layer</b>Lamplight, flat, the full 108dp canvas.</li>
+        <li><b>Foreground layer</b>The mark in Soot, inside the 66dp safe circle (dashed).</li>
+        <li><b>Monochrome layer</b>The same silhouette with the window cut out. The system colours it.</li>
+        <li><b>Mask</b>The launcher's superellipse (the bright area). The icon does not draw its own edge.</li>
+      </ul>
+    </div>
+    <div class="ic-sizes"><span class="aicon sq colour" style="width:58px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="aicon sq colour" style="width:40px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="aicon sq colour" style="width:24px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><span class="ic-sb"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>58dp home, 40dp notification, 24dp list, and the white mark for the status bar and the media card</em></div>
+  </div>
+  <p class="cap2">The two grounds in the open question, on a dark and a light wallpaper</p>
+  <div class="strip iconsheet wall" style="width:390px">
+    <div class="ic-row">
+      <div><span class="aicon sq colour" style="width:72px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>As proposed</em></div>
+      <div><span class="aicon sq night" style="width:72px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>Night ground, Lamplight mark</em></div>
+    </div>
+  </div>
+  <div class="strip iconsheet wall light" style="width:390px">
+    <div class="ic-row">
+      <div><span class="aicon sq colour" style="width:72px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>As proposed</em></div>
+      <div><span class="aicon sq night" style="width:72px"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><em>Night ground, Lamplight mark</em></div>
+    </div>
+  </div>
+  <p class="cap2">The mark is the current house outline as a stand-in. The glyph is being redrawn in <code>logo/</code>; this sheet fixes the container, the colours and the themed treatment.</p>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">E · Widget states</p>
+    <p class="why">With nothing queued the widget reads "Attic" and "Tap to open". A song with no cover gets the neutral card and the mark in the art slot, and the amber accent comes back. Long titles end in an ellipsis; the buttons keep their size.</p>
+    <div class="strips"><p class="cap2">Nothing queued yet</p><div class="strip wall" style="width:390px"><div class="pad"><div class="wg wg-w">
+    <div class="ibox sq neutral  w56 "><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+    <div class="txt"><b>Attic</b><span>Tap to open</span></div>
+    <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">play_arrow</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+  </div></div></div><p class="cap2">A song with no cover: neutral surface, the accent returns</p><div class="strip wall" style="width:390px"><div class="pad"><div class="wg wg-l">
+    <div class="wg-top">
+      <div class="ibox sq neutral  w88"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></div>
+      <div class="wg-main">
+        <div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div>
+        <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">pause</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+      </div>
+      <svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg>
+    </div>
+    <div class="wg-tray"><div class="cv art-revenge sq plain" role="link" aria-label="Open album"></div><div class="cv art-rockstar sq plain" role="link" aria-label="Open album"></div><div class="cv art-premam sq plain" role="link" aria-label="Open album"></div><div class="cv art-viva sq plain" role="link" aria-label="Open album"></div><div class="cv art-lootera sq plain" role="link" aria-label="Open album"></div></div>
+  </div></div></div><p class="cap2">Long title, light</p><div class="strip wall light" style="width:390px"><div class="pad"><div class="wg wg-w tinted wash art-jodhaa">
+    <div class="cv art-jodhaa sq w56 plain"></div>
+    <div class="txt"><b>In Lamhon Ke Daaman Mein</b><span>A. R. Rahman</span></div>
+    <div class="wg-ctl">
+        <button class="ib" aria-label="Previous"><span class="ms fill">skip_previous</span></button>
+        <button class="play sm" aria-label="Play or pause"><span class="ms">pause</span></button>
+        <button class="ib" aria-label="Next"><span class="ms fill">skip_next</span></button>
+      </div>
+  </div></div></div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">F · What Attic hands to the system</p>
+    <p class="why">The glyphs and descriptions passed to the media session and the status bar. Favourite goes from an outline heart to a filled one. Shuffle off is the same glyph, drawn dim by the system.</p>
+    <div class="strips">
+  <div class="strip sysbg" style="width:390px"><div class="pad acts tinted wash art-revenge">
+    <p class="ac-h">Shuffle</p><div class="ac"><span class="mc-b dim"><span class="ms">shuffle</span></span><div class="txt"><b>"Turn shuffle on"</b></div></div><div class="ac"><span class="mc-b"><span class="ms">shuffle</span></span><div class="txt"><b>"Turn shuffle off"</b></div></div>
+    <p class="ac-h">Favourite</p><div class="ac"><span class="mc-b"><span class="ms">favorite</span></span><div class="txt"><b>"Add to favourites"</b></div></div><div class="ac"><span class="mc-b"><span class="ms fill">favorite</span></span><div class="txt"><b>"Remove from favourites"</b></div></div>
+    <p class="ac-h">Small icon</p><div class="ac"><span class="mc-b"><svg class="mark" viewBox="20 21 68 66" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" fill-rule="evenodd" d="M54,25L84,53L84,79Q84,83 80,83L28,83Q24,83 24,79L24,53ZM42.5,60a11.5,11.5 0 1,0 23,0a11.5,11.5 0 1,0 -23,0Z"/></svg></span><div class="txt"><b>The mark alone, in white</b></div></div>
+    <div class="ac"><span class="mc-b"><span class="ms">graphic_eq</span></span><div class="txt"><b>Equaliser bars, for song analysis</b></div></div>
+  </div></div>
+</div>
+  </div>
+</div>
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Widget filled edge to edge with the cover's tint, 24dp corners, white text</td>
+        <td>A card washed a short way toward the cover, with 30dp corners, that follows the phone's theme. The cover's colour is spent on the play button, as in the app.</td>
+        <td>A widget filled with the cover colour.</td></tr>
+    <tr><td>Play or pause in a white circle (large) or a black circle (small)</td>
+        <td>The kit's play button: a superellipse in the cover's colour. Previous and next are bare glyphs beside it.</td>
+        <td>The white play circle.</td></tr>
+    <tr><td>Covers with 6dp corners; album tiles on a black 15% band</td>
+        <td>Superellipse covers. The five albums sit under an inset hairline, the way a second row sits in a group.</td>
+        <td>Small-radius square covers.</td></tr>
+    <tr><td>Small size: the cover fills the widget, button over its corner</td>
+        <td>The cover keeps its shape inside the card and the button is set into its corner on a ring of the card's colour.</td>
+        <td></td></tr>
+    <tr><td>Media controls: plus-in-circle, turning into a check-in-circle; "Add to liked songs"</td>
+        <td>An outline heart, turning into a filled heart; "Add to favourites" and "Remove from favourites".</td>
+        <td>The plus-to-check like control, in the one place it shows outside the app.</td></tr>
+    <tr><td>Launcher icon: green mark on #121212</td>
+        <td>The mark in Soot on a flat Lamplight ground, with a monochrome layer for themed icons.</td>
+        <td>Green on near-black.</td></tr>
+    <tr><td>Fallback art: #333333 with the green mark</td>
+        <td>The kit's neutral icon box with the mark. The widget's surface goes neutral and its play button amber.</td>
+        <td>Green.</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>One widget in three layouts chosen by its size: default 4 × 2, minimum 110 × 50dp, resizable both ways. The picker text, "Your song and controls, with your recent albums. Resize it for a smaller player."</li>
+    <li>Large: cover, title, artist, previous, play or pause, next, the mark in the corner, five album shortcuts. Wide: cover, title, artist, three buttons. Small: cover and play or pause.</li>
+    <li>The five albums are the most recently played, topped up with the biggest; a tap opens that album. A tap anywhere else that is not a button opens the app.</li>
+    <li>"Attic" and "Tap to open" when nothing is queued. The last song is kept across a reboot and shown paused (frame A2 is that state).</li>
+    <li>Button descriptions "Play or pause", "Next", "Previous", "Open album".</li>
+    <li>Media controls: title, artist, album, artwork read from the file, the white mark, previous, play or pause, next, seek, shuffle and favourite. A tap opens the app. Nothing is posted until playback starts.</li>
+    <li>Analysis notification: ongoing and silent on "Song analysis", the equaliser icon, "Analysing your songs", "{done} of {total}", a determinate bar, "Stop". A tap opens the app.</li>
+    <li>The launcher icon keeps a monochrome layer.</li>
+  </ul>
+
+  <h2>What the direction cannot reach</h2>
+  <p>The media card and the analysis notification are system templates. Their layout, type, corner radii, the thin seek
+     line and progress bar, the artwork's corners and the output chip come from One UI and change between its versions;
+     frames B, B2 and C draw one plausible version to show where Attic's pieces land. The widget has no progress fill
+     because it has no progress today, and a home-screen widget cannot tick once a second without waking the app.</p>
+
+  <h2>Kit additions in this sheet</h2>
+  <p>In the sheet's <code>&lt;style&gt;</code>, ready to fold into <code>kit.css</code>: the widget <code>.wg</code> in three
+     sizes and the launcher icon <code>.aicon</code>. The home screen, panel, lock screen, media card and notification
+     classes are system stand-ins for this sheet only and should stay out of the kit.</p>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>The icon's ground.</b> Proposed: Lamplight ground, Soot mark. It reads on dark and light wallpapers and is the
+        same lockup as the stamp on a Recap card. The alternative in frame D, Night ground with a Lamplight mark, is
+        calmer and nearer today's icon in structure. Both use the same two colours.</li>
+    <li><b>A widget that follows the theme.</b> Today the widget is the cover's colour in both themes. Here it is a dark
+        washed card in dark and a pale one in light. If it should stay dark on every home screen, it takes the dark
+        tokens only.</li>
+    <li><b>Type in the widget.</b> It is drawn in Onest. Today the widget uses the system font. If a bundled face in a
+        widget layout turns out to be unreliable on some launchers, the system font is the fallback and the layout
+        holds.</li>
+    <li><b>No title at the small size.</b> As today, 2 × 2 is the cover and one button. The card leaves no room for a
+        title without shrinking the cover to about half.</li>
+    <li><b>Which One UI.</b> The panel is drawn with the app icon on each notification, as One UI 7 does. On One UI 6
+        the same notification shows the small equaliser icon in a circle instead.</li>
+  </ul>
+</div>

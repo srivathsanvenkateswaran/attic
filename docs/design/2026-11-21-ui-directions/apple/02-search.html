@@ -1,0 +1,428 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · Apple direction · 02 Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* Search only.
+     The field sits a little under the large title. Browse tiles are 8dp taller than the
+     kit's so a two-line name clears the cover, which lets the name run the tile's full width. */
+  .phone .lt + .search{margin-top:2px}
+  .phone .tile{height:108px}
+  .phone .tile b{padding-right:0}
+  .phone .tile > .pic{width:40px}
+  /* results: the rows that open a page come first, a little under the field */
+  .phone .hits{margin-top:10px}
+  /* "No results" above the browse tiles: no icon box, less air */
+  .phone .empty.inline{padding:30px 40px 0}
+  /* the field pinned on the blurred edge once the title has scrolled away */
+  .phone .nav.find{padding-left:0;padding-right:0}
+  .phone .nav.find .search{flex:1;height:44px;border-radius:22px}
+</style>
+
+<div class="intro">
+  <h1>Search</h1>
+  <div class="date">2026-11-21 · UI directions · apple · sheet 02</div>
+  <p>Search opens on a large title, a field, and "Browse": a tile for every folder and for the eight biggest
+     albums, each coloured by its own artwork. Typing replaces the tiles with results as you type. Results
+     split by what a tap does. Artists, folders and albums open a page, so they are covers in one row.
+     Songs play, so they are the list.</p>
+  <p>The only colour on the empty screen is the tiles, and all of it comes from covers.</p>
+</div>
+
+<div class="rowset">
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Browse, empty query</p>
+    <p class="why">The field is a quiet fill under the large title, the same in both themes. Each tile is filled with the blurred field of its own cover, so no colour comes from a fixed list. Folders come first and show their mosaic; the eight biggest albums follow.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q"><span class="ph">Search your music</span></span></div>
+        <div class="sec"><div><h2>Browse</h2></div></div>
+        <div class="browse">
+          <a class="tile lit deep art-viva"><b>English</b><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span></a>
+          <a class="tile lit deep art-oso"><b>Hindi</b><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span></a>
+          <a class="tile lit deep art-ghost"><b>Phonk</b><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Tamil</b><span class="pic"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span></a>
+          <a class="tile lit deep art-revenge"><b>Dhurandhar: The Revenge</b><span class="pic"><div class="cv art-revenge"></div></span></a>
+          <a class="tile lit deep art-dhurandhar"><b>Dhurandhar</b><span class="pic"><div class="cv art-dhurandhar"></div></span></a>
+          <a class="tile lit deep art-rockstar"><b>Rockstar</b><span class="pic"><div class="cv art-rockstar"></div></span></a>
+          <a class="tile lit deep art-viva"><b>Viva la Vida</b><span class="pic"><div class="cv art-viva"></div></span></a>
+          <a class="tile lit deep art-yjhd"><b>Yeh Jawaani Hai Deewani</b><span class="pic"><div class="cv art-yjhd"></div></span></a>
+          <a class="tile lit deep art-dreams"><b>A Head Full of Dreams</b><span class="pic"><div class="cv art-dreams"></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Anbe Aaruyire</b><span class="pic"><div class="cv art-anbe"></div></span></a>
+          <a class="tile lit deep art-jodhaa"><b>Jodhaa Akbar</b><span class="pic"><div class="cv art-jodhaa"></div></span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">B · Results for "dhur"</p>
+    <p class="why">What a tap opens comes first, in taller rows with a chevron; what a tap plays follows under a count. Today the two albums sit below all ten songs. "dhur" matches no artist or folder name in this library, so frame E shows a query that returns all four types.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q">dhur</span><button class="clear" aria-label="Clear search"></button></div>
+        <div class="list hits">
+          <a class="row lg link"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar</b><span>Album, Shashwat Sachdev</span></span></a>
+          <a class="row lg link"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></span></a>
+        </div>
+        <div class="sec sm"><div><h2>10 songs</h2></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Dhurandhar Title Track"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn" aria-label="More options for Aakhri Ishq"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Aari Aari"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Gehra Hua"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Ishq Jalakar"><i class="ic ic-more"></i></button></div>
+          <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Main Aur Tu"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Phir Se</b><span>Arijit Singh</span></span><button class="ibtn" aria-label="More options for Phir Se"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Shararat"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Vaari Jaavan"><i class="ic ic-more"></i></button></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · No results</p>
+    <p class="why">The message keeps its two strings and loses the empty screen around it: the Browse tiles follow, so a mistyped query still leaves somewhere to go. Clearing the field returns to frame A.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q">dhurr</span><button class="clear" aria-label="Clear search"></button></div>
+        <div class="empty inline"><h2>No results for "dhurr"</h2><p>Check the spelling, or try fewer words.</p></div>
+        <div class="sec"><div><h2>Browse</h2></div></div>
+        <div class="browse">
+          <a class="tile lit deep art-viva"><b>English</b><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span></a>
+          <a class="tile lit deep art-oso"><b>Hindi</b><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span></a>
+          <a class="tile lit deep art-ghost"><b>Phonk</b><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Tamil</b><span class="pic"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span></a>
+          <a class="tile lit deep art-revenge"><b>Dhurandhar: The Revenge</b><span class="pic"><div class="cv art-revenge"></div></span></a>
+          <a class="tile lit deep art-dhurandhar"><b>Dhurandhar</b><span class="pic"><div class="cv art-dhurandhar"></div></span></a>
+          <a class="tile lit deep art-rockstar"><b>Rockstar</b><span class="pic"><div class="cv art-rockstar"></div></span></a>
+          <a class="tile lit deep art-viva"><b>Viva la Vida</b><span class="pic"><div class="cv art-viva"></div></span></a>
+          <a class="tile lit deep art-yjhd"><b>Yeh Jawaani Hai Deewani</b><span class="pic"><div class="cv art-yjhd"></div></span></a>
+          <a class="tile lit deep art-dreams"><b>A Head Full of Dreams</b><span class="pic"><div class="cv art-dreams"></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Anbe Aaruyire</b><span class="pic"><div class="cv art-anbe"></div></span></a>
+          <a class="tile lit deep art-jodhaa"><b>Jodhaa Akbar</b><span class="pic"><div class="cv art-jodhaa"></div></span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+    <p class="cap">D · Frame B in light</p>
+    <p class="why">The field stays a quiet fill on Paper and does not invert. Covers keep a hairline edge so pale artwork does not run into the page. The dock turns to pale glass and takes less of the artwork light.</p>
+    <div class="phone light">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q">dhur</span><button class="clear" aria-label="Clear search"></button></div>
+        <div class="list hits">
+          <a class="row lg link"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar</b><span>Album, Shashwat Sachdev</span></span></a>
+          <a class="row lg link"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></span></a>
+        </div>
+        <div class="sec sm"><div><h2>10 songs</h2></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Dhurandhar Title Track"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn" aria-label="More options for Aakhri Ishq"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Aari Aari"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Gehra Hua"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Ishq Jalakar"><i class="ic ic-more"></i></button></div>
+          <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Main Aur Tu"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Phir Se</b><span>Arijit Singh</span></span><button class="ibtn" aria-label="More options for Phir Se"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Shararat"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Vaari Jaavan"><i class="ic ic-more"></i></button></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">E · Results for "ph": all four types</p>
+    <p class="why">An artist is a circle, a folder its mosaic, an album its cover, each with today's label under the name: "Artist", "Playlist", "Album, {artist}". GHOST! appears twice because it is both a one-song album and a song.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q">ph</span><button class="clear" aria-label="Clear search"></button></div>
+        <div class="list hits">
+          <a class="row lg link"><span class="pic round"><div class="cv art-ghost"></div></span><span class="txt"><b>phonk.me</b><span>Artist</span></span></a>
+          <a class="row lg link"><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span><span class="txt"><b>Phonk</b><span>Playlist</span></span></a>
+          <a class="row lg link"><span class="pic"><div class="cv art-ghost"></div></span><span class="txt"><b>GHOST!</b><span>Album, phonk.me, KIIXSHI</span></span></a>
+        </div>
+        <div class="sec sm"><div><h2>2 songs</h2></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Phir Se</b><span>Arijit Singh</span></span><button class="ibtn" aria-label="More options for Phir Se"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-ghost"></div></span><span class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></span><button class="ibtn" aria-label="More options for GHOST!"><i class="ic ic-more"></i></button></div>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">F · Results scrolled, field pinned</p>
+    <p class="why">Past the large title the field takes the place a collapsed title has on other screens, as a glass capsule on the same blurred edge. Rows pass under it and under the dock. The sixth row is the song that is playing: bars over a dimmed cover, title in ink.</p>
+    <div class="phone">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <div class="scrolled" style="--y:262px">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q">dhur</span><button class="clear" aria-label="Clear search"></button></div>
+        <div class="list hits">
+          <a class="row lg link"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar</b><span>Album, Shashwat Sachdev</span></span></a>
+          <a class="row lg link"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Dhurandhar: The Revenge</b><span>Album, Shashwat Sachdev</span></span></a>
+        </div>
+        <div class="sec sm"><div><h2>10 songs</h2></div></div>
+        <div class="list">
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Dhurandhar Title Track</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Dhurandhar Title Track"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></span><button class="ibtn" aria-label="More options for Aakhri Ishq"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Aari Aari</b><span>Bombay Rockers, Khan Saab, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Aari Aari"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Gehra Hua"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Ishq Jalakar"><i class="ic ic-more"></i></button></div>
+          <div class="row now"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Jaan Se Guzarte Hain"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Main Aur Tu</b><span>Jasmine Sandlas, Reble, Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Main Aur Tu"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Phir Se</b><span>Arijit Singh</span></span><button class="ibtn" aria-label="More options for Phir Se"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-dhurandhar"></div></span><span class="txt"><b>Shararat</b><span>Shashwat Sachdev</span></span><button class="ibtn" aria-label="More options for Shararat"><i class="ic ic-more"></i></button></div>
+          <div class="row"><span class="pic"><div class="cv art-revenge"></div></span><span class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></span><button class="ibtn" aria-label="More options for Vaari Jaavan"><i class="ic ic-more"></i></button></div>
+        </div>
+        </div>
+      </div>
+      <header class="nav pinned find"><div class="search glass"><i class="ic ic-search"></i><span class="q">dhur</span><button class="clear" aria-label="Clear search"></button></div></header>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">G · Frame A in light</p>
+    <p class="why">Tiles keep their dark artwork fields on Paper, the same rule the Recap card follows on Home, so white tile names hold their contrast in both themes.</p>
+    <div class="phone light">
+      <div class="sbar">
+        <span>9:41</span>
+        <span class="sys">
+          <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.500.8S3 1.900 1 3.800l1.200 1.300C3.900 3.500 6.100 2.600 8.500 2.600Zm0 3.500c1.500 0 2.800.5 3.900 1.500l1.200-1.300C12.200 5 10.400 4.300 8.500 4.300S4.800 5 3.400 6.300l1.200 1.300c1.100-1 2.400-1.500 3.900-1.500Zm0 3.400c-.9 0-1.700.3-2.300.9l2.300 2.400 2.300-2.400c-.6-.6-1.400-.9-2.300-.9Z"/></svg>
+          <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.500 0 0 13h13.500V0Z"/></svg>
+          <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.500 0h4v1.500H9.500c.800 0 1.500.700 1.500 1.500v10.500c0 .800-.700 1.500-1.500 1.500h-8C.700 15 0 14.300 0 13.500V3c0-.800.700-1.500 1.500-1.500h2V0Z"/></svg>
+        </span>
+      </div>
+      <div class="page">
+        <header class="lt">
+          <h1>Search</h1>
+          <span class="trail"><button class="ibtn round" aria-label="Settings"><i class="ic ic-settings"></i></button></span>
+        </header>
+        <div class="search"><i class="ic ic-search"></i><span class="q"><span class="ph">Search your music</span></span></div>
+        <div class="sec"><div><h2>Browse</h2></div></div>
+        <div class="browse">
+          <a class="tile lit deep art-viva"><b>English</b><span class="pic"><div class="mosaic"><div class="cv art-viva"></div><div class="cv art-dreams"></div><div class="cv art-troubadour"></div><div class="cv art-ghost"></div></div></span></a>
+          <a class="tile lit deep art-oso"><b>Hindi</b><span class="pic"><div class="mosaic"><div class="cv art-oso"></div><div class="cv art-yjhd"></div><div class="cv art-lootera"></div><div class="cv art-rockstar"></div></div></span></a>
+          <a class="tile lit deep art-ghost"><b>Phonk</b><span class="pic"><div class="mosaic"><div class="cv art-ghost"></div><div class="cv art-rockstar"></div><div class="cv art-dhurandhar"></div><div class="cv art-uddgaye"></div></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Tamil</b><span class="pic"><div class="mosaic"><div class="cv art-anbe"></div><div class="cv art-premam"></div><div class="cv art-raanjhanaa"></div><div class="cv art-jodhaa"></div></div></span></a>
+          <a class="tile lit deep art-revenge"><b>Dhurandhar: The Revenge</b><span class="pic"><div class="cv art-revenge"></div></span></a>
+          <a class="tile lit deep art-dhurandhar"><b>Dhurandhar</b><span class="pic"><div class="cv art-dhurandhar"></div></span></a>
+          <a class="tile lit deep art-rockstar"><b>Rockstar</b><span class="pic"><div class="cv art-rockstar"></div></span></a>
+          <a class="tile lit deep art-viva"><b>Viva la Vida</b><span class="pic"><div class="cv art-viva"></div></span></a>
+          <a class="tile lit deep art-yjhd"><b>Yeh Jawaani Hai Deewani</b><span class="pic"><div class="cv art-yjhd"></div></span></a>
+          <a class="tile lit deep art-dreams"><b>A Head Full of Dreams</b><span class="pic"><div class="cv art-dreams"></div></span></a>
+          <a class="tile lit deep art-anbe"><b>Anbe Aaruyire</b><span class="pic"><div class="cv art-anbe"></div></span></a>
+          <a class="tile lit deep art-jodhaa"><b>Jodhaa Akbar</b><span class="pic"><div class="cv art-jodhaa"></div></span></a>
+        </div>
+      </div>
+      <div class="dock">
+        <div class="mini glass bloom art-revenge">
+          <span class="pic"><div class="cv art-revenge"></div></span>
+          <span class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></span>
+          <button class="heart" aria-label="Add to favourites"></button>
+          <button class="ring" style="--v:.323" aria-label="Pause"><i class="ic ic-pause"></i></button>
+        </div>
+        <nav class="tabbar glass">
+          <a class="tab"><i class="ic ic-home"></i>Home</a><a class="tab on"><i class="ic ic-search-fill"></i>Search</a><a class="tab"><i class="ic ic-library"></i>Library</a>
+        </nav>
+      </div>
+      <div class="gpill"></div>
+    </div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Why</th></tr>
+    <tr><td>Round Attic-mark button, then "Search" as a 26sp heading</td><td>Large title "Search" with a gear at the trailing edge</td><td>Same header as Home and Library in this folder. Nothing sits where a profile picture would.</td></tr>
+    <tr><td>White field on the dark screen (black in light theme), "What do you want to listen to?"</td><td>A field in the quiet fill colour, the same in both themes, "Search your music"</td><td>Removes the inverted search field and its question. Shared naming table.</td></tr>
+    <tr><td>"Start browsing" over tiles in eight fixed colours, each with a cover tucked into the corner at 25°</td><td>"Browse" over tiles filled with the blurred field of their own cover. The cover sits upright in the top corner at 40dp; a folder shows its mosaic.</td><td>Removes the fixed tile colours and the angled, clipped cover. Tile colour now means something: it is the artwork.</td></tr>
+    <tr><td>One flat list with no headings: artists, folders, songs, albums. Every row looks alike apart from a three-dot button on songs.</td><td>Artists, folders and albums first, as 74dp rows with a 60dp picture and a chevron. Then a count ("10 songs") and the songs as 62dp rows with a menu button.</td><td>Separates what a tap opens from what a tap plays, by size, by trailing glyph and by a heading. Albums no longer sit under every matching song.</td></tr>
+    <tr><td>Current song: green title with bars before it</td><td>Cover dims under three bars; the title stays in ink</td><td>Removes the green current title.</td></tr>
+    <tr><td>Green down-arrow badge before every artist line</td><td>Removed</td><td>Shared naming table: decoration with no state behind it.</td></tr>
+    <tr><td>Vertical three-dot menu button on song rows</td><td>Horizontal three dots from the kit's icon set</td><td>Same action, the kit's glyph.</td></tr>
+    <tr><td>"No results" message on an otherwise empty screen</td><td>The same two strings, with the Browse tiles under them</td><td>A dead end becomes a way on, and the glass dock has content behind it.</td></tr>
+    <tr><td>Header and field scroll with the page</td><td>The title collapses and the field pins on the blurred edge (frame F)</td><td>The query stays visible and editable while a long result list scrolls.</td></tr>
+  </table>
+
+  <h2>Kept</h2>
+  <ul>
+    <li>Results update on every keystroke. There is no submit step, no history and no suggestions.</li>
+    <li>What is searched and how it ranks: songs, artists, albums and folders, ignoring case and accents; names that start with the query first, then names that contain it, then songs matched through their artist or album. User playlists are not searched.</li>
+    <li>The limits: up to five artists, every matching folder, up to ten albums, every matching song.</li>
+    <li>The type labels "Artist", "Playlist" and "Album, {artist}".</li>
+    <li>Tapping a song plays every matching song from that row, with the context "Search results". Long-press or the three dots opens the track menu.</li>
+    <li>Browse holds every folder, then the eight albums with the most songs. A tap opens the folder or album.</li>
+    <li>The clear button appears once there is text and empties the field.</li>
+    <li><code>No results for "{query}"</code> and "Check the spelling, or try fewer words."</li>
+  </ul>
+
+  <h2>Where this differs from Apple's Music app</h2>
+  <ul>
+    <li>Apple's search has a scope switch between the catalogue and the library, recent searches, and a Cancel button beside the field. Attic has one scope and none of the rest, so the field is the only control.</li>
+    <li>Apple's browse tiles are editorial categories with their own artwork. These are the folders and albums on the phone, and each takes its whole field from its cover, the same mechanism as the player and the Recap card.</li>
+    <li>Apple shows results as one mixed column ordered by relevance. Here the kinds are in a fixed order and songs have their own counted group, because the app ranks by name match and has no relevance score to sort a mixed list by.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Order of results.</b> Today's order is artists, folders, songs, albums. This moves albums up to join the other things a tap opens. With a one-letter query that can put up to five artists, every folder and ten albums ahead of the first song. If that is too many, the albums can go back under the songs with the same taller row.</li>
+    <li><b>Browse under "No results".</b> Frame C shows the tiles below the message. Today the screen is empty there. If you prefer the empty screen, the message centres and the dock sits over a blank page.</li>
+    <li><b>Frame B and the brief.</b> The brief asks for "dhur" to return an artist, albums, a playlist and songs. With the fixture library it returns two albums and ten songs, which is what frame B draws. Frame E ("ph") carries the four-type case.</li>
+    <li><b>Keyboard.</b> The frames show the screen with the keyboard put away so the results and the dock are visible. With it up, the dock is hidden and the list ends at the keyboard, as today.</li>
+  </ul>
+</div>

@@ -1,0 +1,425 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 06 Queue and lyrics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* sheet-specific */
+  .rowset .why{min-height:6.32em}   /* captions here run to four lines; keeps the phones level */
+  .strips{display:flex;flex-direction:column;gap:14px}
+  .strips .cap2{color:#98a2ad;font-size:12px;font-weight:600;margin:6px 0 -6px 2px}
+
+  /* Queue: the current song is a card that fills as far as it has played, like the mini player */
+  .phone .q-now{background:var(--mini-base)}
+  .phone .q-now .song{min-height:72px}
+  .phone .q-now .song.now::after{inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:0 22px 22px 0;background:var(--mini-fill)}
+  .phone .label .end{min-width:0;white-space:nowrap;align-self:center}
+  /* Queue: "Clear" floats low, over a fade to the ground, the way the dock does */
+  .phone .q-foot{position:absolute;left:0;right:0;bottom:0;z-index:8;height:118px;display:flex;align-items:flex-end;justify-content:center;
+    padding-bottom:28px;background:linear-gradient(to bottom,transparent,var(--ground) 62px)}
+  .phone .q-foot .btn{background:var(--raised);box-shadow:var(--shadow-sm),0 0 0 1px var(--edge)}
+  .phone .screen.pad-clear{padding-bottom:118px}
+  /* a row swiped to the right: the title stays readable and the strip shows on the left */
+  .phone .swipe.r .song{transform:translateX(112px);border-radius:var(--r-ctl) 0 0 var(--r-ctl)}
+  .phone .swipe.r .under{right:auto;left:20px}
+  .phone .swipe .under .ms{font-size:20px}
+
+  /* Full-screen lyrics: lines on the ground, the line being sung on a tonal bed */
+  .phone .ly{position:relative;padding:4px 16px 0}
+  .phone .ly::before{content:"";position:absolute;inset:0 0 auto 0;height:72px;z-index:1;
+    background:linear-gradient(to bottom,var(--ground) 6px,transparent)}
+  .phone .ly p{padding:9px 14px;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-.012em;color:var(--on-2)}
+  .phone .ly p.sung{color:color-mix(in oklab,var(--on-3) 72%,var(--on-2))}
+  .phone .ly p.cur{margin:10px 0;padding:18px 14px 19px;border-radius:var(--r-ctl);background:var(--accent-soft);color:var(--on);
+    font-size:27px;line-height:34px;font-weight:700;letter-spacing:-.02em}
+  .phone .ly p .ms{display:block;height:30px;line-height:30px}
+  /* plain lyrics: one block, nothing highlighted */
+  .phone .ly.plain{padding:6px 30px 0}
+  .phone .ly.plain::before{content:none}
+  .phone .ly.plain p{padding:0 0 22px;font-size:20px;line-height:31px;font-weight:500;letter-spacing:-.005em;color:var(--on)}
+  /* the deck of the lyrics screen: the dock's mini-player row on its own, with the play button */
+  .phone .mini .play{margin-right:8px}
+  .phone .dock.solo{padding-top:84px;background:linear-gradient(to bottom,transparent,var(--ground) 70px)}
+  .phone .dock.solo::before{top:84px}
+
+  /* Lyrics card, message states: sentence left, action right */
+  .strip.lc{padding:16px 0}
+  .strip .lyrics-card .lc-row{display:flex;align-items:center;gap:14px}
+  .strip .lyrics-card .lc-row .ibox{width:44px}
+  .strip .lyrics-card .lc-slot{height:36px;margin-top:14px;display:flex;align-items:center;gap:12px}
+  .strip .lyrics-card .lc-slot .spinner{margin-top:0}
+</style>
+
+<div class="intro">
+  <h1>Queue and lyrics</h1>
+  <div class="date">2026-11-21 · UI directions · One UI · sheet 06</div>
+  <p>Both screens open from Now Playing, so both stand on its ground: the black that leans toward the cover, with the
+     cover's colour spent on what is playing. In the Queue that is the <b>current song's card, filled as far as the song
+     has played</b>. In Lyrics it is the tonal bed under the line being sung.</p>
+  <p>The sheet settles where the one destructive action goes ("Clear" comes down from the top corner to the bottom
+     edge), how radio shows in a queue, and what replaces the flat colour field with white and dark lines that full-screen
+     lyrics use today.</p>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">A · Queue</p>
+    <p class="why">The current song is the same filled row as the mini player; everything under it is one card of rows with handles. "Clear" sits at the bottom edge, where the thumb already is after a drag. The end of the "Now playing" label says where the queue came from.</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-clear">
+    <div class="bar">
+      <button class="ib" aria-label="Close queue"><span class="ms">expand_more</span></button>
+      <h2>Queue</h2>
+    </div>
+    <div class="label tight">Now playing <span class="end"><span class="ms s18">album</span>Dhurandhar: The Revenge</span></div>
+    <div class="group q-now" style="--p:.323">
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Up next, 6 songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="Drag Udd Gaye to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="Drag Aakhri Ishq to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="Drag Vaari Jaavan to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="Drag Phir Se to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="Drag Kun Faya Kun to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><button class="ib" aria-label="Drag Malare to reorder"><span class="ms">drag_handle</span></button></div>
+    </div>
+  </div>
+  <div class="q-foot"><button class="btn plain" aria-label="Clear the queue"><span class="ms">clear_all</span>Clear</button></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">B · Queue during radio</p>
+    <p class="why">Radio is named twice: the context reads "Radio · Jaan Se Guzarte Hain" and the count carries a note that ten are kept lined up. The third row is mid-swipe. The list runs under "Clear" and fades into the ground.</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-clear">
+    <div class="bar">
+      <button class="ib" aria-label="Close queue"><span class="ms">expand_more</span></button>
+      <h2>Queue</h2>
+    </div>
+    <div class="label tight">Now playing <span class="end"><span class="ms s18">sensors</span>Radio · Jaan Se Guzarte Hain</span></div>
+    <div class="group q-now" style="--p:.323">
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Up next, 10 songs <small>Radio keeps ten lined up</small></div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="Drag Aakhri Ishq to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="Drag Kun Faya Kun to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="swipe r"><span class="under"><span class="ms">do_not_disturb_on</span>Remove</span><div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Ishq Jalakar</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="Drag Ishq Jalakar to reorder"><span class="ms">drag_handle</span></button></div></div>
+      <div class="song"><div class="lead"><div class="cv art-yjhd sq w48 plain"></div></div><div class="txt"><b>Kabira</b><span>Pritam</span></div><button class="ib" aria-label="Drag Kabira to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-raanjhanaa sq w48 plain"></div></div><div class="txt"><b>Tum Tak</b><span>A. R. Rahman</span></div><button class="ib" aria-label="Drag Tum Tak to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-lootera sq w48 plain"></div></div><div class="txt"><b>Sawaar Loon</b><span>Amit Trivedi</span></div><button class="ib" aria-label="Drag Sawaar Loon to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-jodhaa sq w48 plain"></div></div><div class="txt"><b>Khwaja Mere Khwaja</b><span>A. R. Rahman</span></div><button class="ib" aria-label="Drag Khwaja Mere Khwaja to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-manmarziyaan sq w48 plain"></div></div><div class="txt"><b>Daryaa</b><span>Amit Trivedi</span></div><button class="ib" aria-label="Drag Daryaa to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-oso sq w48 plain"></div></div><div class="txt"><b>Main Agar Kahoon</b><span>Vishal-Shekhar</span></div><button class="ib" aria-label="Drag Main Agar Kahoon to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-dhurandhar sq w48 plain"></div></div><div class="txt"><b>Gehra Hua</b><span>Shashwat Sachdev</span></div><button class="ib" aria-label="Drag Gehra Hua to reorder"><span class="ms">drag_handle</span></button></div>
+    </div>
+  </div>
+  <div class="q-foot"><button class="btn plain" aria-label="Clear the queue"><span class="ms">clear_all</span>Clear</button></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">C · Nothing up next</p>
+    <p class="why">After "Clear", or on the last song. The heading keeps today's words and gains one sentence saying how songs get here. With nothing to clear, the button is gone.</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar">
+      <button class="ib" aria-label="Close queue"><span class="ms">expand_more</span></button>
+      <h2>Queue</h2>
+    </div>
+    <div class="label tight">Now playing <span class="end"><span class="ms s18">album</span>Dhurandhar: The Revenge</span></div>
+    <div class="group q-now" style="--p:.323">
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="empty">
+      <div class="ibox sq neutral"><span class="ms">queue_music</span></div>
+      <h3>Nothing up next</h3>
+      <p>Play next and Add to queue, in any song's menu, line songs up here.</p>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+    <p class="cap">D · Full-screen lyrics, synced</p>
+    <p class="why">The ground stays dark and calm. The line being sung is larger, heavier and on a tonal bed, the way the current song is in a list; sung lines recede and coming lines stay readable. Title, progress and play or pause are one row at the bottom.</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar">
+      <button class="ib" aria-label="Close lyrics"><span class="ms">expand_more</span></button>
+      <h2>Lyrics</h2>
+    </div>
+    <div class="ly">
+      <p class="sung">Rain keeps time on the tin roof</p>
+      <p class="sung">A road we never put a name to</p>
+      <p class="sung"><span class="ms">music_note</span></p>
+      <p class="sung">Carry the night home in your coat</p>
+      <p class="cur">The window lamp stays lit</p>
+      <p>We cross on borrowed time</p>
+      <p>Count miles, not the scars</p>
+      <p>Morning asks who we were</p>
+      <p><span class="ms">music_note</span></p>
+      <p>Leave the key under the white stone</p>
+      <p>If the river turns, we turn</p>
+      <p>Nothing owed and nothing kept</p>
+    </div>
+  </div>
+  <div class="dock solo">
+    <div class="mini" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="play sm" aria-label="Pause"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag state">state</span></div>
+    <p class="cap">E · Lyrics card states</p>
+    <p class="why">The card in Now Playing when there are no timed lines to preview. A message state is one sentence and at most one action. The spinner takes the button's place and height, so the card does not jump when a download starts.</p>
+<div class="strips"><p class="cap2">Not downloaded</p><div class="strip lc art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <p>Download once and they stay on this phone.</p>
+    <button class="btn filled sm">Download lyrics</button>
+  </div>
+</div><p class="cap2">Downloading</p><div class="strip lc art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <p>Download once and they stay on this phone.</p>
+    <div class="lc-slot"><span class="spinner sm" aria-label="Downloading lyrics"></span></div>
+  </div>
+</div><p class="cap2">Plain lyrics</p><div class="strip lc art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <p class="ln clip">Rain keeps time on the tin roof, a road we never put a name to. Carry the night home in your coat. The window lamp stays lit, we cross on borrowed time. Count miles, not the scars.</p>
+    <button class="btn tonal sm">Open lyrics</button>
+  </div>
+</div><p class="cap2">Instrumental</p><div class="strip lc art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <div class="lc-row"><div class="ibox sq neutral"><span class="ms">music_note</span></div><p>This song is instrumental.</p></div>
+  </div>
+</div><p class="cap2">Not found</p><div class="strip lc art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <p>No lyrics were found for this song.</p>
+    <button class="btn filled sm">Download lyrics</button>
+  </div>
+</div><p class="cap2">Not downloaded, light</p><div class="strip lc light art-revenge tinted wash" style="width:390px">
+  <div class="lyrics-card">
+    <div class="hd">Lyrics</div>
+    <p>Download once and they stay on this phone.</p>
+    <button class="btn filled sm">Download lyrics</button>
+  </div>
+</div></div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">F · Queue in light, one row dragged</p>
+    <p class="why">The Queue follows the theme, as it does today. A dragged row lifts onto the raised surface with a shadow and its neighbours keep their hairlines.</p>
+<div class="phone art-revenge tinted wash light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen pad-clear">
+    <div class="bar">
+      <button class="ib" aria-label="Close queue"><span class="ms">expand_more</span></button>
+      <h2>Queue</h2>
+    </div>
+    <div class="label tight">Now playing <span class="end"><span class="ms s18">album</span>Dhurandhar: The Revenge</span></div>
+    <div class="group q-now" style="--p:.323">
+      <div class="song now"><div class="lead"><div class="cv art-revenge sq w48 plain"></div><span class="bars"><i></i><i></i><i></i></span></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button></div>
+    </div>
+    <div class="label">Up next, 6 songs</div>
+    <div class="group">
+      <div class="song"><div class="lead"><div class="cv art-uddgaye sq w48 plain"></div></div><div class="txt"><b>Udd Gaye</b><span>Ritviz</span></div><button class="ib" aria-label="Drag Udd Gaye to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div><button class="ib" aria-label="Drag Aakhri Ishq to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song lifted"><div class="lead"><div class="cv art-rockstar sq w48 plain"></div></div><div class="txt"><b>Kun Faya Kun</b><span>A. R. Rahman, Javed Ali, Mohit Chauhan</span></div><button class="ib" aria-label="Drag Kun Faya Kun to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Vaari Jaavan</b><span>Jyoti Nooran, Jasmine Sandlas, Reble</span></div><button class="ib" aria-label="Drag Vaari Jaavan to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Phir Se</b><span>Arijit Singh</span></div><button class="ib" aria-label="Drag Phir Se to reorder"><span class="ms">drag_handle</span></button></div>
+      <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><button class="ib" aria-label="Drag Malare to reorder"><span class="ms">drag_handle</span></button></div>
+    </div>
+  </div>
+  <div class="q-foot"><button class="btn plain" aria-label="Clear the queue"><span class="ms">clear_all</span>Clear</button></div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span><span class="tag state">state</span></div>
+    <p class="cap">G · Frame D in light, paused</p>
+    <p class="why">Lyrics follow the theme too. The bed and the played part of the bottom row take the cover's pale tones, and the play glyph replaces pause.</p>
+<div class="phone art-revenge tinted wash light">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar">
+      <button class="ib" aria-label="Close lyrics"><span class="ms">expand_more</span></button>
+      <h2>Lyrics</h2>
+    </div>
+    <div class="ly">
+      <p class="sung">Rain keeps time on the tin roof</p>
+      <p class="sung">A road we never put a name to</p>
+      <p class="sung"><span class="ms">music_note</span></p>
+      <p class="sung">Carry the night home in your coat</p>
+      <p class="cur">The window lamp stays lit</p>
+      <p>We cross on borrowed time</p>
+      <p>Count miles, not the scars</p>
+      <p>Morning asks who we were</p>
+      <p><span class="ms">music_note</span></p>
+      <p>Leave the key under the white stone</p>
+      <p>If the river turns, we turn</p>
+      <p>Nothing owed and nothing kept</p>
+    </div>
+  </div>
+  <div class="dock solo">
+    <div class="mini" style="--p:.323">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+      <button class="play sm" aria-label="Play"><span class="ms">play_arrow</span></button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">H · Full-screen lyrics, plain text</p>
+    <p class="why">Untimed lyrics are a block of reading text with no bed, because no line is current. A different cover gives a different ground with the same contrast.</p>
+<div class="phone art-viva tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar">
+      <button class="ib" aria-label="Close lyrics"><span class="ms">expand_more</span></button>
+      <h2>Lyrics</h2>
+    </div>
+    <div class="ly plain">
+      <p>Paper boats along the gutter<br>Every one of them is ours<br>You name them after the stations<br>I count them like the hours</p>
+      <p>Blue light under the door<br>The radio two rooms away<br>Somebody laughing, somebody leaving<br>Nobody asked to stay</p>
+      <p>Hold the morning a minute longer<br>Hold the kettle off the flame<br>If the street forgets to wake us<br>We will not be the ones to blame</p>
+      <p>Paper boats along the gutter<br>Every one of them is ours<br>You name them after the stations<br>I count them like the hours</p>
+      <p>Blue light under the door<br>The radio two rooms away</p>
+    </div>
+  </div>
+  <div class="dock solo">
+    <div class="mini" style="--p:.58">
+      <div class="cv art-viva sq w44 plain"></div>
+      <div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div>
+      <button class="play sm" aria-label="Pause"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="rowset">
+
+  <div class="col">
+    <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">state</span></div>
+    <p class="cap">I · Full-screen lyrics, nothing saved</p>
+    <p class="why">What the screen shows when the song changes to one with no lyrics on the phone. The kit's empty block with the card's own sentence and "Download lyrics".</p>
+<div class="phone art-revenge tinted wash">
+  <div class="sbar"><span>9:41</span><span class="sys"><svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg><svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg><svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5h2c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.500V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg></span></div>
+  <div class="screen">
+    <div class="bar">
+      <button class="ib" aria-label="Close lyrics"><span class="ms">expand_more</span></button>
+      <h2>Lyrics</h2>
+    </div>
+    <div class="empty fill">
+      <div class="ibox sq neutral"><span class="ms">lyrics</span></div>
+      <p>Download once and they stay on this phone.</p>
+      <button class="btn filled">Download lyrics</button>
+    </div>
+  </div>
+  <div class="dock solo">
+    <div class="mini" style="--p:.04">
+      <div class="cv art-revenge sq w44 plain"></div>
+      <div class="txt"><b>Aakhri Ishq</b><span>Jubin Nautiyal</span></div>
+      <button class="play sm" aria-label="Pause"><span class="ms">pause</span></button>
+    </div>
+  </div>
+  <div class="gpill"></div>
+</div>
+  </div>
+</div>
+
+<div class="spec">
+  <h2>What changed from today, and the cue each change removes</h2>
+  <table>
+    <tr><th>Today</th><th>Here</th><th>Spotify cue removed</th></tr>
+    <tr><td>Queue on a solid theme background with no trace of the song</td>
+        <td>The Queue stands on Now Playing's washed ground and still follows the theme.</td>
+        <td>None by itself. It stops the Queue reading as a different app from the player above it.</td></tr>
+    <tr><td>Current song as a row with a green title and green bars</td>
+        <td>A card under "Now playing", filled from the left as far as the song has played, with bars over its dimmed cover. The title stays in ink.</td>
+        <td>The green current-song title with equaliser bars.</td></tr>
+    <tr><td>"Clear" as a text button at the top right of the header</td>
+        <td>A pill at the bottom centre, floating over a fade to the ground. Hidden when nothing is up next.</td>
+        <td>The header-with-text-action layout. The gain is reach: it is the only action on this screen that is not a row.</td></tr>
+    <tr><td>Up-next rows on the bare background</td>
+        <td>One card, rows split by hairlines inset to the text, a handle at the end of each row.</td>
+        <td>The flat list of full-width rows.</td></tr>
+    <tr><td>Radio has no sign in the Queue</td>
+        <td>The "Now playing" label ends with the context, "Radio · {song title}" with the radio glyph, and the up-next label carries "Radio keeps ten lined up".</td>
+        <td>None. Today's only sign is in the Now Playing header.</td></tr>
+    <tr><td>"Nothing up next" as a bare heading</td>
+        <td>The kit's empty block: icon box, the same heading, one sentence naming the two menu actions that fill a queue.</td>
+        <td>None.</td></tr>
+    <tr><td>Full-screen lyrics on the solid cover colour, always dark</td>
+        <td>The washed ground: near-black leaning toward the cover in dark, plaster leaning toward it in light.</td>
+        <td>The full-bleed cover-colour field.</td></tr>
+    <tr><td>Lines up to the current one white, lines to come black at 75%</td>
+        <td>The current line at 27sp bold on a tonal bed in the cover's colour. Sung lines in the faintest ink, coming lines in the second ink, both 22sp.</td>
+        <td>White-sung, dark-upcoming lines of one size on colour.</td></tr>
+    <tr><td>Centred title and artist in the header, a white 56dp play circle in the footer</td>
+        <td>The header is a bar that says "Lyrics". Cover, title, artist and play or pause are one floating row at the bottom, filled to the song's progress: the dock's mini-player row with a play button in the cover's colour.</td>
+        <td>The centred two-line header and the white play circle.</td></tr>
+    <tr><td>Lyrics card message states: sentence, then a green button underneath</td>
+        <td>A card in the washed card colour. The sentence, then "Download lyrics" in the cover's colour, or a spinner in the same slot. "Instrumental" gets a note glyph and no action.</td>
+        <td>The green pill under a coloured card.</td></tr>
+  </table>
+
+  <h2>What was kept</h2>
+  <ul>
+    <li>Queue: "Now playing", "Up next, {n} songs" and "Up next, 1 song", "Nothing up next", "Clear" removing everything after the current song.</li>
+    <li>Tap a row to jump to it, drag the handle to reorder, swipe a row left or right to remove it with "Remove" on the strip behind, long-press for the track menu. The kebab on the current song opens the same menu.</li>
+    <li>No history: songs already played are not listed. Shuffle shows as the real order.</li>
+    <li>Radio: the queue refills to ten, swiping a song out steers it, "Clear" stops it.</li>
+    <li>Lyrics: synced lines that follow playback and scroll so the current line sits about a third of the way down, tap a line to seek to it, a note glyph for a blank timed line, plain lyrics as one scrolling block, "Download lyrics" when there is nothing saved, play or pause and nothing else in the footer.</li>
+    <li>Every card state and its sentence: "Download once and they stay on this phone.", "This song is instrumental.", "No lyrics were found for this song.", "Download lyrics", and "Open lyrics" (renamed from "Show lyrics").</li>
+    <li>The snackbars "No lyrics found for {title}" and "Connect to the internet to download lyrics". Over the Queue the toast sits above "Clear".</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>"Clear" within reach, with no undo.</b> It removes the whole queue in one tap and shows no message, as today. At the top corner it was hard to hit by accident. If the bottom position stays, it may want the bottom dialog from sheet 07 in front of it.</li>
+    <li><b>New words.</b> "Radio keeps ten lined up" and "Play next and Add to queue, in any song's menu, line songs up here." are not in the app. The context at the end of the "Now playing" label is an existing string in a new place.</li>
+    <li><b>Title at the bottom of Lyrics.</b> Today the song title is at the top. Here the top says only "Lyrics" and the title rides with play or pause. If the title should stay high, the bar takes it as a two-line title and the bottom row keeps the cover, the fill and the button.</li>
+    <li><b>Lyrics in light.</b> Today the lyrics screen is always dark. Frame G assumes it follows the theme like Now Playing does in sheet 05. One decision covers both.</li>
+    <li><b>Per-line fill.</b> The bed could fill from the left while its line is sung, using the gap to the next line's timestamp. It was left out to keep the screen still; it would be the fourth use of the fill.</li>
+    <li><b>Play button under 48dp.</b> The button in the bottom row is drawn 44dp. Its touch target is the full height of the row.</li>
+  </ul>
+</div>

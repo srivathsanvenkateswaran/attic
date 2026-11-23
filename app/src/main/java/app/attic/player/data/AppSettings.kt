@@ -1,14 +1,33 @@
 package app.attic.player.data
 
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class ThemeMode(val label: String) {
-    System("Match phone"),
-    Dark("Dark"),
-    Light("Light"),
+enum class ThemeMode { System, Dark, Light }
+
+/** How the app is drawn. Expressive is Pixel-like, Comfort is One UI-like. */
+enum class UiStyle {
+    Expressive,
+    Comfort;
+
+    companion object {
+        /** The styles a user can pick, in the order they are offered. */
+        val choices = listOf(Expressive, Comfort)
+
+        /** A Samsung phone gets the style that matches One UI. Everything else gets Expressive. */
+        fun defaultFor(manufacturer: String): UiStyle =
+            if (manufacturer.equals("samsung", ignoreCase = true)) Comfort else Expressive
+
+        /**
+         * The saved choice, or the phone's default when there is none or it names a style that is
+         * gone (such as "Classic").
+         */
+        fun resolve(saved: String?, manufacturer: String): UiStyle =
+            entries.firstOrNull { it.name == saved } ?: defaultFor(manufacturer)
+    }
 }
 
 class AppSettings(context: Context) {
@@ -24,7 +43,27 @@ class AppSettings(context: Context) {
         _themeMode.value = mode
     }
 
+    private val _uiStyle = MutableStateFlow(UiStyle.resolve(prefs.getString(KEY_UI_STYLE, null), Build.MANUFACTURER.orEmpty()))
+    val uiStyle: StateFlow<UiStyle> = _uiStyle.asStateFlow()
+
+    fun setUiStyle(style: UiStyle) {
+        prefs.edit().putString(KEY_UI_STYLE, style.name).apply()
+        _uiStyle.value = style
+    }
+
+    private val _autoplay = MutableStateFlow(prefs.getBoolean(KEY_AUTOPLAY, true))
+
+    /** Whether radio carries on from the last song of a queue instead of letting the music stop. */
+    val autoplay: StateFlow<Boolean> = _autoplay.asStateFlow()
+
+    fun setAutoplay(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTOPLAY, enabled).apply()
+        _autoplay.value = enabled
+    }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_UI_STYLE = "ui_style"
+        const val KEY_AUTOPLAY = "autoplay"
     }
 }

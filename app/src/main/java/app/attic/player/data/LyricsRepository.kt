@@ -35,6 +35,8 @@ enum class LyricsResult { Found, NotFound, Offline }
 class LyricsRepository(
     private val dao: MusicDao,
     private val scope: CoroutineScope,
+    /** LRCLIB asks clients to name themselves with a version and a homepage. */
+    private val userAgent: String,
 ) {
     private val _bulk = MutableStateFlow(BulkProgress(0, 0, 0, running = false))
     val bulk: StateFlow<BulkProgress> = _bulk.asStateFlow()
@@ -128,7 +130,7 @@ class LyricsRepository(
         try {
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
-            connection.setRequestProperty("User-Agent", "Attic/1.0 (personal offline music player)")
+            connection.setRequestProperty("User-Agent", userAgent)
             return when (connection.responseCode) {
                 HttpURLConnection.HTTP_OK -> connection.inputStream.bufferedReader().use { it.readText() }
                 HttpURLConnection.HTTP_NOT_FOUND -> null

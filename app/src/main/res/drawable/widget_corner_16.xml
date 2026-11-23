@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A rounded rectangle with 16dp corners: the outline Expressive's widget clips art to. White, tinted where used. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="16dp" />
+</shape>

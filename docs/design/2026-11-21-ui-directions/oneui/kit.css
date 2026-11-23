@@ -1,0 +1,617 @@
+/* Attic · One UI direction · kit
+   Tokens and every reusable component for the sheets in this folder.
+   Class reference with markup: KIT.md.
+
+   Scoping: every selector starts with :is(.phone,.strip), so nothing here can
+   restyle the review page. Dark is the default; .phone.light / .strip.light
+   switch the tokens. Component rules never hold a hex: colours come from the
+   custom properties in section 1.
+
+   Sections
+    1 tokens (dark, light)            9 collection and artist headers
+    2 album-art colour (.tinted)     10 buttons, icon buttons, heart
+    3 base, icons, shapes            11 Now Playing
+    4 screen, app bars, sub-tabs     12 sheets, dialogs, menus, toast
+    5 chips, search field, labels    13 controls: switch, radio, progress
+    6 groups and rows                14 settings, stats, empty state
+    7 song row                       15 dock: mini player and tab bar
+    8 tiles, shelves, grids          16 bottom action bar, index scrubber   */
+
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
+
+/* ── 1 · tokens ─────────────────────────────────────────────────────────── */
+:is(.phone,.strip){
+  /* surfaces: true black ground, one step up for cards, one more for things that float */
+  --ground:#000000;        /* Night   */
+  --card:#171716;          /* Loft    */
+  --raised:#232221;        /* Rafter: dock, sheets, dialogs, menus */
+  --fill:#2c2b29;          /* Slate: control tracks, tonal icon buttons, chips on a card */
+  --fill-2:#3b3936;        /* switch-off track, progress track, grab handle */
+  --line:#2a2928;          /* Seam: inset hairlines */
+  --edge:rgba(255,255,255,.07);
+  /* ink */
+  --on:#f5f4f1;            /* Chalk */
+  --on-2:#aaa7a2;          /* Dust  */
+  --on-3:#73706b;          /* Ash   */
+  /* the one accent: Lamplight */
+  --accent:#ffb347;
+  --on-accent:#2a1800;     /* Soot */
+  --accent-ink:#ffc063;    /* accent used as text or an icon on a neutral surface */
+  --accent-soft:#3a2a13;   /* tonal container */
+  --on-accent-soft:#ffcd85;
+  --danger:#ff7a6b;
+  /* fixed inks */
+  --on-art:#ffffff;        /* marks drawn on top of artwork */
+  --knob:#ffffff;
+  --toast:#3b3936;
+  --on-toast:#f5f4f1;
+  --scrim:rgba(0,0,0,.62);
+  --shadow:0 12px 36px rgba(0,0,0,.7);
+  --shadow-sm:0 4px 14px rgba(0,0,0,.45);
+  /* the mini player before any artwork colour is applied */
+  --mini-base:var(--raised);
+  --mini-fill:var(--fill);
+  /* shape */
+  --r-float:30px;          /* dock, Now Playing deck, sheets, dialogs */
+  --r-group:26px;          /* grouped cards */
+  --r-ctl:18px;            /* controls nested in a card: seek bar, current-row highlight */
+  /* superellipse masks. --sq: artwork and icon containers up to 96dp.
+     --sq-soft: people (artists). --sq-lg: artwork from 100dp up. */
+  --sq:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100.0 50.0L99.9 64.8L99.6 70.8L99.1 75.4L98.5 79.2L97.6 82.5L96.5 85.4L95.3 87.9L93.8 90.1L92.0 92.0L90.1 93.8L87.9 95.3L85.4 96.5L82.5 97.6L79.2 98.5L75.4 99.1L70.8 99.6L64.8 99.9L50.0 100.0L35.2 99.9L29.2 99.6L24.6 99.1L20.8 98.5L17.5 97.6L14.6 96.5L12.1 95.3L9.9 93.8L8.0 92.0L6.2 90.1L4.7 87.9L3.5 85.4L2.4 82.5L1.5 79.2L0.9 75.4L0.4 70.8L0.1 64.8L0.0 50.0L0.1 35.2L0.4 29.2L0.9 24.6L1.5 20.8L2.4 17.5L3.5 14.6L4.7 12.1L6.2 9.9L8.0 8.0L9.9 6.2L12.1 4.7L14.6 3.5L17.5 2.4L20.8 1.5L24.6 0.9L29.2 0.4L35.2 0.1L50.0 0.0L64.8 0.1L70.8 0.4L75.4 0.9L79.2 1.5L82.5 2.4L85.4 3.5L87.9 4.7L90.1 6.2L92.0 8.0L93.8 9.9L95.3 12.1L96.5 14.6L97.6 17.5L98.5 20.8L99.1 24.6L99.6 29.2L99.9 35.2Z'/%3E%3C/svg%3E");
+  --sq-soft:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100.0 50.0L99.9 57.7L99.4 63.0L98.7 67.7L97.7 71.9L96.4 75.8L94.8 79.3L92.9 82.6L90.7 85.6L88.3 88.3L85.6 90.7L82.6 92.9L79.3 94.8L75.8 96.4L71.9 97.7L67.7 98.7L63.0 99.4L57.7 99.9L50.0 100.0L42.3 99.9L37.0 99.4L32.3 98.7L28.1 97.7L24.2 96.4L20.7 94.8L17.4 92.9L14.4 90.7L11.7 88.3L9.3 85.6L7.1 82.6L5.2 79.3L3.6 75.8L2.3 71.9L1.3 67.7L0.6 63.0L0.1 57.7L0.0 50.0L0.1 42.3L0.6 37.0L1.3 32.3L2.3 28.1L3.6 24.2L5.2 20.7L7.1 17.4L9.3 14.4L11.7 11.7L14.4 9.3L17.4 7.1L20.7 5.2L24.2 3.6L28.1 2.3L32.3 1.3L37.0 0.6L42.3 0.1L50.0 0.0L57.7 0.1L63.0 0.6L67.7 1.3L71.9 2.3L75.8 3.6L79.3 5.2L82.6 7.1L85.6 9.3L88.3 11.7L90.7 14.4L92.9 17.4L94.8 20.7L96.4 24.2L97.7 28.1L98.7 32.3L99.4 37.0L99.9 42.3Z'/%3E%3C/svg%3E");
+  --sq-lg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M100.0 50.0L99.9 67.4L99.8 72.9L99.5 76.9L99.2 80.1L98.7 82.8L98.1 85.2L97.5 87.3L96.7 89.1L95.7 90.7L94.7 92.2L93.5 93.5L92.2 94.7L90.7 95.7L89.1 96.7L87.3 97.5L85.2 98.1L82.8 98.7L80.1 99.2L76.9 99.5L72.9 99.8L67.4 99.9L50.0 100.0L32.6 99.9L27.1 99.8L23.1 99.5L19.9 99.2L17.2 98.7L14.8 98.1L12.7 97.5L10.9 96.7L9.3 95.7L7.8 94.7L6.5 93.5L5.3 92.2L4.3 90.7L3.3 89.1L2.5 87.3L1.9 85.2L1.3 82.8L0.8 80.1L0.5 76.9L0.2 72.9L0.1 67.4L0.0 50.0L0.1 32.6L0.2 27.1L0.5 23.1L0.8 19.9L1.3 17.2L1.9 14.8L2.5 12.7L3.3 10.9L4.3 9.3L5.3 7.8L6.5 6.5L7.8 5.3L9.3 4.3L10.9 3.3L12.7 2.5L14.8 1.9L17.2 1.3L19.9 0.8L23.1 0.5L27.1 0.2L32.6 0.1L50.0 0.0L67.4 0.1L72.9 0.2L76.9 0.5L80.1 0.8L82.8 1.3L85.2 1.9L87.3 2.5L89.1 3.3L90.7 4.3L92.2 5.3L93.5 6.5L94.7 7.8L95.7 9.3L96.7 10.9L97.5 12.7L98.1 14.8L98.7 17.2L99.2 19.9L99.5 23.1L99.8 27.1L99.9 32.6Z'/%3E%3C/svg%3E");
+}
+:is(.phone,.strip).light{
+  --ground:#f2f1ee;        /* Plaster */
+  --card:#ffffff;          /* Paper   */
+  --raised:#ffffff;
+  --fill:#eeece8;          /* Putty   */
+  --fill-2:#dcd9d3;
+  --line:#ebe9e4;
+  --edge:rgba(40,30,10,.06);
+  --on:#191817;            /* Ink */
+  --on-2:#67645f;
+  --on-3:#9c9993;
+  --accent:#f2a024;
+  --on-accent:#2a1800;
+  --accent-ink:#985600;    /* Brass */
+  --accent-soft:#fbe8c9;
+  --on-accent-soft:#7a4500;
+  --danger:#cf3a2a;
+  --toast:#3d3b38;
+  --on-toast:#ffffff;
+  --scrim:rgba(24,20,12,.4);
+  --shadow:0 8px 28px rgba(60,45,20,.14);
+  --shadow-sm:0 3px 12px rgba(60,45,20,.16);
+}
+
+/* ── 2 · album-art colour ───────────────────────────────────────────────────
+   .tinted      swaps the ACCENT tokens for ones derived from the cover, so every
+                component inside (buttons, seek bar, switches, progress, the
+                heart, the current-row highlight) takes the artwork's colour
+                with no component-level change. Surfaces stay neutral.
+   .tinted.wash also moves the SURFACE tokens a short way toward the cover.
+   Needs an art-<key> class (shared/covers.css) on the same element or an
+   ancestor to supply --tint. Only --tint is read: each token keeps the
+   cover's hue, scales its chroma and sets its own lightness, so contrast is
+   the same for a pale cover and a dark one.                                  */
+:is(.phone,.strip).tinted,:is(.phone,.strip) .tinted{
+  --accent:oklch(from var(--tint) .76 c h);
+  --on-accent:oklch(from var(--tint) .2 calc(c*.55) h);
+  --accent-ink:oklch(from var(--tint) .82 calc(c*.85) h);
+  --accent-soft:oklch(from var(--tint) .31 calc(c*.6) h);
+  --on-accent-soft:oklch(from var(--tint) .89 calc(c*.5) h);
+  --mini-base:oklch(from var(--tint) .25 calc(c*.5) h);
+  --mini-fill:oklch(from var(--tint) .4 calc(c*.9) h);
+}
+:is(.phone,.strip).tinted.wash,:is(.phone,.strip) .tinted.wash{
+  --ground:oklch(from var(--tint) .115 calc(c*.28) h);
+  --card:oklch(from var(--tint) .215 calc(c*.34) h);
+  --raised:oklch(from var(--tint) .26 calc(c*.34) h);
+  --fill:oklch(from var(--tint) .3 calc(c*.4) h);
+  --fill-2:oklch(from var(--tint) .38 calc(c*.45) h);
+  --line:oklch(from var(--tint) .28 calc(c*.36) h);
+  --on-2:oklch(from var(--tint) .77 calc(c*.3) h);
+  --on-3:oklch(from var(--tint) .57 calc(c*.26) h);
+}
+:is(.phone,.strip).light.tinted,:is(.phone,.strip).light .tinted{
+  --accent:oklch(from var(--tint) .47 c h);
+  --on-accent:#ffffff;
+  --accent-ink:oklch(from var(--tint) .43 c h);
+  --accent-soft:oklch(from var(--tint) .9 calc(c*.4) h);
+  --on-accent-soft:oklch(from var(--tint) .36 c h);
+  --mini-base:oklch(from var(--tint) .955 calc(c*.16) h);
+  --mini-fill:oklch(from var(--tint) .87 calc(c*.42) h);
+}
+:is(.phone,.strip).light.tinted.wash,:is(.phone,.strip).light .tinted.wash{
+  --ground:oklch(from var(--tint) .93 calc(c*.2) h);
+  --card:oklch(from var(--tint) .978 calc(c*.08) h);
+  --raised:oklch(from var(--tint) .985 calc(c*.06) h);
+  --fill:oklch(from var(--tint) .905 calc(c*.26) h);
+  --fill-2:oklch(from var(--tint) .84 calc(c*.34) h);
+  --line:oklch(from var(--tint) .915 calc(c*.14) h);
+  --on-2:oklch(from var(--tint) .45 calc(c*.3) h);
+  --on-3:oklch(from var(--tint) .62 calc(c*.26) h);
+}
+/* a nested surface that should repaint itself with the washed ground or card */
+:is(.phone,.strip) .bg-ground{background:var(--ground);color:var(--on)}
+:is(.phone,.strip) .bg-card{background:var(--card);color:var(--on)}
+
+/* ── 3 · base, icons, shapes ────────────────────────────────────────────── */
+:is(.phone,.strip){font-family:'Onest','Noto Sans',system-ui,sans-serif;font-size:16px;line-height:22px;font-weight:400;
+  background:var(--ground);color:var(--on);text-align:left;letter-spacing:0;-webkit-font-smoothing:antialiased}
+:is(.phone,.strip) :is(h1,h2,h3,p){margin:0;font:inherit;letter-spacing:inherit}
+:is(.phone,.strip) :is(button,a){font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;text-decoration:none;cursor:default}
+/* status bar and gesture pill follow the ink of whatever surface they sit on */
+:is(.phone,.strip) > .sbar{color:var(--on)}
+:is(.phone) > .gpill{color:var(--on)}
+
+/* Material Symbols Rounded, light weight. Text inside is the icon name. */
+:is(.phone,.strip) .ms{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;font-size:24px;line-height:1;
+  width:1em;height:1em;display:inline-block;flex:none;overflow:hidden;white-space:nowrap;letter-spacing:normal;text-transform:none;
+  direction:ltr;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';user-select:none;
+  font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24}
+:is(.phone,.strip) .ms.fill{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24}
+:is(.phone,.strip) .ms.s18{font-size:18px}
+:is(.phone,.strip) .ms.s20{font-size:20px}
+:is(.phone,.strip) .ms.s28{font-size:28px}
+:is(.phone,.strip) .ms.s32{font-size:32px}
+:is(.phone,.strip) .ms.s40{font-size:40px;font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 40}
+:is(.phone,.strip) .ms.s40.fill{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 40}
+
+/* the Attic mark: <svg class="mark"> from KIT.md, coloured by currentColor */
+:is(.phone,.strip) .mark{display:block;width:24px;height:24px;color:var(--accent);flex:none}
+
+/* superellipses. Add to a .cv, a .mosaic, an .ibox or any block. */
+:is(.phone,.strip) .sq{-webkit-mask:var(--sq) center/100% 100% no-repeat;mask:var(--sq) center/100% 100% no-repeat;border-radius:0}
+:is(.phone,.strip) .sq-soft{-webkit-mask:var(--sq-soft) center/100% 100% no-repeat;mask:var(--sq-soft) center/100% 100% no-repeat;border-radius:0}
+:is(.phone,.strip) .sq-lg{-webkit-mask:var(--sq-lg) center/100% 100% no-repeat;mask:var(--sq-lg) center/100% 100% no-repeat;border-radius:0}
+/* the cover's printed title sits a little further in so the curve does not cut it */
+:is(.phone,.strip) .cv:is(.sq,.sq-lg)::after{inset:auto 10cqw 10cqw 10cqw}
+:is(.phone,.strip) .cv.sq-soft::after{content:none}
+/* widths for covers, mosaics and icon boxes */
+:is(.phone,.strip) .w32{width:32px}
+:is(.phone,.strip) .w40{width:40px}
+:is(.phone,.strip) .w44{width:44px}
+:is(.phone,.strip) .w48{width:48px}
+:is(.phone,.strip) .w56{width:56px}
+:is(.phone,.strip) .w64{width:64px}
+:is(.phone,.strip) .w72{width:72px}
+:is(.phone,.strip) .w88{width:88px}
+:is(.phone,.strip) .w96{width:96px}
+:is(.phone,.strip) .w112{width:112px}
+:is(.phone,.strip) .w132{width:132px}
+:is(.phone,.strip) .w148{width:148px}
+:is(.phone,.strip) .w196{width:196px}
+
+/* icon box: a superellipse holding one icon, sized by its width (Favourites, placeholders, empty states) */
+:is(.phone,.strip) .ibox{aspect-ratio:1;display:grid;place-items:center;flex:none;container-type:inline-size;
+  background:var(--accent-soft);color:var(--accent-ink)}
+:is(.phone,.strip) .ibox .ms{font-size:46cqw}
+:is(.phone,.strip) .ibox .mark{width:50cqw;height:50cqw;color:inherit}
+:is(.phone,.strip) .ibox.neutral{background:var(--fill);color:var(--on-2)}
+:is(.phone,.strip) .ibox.solid{background:var(--accent);color:var(--on-accent)}
+
+/* two-line text block used by every row */
+:is(.phone,.strip) .txt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+:is(.phone,.strip) .txt :is(b,span,em){display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal}
+:is(.phone,.strip) .txt b{font-size:16px;line-height:22px;font-weight:500;color:var(--on)}
+:is(.phone,.strip) .txt span{font-size:13.5px;line-height:18px;font-weight:400;color:var(--on-2)}
+:is(.phone,.strip) .txt em{font-size:12.5px;line-height:16px;font-weight:400;color:var(--on-2)}
+
+/* ── 4 · screen, app bars, sub-tabs ─────────────────────────────────────── */
+:is(.phone,.strip) .screen{position:relative;min-height:800px;padding-bottom:36px}
+.phone:not(.long) .screen{height:800px;overflow:hidden}
+:is(.phone,.strip) .screen.pad-dock{padding-bottom:176px}   /* dock with mini player */
+:is(.phone,.strip) .screen.pad-tabs{padding-bottom:112px}   /* dock, tabs only */
+:is(.phone,.strip) .screen.pad-bar{padding-bottom:112px}    /* bottom action bar */
+
+/* expanded large title: the viewing area of a root screen at rest */
+:is(.phone,.strip) .hero{height:228px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:0 32px}
+:is(.phone,.strip) .hero h1{font-size:40px;line-height:46px;font-weight:700;letter-spacing:-.025em}
+:is(.phone,.strip) .hero p{margin-top:6px;font-size:15px;line-height:20px;color:var(--on-2)}
+:is(.phone,.strip) .hero .mark{width:30px;height:30px;margin-bottom:14px}
+:is(.phone,.strip) .hero.short{height:150px}
+
+/* the row that closes the viewing area: sub-tabs or nothing on the left, actions on the right */
+:is(.phone,.strip) .tools{height:50px;display:flex;align-items:center;justify-content:flex-end;padding:0 8px 2px 24px}
+:is(.phone,.strip) .tools .subtabs{margin-left:-10px}
+
+/* collapsed and detail app bar */
+:is(.phone,.strip) .bar{height:56px;display:flex;align-items:center;padding:0 8px}
+:is(.phone,.strip) .bar h2{flex:1;min-width:0;padding-left:16px;font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.015em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(.phone,.strip) .bar .ib + h2{padding-left:4px}
+:is(.phone,.strip) .bar .txt{padding-left:4px}
+:is(.phone,.strip) .bar.lift{background:var(--ground);box-shadow:0 1px 0 var(--line);position:relative;z-index:3}
+:is(.phone,.strip) .bar.count h2{color:var(--accent-ink)}     /* selection mode: "2 selected" */
+
+/* sub-tabs: for a choice where one option is always selected */
+:is(.phone,.strip) .subtabs{display:flex;gap:2px;flex:1;min-width:0}
+:is(.phone,.strip) .subtab{height:48px;padding:0 10px;display:flex;align-items:center;position:relative;white-space:nowrap;
+  font-size:15px;font-weight:500;color:var(--on-2)}
+:is(.phone,.strip) .subtab.on{color:var(--on);font-weight:700}
+:is(.phone,.strip) .subtab.on::after{content:"";position:absolute;left:10px;right:10px;bottom:7px;height:3px;border-radius:2px;background:var(--accent)}
+:is(.phone,.strip) .subtabs.lift{background:var(--ground);padding:0 14px;box-shadow:0 1px 0 var(--line);position:relative;z-index:3}
+
+/* ── 5 · chips, search field, labels ────────────────────────────────────── */
+/* chips: for a filter that can be switched off again */
+:is(.phone,.strip) .chips{display:flex;gap:8px;padding:6px 16px;overflow:hidden}
+:is(.phone,.strip) .chip{height:36px;padding:0 16px;border-radius:18px;display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap;
+  background:var(--card);color:var(--on);font-size:14px;font-weight:500}
+:is(.phone,.strip) .chip .ms{font-size:18px;margin-left:-4px}
+:is(.phone,.strip) .chip.on{background:var(--accent-soft);color:var(--on-accent-soft);font-weight:600}
+:is(.phone,.strip) :is(.group,.sheet,.dialog) .chip{background:var(--fill)}
+:is(.phone,.strip) :is(.group,.sheet,.dialog) .chip.on{background:var(--accent-soft)}
+
+:is(.phone,.strip) .search{height:50px;margin:0 16px;padding:0 4px 0 18px;border-radius:25px;display:flex;align-items:center;gap:12px;
+  background:var(--card);color:var(--on-2);font-size:16px}
+:is(.phone,.strip) .search .q{flex:1;min-width:0;display:flex;align-items:center;color:var(--on);white-space:nowrap;overflow:hidden}
+:is(.phone,.strip) .search .ph{color:var(--on-3)}
+:is(.phone,.strip) .caret{display:inline-block;width:2px;height:20px;border-radius:1px;background:var(--accent);margin-left:1px;flex:none}
+:is(.phone,.strip) :is(.sheet,.group,.dialog) .search{background:var(--fill)}
+:is(.phone,.strip) .sheet .search{margin-bottom:6px}
+
+/* section label: sits on the ground, outside the card it names */
+:is(.phone,.strip) .label{display:flex;align-items:baseline;gap:8px;padding:24px 28px 9px;font-size:14px;line-height:18px;font-weight:600;color:var(--on-2)}
+:is(.phone,.strip) .label small{font-size:12.5px;font-weight:400;color:var(--on-3)}
+:is(.phone,.strip) .label .end{margin-left:auto;font-weight:500;color:var(--on-3);display:flex;align-items:center;gap:4px}
+:is(.phone,.strip) .label.tight{padding-top:14px}
+/* small print under a card */
+:is(.phone,.strip) .note{padding:10px 28px 0;font-size:13px;line-height:18px;color:var(--on-3)}
+
+/* ── 6 · groups and rows ────────────────────────────────────────────────── */
+:is(.phone,.strip) .group{position:relative;margin:0 16px;border-radius:var(--r-group);background:var(--card);overflow:hidden}
+:is(.phone,.strip) .group + .group{margin-top:12px}
+:is(.phone,.strip) .group.pad{padding:18px 14px 16px}
+:is(.phone,.strip) .group > *{position:relative}
+/* rows in a group are split by a hairline that starts where the text starts */
+:is(.phone,.strip) :is(.row,.song,.set-row,.kv,.swipe) + :is(.row,.song,.set-row,.kv,.swipe,.inset)::before{content:"";position:absolute;top:0;
+  left:var(--sep,20px);right:20px;height:1px;background:var(--line);z-index:2}
+
+/* a collection in a list: album, artist, playlist, folder */
+:is(.phone,.strip) .row{position:relative;display:flex;align-items:center;gap:14px;min-height:72px;padding:8px 10px 8px 16px;--sep:86px}
+:is(.phone,.strip) .row > .ms{color:var(--on-3);margin-right:6px}
+:is(.phone,.strip) .row.sm{min-height:64px;--sep:78px}
+:is(.phone,.strip) .row.lg{min-height:92px;--sep:94px}
+:is(.phone,.strip) .row.lg .txt b{font-size:18px;line-height:24px;font-weight:700;letter-spacing:-.01em}
+:is(.phone,.strip) .row .val{font-size:13.5px;color:var(--on-2);white-space:nowrap;flex:none;margin-right:10px;font-variant-numeric:tabular-nums}
+/* a block inside a group that is not a row (a shelf, a grid) */
+:is(.phone,.strip) .inset{position:relative;padding:14px 0 16px}
+
+/* key and value, for Credits */
+:is(.phone,.strip) .kv{position:relative;padding:11px 20px 12px;display:flex;flex-direction:column;--sep:20px}
+:is(.phone,.strip) .kv em{font-style:normal;font-size:12.5px;line-height:17px;color:var(--on-2)}
+:is(.phone,.strip) .kv b{font-size:16px;line-height:22px;font-weight:500}
+
+/* ── 7 · song row ───────────────────────────────────────────────────────── */
+:is(.phone,.strip) .song{position:relative;display:flex;align-items:center;gap:14px;min-height:64px;padding:8px 4px 8px 16px;--sep:78px}
+:is(.phone,.strip) .song > *{position:relative;z-index:1}
+:is(.phone,.strip) .song .lead{flex:none;display:grid;place-items:center}
+:is(.phone,.strip) .song .lead > *{grid-area:1/1}
+:is(.phone,.strip) .song .lead .bars{z-index:1}
+:is(.phone,.strip) .song .num{width:28px;flex:none;display:grid;place-items:center;font-size:15px;color:var(--on-2);font-variant-numeric:tabular-nums}
+:is(.phone,.strip) .song.numbered{--sep:58px}
+:is(.phone,.strip) .song .rank{width:20px;flex:none;text-align:center;font-size:17px;font-weight:700;color:var(--on-2);font-variant-numeric:tabular-nums}
+:is(.phone,.strip) .song.ranked{--sep:112px}
+:is(.phone,.strip) .song.bare{padding-left:20px;--sep:20px}
+:is(.phone,.strip) .song .meta{flex:none;font-size:13px;color:var(--on-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+:is(.phone,.strip) .song .meta:last-child{margin-right:16px}
+:is(.phone,.strip) .song .ib{color:var(--on-3)}
+:is(.phone,.strip) .song .ib.add{color:var(--on)}
+:is(.phone,.strip) .song .ib.added{color:var(--accent-ink)}
+:is(.phone,.strip) .song .ib.tonal{color:var(--on);margin-right:8px}
+/* the current song: a tonal bed under the row, a heavier title, bars on the cover or in place of the number */
+:is(.phone,.strip) .song.now::after{content:"";position:absolute;inset:4px 6px;border-radius:var(--r-ctl);background:var(--accent-soft);z-index:0}
+:is(.phone,.strip) .song.now .txt b{font-weight:700}
+:is(.phone,.strip) .song.now .txt span{color:var(--on-accent-soft)}
+:is(.phone,.strip) .song.now .ib{color:var(--on-accent-soft)}
+:is(.phone,.strip) .song.now .lead .cv{filter:brightness(.4)}
+:is(.phone,.strip) .song.now .lead .bars{color:var(--on-art)}
+:is(.phone,.strip) .song.now .num{color:var(--on-accent-soft)}
+/* a row lifted while it is dragged */
+:is(.phone,.strip) .song.lifted{background:var(--raised);box-shadow:var(--shadow-sm);border-radius:var(--r-ctl);margin:0 6px;padding-left:10px;z-index:3}
+:is(.phone,.strip) .song.lifted::before{content:none}
+:is(.phone,.strip) .song.lifted + .song::before{content:none}
+
+/* playing indicator. .still while paused. */
+:is(.phone,.strip) .bars{display:inline-flex;align-items:flex-end;justify-content:center;gap:2.5px;width:16px;height:16px;flex:none}
+:is(.phone,.strip) .bars i{display:block;width:3px;border-radius:2px;background:currentColor}
+:is(.phone,.strip) .bars i:nth-child(1){height:50%}
+:is(.phone,.strip) .bars i:nth-child(2){height:100%}
+:is(.phone,.strip) .bars i:nth-child(3){height:68%}
+:is(.phone,.strip) .bars.still i{height:26%}
+
+/* a queue row swiped aside, showing what is under it */
+:is(.phone,.strip) .swipe{position:relative;background:var(--fill)}
+:is(.phone,.strip) .swipe .song{background:var(--card);transform:translateX(-104px);border-radius:0 var(--r-ctl) var(--r-ctl) 0}
+:is(.phone,.strip) .swipe .song::before{content:none}
+:is(.phone,.strip) .swipe .under{position:absolute;right:24px;top:0;bottom:0;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--danger)}
+
+/* ── 8 · tiles, shelves, grids ──────────────────────────────────────────── */
+/* a collection as an object: superellipse art with its name underneath */
+:is(.phone,.strip) .tile{display:block;flex:none;min-width:0;width:var(--w,132px)}
+:is(.phone,.strip) .tile > :is(.cv,.mosaic,.ibox),:is(.phone,.strip) .tile .lead > :is(.cv,.mosaic,.ibox){width:100%}
+:is(.phone,.strip) .tile .lead{display:grid;place-items:center}
+:is(.phone,.strip) .tile .lead > *{grid-area:1/1}
+:is(.phone,.strip) .tile .lead .bars{width:22px;height:22px;gap:3.5px;color:var(--on-art);z-index:1}
+:is(.phone,.strip) .tile .lead .bars i{width:4px}
+:is(.phone,.strip) .tile.now .lead .cv{filter:brightness(.4)}
+:is(.phone,.strip) .tile > b{display:block;margin-top:8px;font-size:14px;line-height:18px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(.phone,.strip) .tile > b.two{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+:is(.phone,.strip) .tile > span{display:block;margin-top:1px;font-size:12.5px;line-height:16px;color:var(--on-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(.phone,.strip) .tile.center{text-align:center}
+:is(.phone,.strip) .tile.center > b{font-weight:500;font-size:13.5px}
+
+:is(.phone,.strip) .shelf{display:flex;gap:14px;padding:0 24px;overflow:hidden}
+:is(.phone,.strip) .group .shelf{padding:0 16px}
+:is(.phone,.strip) .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 16px}
+:is(.phone,.strip) .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 14px;padding:0 24px}
+:is(.phone,.strip) .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 10px;padding:0 24px}
+:is(.phone,.strip) :is(.grid2,.grid3,.grid4) .tile{width:auto}
+:is(.phone,.strip) .group :is(.grid3,.grid4){padding:0}
+/* icon grid inside a group: art does not fill the cell, so the cells read as a tray of objects */
+:is(.phone,.strip) .group .grid3.tray{gap:14px 6px}
+:is(.phone,.strip) .group .grid3.tray .tile > :is(.cv,.mosaic,.ibox){width:80px;margin:0 auto}
+:is(.phone,.strip) .group .grid4.tray .tile > :is(.cv,.mosaic,.ibox){width:64px;margin:0 auto}
+
+/* cards that page sideways: the next one shows at the right edge */
+:is(.phone,.strip) .pager{display:flex;gap:10px;padding:0 16px;overflow:hidden}
+:is(.phone,.strip) .pager .group{flex:none;width:312px;margin:0}
+
+/* browse tile (Search with an empty field) */
+:is(.phone,.strip) .browse{display:flex;flex-direction:column;justify-content:space-between;min-height:128px;padding:14px;border-radius:var(--r-group);
+  background:var(--card);color:var(--on)}
+:is(.phone,.strip) .browse b{display:block;font-size:16px;line-height:21px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(.phone,.strip) .browse span:not(.ms){display:block;font-size:12.5px;line-height:16px;color:var(--on-2)}
+
+/* ── 9 · collection and artist headers ──────────────────────────────────── */
+:is(.phone,.strip) .c-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 32px 0}
+:is(.phone,.strip) .c-head h1{margin-top:18px;font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.02em;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+:is(.phone,.strip) .c-head .by{margin-top:6px;display:inline-flex;align-items:center;gap:2px;font-size:15px;line-height:20px;font-weight:600;color:var(--accent-ink)}
+:is(.phone,.strip) .c-head .meta{margin-top:4px;font-size:13.5px;line-height:19px;color:var(--on-2)}
+:is(.phone,.strip) .c-head.person h1{font-size:30px;line-height:36px}
+/* play, shuffle, add to playlist (and, on a playlist, add songs and reorder) */
+:is(.phone,.strip) .c-actions{display:flex;align-items:center;gap:10px;padding:20px 16px 4px}
+:is(.phone,.strip) .c-actions .btn{flex:1;min-width:0}
+
+/* ── 10 · buttons, icon buttons, heart ──────────────────────────────────── */
+:is(.phone,.strip) .btn{height:48px;padding:0 22px;border-radius:24px;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;
+  font-size:15.5px;line-height:20px;font-weight:600;white-space:nowrap;color:var(--on)}
+:is(.phone,.strip) .btn .ms{margin-left:-4px}
+:is(.phone,.strip) .btn.filled{background:var(--accent);color:var(--on-accent)}
+:is(.phone,.strip) .btn.tonal{background:var(--accent-soft);color:var(--on-accent-soft)}
+:is(.phone,.strip) .btn.plain{background:var(--fill);color:var(--on)}
+:is(.phone,.strip) .btn.text{padding:0 12px;color:var(--accent-ink)}
+:is(.phone,.strip) .btn.lg{height:56px;border-radius:28px;padding:0 28px;font-size:17px}
+:is(.phone,.strip) .btn.sm{height:36px;border-radius:18px;padding:0 16px;font-size:14px}
+:is(.phone,.strip) .btn.block{display:flex;width:100%}
+:is(.phone,.strip) .btn.danger{color:var(--danger)}
+:is(.phone,.strip) .btn.off{opacity:.38}
+
+/* icon button: 48dp target */
+:is(.phone,.strip) .ib{width:48px;height:48px;display:grid;place-items:center;flex:none;color:var(--on)}
+:is(.phone,.strip) .ib.dim{color:var(--on-2)}
+:is(.phone,.strip) .ib.off{opacity:.35}
+/* tonal: the icon sits in a superellipse, the shape of a quick-panel toggle. .on lights it. */
+:is(.phone,.strip) .ib.tonal{background:var(--fill);-webkit-mask:var(--sq) center/100% 100% no-repeat;mask:var(--sq) center/100% 100% no-repeat}
+:is(.phone,.strip) .ib.lg{width:54px;height:54px}
+/* the favourite heart: outline, then filled in the accent */
+:is(.phone,.strip) .ib.heart.on{color:var(--accent)}
+:is(.phone,.strip) .ib.heart.on .ms{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24}
+:is(.phone,.strip) .ib.tonal.on{background:var(--accent);color:var(--on-accent)}
+
+/* play button: the accent in a superellipse */
+:is(.phone,.strip) .play{width:76px;height:76px;display:grid;place-items:center;flex:none;background:var(--accent);color:var(--on-accent);
+  -webkit-mask:var(--sq) center/100% 100% no-repeat;mask:var(--sq) center/100% 100% no-repeat}
+:is(.phone,.strip) .play .ms{font-size:42px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 40}
+:is(.phone,.strip) .play.md{width:56px;height:56px}
+:is(.phone,.strip) .play.md .ms{font-size:32px}
+:is(.phone,.strip) .play.sm{width:44px;height:44px}
+:is(.phone,.strip) .play.sm .ms{font-size:26px}
+
+/* ── 11 · Now Playing ───────────────────────────────────────────────────── */
+/* the player page: one screen tall, the cards follow below it */
+:is(.phone,.strip) .np-page{min-height:788px;margin-bottom:12px}
+/* context header: close, "Playing from" over the context, more */
+:is(.phone,.strip) .np-head{height:60px;display:flex;align-items:center;padding:0 8px}
+:is(.phone,.strip) .np-head .txt{padding-left:4px}
+:is(.phone,.strip) .np-head .txt b{font-size:15.5px;line-height:20px;font-weight:600}
+/* cover: a large superellipse. .paused draws it smaller. */
+:is(.phone,.strip) .np-cover{margin:4px 30px 0}
+:is(.phone,.strip) .np-cover .cv{width:100%;transition:transform .26s}
+:is(.phone,.strip) .np-cover.paused .cv{transform:scale(.86)}
+:is(.phone,.strip) .np-title{padding:18px 30px 0}
+:is(.phone,.strip) .np-title h1{font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(.phone,.strip) .np-title .by{margin-top:2px;font-size:16px;line-height:22px;color:var(--on-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the line being sung, when the song has synced lyrics */
+:is(.phone,.strip) .np-lyric{margin:10px 30px 0;display:flex;align-items:center;gap:8px;font-size:14px;line-height:20px;font-weight:500;color:var(--accent-ink)}
+:is(.phone,.strip) .np-lyric span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* the deck: one card holding everything you touch */
+:is(.phone,.strip) .deck{margin:16px 16px 0;padding:14px;border-radius:var(--r-float);background:var(--card)}
+/* seek bar: a thick track whose fill carries the elapsed time. --p is 0 to 1.
+   The fill is never narrower than its label, so at 0:00 it is a 64dp thumb. */
+:is(.phone,.strip) .seek{position:relative;height:48px;border-radius:var(--r-ctl);background:var(--fill);overflow:hidden;
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+:is(.phone,.strip) .seek::before{content:"";position:absolute;inset:0 auto 0 0;width:calc(64px + (100% - 64px)*var(--p,0));
+  background:var(--accent);border-radius:var(--r-ctl)}
+:is(.phone,.strip) .seek::after{content:"";position:absolute;top:16px;height:16px;width:3px;border-radius:2px;background:var(--on-accent);opacity:.4;
+  left:calc(64px + (100% - 64px)*var(--p,0) - 12px)}
+:is(.phone,.strip) .seek .at{position:relative;color:var(--on-accent)}
+:is(.phone,.strip) .seek .end{position:relative;color:var(--on-2)}
+/* transport: previous, play or pause, next */
+:is(.phone,.strip) .transport{display:flex;align-items:center;justify-content:center;gap:26px;margin-top:14px}
+:is(.phone,.strip) .tp{width:64px;height:64px;display:grid;place-items:center;flex:none;color:var(--on)}
+:is(.phone,.strip) .tp .ms{font-size:42px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 40}
+/* toggles: shuffle, repeat, favourite, queue. Use .ib.tonal.lg, with .on for a lit state. */
+:is(.phone,.strip) .toggles{display:flex;justify-content:space-between;margin-top:12px;padding:0 10px}
+
+/* lyrics card */
+:is(.phone,.strip) .lyrics-card{margin:0 16px;padding:18px 20px 20px;border-radius:var(--r-group);background:var(--card)}
+:is(.phone,.strip) .lyrics-card .hd{font-size:14px;line-height:18px;font-weight:600;color:var(--on-2);margin-bottom:12px}
+:is(.phone,.strip) .lyrics-card .ln{font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.015em;color:var(--on-3);margin-bottom:8px}
+:is(.phone,.strip) .lyrics-card .ln.cur{color:var(--on)}
+:is(.phone,.strip) .lyrics-card .ln.clip{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;color:var(--on)}
+:is(.phone,.strip) .lyrics-card p{font-size:15px;line-height:21px;color:var(--on-2)}
+:is(.phone,.strip) .lyrics-card :is(.btn,.spinner){margin-top:14px}
+
+/* ── 12 · sheets, dialogs, menus, toast ─────────────────────────────────── */
+:is(.phone,.strip) .scrim{position:absolute;inset:0;z-index:20;background:var(--scrim)}
+/* bottom sheet */
+:is(.phone,.strip) .sheet{position:absolute;left:0;right:0;bottom:0;z-index:21;padding:8px 0 30px;border-radius:var(--r-float) var(--r-float) 0 0;
+  background:var(--raised);box-shadow:var(--shadow)}
+:is(.phone,.strip) .sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--fill-2);margin:4px auto 12px}
+:is(.phone,.strip) .sheet-head{display:flex;align-items:center;gap:14px;padding:4px 24px 14px}
+:is(.phone,.strip) .sheet-head .txt b{font-size:17px;font-weight:600}
+:is(.phone,.strip) .sheet-title{padding:6px 24px 12px;font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.015em}
+:is(.phone,.strip) .sheet-row{position:relative;display:flex;align-items:center;gap:18px;min-height:52px;padding:0 24px;font-size:16px}
+:is(.phone,.strip) .sheet-row > .ms:first-child{color:var(--on-2)}
+:is(.phone,.strip) .sheet-row .end{margin-left:auto;color:var(--accent-ink)}
+:is(.phone,.strip) .sheet-row .val{margin-left:auto;font-size:14px;color:var(--on-2)}
+:is(.phone,.strip) .sheet-row.on{font-weight:600}
+:is(.phone,.strip) .sheet-row.danger,:is(.phone,.strip) .sheet-row.danger > .ms:first-child{color:var(--danger)}
+:is(.phone,.strip) .sheet-row + .sheet-row::before{content:"";position:absolute;top:0;left:66px;right:24px;height:1px;background:var(--line)}
+:is(.phone,.strip) .sheet .song{padding-left:24px;--sep:86px}
+:is(.phone,.strip) .sheet .song + .song::before{right:24px}
+
+/* bottom dialog: floats above the gesture area, two text buttons split by a divider */
+:is(.phone,.strip) .dialog{position:absolute;left:12px;right:12px;bottom:22px;z-index:21;padding:24px 24px 6px;border-radius:var(--r-float);
+  background:var(--raised);box-shadow:var(--shadow)}
+:is(.phone,.strip) .dialog.above-kbd{bottom:318px}
+:is(.phone,.strip) .dialog h3{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.015em}
+:is(.phone,.strip) .dialog p{margin-top:8px;font-size:15px;line-height:21px;color:var(--on-2)}
+:is(.phone,.strip) .field{margin-top:18px;padding-bottom:9px;border-bottom:2px solid var(--accent);display:flex;flex-direction:column;gap:4px}
+:is(.phone,.strip) .field label{font-size:12.5px;line-height:16px;color:var(--accent-ink);font-weight:500}
+:is(.phone,.strip) .field .q{display:flex;align-items:center;font-size:17px;line-height:24px;min-height:24px}
+:is(.phone,.strip) .field .ph{color:var(--on-3)}
+:is(.phone,.strip) .dialog-btns{display:flex;align-items:center;margin:14px -14px 0}
+:is(.phone,.strip) .dialog-btns .btn{flex:1;height:52px;position:relative}
+:is(.phone,.strip) .dialog-btns .btn + .btn::before{content:"";position:absolute;left:0;top:17px;bottom:17px;width:1px;background:var(--fill-2)}
+/* a stand-in for the system keyboard, 296dp tall */
+:is(.phone,.strip) .kbd{position:absolute;left:0;right:0;bottom:0;height:296px;z-index:21;background:var(--card);padding:12px 5px 0;
+  display:grid;grid-template-columns:repeat(10,1fr);grid-auto-rows:44px;gap:8px 5px;align-content:start}
+:is(.phone,.strip) .kbd i{display:block;border-radius:8px;background:var(--fill)}
+:is(.phone,.strip) .kbd i.sp{grid-column:span 5}
+:is(.phone,.strip) .kbd i.w2{grid-column:span 2}
+
+/* pop-over menu: set top/right (or bottom/left) inline, near its trigger */
+:is(.phone,.strip) .menu{position:absolute;z-index:22;min-width:200px;padding:6px 0;border-radius:22px;background:var(--raised);
+  box-shadow:var(--shadow),0 0 0 1px var(--edge)}
+:is(.phone,.strip) .menu-row{height:50px;padding:0 22px;display:flex;align-items:center;gap:14px;font-size:16px;white-space:nowrap}
+:is(.phone,.strip) .menu-row .ms{color:var(--on-2)}
+:is(.phone,.strip) .menu-row.on{color:var(--accent-ink);font-weight:600}
+:is(.phone,.strip) .menu-row.danger,:is(.phone,.strip) .menu-row.danger .ms{color:var(--danger)}
+
+/* toast: one line of text in a capsule, no action */
+:is(.phone,.strip) .toast{position:absolute;left:50%;bottom:180px;transform:translateX(-50%);z-index:30;width:max-content;max-width:330px;
+  padding:12px 22px;border-radius:24px;background:var(--toast);color:var(--on-toast);box-shadow:var(--shadow-sm);
+  font-size:14.5px;line-height:20px;text-align:center}
+:is(.phone,.strip) .toast.over-tabs{bottom:116px}     /* dock without a mini player */
+:is(.phone,.strip) .toast.low{bottom:56px}            /* over a full-screen overlay */
+
+/* ── 13 · controls ──────────────────────────────────────────────────────── */
+:is(.phone,.strip) .switch{position:relative;display:block;flex:none;width:52px;height:30px;border-radius:15px;background:var(--fill-2)}
+:is(.phone,.strip) .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--knob);box-shadow:var(--shadow-sm)}
+:is(.phone,.strip) .switch.on{background:var(--accent)}
+:is(.phone,.strip) .switch.on::after{left:25px}
+
+:is(.phone,.strip) .radio{position:relative;display:block;flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--on-3)}
+:is(.phone,.strip) .radio.on{border-color:var(--accent)}
+:is(.phone,.strip) .radio.on::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--accent)}
+
+/* progress: a thick capsule that fills. --p is 0 to 1. */
+:is(.phone,.strip) .progress{position:relative;height:10px;border-radius:5px;background:var(--fill-2);overflow:hidden}
+:is(.phone,.strip) .progress::before{content:"";position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);border-radius:5px;background:var(--accent)}
+:is(.phone,.strip) .progress.thick{height:16px;border-radius:8px}
+:is(.phone,.strip) .progress.thick::before{border-radius:8px}
+:is(.phone,.strip) .spinner{display:block;width:36px;height:36px;border-radius:50%;border:4px solid var(--fill-2);
+  border-top-color:var(--accent);border-right-color:var(--accent);transform:rotate(28deg);flex:none}
+:is(.phone,.strip) .spinner.sm{width:22px;height:22px;border-width:3px}
+
+/* ── 14 · settings, stats, empty state ──────────────────────────────────── */
+:is(.phone,.strip) .set-row{position:relative;display:flex;align-items:center;gap:16px;min-height:60px;padding:11px 20px;--sep:20px}
+:is(.phone,.strip) .set-row .txt b{font-size:16.5px;line-height:22px;white-space:normal}
+:is(.phone,.strip) .set-row .txt span{white-space:normal;line-height:19px;margin-top:2px}
+:is(.phone,.strip) .set-row .val{flex:none;font-size:14px;color:var(--accent-ink)}
+:is(.phone,.strip) .set-row > .ms{color:var(--on-3)}
+:is(.phone,.strip) .set-row.lead-ctl{--sep:60px}
+/* a paragraph, a progress bar or a button inside a settings card */
+:is(.phone,.strip) .set-block{position:relative;padding:14px 20px 16px;font-size:14px;line-height:20px;color:var(--on-2)}
+:is(.phone,.strip) .set-block b{color:var(--on);font-weight:600}
+:is(.phone,.strip) .set-block small{display:block;margin-top:6px;font-size:12.5px;line-height:17px;color:var(--on-3)}
+:is(.phone,.strip) .set-block .progress{margin:14px 0 8px}
+:is(.phone,.strip) .set-block .btn{margin-top:12px}
+:is(.phone,.strip) .set-block .btn.text{margin-left:-12px}
+:is(.phone,.strip) .set-row + .set-block{padding-top:2px}
+
+/* stat tiles: one card, cells split by hairlines. Use inside .group. */
+:is(.phone,.strip) .stats{display:grid;grid-template-columns:1fr 1fr}
+:is(.phone,.strip) .stat{padding:15px 20px 16px;min-width:0}
+:is(.phone,.strip) .stat:nth-child(even){border-left:1px solid var(--line)}
+:is(.phone,.strip) .stat:nth-child(n+3){border-top:1px solid var(--line)}
+:is(.phone,.strip) .stat b{display:block;font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+:is(.phone,.strip) .stat span:not(.ms){display:block;font-size:13px;line-height:18px;color:var(--on-2)}
+
+:is(.phone,.strip) .empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 40px}
+:is(.phone,.strip) .empty .ibox{width:76px;margin-bottom:22px}
+:is(.phone,.strip) .empty h3{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.015em}
+:is(.phone,.strip) .empty p{margin-top:8px;font-size:15px;line-height:21px;color:var(--on-2)}
+:is(.phone,.strip) .empty .btn{margin-top:24px}
+:is(.phone,.strip) .empty.fill{position:absolute;inset:0;justify-content:center}
+
+/* ── 15 · dock: mini player and tab bar ─────────────────────────────────────
+   One floating card. The mini player is its first row and the tabs its second,
+   so the bottom chrome follows the grouped-card rule. Leave the .mini out and
+   the dock is a capsule tab bar.                                              */
+:is(.phone,.strip) .dock{position:absolute;left:0;right:0;bottom:0;z-index:8;padding:28px 12px 22px;
+  background:linear-gradient(to bottom,transparent,var(--ground) 36px)}
+:is(.phone,.strip) .dock::before{content:"";position:absolute;inset:28px 12px 22px;border-radius:var(--r-float);background:var(--raised);
+  box-shadow:var(--shadow),0 0 0 1px var(--edge)}
+
+/* mini player. --p is 0 to 1: the played part of the row is filled, there is no progress line. */
+:is(.phone,.strip) .mini{position:relative;height:64px;display:flex;align-items:center;gap:12px;padding:0 4px 0 10px;overflow:hidden;
+  border-radius:var(--r-float) var(--r-float) 0 0;background:var(--mini-base);color:var(--on)}
+:is(.phone,.strip) .mini::before{content:"";position:absolute;inset:0 auto 0 0;width:calc(var(--p,0)*100%);background:var(--mini-fill);
+  border-radius:0 22px 22px 0}
+:is(.phone,.strip) .mini > *{position:relative}
+:is(.phone,.strip) .mini .txt b{font-size:15px;line-height:20px;font-weight:600}
+:is(.phone,.strip) .mini .txt span{font-size:13px;line-height:17px}
+:is(.phone,.strip) .mini .ib + .ib{margin-left:-6px}
+:is(.phone,.strip) .mini .ib .ms.fill{font-size:30px}
+/* the same row as a bar across the top of Now Playing once the page has scrolled */
+:is(.phone,.strip) .mini.top{border-radius:0;padding-left:20px;height:60px}
+:is(.phone,.strip) .mini:only-child{border-radius:var(--r-float)}
+
+:is(.phone,.strip) .tabs{position:relative;display:flex;gap:4px;height:60px;padding:8px}
+:is(.phone,.strip) .tab{flex:1;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;gap:7px;
+  font-size:14px;font-weight:500;color:var(--on-2)}
+:is(.phone,.strip) .tab.on{background:var(--accent-soft);color:var(--on-accent-soft);font-weight:700}
+:is(.phone,.strip) .tab.on .ms{font-variation-settings:'FILL' 1,'wght' 300,'GRAD' 0,'opsz' 24}
+
+/* ── 16 · bottom action bar, index scrubber ─────────────────────────────── */
+/* replaces the dock in selection and reorder modes */
+:is(.phone,.strip) .actionbar{position:absolute;left:12px;right:12px;bottom:22px;z-index:8;height:68px;padding:0 8px;border-radius:var(--r-float);
+  display:flex;align-items:center;background:var(--raised);box-shadow:var(--shadow),0 0 0 1px var(--edge)}
+:is(.phone,.strip) .act{flex:1;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:12px;line-height:15px;font-weight:500;color:var(--on)}
+:is(.phone,.strip) .act.off{opacity:.38}
+:is(.phone,.strip) .act.danger{color:var(--danger)}
+:is(.phone,.strip) .act.go{color:var(--accent-ink);font-weight:700}
+
+/* index scrubber for a long alphabetical list: set --top inline */
+:is(.phone,.strip) .index{position:absolute;right:1px;top:var(--top,150px);z-index:4;width:22px;display:flex;flex-direction:column;align-items:center;
+  font-size:10.5px;line-height:15.5px;font-weight:600;color:var(--on-3)}
+:is(.phone,.strip) .index .on{color:var(--on-accent);background:var(--accent);width:18px;height:18px;border-radius:9px;display:grid;place-items:center;line-height:1}
+:is(.phone,.strip) .index-pop{position:absolute;right:34px;z-index:4;width:56px;height:56px;display:grid;place-items:center;
+  background:var(--accent);color:var(--on-accent);font-size:26px;font-weight:700;
+  -webkit-mask:var(--sq) center/100% 100% no-repeat;mask:var(--sq) center/100% 100% no-repeat}
+
+/* ── 17 · floating pieces shown alone in a .strip sit in normal flow ───── */
+:is(.strip) :is(.sheet,.dialog,.menu,.toast,.dock,.actionbar,.kbd){position:relative;inset:auto;transform:none}
+:is(.strip) .dock{padding-top:16px;background:var(--ground)}
+:is(.strip) .dock::before{top:16px}
+:is(.strip) :is(.dialog,.actionbar,.menu,.toast){margin:16px}
