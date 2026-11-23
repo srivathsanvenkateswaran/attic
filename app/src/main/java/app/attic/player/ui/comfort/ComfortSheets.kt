@@ -34,8 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +63,7 @@ import app.attic.player.ui.model.PlaylistPickerActions
 import app.attic.player.ui.model.PlaylistPickerState
 import app.attic.player.ui.model.TrackMenuActions
 import app.attic.player.ui.model.TrackMenuState
+import kotlin.math.roundToInt
 
 /*
  * Sheets, dialogs and menus in the Comfort style (oneui/07-sheets.html). Things that need a decision
@@ -161,9 +165,20 @@ private fun RowScope.QuickAction(symbol: Symbol, label: String, onClick: () -> U
  */
 @Composable
 private fun LanguageRow(state: TrackMenuState, actions: TrackMenuActions) {
+    var rowTop by remember { mutableIntStateOf(0) }
     var rowHeight by remember { mutableIntStateOf(0) }
+    // Unknown until the menu has been laid out once; until then it is taken to open upward, as it does on a phone.
+    var menuHeight by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
     val density = LocalDensity.current
-    BoxWithConstraints(Modifier.onSizeChanged { rowHeight = it.height }) {
+    val windowHeight = LocalView.current.rootView.height
+    // Material keeps the menu 48dp inside the window; the navigation bar is below that.
+    val opensDown = rowTop + menuHeight + with(density) { 96.dp.roundToPx() } <= windowHeight
+    BoxWithConstraints(
+        Modifier.onGloballyPositioned {
+            rowTop = it.positionInWindow().y.roundToInt()
+            rowHeight = it.size.height
+        },
+    ) {
         SheetRow(
             Symbol.Language,
             stringResource(R.string.menu_language, languageName(state.language)),
@@ -173,11 +188,13 @@ private fun LanguageRow(state: TrackMenuState, actions: TrackMenuActions) {
         ComfortMenu(
             expanded = state.pickingLanguage,
             onDismiss = actions.stopPickingLanguage,
+            modifier = Modifier.onSizeChanged { menuHeight = it.height },
             onSheet = true,
-            // Toward the row's end, where the glyph that opened it is, and over the row itself: with no room
-            // below, the menu opens upward from the row's top, so it is pulled down by the row's height until
-            // its foot meets the row's foot.
-            offset = DpOffset(maxWidth - 214.dp, with(density) { -rowHeight.toDp() }),
+            // Toward the row's end, where the glyph that opened it is, and over the row itself. Material adds
+            // the offset to the position it picks: below the row it starts at the row's foot, so it is lifted
+            // by the row's height to start at its top; above the row (no room below, as on a phone) it ends at
+            // the row's top, so it is lowered by the row's height to end at its foot.
+            offset = DpOffset(maxWidth - 214.dp, with(density) { (if (opensDown) -rowHeight else rowHeight).toDp() }),
         ) {
             MenuCaption(stringResource(R.string.language_picker_title))
             for ((code, _) in app.attic.player.data.LanguageLabels.CHOICES) {
