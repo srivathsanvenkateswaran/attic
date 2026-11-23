@@ -110,6 +110,8 @@ class HomeActions(
     /** Plays the shelf from [Track], as Recently played does. */
     val playShelf: (HomeShelf, Track) -> Unit,
     val playMix: (TasteMix) -> Unit,
+    /** A swipe on a "Start listening" row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -208,6 +210,7 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
         },
         // In the mix's own order, which already spreads its new songs through it.
         playMix = { mix -> app.player.play(mix.tracks, 0, mix.name, shuffled = false) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }

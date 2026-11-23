@@ -34,6 +34,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.SwipeToQueue
 
 /** The colour a group's cells take. Sheets raise it to surface container high. */
 val LocalGroupCellColor = staticCompositionLocalOf<Color?> { null }
@@ -137,8 +139,8 @@ sealed interface RowLead {
  * The current song ([current]) gets the secondary container fill, a heavier title, and the wave over
  * its cover or in place of its number, moving while [playing]. [lifted] is the row being dragged:
  * 20dp corners, the highest container and a shadow. Put it in a [ListGroup] or [groupItems].
+ * [onSwipeToQueue] lets the row be swiped towards the end to queue the song ([SwipeToQueueCell]).
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongRow(
     title: String,
@@ -150,7 +152,63 @@ fun SongRow(
     lifted: Boolean = false,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    onSwipeToQueue: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+) {
+    if (onSwipeToQueue == null || lifted) {
+        SongRowBody(title, subtitle, lead, modifier, current, playing, lifted, onClick, onLongClick, trailing)
+    } else {
+        SwipeToQueueCell(onSwipeToQueue, modifier) {
+            SongRowBody(title, subtitle, lead, Modifier, current, playing, false, onClick, onLongClick, trailing)
+        }
+    }
+}
+
+/**
+ * Swipe to queue (`.swipe` turned around): towards the end only. What it uncovers is the highest
+ * container with the queue glyph and "Add to queue", turning primary container once letting go would
+ * queue; the glyph grows to full size on the way. The row springs back with the fast spatial spring,
+ * the kit's motion for something let go. [onQueue] runs on a commit.
+ */
+@Composable
+fun SwipeToQueueCell(onQueue: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    SwipeToQueue(
+        onQueue = onQueue,
+        settle = ExpressiveMotion.fastSpatial(),
+        modifier = modifier,
+        background = { progress, armed ->
+            val fill by animateColorAsState(if (armed) colors.primaryContainer else colors.surfaceContainerHighest, ExpressiveMotion.fastEffects(), label = "swipeQueueFill")
+            val ink by animateColorAsState(if (armed) colors.onPrimaryContainer else colors.onSurfaceVariant, ExpressiveMotion.fastEffects(), label = "swipeQueueInk")
+            Row(
+                Modifier.fillMaxSize().background(fill).padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CompositionLocalProvider(LocalContentColor provides ink) {
+                    SymbolIcon(Symbol.QueueMusic, size = 20.dp, modifier = Modifier.scale(0.7f + 0.3f * progress))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.menu_add_to_queue), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+                }
+            }
+        },
+    ) {
+        Box(Modifier.background(groupCellColor())) { content() }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun SongRowBody(
+    title: String,
+    subtitle: String,
+    lead: RowLead,
+    modifier: Modifier,
+    current: Boolean,
+    playing: Boolean,
+    lifted: Boolean,
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)?,
+    trailing: (@Composable () -> Unit)?,
 ) {
     val colors = MaterialTheme.colorScheme
     val fill by animateColorAsState(

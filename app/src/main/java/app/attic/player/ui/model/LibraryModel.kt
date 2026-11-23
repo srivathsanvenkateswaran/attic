@@ -76,6 +76,8 @@ class LibraryActions(
     val shuffleAll: () -> Unit,
     val play: (Track) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -159,6 +161,7 @@ fun rememberLibraryModel(library: Library): UiModel<LibraryState, LibraryActions
         shuffleAll = { app.player.shufflePlay(songs, "All songs") },
         play = { track -> app.player.play(songs, songs.indexOf(track), "All songs") },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }

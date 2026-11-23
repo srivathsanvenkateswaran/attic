@@ -225,6 +225,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                     playing = state.isPlaying,
                     onClick = { actions.play(track) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
                 )
             }

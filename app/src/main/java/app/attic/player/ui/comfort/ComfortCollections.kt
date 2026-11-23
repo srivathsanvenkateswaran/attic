@@ -125,6 +125,7 @@ fun ComfortAlbum(state: AlbumState, actions: AlbumActions) {
                 meta = formatDuration(track.durationMs),
                 onClick = { actions.play(index) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
             )
         }
@@ -177,6 +178,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                 )
             }
@@ -211,6 +213,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index + offset) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                 )
             }
@@ -236,7 +239,7 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
         }
         item(key = "actions") { PlayRow(folder.name, state.controls, actions.controls) }
         item(key = "gap") { Spacer(Modifier.height(16.dp)) }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 
@@ -283,7 +286,7 @@ fun ComfortFavourites(state: LikedState, actions: LikedActions) {
             }
         } else {
             item(key = "gap") { Spacer(Modifier.height(16.dp)) }
-            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
         }
     }
 }
@@ -308,6 +311,7 @@ private fun LazyListScope.songRows(
     isPlaying: Boolean,
     onPlay: (Int) -> Unit,
     onMenu: (Track) -> Unit,
+    onQueue: (Track) -> Unit,
 ) {
     groupItems(tracks, key = { it.key }) { index, track ->
         SongRow(
@@ -318,6 +322,7 @@ private fun LazyListScope.songRows(
             playing = isPlaying,
             onClick = { onPlay(index) },
             onLongClick = { onMenu(track) },
+            onSwipeToQueue = { onQueue(track) },
             trailing = { SongMoreButton(track.title, { onMenu(track) }) },
         )
     }
@@ -390,6 +395,7 @@ fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
                             playing = state.isPlaying,
                             onClick = { actions.play(track) },
                             onLongClick = { actions.showMenu(track) },
+                            onSwipeToQueue = { actions.queue(track) },
                             trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                         )
                     }

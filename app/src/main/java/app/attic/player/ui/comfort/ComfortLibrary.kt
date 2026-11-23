@@ -281,6 +281,7 @@ private fun LazyListScope.songs(state: LibraryState, actions: LibraryActions, in
                 playing = state.isPlaying,
                 onClick = { actions.play(track) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { SongMoreButton(track.title, onClick = { actions.showMenu(track) }) },
             )
         }

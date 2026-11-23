@@ -126,6 +126,8 @@ class AlbumActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -150,6 +152,7 @@ fun rememberAlbumModel(library: Library, key: String): UiModel<AlbumState, Album
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, album?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -176,6 +179,8 @@ class ArtistActions(
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
     val openAlbum: (Album) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -204,6 +209,7 @@ fun rememberArtistModel(library: Library, key: String): UiModel<ArtistState, Art
         play = { index -> app.player.play(ranked, index, artist?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
         openAlbum = { ui.openAlbum(it.key) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -226,6 +232,8 @@ class FolderActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -242,6 +250,7 @@ fun rememberFolderModel(library: Library, name: String): UiModel<FolderState, Fo
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, folder?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -268,6 +277,8 @@ class LikedActions(
     val dismissOverflow: () -> Unit = {},
     /** Closes the menu and turns smart shuffle on or off. */
     val toggleSmartShuffle: () -> Unit = {},
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -291,6 +302,7 @@ fun rememberLikedModel(library: Library): UiModel<LikedState, LikedActions> {
             overflow = false
             controls.actions.toggleSmartShuffle()
         },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -336,6 +348,8 @@ class PlaylistActions(
     /** Does nothing in reorder mode. */
     val play: (Track) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. Not offered in reorder mode. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable

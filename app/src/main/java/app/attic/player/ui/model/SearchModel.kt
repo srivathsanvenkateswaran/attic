@@ -83,6 +83,8 @@ class SearchActions(
     val open: (Destination) -> Unit,
     val play: (Track) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -111,6 +113,7 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
             app.player.play(tracks, tracks.indexOf(track), "Search results")
         },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }

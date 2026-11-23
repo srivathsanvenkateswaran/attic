@@ -1,10 +1,12 @@
 package app.attic.player.ui.comfort
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.SwipeToQueue
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 
@@ -178,6 +181,8 @@ sealed interface SongLead {
  * - [meta] is `.meta`: a duration or "214 plays" before the trailing button, or last.
  * - [lifted] is `.song.lifted`: the row being dragged, raised with a small shadow.
  *
+ * - [onSwipeToQueue] lets the row be swiped towards the end to queue the song ([SwipeToQueueCell]).
+ *
  * In a sheet the row indents to the sheet's 24dp margin by itself.
  */
 @Composable
@@ -193,7 +198,63 @@ fun SongRow(
     rank: Int? = null,
     meta: String? = null,
     lifted: Boolean = false,
+    onSwipeToQueue: (() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+) {
+    if (onSwipeToQueue == null || lifted) {
+        SongRowBody(title, subtitle, modifier, lead, onClick, onLongClick, current, playing, rank, meta, lifted, trailing)
+    } else {
+        SwipeToQueueCell(onSwipeToQueue, modifier) {
+            SongRowBody(title, subtitle, Modifier, lead, onClick, onLongClick, current, playing, rank, meta, false, trailing)
+        }
+    }
+}
+
+/**
+ * Swipe to queue: `.swipe` turned to an action, towards the end only. It uncovers `--fill` with the
+ * queue glyph in brass and "Add to queue", which turn to the amber bed once letting go would queue,
+ * since amber marks the thing about to happen. The row settles back without overshoot, as the kit's
+ * dragged surfaces do. [onQueue] runs on a commit.
+ */
+@Composable
+fun SwipeToQueueCell(onQueue: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val colors = Comfort.colors
+    SwipeToQueue(
+        onQueue = onQueue,
+        settle = spring(dampingRatio = 1f, stiffness = 500f),
+        modifier = modifier,
+        background = { _, armed ->
+            val fill by animateColorAsState(if (armed) colors.accentSoft else colors.fill, tween(160), label = "swipeQueueFill")
+            val ink by animateColorAsState(if (armed) colors.onAccentSoft else colors.on, tween(160), label = "swipeQueueInk")
+            val glyph by animateColorAsState(if (armed) colors.onAccentSoft else colors.accentInk, tween(160), label = "swipeQueueGlyph")
+            Row(
+                Modifier.fillMaxSize().background(fill).padding(start = 20.dp, end = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ComfortIcon(Symbol.QueueMusic, size = 20.dp, tint = glyph)
+                Text(stringResource(R.string.menu_add_to_queue), style = onest(14f, 18f, 600), color = ink)
+            }
+        },
+    ) {
+        Box(Modifier.fillMaxWidth().background(colors.card)) { content() }
+    }
+}
+
+@Composable
+private fun SongRowBody(
+    title: String,
+    subtitle: String?,
+    modifier: Modifier,
+    lead: SongLead,
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)?,
+    current: Boolean,
+    playing: Boolean,
+    rank: Int?,
+    meta: String?,
+    lifted: Boolean,
+    trailing: (@Composable RowScope.() -> Unit)?,
 ) {
     val colors = Comfort.colors
     val inSheet = LocalComfortContainer.current == ComfortContainer.Sheet

@@ -166,6 +166,7 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
                 playing = state.isPlaying,
                 onClick = { actions.playStartListening(track) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
             )
         }

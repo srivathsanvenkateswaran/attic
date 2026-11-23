@@ -217,6 +217,7 @@ private fun StartListeningRow(track: Track, state: HomeState, actions: HomeActio
         playing = state.isPlaying,
         onClick = { actions.playStartListening(track) },
         onLongClick = { actions.showMenu(track) },
+        onSwipeToQueue = { actions.queue(track) },
         trailing = { SongMoreButton(track.title, onClick = { actions.showMenu(track) }) },
     )
 }

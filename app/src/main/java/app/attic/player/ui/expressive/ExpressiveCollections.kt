@@ -135,6 +135,7 @@ fun ExpressiveAlbum(state: AlbumState, actions: AlbumActions) {
                 playing = state.isPlaying,
                 onClick = { actions.play(index) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
             )
         }
@@ -221,6 +222,7 @@ fun ExpressiveArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
                 )
             }
@@ -252,6 +254,7 @@ fun ExpressiveArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index + offset) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
                 )
             }
@@ -293,7 +296,7 @@ fun ExpressiveFolder(state: FolderState, actions: FolderActions) {
         },
     ) {
         item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 
@@ -340,7 +343,7 @@ fun ExpressiveFavourites(state: LikedState, actions: LikedActions) {
             }
         } else {
             item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
         }
     }
 }
@@ -357,6 +360,7 @@ private fun LazyListScope.songRows(
     isPlaying: Boolean,
     onPlay: (Int) -> Unit,
     onMenu: (Track) -> Unit,
+    onQueue: (Track) -> Unit,
 ) {
     groupItems(tracks, key = { it.key }) { index, track ->
         SongRow(
@@ -367,6 +371,7 @@ private fun LazyListScope.songRows(
             playing = isPlaying,
             onClick = { onPlay(index) },
             onLongClick = { onMenu(track) },
+            onSwipeToQueue = { onQueue(track) },
             trailing = { RowMoreButton(track.title) { onMenu(track) } },
         )
     }
@@ -451,6 +456,7 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(track) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
                 )
             }
