@@ -489,8 +489,10 @@ private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name
             contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
         ) {
             item(key = "label") {
+                // "Late drive, 12 songs", as frame D labels the list and the Add songs sheet heads itself.
                 val n = tracks.size
-                ListLabel(pluralStringResource(R.plurals.playlist_picker_row, n, name, NumberFormat.getIntegerInstance().format(n)))
+                val count = pluralStringResource(R.plurals.song_count, n, NumberFormat.getIntegerInstance().format(n))
+                ListLabel(stringResource(R.string.add_songs_subtitle, name, count))
             }
             itemsIndexed(rows, key = { _, track -> track.key }) { index, track ->
                 ReorderableItem(reorderState, key = track.key) { isDragging ->
