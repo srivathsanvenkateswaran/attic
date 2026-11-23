@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,3 +61,22 @@ fun rememberPosition(clock: PlaybackClock, trackKey: String?, active: Boolean, i
     }
     return position
 }
+
+/**
+ * Whether a loading screen shows its indicator yet: not for the first 400 ms. A normal start has the
+ * library before then, so the first frame is only the ground and Home follows; the indicator would
+ * only flash. It cost that first frame too: Expressive's morphing `LoadingIndicator` took about 25 ms
+ * to compose and a path stencil to draw, all before the app's first frame reached the screen. A first
+ * scan that takes longer still shows it.
+ */
+@Composable
+fun rememberLoadingIndicatorShown(): Boolean {
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(LOADING_INDICATOR_DELAY_MS)
+        shown = true
+    }
+    return shown
+}
+
+private const val LOADING_INDICATOR_DELAY_MS = 400L
