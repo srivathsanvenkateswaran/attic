@@ -272,6 +272,7 @@
     <string name="settings_analyse_now">Analyse now without a charger</string>
     <string name="settings_about">About</string>
     <!-- %1$s is the song count with its noun, from song_count: "127 songs" -->
+    <string name="settings_licences">Open-source licences</string>
     <string name="settings_about_body">Attic plays the music in Music/Offline. It has no account and no streaming. %1$s on this phone.</string>
 
     <!-- Recap page (2.16) -->

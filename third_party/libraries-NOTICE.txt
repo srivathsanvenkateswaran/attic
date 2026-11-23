@@ -1,0 +1,18 @@
+Libraries compiled into Attic under the Apache License 2.0. The licence text is in
+LICENSE-material-symbols.txt.
+
+Android Jetpack (AndroidX), including Jetpack Compose, Media3, Room, WorkManager, Navigation,
+Lifecycle, Palette and Core. Copyright The Android Open Source Project.
+
+Kotlin standard library and kotlinx.coroutines. Copyright JetBrains s.r.o. and Kotlin Programming
+Language contributors.
+
+Compose Multiplatform runtime pieces pulled in by Coil. Copyright JetBrains s.r.o.
+
+Guava (com.google.guava). Copyright The Guava Authors.
+
+Coil (io.coil-kt.coil3). Copyright Coil Contributors.
+
+Okio (com.squareup.okio). Copyright Square, Inc.
+
+Reorderable (sh.calvin.reorderable). Copyright Calvin Liang.

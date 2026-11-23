@@ -98,10 +98,20 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
             }
             item(key = "about") {
                 SettingsSection(stringResource(R.string.settings_about))
-                ListGroup(1) {
-                    SetIconRow(icon = { AtticMarkIcon(size = 22.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer) }) {
-                        val count = pluralStringResource(R.plurals.song_count, state.songCount, format.format(state.songCount))
-                        SupportingText(stringResource(R.string.settings_about_body, count))
+                ListGroup(2) { index ->
+                    if (index == 0) {
+                        SetIconRow(icon = { AtticMarkIcon(size = 22.dp, tint = MaterialTheme.colorScheme.onSecondaryContainer) }) {
+                            val count = pluralStringResource(R.plurals.song_count, state.songCount, format.format(state.songCount))
+                            SupportingText(stringResource(R.string.settings_about_body, count))
+                        }
+                    } else {
+                        SetIconRow(
+                            Symbol.Info,
+                            modifier = Modifier.clickable(role = Role.Button, onClick = actions.openLicences),
+                            center = true,
+                        ) {
+                            RowTitle(stringResource(R.string.settings_licences))
+                        }
                     }
                 }
             }

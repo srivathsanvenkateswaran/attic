@@ -37,6 +37,8 @@ class SettingsActions(
     val downloadAllLyrics: () -> Unit,
     /** Analyses songs now instead of waiting for a charger. */
     val startAnalysis: () -> Unit,
+    /** The licences of the code, fonts and model inside Attic. */
+    val openLicences: () -> Unit,
 )
 
 @Composable
@@ -61,6 +63,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         setAutoplay = app.settings::setAutoplay,
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
         startAnalysis = { AnalysisWorker.startNow(app) },
+        openLicences = { ui.openLicences() },
     )
     return UiModel(state, actions)
 }

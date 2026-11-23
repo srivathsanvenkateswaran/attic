@@ -96,6 +96,42 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+/**
+ * Puts the licence texts in the app's assets under licences/, for Settings, About, Open-source licences.
+ * The OFL, Apache, MIT and GPL all require the texts to travel with the binary. The files live in
+ * third_party/ and the repository's LICENSE, which ships as LICENSE-attic.txt.
+ */
+abstract class LicenceAssets : DefaultTask() {
+    @get:InputFile
+    abstract val appLicence: RegularFileProperty
+
+    @get:InputDirectory
+    abstract val thirdParty: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val output: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        val dir = output.get().asFile.resolve("licences")
+        dir.deleteRecursively()
+        dir.mkdirs()
+        appLicence.get().asFile.copyTo(dir.resolve("LICENSE-attic.txt"))
+        thirdParty.get().asFile.listFiles { file -> file.isFile }!!.forEach { it.copyTo(dir.resolve(it.name)) }
+    }
+}
+
+val licenceAssets = tasks.register<LicenceAssets>("licenceAssets") {
+    appLicence = rootProject.layout.projectDirectory.file("LICENSE")
+    thirdParty = rootProject.layout.projectDirectory.dir("third_party")
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(licenceAssets, LicenceAssets::output)
+    }
+}
+
 dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

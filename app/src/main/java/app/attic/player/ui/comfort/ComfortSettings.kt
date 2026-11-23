@@ -164,6 +164,13 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
                         )
                     }
                 }
+                item {
+                    SetRow(
+                        stringResource(R.string.settings_licences),
+                        onClick = actions.openLicences,
+                        trailing = { ComfortIcon(Symbol.ChevronRight, tint = Comfort.colors.on3) },
+                    )
+                }
             }
         }
     }

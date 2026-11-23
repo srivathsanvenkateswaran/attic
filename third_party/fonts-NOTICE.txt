@@ -24,7 +24,7 @@ app/src/main/res/font/material_symbols_rounded.ttf
   variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf. Copyright Google LLC.
   Licensed under the Apache License 2.0: see LICENSE-material-symbols.txt.
 
-  Modified (subset) with fontTools 4.60 to the 88 icons the pixel/ and oneui/ mock sheets use,
+  Modified (subset) with fontTools 4.60 to the 88 icons the Expressive and Comfort designs use,
   listed with their codepoints in app/src/main/java/app/attic/player/ui/expressive/Symbols.kt:
     python3 -m fontTools.varLib.instancer MaterialSymbolsRounded.ttf \
         GRAD=0 opsz=20:48 wght=300:700 -o inst.ttf

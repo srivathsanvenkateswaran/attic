@@ -51,6 +51,8 @@ class UiActions(
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
     fun openWrapped() = go("wrapped")
+    fun openLicences() = go("licences")
+    fun openLicence(id: String) = go("licences/${Uri.encode(id)}")
     fun openSearch() = selectTab("search")
     fun addToPlaylist(keys: List<String>) = pickPlaylist(keys)
     fun back() = nav.popBackStack()
@@ -202,5 +204,7 @@ private fun AppNavHost(nav: NavHostController, library: Library, transitions: Na
         composable("liked") { LikedScreen(library) }
         composable("settings") { SettingsScreen(library) }
         composable("wrapped") { WrappedScreen(library) }
+        composable("licences") { LicencesScreen() }
+        composable("licences/{id}") { entry -> LicenceScreen(Uri.decode(entry.arguments?.getString("id").orEmpty())) }
     }
 }
