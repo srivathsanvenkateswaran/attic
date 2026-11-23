@@ -11,6 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import app.attic.player.data.ExternalTrack
 import app.attic.player.data.Library
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.Track
@@ -116,6 +117,23 @@ class PlayerClient(
         }
     }
 
+    /**
+     * Plays a song opened from another app that isn't in the library. It goes in right after the
+     * current song and plays now, so the rest of the queue, its context and the saved queue stay as
+     * they were, and when it ends the queue carries on. Opening the same file again restarts it.
+     */
+    fun playExternal(track: Track) = act { c ->
+        if (c.currentMediaItem?.mediaId == track.key) {
+            c.seekTo(0L)
+        } else {
+            val at = if (c.mediaItemCount == 0) 0 else c.currentMediaItemIndex + 1
+            c.addMediaItem(at, track.toMediaItem())
+            c.seekTo(at, 0L)
+        }
+        if (c.playbackState == Player.STATE_IDLE) c.prepare()
+        c.play()
+    }
+
     fun shufflePlay(tracks: List<Track>, contextName: String?) {
         if (tracks.isEmpty()) return
         play(tracks, tracks.indices.random(), contextName, shuffled = true)
@@ -184,7 +202,7 @@ class PlayerClient(
 fun Track.toMediaItem(): MediaItem =
     MediaItem.Builder()
         .setMediaId(key)
-        .setUri(LibraryRepository.uriFor(mediaId))
+        .setUri(ExternalTrack.uriOf(key) ?: LibraryRepository.uriFor(mediaId).toString())
         .setMimeType(mimeTypeFor(key))
         .setMediaMetadata(
             MediaMetadata.Builder()

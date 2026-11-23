@@ -25,6 +25,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import app.attic.player.MainActivity
 import app.attic.player.R
+import app.attic.player.data.ExternalTrack
 import app.attic.player.data.UiStyle
 import app.attic.player.data.ListeningEventEntity
 import app.attic.player.data.SavedQueueEntity
@@ -232,7 +233,17 @@ class PlaybackService : MediaSessionService() {
 
     private suspend fun resolve(items: List<MediaItem>): List<MediaItem> {
         val library = attic.library.await()
-        return items.mapNotNull { item -> library.trackByKey[item.mediaId]?.toMediaItem() }
+        return items.mapNotNull { item -> library.trackByKey[item.mediaId]?.toMediaItem() ?: externalItem(item) }
+    }
+
+    /** A song opened from another app ("Open with") plays from the URI its key carries, with the tags the UI read. */
+    private fun externalItem(item: MediaItem): MediaItem? {
+        val uri = ExternalTrack.uriOf(item.mediaId) ?: return null
+        return MediaItem.Builder()
+            .setMediaId(item.mediaId)
+            .setUri(uri)
+            .setMediaMetadata(item.mediaMetadata)
+            .build()
     }
 
     private class SavedQueue(
@@ -285,14 +296,16 @@ class PlaybackService : MediaSessionService() {
 
     private fun saveNow() {
         if (player.mediaItemCount == 0) return
-        val keys = (0 until player.mediaItemCount).joinToString("\n") { player.getMediaItemAt(it).mediaId }
+        val keys = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
+        // Songs opened from another app are played, never saved.
+        val saved = QueueOrder.withoutExternal(keys, player.currentMediaItemIndex, player.currentPosition) ?: return
         val entity = SavedQueueEntity(
-            queueKeys = keys,
-            index = player.currentMediaItemIndex,
-            positionMs = player.currentPosition,
+            queueKeys = saved.keys.joinToString("\n"),
+            index = saved.index,
+            positionMs = saved.positionMs,
             repeatMode = player.repeatMode,
             shuffle = player.shuffleModeEnabled,
-            baseKeys = shuffle.baseOrder?.joinToString("\n"),
+            baseKeys = shuffle.baseOrder?.filterNot(ExternalTrack::isExternal)?.joinToString("\n"),
             contextName = player.playlistMetadata.title?.toString(),
             radioSeed = attic.radio.seedFor(player.playlistMetadata.title?.toString()),
         )
@@ -422,6 +435,8 @@ class PlaybackService : MediaSessionService() {
 
     private fun logListen(automatic: Boolean) {
         val listen = listens.finish(automatic) ?: return
+        // A song from outside the library stays out of history, Recap and radio.
+        if (ExternalTrack.isExternal(listen.key)) return
         val context = player.playlistMetadata.title?.toString()
         val cross = attic.radio.isCrossPick(listen.key)
         if (listen.outcome == ListenTracker.SKIPPED) attic.radio.skipped(listen.key)
@@ -447,7 +462,7 @@ class PlaybackService : MediaSessionService() {
         val upcoming = (index + 1 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }
         if (current != null && current == upcomingAfter) {
             val removed = upcomingKeys - upcoming.toSet()
-            if (removed.size == 1) {
+            if (removed.size == 1 && !ExternalTrack.isExternal(removed.single())) {
                 val key = removed.single()
                 attic.radio.skipped(key)
                 val context = player.playlistMetadata.title?.toString()
@@ -525,7 +540,7 @@ class PlaybackService : MediaSessionService() {
     private fun recordPlayIfNew() {
         if (!player.isPlaying) return
         val key = player.currentMediaItem?.mediaId ?: return
-        if (key == lastRecordedKey) return
+        if (key == lastRecordedKey || ExternalTrack.isExternal(key)) return
         lastRecordedKey = key
         val now = System.currentTimeMillis()
         attic.scope.launch { attic.database.dao().recordPlay(key, now) }

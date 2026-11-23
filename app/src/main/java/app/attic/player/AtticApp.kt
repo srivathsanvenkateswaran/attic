@@ -47,6 +47,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */
     val requestedAlbum = MutableStateFlow<String?>(null)
 
+    /** Set when a file opened from another app starts playing, so Now Playing opens on it. */
+    val requestedNowPlaying = MutableStateFlow(false)
+
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
     override fun onCreate() {

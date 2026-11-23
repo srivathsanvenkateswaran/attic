@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import app.attic.player.data.UiStyle
+import app.attic.player.playback.OpenWith
 import kotlinx.coroutines.launch
 import app.attic.player.ui.AppRoot
 import app.attic.player.widget.PlayerWidget
@@ -37,6 +38,11 @@ class MainActivity : ComponentActivity() {
             }
         }
         handleWidgetIntent(intent)
+        // Only a fresh launch opens the file: a recreated activity, or one reopened from Recents,
+        // gets the same intent again and must not play it a second time.
+        if (savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0) {
+            OpenWith.handle(attic, intent)
+        }
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
             val uiStyle by attic.settings.uiStyle.collectAsStateWithLifecycle()
@@ -57,6 +63,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleWidgetIntent(intent)
+        OpenWith.handle(attic, intent)
     }
 
     private fun handleWidgetIntent(intent: Intent?) {
