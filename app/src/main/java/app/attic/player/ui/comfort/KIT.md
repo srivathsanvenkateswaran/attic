@@ -238,6 +238,8 @@ empty state, 18 menu, dialogs, toast, action bar, 19 bottom sheet, 20 index scru
 the header flips the theme. It does not touch the app's settings. Without `--es style comfort` it
 opens the Expressive kit.
 
+The first run in Comfort: add `--es screen onboarding` (extras in ui/expressive/KIT.md, "Gallery").
+
 ## Known differences from the mock
 
 - `miniInk2`: the mini player's second line is one step lighter (dark) or darker (light) than
@@ -263,7 +265,7 @@ opens the Expressive kit.
 - Optical sizes: the icon font is set at fixed optical sizes 20 / 24 / 40 by size, where the browser
   follows the exact size.
 - Every Comfort surface now draws Comfort: the shell, the mini player, Home, Search, Library,
-  Settings, Now Playing, the permission screen and loading, plus the collection screens, the queue,
+  Settings, Now Playing, the first run, the permission screen and loading, plus the collection screens, the queue,
   full-screen lyrics, the sheets, dialogs and menus, and Recap (page, story, cards; tables below).
 
 ## Screens drawn from the kit (sheets 04, 06, 07, 09)

@@ -255,6 +255,16 @@ adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --e
 progress, 17 sheet, dialog, menu, snackbar, empty). The button in its header flips the theme. It is
 in `app/src/debug/`, so release builds do not contain it. It does not touch the app's settings.
 
+The first run (ExpressiveOnboarding.kt, ComfortOnboarding.kt) opens with `--es screen onboarding`,
+in the style given by `--es style`. Extras: `step` 0 to 3, `audio` and `notifications` (`notasked`,
+`granted`, `refused`), `songs` (-1 still scanning, 0 empty, or a count; default 127). Continue,
+back, the look and theme work; Allow grants at once. Nothing is saved and no permission is asked.
+
+```
+adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --es screen onboarding --ei step 1
+adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --es screen onboarding --es style comfort --ei step 3 --ei songs 0
+```
+
 ## Known differences from the mock
 
 - Optical size: the font is set at a fixed optical size per text style (12, 14, 16, 22, 28, 36 or

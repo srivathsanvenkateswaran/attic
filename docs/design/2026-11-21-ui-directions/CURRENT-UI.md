@@ -30,8 +30,9 @@ No screenshot exists for: Search in dark mode, Queue, any bottom sheet, any dial
 ```
 Launch
 ├─ System splash: #121212 with the green Attic mark (values/themes.xml:12-16)
-├─ Permission screen ............ shown while audio access is missing
-├─ Loading ...................... centred spinner until the first library scan finishes
+├─ First run .................... once per install: Welcome, Pick your look, Access, Your library (2.18)
+├─ Permission screen ............ after the first run, shown while audio access is missing
+├─ Loading ...................... centred spinner until the library scan finishes
 └─ Main shell (ui/AppRoot.kt:169)
    │
    ├─ Tab bar, always visible in the shell:  Home | Search | Your Library
@@ -74,7 +75,7 @@ Outside the app
 ├─ Media notification and lock-screen player (drawn by Android)
 ├─ "Analysing your songs" progress notification
 ├─ System share sheet (Wrapped cards)
-└─ System app-permission settings (from the permission screen)
+└─ System app-permission settings (from the first run's Access step and the permission screen)
 ```
 
 ### 1.1 Entry points
@@ -840,20 +841,31 @@ Purpose: short confirmations and playback or radio errors.
 
 Liking a song, removing from a playlist, clearing the queue, and renaming or deleting a playlist show no message.
 
-### 2.18 Permission, loading and empty states
+### 2.18 First run, permission, loading and empty states
 
-**Permission screen** (`ui/AppRoot.kt:389-422`). Shown instead of the whole app until audio access is granted. Centred on the background colour, 32dp padding:
-- The green Attic mark at 72dp.
-- 28dp, then "Attic plays the music on this phone" in `headlineSmall`, centred.
-- 12dp, then body in `bodyLarge` `onSurfaceVariant`, centred.
-- 28dp, then one Material filled button.
+**First run** (`ui/AppRoot.kt` `FirstRun`, state in `ui/model/OnboardingModel.kt`, drawn by `ui/expressive/ExpressiveOnboarding.kt` and `ui/comfort/ComfortOnboarding.kt`). Shown once per install, instead of the whole app, before the shell. Four steps. Each style draws them from its own kit: a bar with a back button (from step 2) and four step pips at the right, the step's content, and one full-width filled button at the bottom edge. Expressive start-aligns an emphasised headline as its permission screen did; Comfort centres a 30/36 bold title. Steps slide in from the side.
+
+| Step | Shows | Button |
+|---|---|---|
+| 1. Welcome | Expressive: a 300dp surface-container card holding an arch with the Headroom mark, a clover with a folder and a pill with an aeroplane. Comfort: the mark in a 112dp tonal superellipse. Then "Welcome to Attic" and "Attic plays the music files on this phone. There's no account, and everything works offline." | "Get started" |
+| 2. Pick your look | "Pick your look", "You can change it any time in Settings." Two selectable cards side by side, "Expressive" and "Comfort", each with a radio and a live picture of that style's Home title, filters ("All", "Albums", "Artists") and tab bar, drawn in that style's own theme at 42% size. The selected card is ringed in the accent. Then "Theme": "Match phone", "Dark", "Light", as Settings draws them (a connected group in Expressive, radio rows in a card in Comfort). Selecting either switches the app at once, through the same settings as Settings > Appearance, so the first run itself redraws. The style and theme start on the phone's default style and the app's default theme ("Dark"). | "Continue" |
+| 3. Access | "Let Attic find your music", then two rows in a group, each an icon, a title and a reason: "Music and audio", "Required. Attic needs it to find the songs on this phone."; "Notifications", "Optional. Shows the playback controls in the notification shade and on the lock screen." A granted row ends in a tick and "Allowed". Notifications not yet asked ends in a tonal "Allow", which asks for notifications alone; refused, it ends in "Off" and nothing waits on it. Refused audio ends in "Off" in the error colour, and the screen adds "Audio access is off, so Attic can't see your songs. Turn on Music and audio in the app's permissions." | "Allow access" (the system prompt for audio only); once refused, "Open app permissions" (the system settings page for the app); once granted, "Continue" |
+| 4. Your library | While the scan runs: the loading indicator (Expressive, contained) or the spinner (Comfort) over "Finding your songs…". Then "Found {n} songs" and an "Optional" group: a switch "Download lyrics for all songs" with "Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.", off by default; and "Radio analyses your songs while the phone charges. It all happens on this phone." with a text button "Song radio settings". With no songs: the empty-library state ("No songs on this phone", "Copy music files onto this phone, in Music or any other folder, and they will show up here.") and "Connect the phone to a computer and copy music into the Music folder. Songs show up here as they arrive." The count updates as files arrive. | "Start listening" |
+
+- "Start listening" ends the first run and opens Home. If the lyrics switch is on and there are songs, it starts the same whole-library download as Settings. It works during the scan too, which skips the last step; the loading spinner shows until the scan ends. "Song radio settings" ends the first run the same way and opens Settings.
+- Back goes to the previous step. Back on Welcome leaves the app.
+- The step, whether each permission was asked, and the lyrics switch are saved state, so rotation and process death return to the same step.
+- **Who sees it** (`data/Onboarding.kt`). The decision is made once and saved as `onboarding_done` in settings.xml. With no saved answer, the install counts as already onboarded when settings.xml held any value at launch, or the database holds any like, playlist, play, saved queue, lyrics, analysis or language row. An install from before the first run existed may have data and no settings.xml, so the database check is what keeps it out. A first run that has not finished saves `false`, so picking a look (which writes settings) and then losing the process still resumes the first run.
+- Debug builds show the steps with sample state: `adb shell am start -n app.attic.player/.debug.KitGalleryActivity --es screen onboarding --ei step 2 --es style comfort` (extras in `OnboardingGallery.kt`).
+
+**Permission screen** (`ui/expressive/ExpressiveStates.kt`, `ui/comfort/ComfortStates.kt`). After the first run, shown instead of the whole app if audio access is missing, for example after it was turned off in system settings. Title "Attic plays the music on this phone", one sentence, and one full-width button at the bottom edge. Expressive heads it with a 320dp card of shapes (an arch with the mark, a clover with a note that turns grey and crossed out once refused, a pill with a bell) and start-aligns the text; Comfort centres the mark in a 96dp tonal superellipse above centred text.
 
 | State | Body | Button |
 |---|---|---|
 | Not asked yet | "Allow audio access so it can find your songs in any folder. Notifications show the playback controls." | "Allow access" (opens the system permission prompts for audio and notifications) |
 | Asked and refused | "Audio access is off, so Attic can't see your songs. Turn on Music and audio in the app's permissions." | "Open app permissions" (opens the system settings page for the app) |
 
-**Loading** (`ui/AppRoot.kt:159-164`). A centred Material circular progress indicator on the background colour while the first library scan runs. No text.
+**Loading** (`ExpressiveLoading`, `ComfortLoading`). A centred progress indicator on the background colour while a scan runs after the first run, on each cold start. No text. The first scan on a new install is shown by the first run's last step instead.
 
 **Splash**. Android's system splash: `#121212` with the green Attic mark.
 
