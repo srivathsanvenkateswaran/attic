@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -637,9 +635,16 @@ private fun SummaryCard(data: WrappedData) {
         Text(recapHeadline(data), style = headline(28f, 32f), color = colors.on, maxLines = 3)
     }
     CardDeck(Modifier.padding(top = 16.dp)) {
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        // The divider is drawn from the row's own height: the stats fit their figures with FitText, a
+        // BoxWithConstraints, which cannot answer the intrinsic measurement an IntrinsicSize row asks for.
+        Row(
+            Modifier.fillMaxWidth().drawBehind {
+                val line = 1.dp.toPx()
+                drawRect(colors.fill2, topLeft = Offset((size.width - line) / 2f, 0f), size = Size(line, size.height))
+            },
+        ) {
             SummaryStat(count(recap.minutes), stringResource(R.string.card_summary_minutes), Modifier.weight(1f))
-            Box(Modifier.width(1.dp).fillMaxHeight().background(colors.fill2))
+            Spacer(Modifier.width(1.dp))
             val mostly = recap.languages.firstOrNull()?.let { languageName(it.language) } ?: listenerTitle(recap.listenerType)
             SummaryStat(mostly, stringResource(R.string.card_summary_mostly_in), Modifier.weight(1f))
         }
