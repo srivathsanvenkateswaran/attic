@@ -386,14 +386,16 @@ private fun AboutArtist(artist: Artist, onOpen: () -> Unit) {
     }
 }
 
-/** "Credits": performed by, and the album and year when the tags have them. */
+/** "Credits": performed by, and the composer, album, year and genre when the tags have them. */
 @Composable
 private fun Credits(track: Track) {
     Label(stringResource(R.string.now_playing_credits))
     Group {
         item { KeyValue(stringResource(R.string.now_playing_performed_by), track.artist) }
+        track.composer?.let { composer -> item { KeyValue(stringResource(R.string.now_playing_composer), composer) } }
         track.album?.let { album -> item { KeyValue(stringResource(R.string.now_playing_album), album) } }
         track.year?.let { year -> item { KeyValue(stringResource(R.string.now_playing_year), year.toString()) } }
+        track.genre?.let { genre -> item { KeyValue(stringResource(R.string.now_playing_genre), genre) } }
     }
 }
 

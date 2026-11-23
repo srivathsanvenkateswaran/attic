@@ -170,6 +170,8 @@
     <string name="now_playing_performed_by">Performed by</string>
     <string name="now_playing_album">Album</string>
     <string name="now_playing_year">Year</string>
+    <string name="now_playing_composer">Composer</string>
+    <string name="now_playing_genre">Genre</string>
     <!-- Context names shown under "Playing from" -->
     <string name="context_favourites">Favourites</string>
     <string name="context_recently_played">Recently played</string>
