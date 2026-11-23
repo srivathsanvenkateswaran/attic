@@ -24,7 +24,9 @@ functions below.
   light from ThemeMode. minSdk 33, so there is no fallback scheme. Use roles as kit.css names them:
   screens `surface`, group cells `surfaceContainer`, pills and the search bar `surfaceContainerHigh`,
   the one filled action and selected states `primary`, the nav indicator / selected chip / playing
-  row `secondaryContainer`, Favourites `tertiaryContainer` and nothing else.
+  row `secondaryContainer`, Favourites `tertiaryContainer` and nothing else. In dark the app scheme's
+  tertiary container is the wallpaper's `tertiaryFixed` (ink `onTertiaryFixedVariant`), so Favourites stays
+  light as kit.css draws it in both themes.
 - **Type**: `MaterialTheme.typography` is the kit's scale in Google Sans Flex. The emphasised
   partners (`.em`) are `Expressive.type.titleLargeEmphasized` etc. (all 15).
 - **Shape**: `MaterialTheme.shapes` is the kit's 4/8/12/16/28 scale. The rest is `ExpressiveShapes`.
