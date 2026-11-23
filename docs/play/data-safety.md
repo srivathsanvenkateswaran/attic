@@ -40,7 +40,7 @@ Everything else stays on the phone:
 One type is collected.
 
 **Files and docs: collected, not shared.**
-- Play defines it as "a user's files or documents, or information about their files or documents such as file names". The title, artist, album and length read from an MP3's tags are information about the user's files.
+- Play defines it as "a user's files or documents, or information about their files or documents such as file names". The title, artist, album and length read from a song file's tags are information about the user's files.
 - "Music files" ("a user's music files") doesn't fit, because the files themselves are never sent.
 
 The form then asks about this type:

@@ -57,10 +57,12 @@ private window before pasting it in; Play rejects a URL that doesn't load.
 
 **All functionality in my app is available without any special access.** There is no login.
 
-Reviewers will see an empty library unless their test phone has MP3s in `Music/Offline`: the app
-then shows "No songs in Music/Offline" and "Copy MP3s into Music/Offline on this phone and they
-will show up here." That is correct behaviour, but a reviewer could read it as broken. The full
-description says up front that Attic plays files from that folder.
+Note for reviewers: put any music files on the phone (for example in `Music/` or `Download/`).
+The library is empty until then.
+
+Without music files the app shows "No songs on this phone". That is correct behaviour, but a
+reviewer could read it as broken. The full description says up front that Attic plays music
+files already on the phone.
 
 ### Content rating (IARC questionnaire)
 
@@ -71,7 +73,7 @@ description says up front that Attic plays files from that folder.
 | Violence | No | The app ships no media of its own. |
 | Fear or horror | No | As above. |
 | Sexual content or nudity | No | As above. |
-| Profanity or crude humour | No | Attic includes no text of this kind. Lyrics it downloads come from LRCLIB for songs the user already owns, and may contain explicit words; see the note below. |
+| Profanity or crude humour | Yes | Attic shows lyrics for the user's songs, downloaded unfiltered from LRCLIB, and they may contain strong language; see the note below. |
 | Controlled substances (drugs, alcohol, tobacco) | No | |
 | Gambling or simulated gambling | No | |
 | Users can interact or exchange content with each other | No | There are no users, accounts, chat or comments. Sharing a Recap card hands an image to another app through Android's share sheet; Attic itself doesn't send it anywhere. |
@@ -80,18 +82,17 @@ description says up front that Attic plays files from that folder.
 | Unrestricted internet access, such as a web browser or search engine | No | The only network use is fetching lyrics from one service, lrclib.net. |
 | Is the app a web browser or search engine | No | |
 
-Expected result: Everyone / PEGI 3 / USK 0, or the local equivalent.
+Expected result: around Teen / PEGI 12, or the local equivalent.
 
-Note on lyrics: the songs and their lyrics are the user's own library, not content Attic provides,
-which is how music players are usually rated. If a reviewer disagrees, the answer to change is
-profanity, which would raise the rating to around Teen or PEGI 12. It wouldn't affect anything
-else in the listing.
+Note on lyrics: Attic can't know whether a downloaded lyric is explicit, so profanity is answered
+Yes, the way music apps that show lyrics usually declare possible explicit content. Answering No
+would risk a rating that a reviewer later raises. `COMPLIANCE.md` gives the same answer.
 
 ### Target audience and content
 
 | Field | Answer | Why |
 |---|---|---|
-| Target age groups | **18 and over** only | Leaving out every group under 13 keeps Attic out of the Families policy (its ads, data and age-screen rules). Attic isn't designed for teens, though nothing in it is unsuitable for them, so ticking 13–15 and 16–17 as well is also fine. |
+| Target age groups | **13–15, 16–17 and 18 and over** | Leaving out every group under 13 keeps Attic out of the Families policy (its ads, data and age-screen rules). Nothing in Attic is unsuitable for teens, and the expected Teen / PEGI 12 rating fits these groups. `COMPLIANCE.md` gives the same answer. |
 | Could the app unintentionally appeal to children | No | No cartoon characters, games or child-themed content. |
 
 ### News apps

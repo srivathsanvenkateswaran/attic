@@ -73,11 +73,11 @@ Upload each video to YouTube as unlisted.
 | Requirement | Status | Evidence |
 |---|---|---|
 | Data safety form | Owner | Every app must complete it, including apps that collect nothing ([Data safety](https://support.google.com/googleplay/android-developer/answer/10787469)). Answers, with the code behind each one, are in [`data-safety.md`](data-safety.md). |
-| Privacy policy | Owner | All apps need a privacy policy URL in Play Console ([User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311)). A draft is in [`privacy-policy.md`](privacy-policy.md). Publish it at a public URL, such as the file on GitHub after it reaches `main`. In the app, Settings already states what the lyrics download sends and that analysis uploads nothing. |
+| Privacy policy | Owner | All apps need a privacy policy URL in Play Console ([User Data policy](https://support.google.com/googleplay/android-developer/answer/10144311)). The policy is [`PRIVACY.md`](../../PRIVACY.md) at the repository root. `site/privacy.html` is generated from it and published by GitHub Pages at `https://srivathsanvenkateswaran.github.io/attic/privacy.html`, which is the URL to enter. In the app, Settings already states what the lyrics download sends and that analysis uploads nothing. |
 | Closed test before production | Owner | Personal developer accounts created after 13 November 2023 must run a closed test with at least 12 testers opted in for 14 consecutive days before applying for production access ([testing requirements](https://support.google.com/googleplay/android-developer/answer/14151465)). |
 | Target audience | Owner | Choose 13 and over, or ages 13–15 and older. If the audience includes children under 13, the Families policy applies ([target audience](https://support.google.com/googleplay/android-developer/answer/9867159)). Attic isn't designed for children, and choosing 18+ would hide it from teenagers for no reason. Store graphics that look aimed at children can still get a 13+ app reviewed under Families rules. |
-| Content rating | Owner | Every app needs an IARC rating, and apps without one are removed ([content ratings](https://support.google.com/googleplay/android-developer/answer/9898843)). Accurate answers: no violence, sexual content, gambling, purchases or ads, no user-to-user interaction, and no sharing of location. Lyrics come from LRCLIB unfiltered, so they can contain strong language. Answer the questionnaire's language questions with that in mind. |
-| App access | Owner | No login is needed. Tell reviewers that Attic reads audio files from `Music/Offline` on the device, so the library is empty until MP3s are placed there. |
+| Content rating | Owner | Every app needs an IARC rating, and apps without one are removed ([content ratings](https://support.google.com/googleplay/android-developer/answer/9898843)). Accurate answers: no violence, sexual content, gambling, purchases or ads, no user-to-user interaction, and no sharing of location. Lyrics for the user's songs come from LRCLIB unfiltered, so they can contain strong language, and [`CONSOLE.md`](CONSOLE.md) answers Yes to profanity for that reason. |
+| App access | Owner | No login is needed. Tell reviewers to put any music files on the phone, for example in `Music/` or `Download/`. The library is empty until then. |
 | Ads | Owner | Declare "No ads". The code contains no ad SDK. |
 | Store listing metadata | Owner | Title of 30 characters or fewer. No emoji, no ranking or price claims such as "#1" or "free", and no keyword lists ([metadata policy](https://support.google.com/googleplay/android-developer/answer/9898842)). Keep other brands out of the listing: the design notes compare the styles to Spotify, Pixel and One UI, and those names are not in the app. The README screenshots show commercial album covers, so use covers you have rights to for store screenshots. |
 | User-visible trademarks | Done | Searching `res/` and the strings in code for Spotify, Wrapped, Pixel, One UI and Samsung finds them only in comments, the internal route `"wrapped"` and class names. The shipped font notice named the `pixel/` and `oneui/` mock folders and now says "Expressive and Comfort". |
@@ -135,11 +135,11 @@ Either licence allows non-commercial use with attribution. Attic ships the file 
 
 1. Run `scripts/make-upload-key.sh`, add its four lines to `~/.gradle/gradle.properties`, raise `attic.versionCode` if needed, and run `./gradlew bundleRelease`. Back up the keystore and its password.
 2. In Play Console, create the app: name "Attic", free, app rather than game. Opt in to Play App Signing.
-3. Publish `docs/play/privacy-policy.md` at a public URL.
+3. Turn on GitHub Pages so `PRIVACY.md` is published at `https://srivathsanvenkateswaran.github.io/attic/privacy.html` (see `site/README.md`).
 4. Under App content, fill in these forms. Play won't send any release, including a closed test, to review until they are complete:
-   - privacy policy URL
+   - privacy policy URL: `https://srivathsanvenkateswaran.github.io/attic/privacy.html`
    - ads: none
-   - app access, with the `Music/Offline` note
+   - app access, with the note about putting music files on the phone
    - content rating questionnaire
    - target audience: 13+
    - Data safety, from `data-safety.md`
