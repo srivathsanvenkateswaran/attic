@@ -68,6 +68,7 @@ your phone. Nothing is sent anywhere unless you choose to share it.
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK` | Playing with the screen off |
 | `FOREGROUND_SERVICE_DATA_SYNC` | Keeping song analysis running with its progress notification |
 | `INTERNET` | Lyrics downloads only |
+| `RECEIVE_BOOT_COMPLETED` | Added by WorkManager, the Android library that schedules song analysis, so scheduled work survives a restart |
 
 ## What Attic does not do
 
