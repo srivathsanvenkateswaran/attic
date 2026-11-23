@@ -12,17 +12,26 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.sign
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * A superellipse `|x|^n + |y|^n = 1` stretched to the box: kit.css's `--sq` (n = 4), `--sq-lg`
  * (n = 5) and `--sq-soft` (n = 2.6) masks. The CSS samples the curve at 72 or 88 points
  * (`x = cos(t)^(2/n)`, `y = sin(t)^(2/n)`, t in even steps); this traces the same curve at
  * [SAMPLES] points so large covers stay smooth. Every CSS point lies on it (ComfortShapesTest).
+ *
+ * The outline it draws has only as many points as its size needs to stay within 0.1px of the curve
+ * ([samplesFor]): 64 for a 48dp row cover, about 160 for Now Playing's. A clip to this shape is a
+ * path clip the RenderThread redoes on every frame it moves, at a cost that grows with the points:
+ * at 720 points for every size, scrolling Library > Songs spent a quarter of its RenderThread time in
+ * `SkPath::isConvex` and stencil ops, and Comfort missed frames Expressive did not.
  */
 @Immutable
 class SuperellipseShape(val exponent: Double) : Shape {
@@ -38,11 +47,31 @@ class SuperellipseShape(val exponent: Double) : Shape {
         }
     }
 
+    private val pointsBySamples = ConcurrentHashMap<Int, FloatArray>()
+
+    /** The outline on a unit square at [samples] points, for a shape drawn [sizePx] across. */
+    internal fun unitPointsFor(sizePx: Float): FloatArray {
+        val samples = samplesFor(sizePx)
+        return if (samples == SAMPLES) unitPoints else pointsBySamples.getOrPut(samples) { points(samples) }
+    }
+
+    private fun points(samples: Int) = FloatArray(samples * 2).also { points ->
+        val power = 2.0 / exponent
+        for (i in 0 until samples) {
+            val t = 2 * Math.PI * i / samples
+            val c = cos(t)
+            val s = sin(t)
+            points[i * 2] = (0.5 + 0.5 * sign(c) * abs(c).pow(power)).toFloat()
+            points[i * 2 + 1] = (0.5 + 0.5 * sign(s) * abs(s).pow(power)).toFloat()
+        }
+    }
+
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val points = unitPointsFor(size.maxDimension)
         val path = Path()
-        for (i in 0 until SAMPLES) {
-            val x = unitPoints[i * 2] * size.width
-            val y = unitPoints[i * 2 + 1] * size.height
+        for (i in 0 until points.size / 2) {
+            val x = points[i * 2] * size.width
+            val y = points[i * 2 + 1] * size.height
             if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
         path.close()
@@ -55,6 +84,17 @@ class SuperellipseShape(val exponent: Double) : Shape {
 
     internal companion object {
         const val SAMPLES = 720
+
+        /**
+         * Points for an outline [sizePx] across: the chord of a polyline at N even steps of t sits at
+         * most about 2.4 / N² of the size off these curves, so N = sqrt(25 * size) keeps it under
+         * 0.1px. Rounded up to a multiple of 8 so the corners and the axes stay on the outline.
+         */
+        fun samplesFor(sizePx: Float): Int {
+            if (!(sizePx > 0f)) return SAMPLES
+            val samples = ceil(sqrt(25.0 * sizePx) / 8).toInt() * 8
+            return samples.coerceIn(32, SAMPLES)
+        }
     }
 }
 

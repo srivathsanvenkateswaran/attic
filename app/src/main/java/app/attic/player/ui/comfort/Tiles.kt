@@ -70,7 +70,7 @@ fun Tile(
         ) {
             art(if (artSize != null) Modifier.size(artSize) else Modifier.fillMaxWidth())
             if (now) {
-                Box(Modifier.matchParentSize().clip(ArtShape).background(Color.Black.copy(alpha = 0.6f)))
+                Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.6f), ArtShape))
                 PlayingBars(playing, size = 22.dp, barWidth = 4.dp, gap = 3.5.dp, color = colors.onArt)
             }
         }
