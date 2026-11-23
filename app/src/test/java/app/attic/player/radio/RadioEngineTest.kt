@@ -279,4 +279,67 @@ class RadioEngineTest {
         assertTrue(RadioTaste.affinity(liked = true, finished = 2, skipped = 0) > 0f)
         assertFalse(RadioTaste.affinity(liked = false, finished = 0, skipped = 0) != 0f)
     }
+
+    // A collection seed (smart shuffle)
+
+    private fun RadioEngine.fromCollection(members: List<RadioSong>, n: Int, recent: Set<String> = emptySet()): List<String> {
+        val state = RadioState.forCollection(members, recent)
+        return buildList {
+            repeat(n) {
+                val next = next(state) ?: return@buildList
+                add(next.key)
+                state.played(next.key)
+            }
+        }
+    }
+
+    @Test
+    fun aCollectionSeedPicksWhatSoundsLikeItsMiddle() {
+        // The playlist sits at -20 and 20 degrees, so its middle is 0: "middle" is closest, "edge" further.
+        val members = listOf(song("p1", -20.0), song("p2", 20.0))
+        val e = engine(*members.toTypedArray(), song("edge", 40.0), song("middle", 2.0), song("far", 90.0))
+        assertEquals(listOf("middle", "edge"), e.fromCollection(members, 3))
+    }
+
+    @Test
+    fun aCollectionSeedNeverPicksTheCollectionsOwnSongs() {
+        val members = listOf(song("p1", 0.0), song("p2", 5.0), song("p3", 10.0))
+        val e = engine(*members.toTypedArray(), song("other", 30.0))
+        assertEquals(listOf("other"), e.fromCollection(members, 5))
+    }
+
+    @Test
+    fun aCollectionSeedLeavesOutOtherVersionsOfItsSongs() {
+        val members = listOf(song("p1", 0.0), song("p2", 10.0))
+        val e = engine(
+            *members.toTypedArray(), song("p1Copy", 0.5), song("p2Remix", 25.0), song("fresh", 30.0),
+            sameSong = { a, b -> setOf(a.key, b.key) == setOf("p2", "p2Remix") },
+        )
+        assertEquals(listOf("fresh"), e.fromCollection(members, 3))
+    }
+
+    @Test
+    fun aCollectionSeedKeepsToTheCollectionsLanguages() {
+        val members = listOf(song("tamil", -40.0, "ta"), song("hindi", 40.0, "hi"))
+        val e = engine(
+            *members.toTypedArray(),
+            song("ta2", -15.0, "ta"), song("hi2", 15.0, "hi"), song("te", 0.0, "te"), song("unknown", -28.0, null),
+        )
+        val picked = e.fromCollection(members, 4)
+        assertEquals(setOf("ta2", "hi2", "unknown"), picked.toSet())
+    }
+
+    @Test
+    fun aCollectionSeedPrefersSongsYouHaventPlayedLately() {
+        val members = listOf(song("p1", 0.0))
+        val e = engine(*members.toTypedArray(), song("recent", 15.0), song("rare", 25.0))
+        assertEquals(listOf("rare", "recent"), e.fromCollection(members, 2, recent = setOf("recent")))
+    }
+
+    @Test
+    fun songRadioIsUnchangedByCollectionSeeds() {
+        // The seed song itself is still never picked, and stays the anchor.
+        val e = engine(song("seed", 0.0), song("near", 10.0), song("far", 40.0))
+        assertEquals(listOf("near", "far"), e.chain("seed", 3))
+    }
 }

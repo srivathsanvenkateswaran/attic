@@ -25,8 +25,17 @@ class RadioState(
     val seedKey: String,
     val crossEvery: Int,
     val recent: Set<String> = emptySet(),
+    /**
+     * A sound to start from in place of one song's: a collection's average (see [forCollection]).
+     * Null for song radio, whose seed is the song [seedKey] names.
+     */
+    val seedVector: FloatArray? = null,
+    /** Songs never to pick, with every other version of them: the collection the seed came from. */
+    val exclude: Set<String> = emptySet(),
+    /** When set, picks keep to these languages instead of following the session's, and none crosses over. */
+    val languages: Set<String>? = null,
 ) {
-    internal val playedKeys = ArrayList<String>().apply { add(seedKey) }
+    internal val playedKeys = ArrayList<String>().apply { if (seedVector == null) add(seedKey) }
     internal val skippedKeys = HashSet<String>()
     internal var sinceCross = 0
     internal var pendingCross: String? = null
@@ -41,6 +50,28 @@ class RadioState(
     /** A skipped or removed song is never queued again, and the session moves away from its sound. */
     fun skipped(key: String) {
         skippedKeys += key
+    }
+
+    companion object {
+        /**
+         * A session seeded by a collection (a playlist, Favourites) rather than a song: its seed is the
+         * normalised average of the collection's sounds, its songs are never picked, and picks keep to
+         * the collection's languages. [members] must hold at least one vector.
+         */
+        fun forCollection(members: List<RadioSong>, recent: Set<String> = emptySet()): RadioState {
+            val languages = members.mapNotNull { it.language?.takeUnless { l -> l == RadioSong.NO_VOCALS } }.toSet()
+            return RadioState(
+                seedKey = COLLECTION_SEED,
+                crossEvery = Int.MAX_VALUE,
+                recent = recent,
+                seedVector = RadioEngine.centroid(members.map { it.vector }),
+                exclude = members.map { it.key }.toSet(),
+                languages = languages.ifEmpty { null },
+            )
+        }
+
+        /** The seed key of a collection session. No song has it. */
+        const val COLLECTION_SEED = "collection:"
     }
 }
 
@@ -58,18 +89,22 @@ class RadioEngine(
 
     /** Nothing, if no song is close enough. [queueWouldEnd] accepts the closest left, so music keeps playing. */
     fun next(state: RadioState, queueWouldEnd: Boolean = false): RadioSong? {
-        val seed = byKey[state.seedKey] ?: return null
+        val seed = state.seedVector?.let { RadioSong(state.seedKey, it, language = null, artistKey = null, albumKey = null) }
+            ?: byKey[state.seedKey]
+            ?: return null
         val played = state.playedKeys.mapNotNull(byKey::get)
         val sessionLanguage = sessionLanguage(played) ?: seed.language
         val query = query(seed, played, state.skippedKeys)
+        // A collection's own songs count as played for spotting other versions of them.
+        val heard = if (state.exclude.isEmpty()) played else played + state.exclude.mapNotNull(byKey::get)
 
         val ranked = songs
-            .filter { it.key !in state.playedKeys && it.key !in state.skippedKeys }
+            .filter { it.key !in state.playedKeys && it.key !in state.skippedKeys && it.key !in state.exclude }
             .map { Candidate(it, dot(query, it.vector)) }
             .sortedByDescending { it.scoreFor(seed) }
 
         if (state.sinceCross + 1 >= state.crossEvery) {
-            val cross = firstUsable(ranked, played) { c ->
+            val cross = firstUsable(ranked, heard) { c ->
                 isOtherLanguage(c.song, sessionLanguage) && c.similarity >= CROSS_MIN_SIMILARITY && fitsCaps(c.song, played) && c.song.key !in state.recent
             }
             if (cross != null) {
@@ -80,12 +115,16 @@ class RadioEngine(
 
         val close = { c: Candidate -> c.similarity >= MIN_SIMILARITY }
         val inLanguage = { c: Candidate ->
-            if (c.song.language == RadioSong.NO_VOCALS) c.similarity >= CROSS_MIN_SIMILARITY else isSessionLanguage(c.song, sessionLanguage)
+            when {
+                c.song.language == RadioSong.NO_VOCALS -> c.similarity >= CROSS_MIN_SIMILARITY
+                state.languages != null -> c.song.language == null || c.song.language in state.languages
+                else -> isSessionLanguage(c.song, sessionLanguage)
+            }
         }
-        return firstUsable(ranked, played) { close(it) && inLanguage(it) && fitsCaps(it.song, played) && it.song.key !in state.recent }
-            ?: firstUsable(ranked, played) { close(it) && inLanguage(it) && fitsCaps(it.song, played) }
-            ?: firstUsable(ranked, played) { close(it) && inLanguage(it) }
-            ?: if (queueWouldEnd) firstUsable(ranked, played) { close(it) } ?: firstUsable(ranked, played) { true } else null
+        return firstUsable(ranked, heard) { close(it) && inLanguage(it) && fitsCaps(it.song, played) && it.song.key !in state.recent }
+            ?: firstUsable(ranked, heard) { close(it) && inLanguage(it) && fitsCaps(it.song, played) }
+            ?: firstUsable(ranked, heard) { close(it) && inLanguage(it) }
+            ?: if (queueWouldEnd) firstUsable(ranked, heard) { close(it) } ?: firstUsable(ranked, heard) { true } else null
     }
 
     private inner class Candidate(val song: RadioSong, val similarity: Float) {
@@ -165,19 +204,30 @@ class RadioEngine(
         return sum
     }
 
-    private companion object {
-        const val SEED_WEIGHT = 0.5f
-        const val COMPOSER_BOOST = 0.03f
-        const val UNLABELLED_PENALTY = 0.03f
-        const val CROSS_MIN_SIMILARITY = 0.72f
+    companion object {
+        /** The normalised mean of unit vectors: the sound a set of songs shares. */
+        fun centroid(vectors: List<FloatArray>): FloatArray {
+            val out = FloatArray(vectors.first().size)
+            for (v in vectors) for (i in out.indices) out[i] += v[i]
+            var norm = 0f
+            for (value in out) norm += value * value
+            norm = sqrt(norm)
+            if (norm > 0) for (i in out.indices) out[i] /= norm
+            return out
+        }
+
+        private const val SEED_WEIGHT = 0.5f
+        private const val COMPOSER_BOOST = 0.03f
+        private const val UNLABELLED_PENALTY = 0.03f
+        private const val CROSS_MIN_SIMILARITY = 0.72f
 
         /** A typical pair of songs in the test library scored 0.54, so this keeps out unrelated music. */
-        const val MIN_SIMILARITY = 0.62f
-        const val VERSION_MIN_SIMILARITY = 0.80f
-        const val DUPLICATE_SIMILARITY = 0.985f
-        const val MAX_PER_ALBUM = 2
-        const val MAX_IN_A_ROW = 2
-        const val LANGUAGE_WINDOW = 5
+        private const val MIN_SIMILARITY = 0.62f
+        private const val VERSION_MIN_SIMILARITY = 0.80f
+        private const val DUPLICATE_SIMILARITY = 0.985f
+        private const val MAX_PER_ALBUM = 2
+        private const val MAX_IN_A_ROW = 2
+        private const val LANGUAGE_WINDOW = 5
     }
 }
 
