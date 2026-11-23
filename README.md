@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.svg" width="96" alt="Attic logo: a green gabled roof with a round window">
+  <img src="docs/logo.svg" width="96" alt="Attic logo: a speaker cabinet cut to the slope of a roof">
 </p>
 
 <h1 align="center">Attic</h1>
