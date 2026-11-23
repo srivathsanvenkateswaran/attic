@@ -5,7 +5,8 @@
 
 ffmpeg makes the audio. It can't write a real USLT or SYLT frame (it stores MP3 lyrics as a
 TXXX frame), so the ID3 tags here are built by hand and put in front of ffmpeg's MPEG frames.
-ffmpeg does write the MP4 ©lyr atom, so the M4A files come straight from it.
+ffmpeg does write the MP4 ©lyr atom and Vorbis comments, so the M4A, FLAC and Opus files come
+straight from it.
 """
 
 import pathlib
@@ -104,6 +105,10 @@ def main():
     ffmpeg(["-c:a", "aac", "-b:a", "8k", *lyrics], OUT / "lyr_moov_last.m4a")
     ffmpeg(["-c:a", "aac", "-b:a", "8k", "-movflags", "+faststart", "-metadata", "lyrics=Plain mp4 words"],
            OUT / "lyr_faststart.m4a")
+
+    # Vorbis comments: ffmpeg writes the lyrics key as LYRICS.
+    ffmpeg(["-c:a", "flac", "-metadata", "lyrics=[00:00.50]Flac line"], OUT / "lyrics.flac")
+    ffmpeg(["-c:a", "libopus", "-b:a", "8k", "-metadata", "lyrics=Opus words"], OUT / "lyrics.opus")
 
 
 if __name__ == "__main__":

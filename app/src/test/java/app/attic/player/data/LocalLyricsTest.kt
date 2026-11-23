@@ -118,6 +118,14 @@ class LocalLyricsTest {
         assertEquals(EmbeddedLyrics(null, "Plain mp4 words"), embedded("lyr_faststart.m4a"))
     }
 
+    // Vorbis comments
+
+    @Test
+    fun `reads the LYRICS comment from FLAC and Opus`() {
+        assertEquals(listOf(LyricLine(500, "Flac line")), LrcParser.parse(embedded("lyrics.flac").synced!!))
+        assertEquals(EmbeddedLyrics(null, "Opus words"), embedded("lyrics.opus"))
+    }
+
     // Priority
 
     private val syncedSidecar = "[00:01.00]From the lrc file"
