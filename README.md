@@ -98,10 +98,10 @@ Install the release build for everyday use. Compose runs far slower in a debug b
 
 1. Download `attic-v1.0.0.apk` from [Releases](../../releases).
 2. Open it on your phone and allow the install.
-3. Put your MP3s in `Music/Offline` on the phone. Attic only looks in that folder.
+3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts and chat voice notes.
 4. Open Attic and allow audio access and notifications.
 
-Folders work like this: `Music/Offline/Artist/Album/song.mp3` becomes an artist and an album. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names and the `Music/Offline` path are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
+Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
 
 ## Build from source
 
@@ -137,7 +137,7 @@ Worth reading if you open the code:
 
 Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
 
-Language comes from the folder or album name, or from Tamil or Devanagari script in saved lyrics. You can correct any song from its menu, and your choice is kept. To label many songs at once, place `language-labels.tsv` in `Android/data/app.attic.player/files/`, with one `Music/Offline/path/to/song.m4a<TAB>ta` per line.
+Language comes from the folder or album name, or from Tamil or Devanagari script in saved lyrics. You can correct any song from its menu, and your choice is kept. To label many songs at once, place `language-labels.tsv` in `Android/data/app.attic.player/files/`, with one `Music/path/to/song.m4a<TAB>ta` per line, where the path is relative to the phone's storage or SD card.
 
 ## Privacy
 
@@ -153,7 +153,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 
 ## Known limits
 
-- It reads `Music/Offline` only, and the release build has been tested on one phone.
+- The release build has been tested on one phone, whose library sits in `Music/Offline`.
 - Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
 - Lyrics depend on what LRCLIB has, and found them for 236 of the 279 songs tested.
