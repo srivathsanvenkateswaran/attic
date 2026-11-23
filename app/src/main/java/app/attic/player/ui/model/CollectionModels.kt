@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.AtticApp
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
@@ -17,9 +18,11 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UserPlaylist
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.playback.SmartShuffle
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
 import app.attic.player.ui.UiActions
+import kotlinx.coroutines.launch
 
 /** The row under every collection header: add all to a playlist, shuffle, and play or pause. */
 @Immutable
@@ -32,6 +35,11 @@ class PlayControlsState(
     val shuffleOn: Boolean,
     /** This collection is what's playing, and it is playing. */
     val isPlaying: Boolean,
+    /**
+     * Smart shuffle is on for this collection. Null where it isn't offered: only playlists and
+     * Favourites have it, behind their more button.
+     */
+    val smartShuffle: Boolean? = null,
 )
 
 class PlayControlsActions(
@@ -39,6 +47,11 @@ class PlayControlsActions(
     val shuffle: () -> Unit,
     /** Pauses or resumes this collection, or starts it from the top if something else is playing. */
     val playOrPause: () -> Unit,
+    /**
+     * Turns smart shuffle on (asking radio for songs that fit, about one in three) or off (taking them
+     * out again). Turned on while this collection plays, the song playing carries on.
+     */
+    val toggleSmartShuffle: () -> Unit = {},
 )
 
 private fun playControls(
@@ -47,13 +60,19 @@ private fun playControls(
     player: PlayerUiState,
     tracks: List<Track>,
     contextName: String,
+    offersSmartShuffle: Boolean = false,
 ): UiModel<PlayControlsState, PlayControlsActions> {
-    val isThisContext = isSameContext(player.contextName, contextName) && player.current?.key in tracks.map { it.key }
+    val current = player.current?.key
+    // A song smart shuffle added still counts as this collection playing.
+    val isThisContext = isSameContext(player.contextName, contextName) &&
+        (current in tracks.map { it.key } || current in player.smartPicks)
+    val smartOn = isThisContext && player.smartPicks.isNotEmpty()
     val state = PlayControlsState(
         contextName = contextName,
         enabled = tracks.isNotEmpty(),
         shuffleOn = player.shuffle && isThisContext,
         isPlaying = isThisContext && player.isPlaying,
+        smartShuffle = if (offersSmartShuffle) smartOn else null,
     )
     val actions = PlayControlsActions(
         addToPlaylist = { ui.addToPlaylist(tracks.map { it.key }) },
@@ -61,8 +80,26 @@ private fun playControls(
         playOrPause = {
             if (isThisContext) app.player.togglePlayPause() else app.player.play(tracks, 0, contextName, shuffled = false)
         },
+        toggleSmartShuffle = {
+            if (smartOn) {
+                app.player.stopSmartShuffle()
+            } else if (tracks.isNotEmpty()) {
+                app.scope.launch { startSmartShuffle(app, tracks, contextName, keepCurrent = isThisContext) }
+            }
+        },
     )
     return UiModel(state, actions)
+}
+
+/** Radio chooses the songs off the main thread; with none to add it says so and shuffles plainly. */
+private suspend fun startSmartShuffle(app: AtticApp, tracks: List<Track>, contextName: String, keepCurrent: Boolean) {
+    val picks = app.radio.smartPicks(tracks.map { it.key }, SmartShuffle.pickCount(tracks.size))
+    if (picks.isNotEmpty()) {
+        app.player.smartShuffle(tracks, picks, contextName, keepCurrent)
+        return
+    }
+    app.messages.tryEmit(app.getString(R.string.message_smart_shuffle_nothing))
+    if (keepCurrent) app.player.setShuffle(true) else app.player.shufflePlay(tracks, contextName)
 }
 
 // Album
@@ -214,6 +251,8 @@ class LikedState(
     val controls: PlayControlsState,
     val currentKey: String?,
     val isPlaying: Boolean,
+    /** The more button's menu, which holds smart shuffle. */
+    val overflowOpen: Boolean = false,
 )
 
 class LikedActions(
@@ -221,6 +260,10 @@ class LikedActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    val openOverflow: () -> Unit = {},
+    val dismissOverflow: () -> Unit = {},
+    /** Closes the menu and turns smart shuffle on or off. */
+    val toggleSmartShuffle: () -> Unit = {},
 )
 
 @Composable
@@ -230,13 +273,20 @@ fun rememberLikedModel(library: Library): UiModel<LikedState, LikedActions> {
     val likedKeys by app.userData.likedKeys.collectAsStateWithLifecycle()
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = remember(likedKeys, library) { likedKeys.mapNotNull { library.trackByKey[it] } }
-    val controls = playControls(app, ui, player, tracks, FAVOURITES_CONTEXT)
-    val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying)
+    var overflow by remember { mutableStateOf(false) }
+    val controls = playControls(app, ui, player, tracks, FAVOURITES_CONTEXT, offersSmartShuffle = true)
+    val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying, overflow)
     val actions = LikedActions(
         back = { ui.back() },
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, FAVOURITES_CONTEXT) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        openOverflow = { overflow = true },
+        dismissOverflow = { overflow = false },
+        toggleSmartShuffle = {
+            overflow = false
+            controls.actions.toggleSmartShuffle()
+        },
     )
     return UiModel(state, actions)
 }
@@ -274,6 +324,8 @@ class PlaylistActions(
     val delete: () -> Unit,
     val startAdding: () -> Unit,
     val dismissAdding: () -> Unit,
+    /** Closes the menu and turns smart shuffle on or off. */
+    val toggleSmartShuffle: () -> Unit,
     val toggleReordering: () -> Unit,
     /** Saves the order rows were dragged into. */
     val reorder: (keys: List<String>) -> Unit,
@@ -299,7 +351,7 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
     var overflow by remember { mutableStateOf(false) }
 
     val name = playlist?.name.orEmpty()
-    val controls = playControls(app, ui, player, tracks, name)
+    val controls = playControls(app, ui, player, tracks, name, offersSmartShuffle = true)
     val state = PlaylistState(
         playlist = playlist,
         tracks = tracks,
@@ -338,6 +390,10 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
         },
         startAdding = { adding = true },
         dismissAdding = { adding = false },
+        toggleSmartShuffle = {
+            overflow = false
+            controls.actions.toggleSmartShuffle()
+        },
         toggleReordering = { reordering = !reordering },
         reorder = { keys -> app.userData.reorderPlaylist(id, keys) },
         play = { track ->

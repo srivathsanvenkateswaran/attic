@@ -84,7 +84,10 @@ class PlaybackService : MediaSessionService() {
             .build()
         // Shuffle reorders the real list (see PhysicalShuffle), so the player itself walks it in order.
         player.setShuffleOrder(ShuffleOrder.UnshuffledShuffleOrder(0))
-        shuffle = PhysicalShuffle(player)
+        shuffle = PhysicalShuffle(player) {
+            publishSessionExtras()
+            saveRequests.tryEmit(Unit)
+        }
         player.addListener(PlayerEvents())
 
         shuffledPlayer = shuffle.wrappedPlayer()
@@ -178,9 +181,11 @@ class PlaybackService : MediaSessionService() {
                         .add(SHUFFLE_COMMAND)
                         .add(LIKE_COMMAND)
                         .add(SleepTimerSession.COMMAND)
+                        .add(SmartShuffleSession.START)
+                        .add(SmartShuffleSession.STOP)
                         .build(),
                 )
-                .setSessionExtras(SleepTimerSession.extras(sleep.status))
+                .setSessionExtras(sessionExtras())
                 .build()
 
         override fun onCustomCommand(
@@ -193,6 +198,8 @@ class PlaybackService : MediaSessionService() {
                 SHUFFLE_COMMAND -> shuffledPlayer.shuffleModeEnabled = !player.shuffleModeEnabled
                 LIKE_COMMAND -> player.currentMediaItem?.mediaId?.let(attic.userData::toggleLike)
                 SleepTimerSession.COMMAND -> setSleepTimer(SleepTimerSession.choiceFrom(args))
+                SmartShuffleSession.START -> startSmartShuffle(SmartShuffleSession.requestFrom(args))
+                SmartShuffleSession.STOP -> shuffle.stopSmart()
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
@@ -275,7 +282,7 @@ class PlaybackService : MediaSessionService() {
         if (player.mediaItemCount > 0) return
         val entity = saved.entity
         player.repeatMode = entity.repeatMode
-        shuffle.restore(entity.shuffle, entity.baseKeys?.split('\n')?.filter { it.isNotEmpty() })
+        shuffle.restore(entity.shuffle, entity.baseKeys?.split('\n')?.filter { it.isNotEmpty() }, savedPicks(entity.contextName, saved.items))
         player.playlistMetadata = MediaMetadata.Builder().setTitle(entity.contextName).build()
         if (entity.radioSeed != null && entity.contextName != null) attic.radio.resume(entity.radioSeed, entity.contextName)
         player.setMediaItems(saved.items, saved.index, saved.positionMs)
@@ -311,6 +318,47 @@ class PlaybackService : MediaSessionService() {
         )
         // Uses the app's scope so the write still finishes while this service is being destroyed.
         attic.scope.launch { attic.database.dao().saveQueue(entity) }
+        savePicks(entity.contextName)
+    }
+
+    /**
+     * Smart shuffle's marks, kept beside the saved queue so they come back with it. Stored apart from
+     * the database's saved queue to leave its schema alone; written only when they change.
+     */
+    private val smartPrefs by lazy { getSharedPreferences(SMART_PREFS, MODE_PRIVATE) }
+    private var savedPickState: Pair<String?, Set<String>>? = null
+
+    private fun savePicks(contextName: String?) {
+        val state = contextName to shuffle.smartPicks
+        if (state == savedPickState) return
+        savedPickState = state
+        smartPrefs.edit()
+            .putString(SMART_CONTEXT, contextName)
+            .putString(SMART_PICKS, shuffle.smartPicks.joinToString("\n"))
+            .apply()
+    }
+
+    private fun savedPicks(contextName: String?, items: List<MediaItem>): Set<String> {
+        if (contextName == null || smartPrefs.getString(SMART_CONTEXT, null) != contextName) return emptySet()
+        val queued = items.map { it.mediaId }.toSet()
+        return smartPrefs.getString(SMART_PICKS, null).orEmpty().split('\n').filter { it in queued }.toSet()
+    }
+
+    /**
+     * Smart shuffle (see [SmartShuffle]): the UI has asked radio for the picks; this lays out the queue.
+     * The collection keeps the name it plays under, so "Playing from" and its controls still match it.
+     */
+    private fun startSmartShuffle(request: SmartShuffleSession.Request) {
+        scope.launch {
+            val library = attic.library.await()
+            val base = request.baseKeys.mapNotNull { library.trackByKey[it]?.toMediaItem() }
+            if (base.isEmpty()) return@launch
+            val picks = request.pickKeys.mapNotNull { library.trackByKey[it]?.toMediaItem() }
+            player.playlistMetadata = MediaMetadata.Builder().setTitle(request.contextName).build()
+            shuffle.startSmart(base, picks, request.keepCurrent)
+            if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) player.prepare()
+            player.play()
+        }
     }
 
     /**
@@ -357,8 +405,14 @@ class PlaybackService : MediaSessionService() {
         publishSleepTimer()
     }
 
-    private fun publishSleepTimer() {
-        session?.setSessionExtras(SleepTimerSession.extras(sleep.status))
+    private fun publishSleepTimer() = publishSessionExtras()
+
+    /** The sleep timer's state and smart shuffle's picks, which every controller receives. */
+    private fun sessionExtras(): Bundle =
+        SleepTimerSession.extras(sleep.status).also { SmartShuffleSession.putPicks(it, shuffle.smartPicks) }
+
+    private fun publishSessionExtras() {
+        session?.setSessionExtras(sessionExtras())
     }
 
     private inner class PlayerEvents : Player.Listener {
@@ -553,5 +607,8 @@ class PlaybackService : MediaSessionService() {
         const val SAVE_DEBOUNCE_MS = 400L
         const val SAVE_INTERVAL_MS = 15_000L
         const val RADIO_UP_NEXT = 10
+        const val SMART_PREFS = "smart_shuffle"
+        const val SMART_CONTEXT = "context"
+        const val SMART_PICKS = "picks"
     }
 }

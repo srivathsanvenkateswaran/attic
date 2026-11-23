@@ -321,6 +321,15 @@ fun SongRadioMark(modifier: Modifier = Modifier) {
 }
 
 /**
+ * Marks a queue row smart shuffle added from outside the collection: the radio glyph at 20dp in the
+ * row's trailing ink, described "Added by smart shuffle". Sits before the drag handle.
+ */
+@Composable
+fun SongSmartPickMark(modifier: Modifier = Modifier) {
+    ComfortIcon(Symbol.Sensors, modifier, size = 20.dp, contentDescription = stringResource(R.string.queue_smart_pick_cd))
+}
+
+/**
  * `.bars`: the "now playing" indicator, three bars at 50, 100 and 68% that bounce while [playing] and
  * rest at 26% (`.bars.still`) when paused. 16dp with 3dp bars by default; tiles use 22dp with 4dp bars.
  */

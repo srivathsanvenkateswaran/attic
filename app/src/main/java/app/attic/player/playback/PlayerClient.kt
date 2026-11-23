@@ -30,6 +30,8 @@ data class PlayerUiState(
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val contextName: String? = null,
     val sleepTimer: SleepTimerStatus = SleepTimerStatus(),
+    /** Songs smart shuffle added to this queue from outside the collection. Empty when it is off. */
+    val smartPicks: Set<String> = emptySet(),
 ) {
     val current: Track? get() = queue.getOrNull(currentIndex)
 }
@@ -102,6 +104,7 @@ class PlayerClient(
             repeatMode = c.repeatMode,
             contextName = c.playlistMetadata.title?.toString(),
             sleepTimer = SleepTimerSession.statusFrom(c.sessionExtras),
+            smartPicks = SmartShuffleSession.picksFrom(c.sessionExtras),
         )
     }
 
@@ -160,6 +163,19 @@ class PlayerClient(
     }
 
     fun toggleShuffle() = act { it.shuffleModeEnabled = !it.shuffleModeEnabled }
+
+    fun setShuffle(enabled: Boolean) = act { it.shuffleModeEnabled = enabled }
+
+    /**
+     * Plays [tracks] smart-shuffled under [contextName], with [picks] (chosen by radio) one in three.
+     * With [keepCurrent], the song playing now carries on and the rest goes after it.
+     */
+    fun smartShuffle(tracks: List<Track>, picks: List<Track>, contextName: String, keepCurrent: Boolean) = act { c ->
+        c.sendCustomCommand(SmartShuffleSession.START, SmartShuffleSession.args(tracks.map { it.key }, picks.map { it.key }, contextName, keepCurrent))
+    }
+
+    /** Takes smart shuffle's picks out of the queue; shuffle stays on. */
+    fun stopSmartShuffle() = act { it.sendCustomCommand(SmartShuffleSession.STOP, Bundle.EMPTY) }
 
     fun cycleRepeat() = act { c ->
         c.repeatMode = when (c.repeatMode) {

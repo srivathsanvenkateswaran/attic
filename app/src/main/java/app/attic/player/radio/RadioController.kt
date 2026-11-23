@@ -150,7 +150,7 @@ class RadioController(private val app: AtticApp) {
         // Background analysis may have reached more songs since this session began.
         val analyzedNow = app.database.dao().analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
         if (analyzedNow != current.analyzedCount) {
-            val songs = loadSongs(current)
+            val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
             synchronized(current) {
                 current.engine = RadioEngine(songs) { a, b -> sameMelody(a.key, b.key) }
                 current.analyzedCount = analyzedNow
@@ -180,7 +180,7 @@ class RadioController(private val app: AtticApp) {
             return false
         }
         val analyzedNow = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
-        val songs = loadSongs(current)
+        val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
         val cross = dao.crossCounts()
         val state = RadioState(
             seedKey = current.seedKey,
@@ -202,8 +202,32 @@ class RadioController(private val app: AtticApp) {
         return true
     }
 
-    /** Every analysed song as radio sees it. Run again as analysis reaches more of the library. */
-    private suspend fun loadSongs(current: Session): List<RadioSong> {
+    /**
+     * Smart shuffle's picks for a collection: up to [count] songs from the rest of the library that fit
+     * its sound, chosen by a radio session seeded with the collection's average sound
+     * ([RadioState.forCollection]). Prefers songs you haven't played lately, keeps to the collection's
+     * languages and leaves out other versions of its songs. Empty when none of it has been analysed.
+     */
+    suspend fun smartPicks(collection: List<String>, count: Int): List<Track> = withContext(Dispatchers.Default) {
+        if (count <= 0 || collection.isEmpty()) return@withContext emptyList()
+        val tracks = HashMap<String, Track>()
+        val songs = loadSongs { tracks[it.key] = it }
+        val inCollection = collection.toSet()
+        val members = songs.filter { it.key in inCollection }
+        if (members.isEmpty()) return@withContext emptyList()
+        val state = RadioState.forCollection(members, recent = app.database.dao().recentKeys(RECENT_TO_AVOID).toSet())
+        val engine = RadioEngine(songs) { a, b -> sameMelody(a.key, b.key) }
+        val picks = ArrayList<Track>(count)
+        while (picks.size < count) {
+            val next = engine.next(state) ?: break
+            state.played(next.key)
+            tracks[next.key]?.let(picks::add)
+        }
+        picks
+    }
+
+    /** Every analysed song as radio sees it, handing each track to [found]. Run again as analysis reaches more of the library. */
+    private suspend fun loadSongs(found: (Track) -> Unit): List<RadioSong> {
         val dao = app.database.dao()
         val library = app.library.await()
         val stored = dao.storedLanguages().associate { it.trackKey to it.language }
@@ -214,7 +238,7 @@ class RadioController(private val app: AtticApp) {
             val track = library.trackByKey[row.trackKey] ?: return@mapNotNull null
             val text = lyrics[track.key]
             val counts = outcomes[track.key].orEmpty()
-            synchronized(current) { current.tracks[track.key] = track }
+            found(track)
             RadioSong(
                 key = track.key,
                 vector = SongAnalyzer.toFloats(row.embedding),

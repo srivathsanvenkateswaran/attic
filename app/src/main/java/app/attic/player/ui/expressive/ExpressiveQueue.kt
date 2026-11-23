@@ -103,7 +103,10 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                             current = true,
                             playing = state.isPlaying,
                             onLongClick = { actions.showMenu(current) },
-                            trailing = { RowMoreButton(current.title) { actions.showMenu(current) } },
+                            trailing = {
+                                if (state.currentSmartPick) RowSmartPickMark()
+                                RowMoreButton(current.title) { actions.showMenu(current) }
+                            },
                         )
                     }
                 }
@@ -141,6 +144,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                                     onClick = { actions.jumpTo(row.queueIndex) },
                                     onLongClick = { actions.showMenu(row.track) },
                                     trailing = {
+                                        if (row.smartPick) RowSmartPickMark()
                                         RowDragHandle(
                                             row.track.title,
                                             Modifier.draggableHandle(

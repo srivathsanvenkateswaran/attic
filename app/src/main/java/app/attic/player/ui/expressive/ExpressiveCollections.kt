@@ -309,6 +309,17 @@ fun ExpressiveFavourites(state: LikedState, actions: LikedActions) {
         controls = state.controls,
         controlActions = actions.controls,
         onBack = actions.back,
+        barActions = {
+            // The mock has no place for smart shuffle, so it sits behind a more button as on a playlist.
+            if (tracks.isNotEmpty()) {
+                Box {
+                    ExpressiveIconButton(Symbol.MoreVert, stringResource(R.string.favourites_options_cd), actions.openOverflow)
+                    ExpressiveMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                        SmartShuffleItem(state.controls, actions.toggleSmartShuffle)
+                    }
+                }
+            }
+        },
         header = { titleModifier ->
             CollectionHeader(
                 title = title,
@@ -330,6 +341,12 @@ fun ExpressiveFavourites(state: LikedState, actions: LikedActions) {
             songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
         }
     }
+}
+
+/** "Smart shuffle" in a collection's menu: ticked while on for this collection. */
+@Composable
+private fun SmartShuffleItem(controls: PlayControlsState, onToggle: () -> Unit) {
+    ExpressiveMenuItem(Symbol.ShuffleOn, stringResource(R.string.collection_smart_shuffle), onToggle, checked = controls.smartShuffle == true)
 }
 
 private fun LazyListScope.songRows(
@@ -380,6 +397,7 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
             Box {
                 ExpressiveIconButton(Symbol.MoreVert, stringResource(R.string.collection_options_cd), actions.openOverflow)
                 ExpressiveMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                    if (tracks.isNotEmpty()) SmartShuffleItem(state.controls, actions.toggleSmartShuffle)
                     ExpressiveMenuItem(Symbol.Edit, stringResource(R.string.playlist_rename), actions.startRenaming)
                     ExpressiveMenuItem(Symbol.Delete, stringResource(R.string.playlist_delete), actions.startDeleting, danger = true)
                 }

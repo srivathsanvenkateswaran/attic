@@ -269,6 +269,20 @@ fun RowMoreButton(title: String, onClick: () -> Unit) {
     ExpressiveIconButton(Symbol.MoreVert, stringResource(R.string.more_options_for_cd, title), onClick)
 }
 
+/**
+ * Marks a queue row smart shuffle added from outside the collection: the radio glyph, since radio
+ * chose it, described "Added by smart shuffle". Sits before the drag handle.
+ */
+@Composable
+fun RowSmartPickMark() {
+    SymbolIcon(
+        Symbol.Sensors,
+        size = 20.dp,
+        tint = MaterialTheme.colorScheme.primary,
+        contentDescription = stringResource(R.string.queue_smart_pick_cd),
+    )
+}
+
 /** A play count or other figure at the end of a row (`.count`): "187 plays". */
 @Composable
 fun RowCount(text: String) {

@@ -127,6 +127,10 @@
     <string name="collection_add_to_playlist_cd">Add %1$s to a playlist</string>
     <string name="collection_shuffle_cd">Shuffle %1$s</string>
     <string name="collection_options_cd">Playlist options</string>
+    <string name="favourites_options_cd">Favourites options</string>
+    <!-- A menu toggle on playlists and Favourites: about one song in three comes from the rest of the library. -->
+    <string name="collection_smart_shuffle">Smart shuffle</string>
+    <string name="queue_smart_pick_cd">Added by smart shuffle</string>
     <string name="collection_album_gone">This album is gone</string>
     <string name="collection_artist_gone">This artist is gone</string>
     <string name="collection_playlist_gone">This playlist is gone</string>
@@ -476,6 +480,7 @@
     <string name="message_save_failed">Couldn\'t save the image</string>
     <string name="message_radio_unreadable">Radio couldn\'t read this song</string>
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
+    <string name="message_smart_shuffle_nothing">Smart shuffle has nothing to add yet, so this is a plain shuffle</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>

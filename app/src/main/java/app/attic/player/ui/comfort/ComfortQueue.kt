@@ -143,6 +143,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                                     onClick = { actions.jumpTo(row.queueIndex) },
                                     onLongClick = { actions.showMenu(row.track) },
                                     trailing = {
+                                        if (row.smartPick) SongSmartPickMark()
                                         SongDragHandle(
                                             row.track.title,
                                             Modifier.draggableHandle(
@@ -222,7 +223,10 @@ private fun NowPlayingRow(track: Track, state: QueueState, actions: QueueActions
                     current = true,
                     playing = state.isPlaying,
                     onLongClick = { actions.showMenu(track) },
-                    trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
+                    trailing = {
+                        if (state.currentSmartPick) SongSmartPickMark()
+                        SongMoreButton(track.title, { actions.showMenu(track) })
+                    },
                 )
             }
         }

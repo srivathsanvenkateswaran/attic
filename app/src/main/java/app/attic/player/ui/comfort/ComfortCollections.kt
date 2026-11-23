@@ -49,6 +49,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -243,7 +246,22 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
 fun ComfortFavourites(state: LikedState, actions: LikedActions) {
     val title = stringResource(R.string.favourites)
     val tracks = state.tracks
-    CollectionFrame(title = title, onBack = actions.back, titleTop = HeaderArt) {
+    CollectionFrame(
+        title = title,
+        onBack = actions.back,
+        titleTop = HeaderArt,
+        barActions = {
+            // The mock has no place for smart shuffle, so it sits behind a more button as on a playlist.
+            if (tracks.isNotEmpty()) {
+                Box {
+                    ComfortIconButton(Symbol.MoreVert, stringResource(R.string.favourites_options_cd), actions.openOverflow)
+                    ComfortMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                        SmartShuffleRow(state.controls, actions.toggleSmartShuffle)
+                    }
+                }
+            }
+        },
+    ) {
         item(key = "header") {
             CollectionHeader(
                 title = title,
@@ -266,6 +284,20 @@ fun ComfortFavourites(state: LikedState, actions: LikedActions) {
             songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
         }
     }
+}
+
+/** "Smart shuffle" in a collection's menu: selected, with the tick, while on for this collection. */
+@Composable
+private fun SmartShuffleRow(controls: PlayControlsState, onToggle: () -> Unit) {
+    val on = controls.smartShuffle == true
+    MenuRow(
+        Symbol.ShuffleOn,
+        stringResource(R.string.collection_smart_shuffle),
+        onToggle,
+        modifier = Modifier.semantics { toggleableState = ToggleableState(on) },
+        selected = on,
+        check = true,
+    )
 }
 
 private fun LazyListScope.songRows(
@@ -310,6 +342,7 @@ fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
             Box {
                 ComfortIconButton(Symbol.MoreVert, stringResource(R.string.collection_options_cd), actions.openOverflow)
                 ComfortMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                    if (tracks.isNotEmpty()) SmartShuffleRow(state.controls, actions.toggleSmartShuffle)
                     MenuRow(Symbol.Edit, stringResource(R.string.playlist_rename), actions.startRenaming)
                     MenuRow(Symbol.Delete, stringResource(R.string.playlist_delete), actions.startDeleting, danger = true)
                 }

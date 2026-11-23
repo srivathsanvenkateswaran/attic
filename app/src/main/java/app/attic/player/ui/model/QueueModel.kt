@@ -12,16 +12,19 @@ import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
 
-/** [queueIndex] is the position in the player, which stays valid while rows are dragged around it. */
+/**
+ * [queueIndex] is the position in the player, which stays valid while rows are dragged around it.
+ * [smartPick] marks a song smart shuffle added from outside the collection.
+ */
 @Immutable
-data class UpNextRow(val id: String, val track: Track, val queueIndex: Int)
+data class UpNextRow(val id: String, val track: Track, val queueIndex: Int, val smartPick: Boolean = false)
 
 /** The same song can be queued twice, so a row's identity is its key plus which occurrence it is. */
 private fun buildRows(state: PlayerUiState): List<UpNextRow> {
     val seen = HashMap<String, Int>()
     return state.queue.mapIndexedNotNull { index, track ->
         val occurrence = seen.merge(track.key, 1, Int::plus)!!
-        if (index > state.currentIndex) UpNextRow("${track.key}#$occurrence", track, index) else null
+        if (index > state.currentIndex) UpNextRow("${track.key}#$occurrence", track, index, track.key in state.smartPicks) else null
     }
 }
 
@@ -37,6 +40,8 @@ class QueueState(
     val upNext: List<UpNextRow>,
     /** Where the current song is, for a style that shows how far it has played. */
     val clock: PlaybackClock? = null,
+    /** The song playing was added by smart shuffle. */
+    val currentSmartPick: Boolean = false,
 )
 
 class QueueActions(
@@ -56,12 +61,15 @@ fun rememberQueueModel(player: PlayerUiState, onClose: () -> Unit): UiModel<Queu
     val ui = LocalUi.current
     val library by app.library.library.collectAsStateWithLifecycle()
     val playlists by app.userData.playlists.collectAsStateWithLifecycle()
-    val upNext = remember(player.queue, player.currentIndex) { buildRows(player) }
+    val upNext = remember(player.queue, player.currentIndex, player.smartPicks) { buildRows(player) }
     val contextKind = remember(player.contextName, player.current, library, playlists) {
         contextKindOf(player.contextName, player.current, library, playlists.map { it.name })
     }
     val clock = remember(app) { PlaybackClock(app.player::positionMs) }
-    val state = QueueState(player.current, player.isPlaying, player.contextName, contextKind, upNext, clock)
+    val state = QueueState(
+        player.current, player.isPlaying, player.contextName, contextKind, upNext, clock,
+        currentSmartPick = player.current?.key in player.smartPicks,
+    )
     val actions = QueueActions(
         close = onClose,
         clearUpNext = { app.player.clearUpNext() },
