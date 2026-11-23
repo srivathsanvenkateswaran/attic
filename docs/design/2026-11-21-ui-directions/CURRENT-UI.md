@@ -93,6 +93,8 @@ Outside the app
 | Queue | Queue icon at the bottom right of Now Playing |
 | Lyrics (full screen) | "Show lyrics" pill in the lyrics card |
 | Track menu | Kebab on any track row; long-press on any track row; long-press on a Speed dial tile; long-press on a Wrapped "Top songs" row; kebab in the Now Playing header; long-press on a queue row |
+| Sleep timer | "Sleep timer" in the track menu, only when it was opened from the kebab in the Now Playing header (added 2026-11-23, section 2.13) |
+| Now Playing, on a file from another app | Opening an audio file with Attic from a file manager or downloads list (added 2026-11-23, section 2.21) |
 
 ### 1.2 Navigation behaviour
 
@@ -559,6 +561,16 @@ All are Material 3 modal bottom sheets with the stock drag handle, stock top-cor
 
 The like state appears as a heart in this menu and as a plus or check everywhere else.
 
+**Added 2026-11-23, in the Expressive and Comfort styles only** (`ui/model/SheetModels.kt`, `ui/expressive/ExpressiveSheets.kt`, `ui/comfort/ComfortSheets.kt`). These use the proposals' names (BRIEF.md), so the favourite row reads "Add to favourites" / "Remove from favourites".
+
+- **"Share"** (`share` icon), on every song in the library. Opens the system share sheet with the song's audio file, sent as its MediaStore `content://` URI with a read grant (`ui/SongShare.kt`). Expressive puts it last in the group with "Go to album" and "Go to artist"; Comfort puts it after "Go to artist", before "Remove from this playlist". If no app can take it: snackbar "Couldn't share this song".
+- **"Sleep timer"** (`bedtime` icon), only in the menu opened from the Now Playing kebab. While a timer runs it shows what is left: "{n} min left" (minutes rounded up), "Less than a minute left", or "After this song". Off shows nothing.
+  - Expressive: a one-row group of its own straight under the song header, its icon filled in `primary` while a timer runs and the status as the row's second line. Tapping it replaces the menu with a sheet titled "Sleep timer", the status under the title, and one single-choice group with radio buttons, like the language picker.
+  - Comfort: the first row under the quick actions, with the status at its end, then `unfold_more`. Tapping it opens a pop-over on the row, like "Language": the caption "Sleep timer", the choices, and a tick in the accent on the current one. Tapping outside closes only the pop-over.
+  - Choices, in order: "15 minutes", "30 minutes", "45 minutes", "1 hour", "End of this song", "Off". A choice sets the timer, closes the menu and shows a snackbar (section 2.17).
+  - The timer runs in the playback service, so it carries on with the app closed (`playback/SleepTimer.kt`, `playback/PlaybackService.kt`). A countdown fades the volume out over its last 10 seconds, then pauses. "End of this song" fades over the song's last 10 seconds and pauses when the song ends. Either way playback is paused, not stopped, and the volume is back to full for the next play. A countdown that runs out while nothing is playing switches itself off and does not pause music started after that.
+- **A song opened from another app that is not in the library** (section 2.21) gets a shorter menu: the song header, then "Sleep timer" when opened from Now Playing, and nothing else. Radio, the queue actions, favourites, playlists, language, "Go to" and "Share" all need a library song.
+
 **Language picker** (`ui/Sheets.kt:174-194`)
 
 - Title "Song language" in `titleLarge`, padding 20 horizontal and 8 vertical.
@@ -803,6 +815,11 @@ Purpose: short confirmations and playback or radio errors.
 | "Radio couldn't read this song" | Radio could not analyse its seed song |
 | "Radio is using {n} of {total} songs until analysis finishes" | Radio started before the whole library was analysed |
 | "Skipped {title} because it can't be played" | A queued file failed to play and was dropped |
+| "Music will pause in {n} minutes" | Sleep timer set to 15, 30, 45 or 60 minutes (added 2026-11-23) |
+| "Music will pause after this song" | Sleep timer set to "End of this song" (added 2026-11-23) |
+| "Sleep timer off" | Sleep timer set to "Off" (added 2026-11-23) |
+| "Couldn't share this song" | "Share" found no app to take the file (added 2026-11-23) |
+| "Couldn't open this file" | Attic was asked to open something it can't play, such as a web link, or reading it failed (added 2026-11-23) |
 
 Liking a song, removing from a playlist, clearing the queue, and renaming or deleting a playlist show no message.
 
@@ -876,7 +893,21 @@ In `notification.png` and `lock_screen.png` this renders as the system media car
 
 No notification appears on launch. It appears once playback starts.
 
+The sleep timer (section 2.13) adds nothing to the notification or the lock screen.
+
 **Analysis notification** (`analysis/AnalysisWorker.kt:105-128`). While radio analysis runs: an ongoing silent notification on the "Song analysis" channel with an equaliser-bars icon, title "Analysing your songs", text "{done} of {total}", a determinate progress bar, and one action, "Stop". Tapping it opens the app.
+
+### 2.21 Opening a file from another app
+
+Added 2026-11-23. Purpose: play an audio file from a file manager, a downloads list or any app that offers "Open with".
+
+`AndroidManifest.xml` lists Attic for `ACTION_VIEW` on `audio/*` (and `application/ogg`, `application/x-flac`, which some file managers use) from `content://` and `file://` URIs. `playback/OpenWith.kt` handles the intent and `data/OpenWithResolver.kt` works out which song it is.
+
+- **The file is in the library.** Attic finds it by its MediaStore id (MediaStore URIs, the media documents provider, `msf:` ids from the downloads list) or by its path on a volume (`file://`, `raw:` downloads, the storage documents provider, and file managers whose URIs contain the real path). It plays in its album from that song, or among all songs ("All songs") when it has no album, which is what tapping it in the app does. This replaces the queue.
+- **The file is not in the library** (a ringtone, a voice note, a file in a folder the library leaves out, or a URI that gives neither an id nor a path). It is played once, from the URI: it goes in right after the current song and starts, so the rest of the queue and its "Playing from" stay as they were and carry on after it. Opening the same file again while it plays restarts it. Its title, artist and album come from its tags, else from the file name without the extension, else "Audio file". It has no cover. It is never saved: not to the library, the saved queue, listening history, Recap, radio, favourites or playlists. If Attic is closed while it plays, the saved queue resumes on the next song.
+- In both cases Now Playing opens on the song.
+- A URI that isn't `content://` or `file://`, or one that fails to read, shows the snackbar "Couldn't open this file". Nothing crashes.
+- A relaunch from Recents or a recreated screen does not play the file again.
 
 ---
 
@@ -1199,6 +1230,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] "Remove from this playlist" (in playlists)
 - [ ] "Go to album"
 - [ ] "Go to artist"
+- [ ] "Share" (added 2026-11-23)
+- [ ] "Sleep timer" from Now Playing's menu: 15, 30, 45 and 60 minutes, "End of this song", "Off"; time left shown on the row; fade, then pause (added 2026-11-23)
 
 **Mini player**
 - [ ] Cover, title, artist, progress
@@ -1287,8 +1320,9 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Media notification and lock-screen controls with shuffle and like
 - [ ] Analysis progress notification with "Stop"
 - [ ] Launcher icon with a monochrome variant
+- [ ] "Open with" for audio files: library songs play in context, other files play once and are kept nowhere (added 2026-11-23)
 
-**Not present today.** Listed so a restyle does not add controls that have nothing behind them: sleep timer, equaliser, playback speed, crossfade, volume slider, output or cast picker, per-song download or delete, tag editing, song sharing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
+**Not present today.** Listed so a restyle does not add controls that have nothing behind them: equaliser, playback speed, crossfade, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
 
 ---
 
