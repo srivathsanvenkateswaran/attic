@@ -75,8 +75,19 @@ class AppSettings(context: Context) {
         _autoplay.value = enabled
     }
 
+    private val _volumeLevelling = MutableStateFlow(prefs.getBoolean(KEY_VOLUME_LEVELLING, true))
+
+    /** Whether songs play at a matched loudness, from their tags or the level analysis measured. */
+    val volumeLevelling: StateFlow<Boolean> = _volumeLevelling.asStateFlow()
+
+    fun setVolumeLevelling(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_VOLUME_LEVELLING, enabled).apply()
+        _volumeLevelling.value = enabled
+    }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_VOLUME_LEVELLING = "volume_levelling"
         const val KEY_UI_STYLE = "ui_style"
         const val KEY_AUTOPLAY = "autoplay"
         const val KEY_ONBOARDING_DONE = "onboarding_done"

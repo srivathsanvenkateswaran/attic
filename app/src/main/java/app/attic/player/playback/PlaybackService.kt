@@ -68,10 +68,12 @@ class PlaybackService : MediaSessionService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val sleep = SleepTimer(SystemClock::elapsedRealtime)
     private var sleepJob: Job? = null
+    private lateinit var levelling: LevellingAudioProcessor
 
     override fun onCreate() {
         super.onCreate()
-        player = ExoPlayer.Builder(this)
+        levelling = LevellingAudioProcessor(LevelStore(attic.database.dao(), attic.library.library, scope))
+        player = ExoPlayer.Builder(this, LevellingRenderersFactory(this, levelling))
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -108,6 +110,9 @@ class PlaybackService : MediaSessionService() {
         }
         scope.launch {
             attic.settings.uiStyle.collect { refreshMediaButtons() }
+        }
+        scope.launch {
+            attic.settings.volumeLevelling.collect { levelling.enabled = it }
         }
 
         scope.launch { restoreQueue() }
