@@ -1,6 +1,7 @@
 package app.attic.player.ui.comfort
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -8,14 +9,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
 import app.attic.player.data.ThemeMode
@@ -69,6 +78,31 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
                             stringResource(if (style == UiStyle.Comfort) R.string.settings_style_comfort else R.string.settings_style_expressive),
                             state.uiStyle == style,
                             { actions.setUiStyle(style) },
+                        )
+                    }
+                }
+            }
+        }
+
+        item(key = "playback") {
+            Label(stringResource(R.string.settings_playback))
+            Group {
+                item {
+                    SetSwitchRow(
+                        stringResource(R.string.settings_volume_levelling),
+                        state.volumeLevelling,
+                        actions.setVolumeLevelling,
+                        summary = stringResource(R.string.settings_volume_levelling_body),
+                    )
+                }
+                item { CrossfadeRow(state, actions) }
+                if (state.equaliserAvailable) {
+                    item {
+                        SetRow(
+                            stringResource(R.string.settings_equaliser),
+                            summary = stringResource(R.string.settings_equaliser_body),
+                            onClick = actions.openEqualiser,
+                            trailing = { ComfortIcon(Symbol.OpenInNew, tint = Comfort.colors.on3) },
                         )
                     }
                 }
@@ -207,6 +241,48 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
 }
 
 private val Bold = SpanStyle(fontWeight = FontWeight.SemiBold)
+
+/**
+ * "Crossfade" with its length as the row's value, opening the kit's pop-over over its row toward the
+ * value, the way the track menu's sleep timer does: a caption, then the lengths with the current one ticked.
+ */
+@Composable
+private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
+    var picking by remember { mutableStateOf(false) }
+    var rowHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.onSizeChanged { rowHeight = it.height }) {
+        SetRow(
+            stringResource(R.string.settings_crossfade),
+            summary = stringResource(R.string.settings_crossfade_body),
+            value = crossfadeLabel(state.crossfadeSeconds),
+            onClick = { picking = true },
+        )
+        ComfortMenu(
+            expanded = picking,
+            onDismiss = { picking = false },
+            offset = DpOffset(maxWidth - 214.dp, with(density) { -rowHeight.toDp() }),
+        ) {
+            MenuCaption(stringResource(R.string.settings_crossfade))
+            for (seconds in state.crossfadeChoices) {
+                MenuRow(
+                    null,
+                    crossfadeLabel(seconds),
+                    {
+                        picking = false
+                        actions.setCrossfadeSeconds(seconds)
+                    },
+                    selected = seconds == state.crossfadeSeconds,
+                    check = true,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun crossfadeLabel(seconds: Int): String =
+    if (seconds <= 0) stringResource(R.string.settings_crossfade_off) else pluralStringResource(R.plurals.settings_crossfade_seconds, seconds, seconds)
 
 /** The question before a restore, then its result or why the file couldn't be used. */
 @Composable

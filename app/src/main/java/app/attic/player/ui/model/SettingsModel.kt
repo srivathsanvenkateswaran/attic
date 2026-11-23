@@ -2,6 +2,7 @@ package app.attic.player.ui.model
 
 import app.attic.player.ui.Haptic
 import app.attic.player.ui.rememberHaptics
+import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.R
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.analysis.LOUDNESS_VERSION
@@ -20,6 +22,8 @@ import app.attic.player.data.Library
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.data.backup.RestoreReport
+import app.attic.player.playback.CrossfadePlan
+import app.attic.player.playback.Equaliser
 import app.attic.player.ui.LocalUi
 import java.time.LocalDate
 
@@ -29,6 +33,12 @@ class SettingsState(
     /** How the app is drawn: Expressive or Comfort. */
     val uiStyle: UiStyle,
     val autoplay: Boolean,
+    /** Songs play at a matched loudness. */
+    val volumeLevelling: Boolean,
+    /** Seconds one song fades into the next; 0 is off. One of [crossfadeChoices]. */
+    val crossfadeSeconds: Int,
+    /** False when nothing on the phone opens an equaliser panel, and the row is hidden. */
+    val equaliserAvailable: Boolean,
     /** The download-all-lyrics run, if one is going or has just finished. */
     val bulkLyrics: BulkProgress,
     /** Songs in the library with lyrics saved. */
@@ -36,7 +46,10 @@ class SettingsState(
     val songCount: Int,
     val analysis: AnalysisProgress,
     val backup: BackupUiState,
-)
+) {
+    /** The crossfade lengths offered, in seconds, Off first. */
+    val crossfadeChoices: List<Int> get() = CrossfadePlan.choices
+}
 
 /**
  * Back up and restore. At most one of [confirm], [restored] and [problem] is set, and a style draws
@@ -70,6 +83,10 @@ class SettingsActions(
     /** Switches style at once; the screen and back stack stay where they are. */
     val setUiStyle: (UiStyle) -> Unit,
     val setAutoplay: (Boolean) -> Unit,
+    val setVolumeLevelling: (Boolean) -> Unit,
+    val setCrossfadeSeconds: (Int) -> Unit,
+    /** Opens the phone's equaliser on Attic's audio session. */
+    val openEqualiser: () -> Unit,
     val downloadAllLyrics: () -> Unit,
     /** Analyses songs now instead of waiting for a charger. */
     val startAnalysis: () -> Unit,
@@ -91,6 +108,12 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val mode by app.settings.themeMode.collectAsStateWithLifecycle()
     val style by app.settings.uiStyle.collectAsStateWithLifecycle()
     val autoplay by app.settings.autoplay.collectAsStateWithLifecycle()
+    val levelling by app.settings.volumeLevelling.collectAsStateWithLifecycle()
+    val crossfade by app.settings.crossfadeSeconds.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // Checked each time Settings opens, so an equaliser installed meanwhile shows up.
+    val equaliserAvailable = remember { Equaliser.isAvailable(context) }
+    val equaliser = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val bulk by app.lyrics.bulk.collectAsStateWithLifecycle()
     val saved by app.lyrics.savedKeys().collectAsStateWithLifecycle(emptyList())
     val savedCount = saved.count { it in library.trackByKey }
@@ -111,7 +134,19 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         uri?.let(app.backupSession::open)
     }
 
-    val state = SettingsState(mode, style, autoplay, bulk, savedCount, library.tracks.size, analysis, BackupUiState.of(backupStatus))
+    val state = SettingsState(
+        mode,
+        style,
+        autoplay,
+        levelling,
+        crossfade,
+        equaliserAvailable,
+        bulk,
+        savedCount,
+        library.tracks.size,
+        analysis,
+        BackupUiState.of(backupStatus),
+    )
     val actions = SettingsActions(
         back = { ui.back() },
         setThemeMode = app.settings::setThemeMode,
@@ -120,6 +155,15 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
             app.settings.setUiStyle(choice)
         },
         setAutoplay = app.settings::setAutoplay,
+        setVolumeLevelling = app.settings::setVolumeLevelling,
+        setCrossfadeSeconds = app.settings::setCrossfadeSeconds,
+        openEqualiser = {
+            try {
+                equaliser.launch(Equaliser.panelIntent(context, app.audioSessionId.value))
+            } catch (_: ActivityNotFoundException) {
+                app.messages.tryEmit(context.getString(R.string.settings_equaliser_failed))
+            }
+        },
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
         startAnalysis = { AnalysisWorker.startNow(app) },
         openLicences = { ui.openLicences() },

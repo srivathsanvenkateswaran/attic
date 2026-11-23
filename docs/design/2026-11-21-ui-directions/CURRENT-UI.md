@@ -670,6 +670,12 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
 
 - **"Appearance"** section title. Three rows (padding 16 horizontal, 4 vertical), each a label in `bodyLarge` with a Material radio button at the right: "Match phone", "Dark", "Light". Tapping the row or the button selects it and the theme changes immediately. The default on a fresh install is "Dark" (`data/AppSettings.kt:18`).
 
+- **"Playback"** section title, added 2026-11-23 after this extraction, in both styles between Appearance (Comfort: Style) and Lyrics (`ui/expressive/ExpressiveSettings.kt`, `ui/comfort/ComfortSettings.kt`; state and actions in `ui/model/SettingsModel.kt`).
+  - "Volume levelling" over "Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are." with a switch. Default on. Expressive heads it with `volume_up` in a tonal circle.
+  - "Crossfade", its length shown as "Off" or "{n} seconds" (Expressive: the supporting line; Comfort: the row's value in accent ink), over "Songs from one album played in order still run straight into each other." Tapping opens the kit's menu of lengths: "Off", "2 seconds", "4 seconds", "6 seconds", "8 seconds", "10 seconds", "12 seconds", the current one ticked (Comfort's pop-over, captioned "Crossfade", opens over its row like the track menu's sleep timer). Default "Off". Expressive heads it with `transition_fade`.
+  - "Equaliser" over "Opens the equaliser on this phone.", with an `open_in_new` glyph at the end. Tapping opens the system's sound-effects panel or an installed equaliser app on Attic's audio session. The row is hidden when nothing on the phone opens one; if opening fails, the snackbar says "Couldn't open the equaliser". Expressive heads it with `equalizer`.
+  - Behind them (`playback/`): levelling brings songs to about -14 LUFS without raising a peak past -1 dBFS, and an album played in order shares one gain. Crossfade never fades between consecutive songs of one album, with repeat-one, or when the sleep timer is set to "End of this song". The analysis status line counts a song once its loudness is measured as well.
+
 - **"Lyrics"** section title.
   - "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline." in `bodyMedium` `onSurfaceVariant`. {saved} counts lyrics read from the songs' files as well as downloaded ones.
   - 4dp, then "Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent." in `bodySmall` `onSurfaceVariant`.
@@ -967,7 +973,7 @@ In `notification.png` and `lock_screen.png` this renders as the system media car
 
 No notification appears on launch. It appears once playback starts.
 
-The sleep timer (section 2.13) adds nothing to the notification or the lock screen.
+The sleep timer (section 2.13) adds nothing to the notification or the lock screen. Nor does a crossfade: the card moves to the next song when the fade starts, a few seconds before the outgoing song ends.
 
 **Analysis notification** (`analysis/AnalysisWorker.kt:105-128`). While radio analysis runs: an ongoing silent notification on the "Song analysis" channel with an equaliser-bars icon, title "Analysing your songs", text "{done} of {total}", a determinate progress bar, and one action, "Stop". Tapping it opens the app.
 
@@ -1390,7 +1396,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Loading and empty-period states
 
 **Settings**
-- [ ] "Appearance", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
+- [ ] "Appearance", "Playback", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
+- [ ] "Volume levelling" switch (default on), "Crossfade" length (default off), and "Equaliser" when the phone has one (added 2026-11-23)
 - [ ] "Back up to a file" and "Restore from a file", with the restore confirmation, result and problem dialogs
 - [ ] Song count in "About"
 
@@ -1407,7 +1414,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Launcher icon with a monochrome variant
 - [ ] "Open with" for audio files: library songs play in context, other files play once and are kept nowhere (added 2026-11-23)
 
-**Not present today.** Listed so a restyle does not add controls that have nothing behind them: equaliser, playback speed, crossfade, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
+**Not present today.** Listed so a restyle does not add controls that have nothing behind them: an equaliser of Attic's own (Settings only opens the phone's), playback speed, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
 
 ---
 

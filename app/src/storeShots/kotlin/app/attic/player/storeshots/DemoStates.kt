@@ -303,6 +303,9 @@ object DemoStates {
         themeMode = if (dark) ThemeMode.Dark else ThemeMode.Light,
         uiStyle = style,
         autoplay = true,
+        volumeLevelling = true,
+        crossfadeSeconds = 6,
+        equaliserAvailable = true,
         bulkLyrics = BulkProgress(done = 0, total = 0, found = 0, running = false),
         savedLyricsCount = 51,
         songCount = lib.tracks.size,
@@ -310,7 +313,22 @@ object DemoStates {
         backup = BackupUiState(saving = false, restoring = false, confirm = null, restored = null, problem = null),
     )
 
-    val settingsActions = SettingsActions(noop, {}, {}, {}, noop, noop, noop, noop, noop, noop, noop)
+    val settingsActions = SettingsActions(
+        back = noop,
+        setThemeMode = {},
+        setUiStyle = {},
+        setAutoplay = {},
+        setVolumeLevelling = {},
+        setCrossfadeSeconds = {},
+        openEqualiser = noop,
+        downloadAllLyrics = noop,
+        startAnalysis = noop,
+        openLicences = noop,
+        backUp = noop,
+        restore = noop,
+        confirmRestore = noop,
+        dismissBackupDialog = noop,
+    )
 
     // Recap
 

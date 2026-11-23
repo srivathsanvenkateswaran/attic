@@ -286,6 +286,19 @@
     <string name="settings_style">Style</string>
     <string name="settings_style_expressive">Expressive</string>
     <string name="settings_style_comfort">Comfort</string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_volume_levelling">Volume levelling</string>
+    <string name="settings_volume_levelling_body">Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are.</string>
+    <string name="settings_crossfade">Crossfade</string>
+    <string name="settings_crossfade_body">Songs from one album played in order still run straight into each other.</string>
+    <string name="settings_crossfade_off">Off</string>
+    <plurals name="settings_crossfade_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <string name="settings_equaliser">Equaliser</string>
+    <string name="settings_equaliser_body">Opens the equaliser on this phone.</string>
+    <string name="settings_equaliser_failed">Couldn\'t open the equaliser</string>
     <string name="settings_lyrics">Lyrics</string>
     <string name="settings_lyrics_saved">%1$s of %2$s songs have lyrics saved on this phone. Saved lyrics work offline.</string>
     <string name="settings_lyrics_privacy">Downloading sends each song\'s title, artist, album and length to lrclib.net. Your music files are never sent.</string>
