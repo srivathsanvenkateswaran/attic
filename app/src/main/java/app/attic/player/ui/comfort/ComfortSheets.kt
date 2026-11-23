@@ -42,6 +42,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.playback.SleepChoice
+import app.attic.player.ui.sleepChoiceLabel
+import app.attic.player.ui.sleepTimerSummary
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.expressive.languageName
@@ -71,8 +74,9 @@ import app.attic.player.ui.model.TrackMenuState
 /**
  * The track menu (frames A, C, G, H): the song, then radio, favourite, play next and add to queue as
  * a row of the deck's superellipse toggles with their labels (the heart lights while the song is a
- * favourite), then only the rows that go somewhere or open something. "Remove from this playlist"
- * comes last, in red. The language row opens the picker as a pop-over over the menu.
+ * favourite), then only the rows that go somewhere or open something, "Share" among them. "Remove
+ * from this playlist" comes last, in red. The language row opens the picker as a pop-over over the
+ * menu. Opened from Now Playing, "Sleep timer" leads the rows and opens its choices the same way.
  */
 @Composable
 fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
@@ -81,6 +85,11 @@ fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
     ComfortSheet(onDismiss = actions.dismiss) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             SheetHeader(track.title, track.artist, art = { m -> Cover(Art.of(track.mediaId), m) })
+            // A song opened from another app isn't in the library: only the sleep timer applies to it.
+            if (state.external) {
+                Hairlined { if (state.sleepTimer != null) item { SleepTimerRow(state, actions) } }
+                return@Column
+            }
             Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 8.dp)) {
                 QuickAction(Symbol.Sensors, stringResource(R.string.menu_start_radio), actions.startRadio)
                 QuickAction(
@@ -95,10 +104,12 @@ fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
             // `.quick + .sheet-row::before`: the first row's hairline runs the sheet's width.
             Box(Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(1.dp).background(colors.line))
             Hairlined {
+                if (state.sleepTimer != null) item { SleepTimerRow(state, actions) }
                 item { SheetRow(Symbol.PlaylistAdd, stringResource(R.string.menu_add_to_playlist), actions.pickPlaylist, end = Symbol.ChevronRight) }
                 item { LanguageRow(state, actions) }
                 if (state.canGoToAlbum) item { SheetRow(Symbol.Album, stringResource(R.string.menu_go_to_album), actions.goToAlbum) }
                 if (state.canGoToArtist) item { SheetRow(Symbol.Person, stringResource(R.string.menu_go_to_artist), actions.goToArtist) }
+                if (state.canShare) item { SheetRow(Symbol.Share, stringResource(R.string.menu_share), actions.share) }
                 if (state.inPlaylist) {
                     item { SheetRow(Symbol.DoNotDisturbOn, stringResource(R.string.menu_remove_from_playlist), actions.removeFromPlaylist, danger = true) }
                 }
@@ -171,6 +182,40 @@ private fun LanguageRow(state: TrackMenuState, actions: TrackMenuActions) {
             MenuCaption(stringResource(R.string.language_picker_title))
             for ((code, _) in app.attic.player.data.LanguageLabels.CHOICES) {
                 MenuRow(null, languageName(code), { actions.chooseLanguage(code) }, selected = code == state.language, check = true)
+            }
+        }
+    }
+}
+
+/**
+ * "Sleep timer", first among the rows when the menu opens from Now Playing, with what the timer is
+ * doing at its end ("12 min left") and `unfold_more`. Its choices open as a pop-over on the row, the
+ * way the language picker does: "Sleep timer" as a caption, the six choices, the current one in the
+ * accent with a tick. A choice sets the timer and closes the menu; tapping outside closes only the
+ * pop-over.
+ */
+@Composable
+private fun SleepTimerRow(state: TrackMenuState, actions: TrackMenuActions) {
+    val timer = state.sleepTimer ?: return
+    var rowHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    BoxWithConstraints(Modifier.onSizeChanged { rowHeight = it.height }) {
+        SheetRow(
+            Symbol.Bedtime,
+            stringResource(R.string.sleep_timer),
+            actions.pickSleepTimer,
+            value = sleepTimerSummary(timer),
+            end = Symbol.UnfoldMore,
+        )
+        ComfortMenu(
+            expanded = state.pickingSleepTimer,
+            onDismiss = actions.stopPickingSleepTimer,
+            onSheet = true,
+            offset = DpOffset(maxWidth - 214.dp, with(density) { -rowHeight.toDp() }),
+        ) {
+            MenuCaption(stringResource(R.string.sleep_timer))
+            for (choice in SleepChoice.entries) {
+                MenuRow(null, sleepChoiceLabel(choice), { actions.chooseSleepTimer(choice) }, selected = choice == timer.choice, check = true)
             }
         }
     }

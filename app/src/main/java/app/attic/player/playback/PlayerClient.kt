@@ -2,6 +2,7 @@ package app.attic.player.playback
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -27,6 +28,7 @@ data class PlayerUiState(
     val shuffle: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val contextName: String? = null,
+    val sleepTimer: SleepTimerStatus = SleepTimerStatus(),
 ) {
     val current: Track? get() = queue.getOrNull(currentIndex)
 }
@@ -54,7 +56,14 @@ class PlayerClient(
         connecting = true
         scope.launch {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-            val built = MediaController.Builder(context, token).buildAsync().await()
+            val built = MediaController.Builder(context, token)
+                .setListener(
+                    object : MediaController.Listener {
+                        override fun onExtrasChanged(controller: MediaController, extras: Bundle) = publish()
+                    },
+                )
+                .buildAsync()
+                .await()
             connecting = false
             controller = built
             built.addListener(listener)
@@ -91,6 +100,7 @@ class PlayerClient(
             shuffle = c.shuffleModeEnabled,
             repeatMode = c.repeatMode,
             contextName = c.playlistMetadata.title?.toString(),
+            sleepTimer = SleepTimerSession.statusFrom(c.sessionExtras),
         )
     }
 
@@ -161,6 +171,8 @@ class PlayerClient(
         val start = c.currentMediaItemIndex + 1
         if (start < c.mediaItemCount) c.removeMediaItems(start, c.mediaItemCount)
     }
+
+    fun setSleepTimer(choice: SleepChoice) = act { it.sendCustomCommand(SleepTimerSession.COMMAND, SleepTimerSession.args(choice)) }
 
     /** Current playback position, read on demand because it changes too fast to publish as state. */
     fun positionMs(): Long = controller?.currentPosition ?: 0L

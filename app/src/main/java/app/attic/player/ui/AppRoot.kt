@@ -58,8 +58,11 @@ class UiActions(
     fun back() = nav.popBackStack()
 }
 
-/** [playlistId] is set when the menu opens from a playlist, which adds "Remove from this playlist". */
-data class TrackMenuRequest(val track: Track, val playlistId: Long? = null)
+/**
+ * [playlistId] is set when the menu opens from a playlist, which adds "Remove from this playlist".
+ * [fromNowPlaying] is set when it opens from Now Playing's menu button, which adds "Sleep timer".
+ */
+data class TrackMenuRequest(val track: Track, val playlistId: Long? = null, val fromNowPlaying: Boolean = false)
 
 val LocalUi = staticCompositionLocalOf<UiActions> { error("No UiActions") }
 

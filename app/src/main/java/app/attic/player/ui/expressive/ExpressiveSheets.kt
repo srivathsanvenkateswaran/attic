@@ -43,6 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
 import app.attic.player.data.LanguageLabels
+import app.attic.player.playback.SleepChoice
+import app.attic.player.ui.sleepChoiceLabel
+import app.attic.player.ui.sleepTimerSummary
 import app.attic.player.ui.model.AddSongsActions
 import app.attic.player.ui.model.AddSongsState
 import app.attic.player.ui.model.DeletePlaylistActions
@@ -65,7 +68,8 @@ import java.text.NumberFormat
 /**
  * The track menu (frame A, G, H): the song, the three ways to play it as a button group, then two
  * grouped lists: filing it (favourites, a playlist, its language, out of this playlist) and going
- * somewhere else (its album and artist, each shown by its cover and name).
+ * somewhere else (its album and artist, each shown by its cover and name, and the share sheet).
+ * Opened from Now Playing, "Sleep timer" sits in a group of its own under the song.
  */
 @Composable
 fun ExpressiveTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
@@ -73,6 +77,19 @@ fun ExpressiveTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
     ExpressiveSheet(onDismiss = actions.dismiss) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             SheetHeader(track.title, track.artist) { m -> Cover(Art.of(track.mediaId), m) }
+            state.sleepTimer?.let { timer ->
+                ListGroup(1) {
+                    MenuCell(
+                        stringResource(R.string.sleep_timer),
+                        actions.pickSleepTimer,
+                        supporting = sleepTimerSummary(timer),
+                        lead = { CellSymbol(Symbol.Bedtime, filled = timer.choice != SleepChoice.Off, on = timer.choice != SleepChoice.Off) },
+                    )
+                }
+                Spacer(Modifier.height(ExpressiveShapes.GroupSpacing))
+            }
+            // A song opened from another app isn't in the library, so nothing below applies to it.
+            if (state.external) return@Column
             ButtonGroup(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp), fill = true) {
                 QuickAction(Symbol.Sensors, stringResource(R.string.menu_start_radio), actions.startRadio)
                 QuickAction(Symbol.PlaylistPlay, stringResource(R.string.menu_play_next), actions.playNext)
@@ -120,6 +137,9 @@ fun ExpressiveTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
                             lead = { ArtistCover(Art.of(state.artistCover ?: track.mediaId), size = 40.dp) },
                         )
                     }
+                }
+                if (state.canShare) {
+                    add { MenuCell(stringResource(R.string.menu_share), actions.share, lead = { CellSymbol(Symbol.Share) }) }
                 }
             }
             if (going.isNotEmpty()) {
@@ -269,6 +289,33 @@ fun ExpressiveLanguagePicker(state: LanguagePickerState, actions: LanguagePicker
                 MenuCell(
                     label = languageName(code),
                     onClick = { actions.choose(code) },
+                    selected = selected,
+                    role = Role.RadioButton,
+                    trailing = { ExpressiveRadio(selected, onClick = null) },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The sleep timer's choices, opened from "Sleep timer" in the track menu over Now Playing. Built like
+ * the language picker: a title with what the timer is doing under it, then one single-choice group.
+ * A choice sets the timer and closes the sheet.
+ */
+@Composable
+fun ExpressiveSleepTimerPicker(state: TrackMenuState, actions: TrackMenuActions) {
+    val timer = state.sleepTimer ?: return
+    ExpressiveSheet(onDismiss = actions.dismiss) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            TitleBlock(stringResource(R.string.sleep_timer), sleepTimerSummary(timer))
+            val choices = SleepChoice.entries
+            ListGroup(choices.size) { index ->
+                val choice = choices[index]
+                val selected = choice == timer.choice
+                MenuCell(
+                    label = sleepChoiceLabel(choice),
+                    onClick = { actions.chooseSleepTimer(choice) },
                     selected = selected,
                     role = Role.RadioButton,
                     trailing = { ExpressiveRadio(selected, onClick = null) },

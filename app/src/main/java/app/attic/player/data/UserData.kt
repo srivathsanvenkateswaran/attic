@@ -39,6 +39,7 @@ class UserData(
     val recentKeys: Flow<List<String>> = dao.history().map { rows -> rows.map { it.trackKey } }
 
     fun toggleLike(key: String) {
+        if (ExternalTrack.isExternal(key)) return
         scope.launch {
             if (key in likedSet.value) dao.unlike(key) else dao.like(LikedEntity(key, System.currentTimeMillis()))
         }
@@ -59,7 +60,7 @@ class UserData(
     suspend fun addToPlaylist(id: Long, keys: List<String>): Int {
         var position = dao.maxPosition(id)
         var added = 0
-        for (key in keys) {
+        for (key in keys.filterNot(ExternalTrack::isExternal)) {
             if (dao.insertPlaylistTrack(PlaylistTrackEntity(id, key, position + 1)) != -1L) {
                 position++
                 added++

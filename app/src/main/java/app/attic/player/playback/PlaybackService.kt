@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -64,6 +65,8 @@ class PlaybackService : MediaSessionService() {
     private var upcomingAfter: String? = null
     private var radioFill: Job? = null
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val sleep = SleepTimer(SystemClock::elapsedRealtime)
+    private var sleepJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -173,8 +176,10 @@ class PlaybackService : MediaSessionService() {
                     MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
                         .add(SHUFFLE_COMMAND)
                         .add(LIKE_COMMAND)
+                        .add(SleepTimerSession.COMMAND)
                         .build(),
                 )
+                .setSessionExtras(SleepTimerSession.extras(sleep.status))
                 .build()
 
         override fun onCustomCommand(
@@ -186,6 +191,7 @@ class PlaybackService : MediaSessionService() {
             when (customCommand) {
                 SHUFFLE_COMMAND -> shuffledPlayer.shuffleModeEnabled = !player.shuffleModeEnabled
                 LIKE_COMMAND -> player.currentMediaItem?.mediaId?.let(attic.userData::toggleLike)
+                SleepTimerSession.COMMAND -> setSleepTimer(SleepTimerSession.choiceFrom(args))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
@@ -294,7 +300,62 @@ class PlaybackService : MediaSessionService() {
         attic.scope.launch { attic.database.dao().saveQueue(entity) }
     }
 
+    /**
+     * Runs in the service so the timer outlives the UI. A countdown fades the last ten seconds out and
+     * pauses; "End of this song" fades the song's own last seconds and lets the player stop at its end
+     * (pauseAtEndOfMediaItems). Either way the music is paused, not stopped, and the volume put back.
+     */
+    private fun setSleepTimer(choice: SleepChoice) {
+        sleep.set(choice)
+        player.pauseAtEndOfMediaItems = choice == SleepChoice.EndOfSong
+        runSleepTimer()
+        publishSleepTimer()
+    }
+
+    private fun runSleepTimer() {
+        sleepJob?.cancel()
+        sleepJob = scope.launch {
+            while (isActive) {
+                val duration = player.duration
+                val songRemaining = if (duration == C.TIME_UNSET) null else (duration - player.currentPosition).coerceAtLeast(0)
+                when (val step = sleep.step(songRemaining)) {
+                    is SleepTimer.Step.Play -> {
+                        player.volume = step.volume
+                        delay(step.nextCheckMs)
+                    }
+                    SleepTimer.Step.Pause -> {
+                        player.pause()
+                        endSleepTimer()
+                        return@launch
+                    }
+                    SleepTimer.Step.Idle -> {
+                        player.volume = 1f
+                        return@launch
+                    }
+                }
+            }
+        }
+    }
+
+    /** The timer has run out or switched itself off: full volume again for whenever play is pressed. */
+    private fun endSleepTimer() {
+        player.volume = 1f
+        player.pauseAtEndOfMediaItems = false
+        publishSleepTimer()
+    }
+
+    private fun publishSleepTimer() {
+        session?.setSessionExtras(SleepTimerSession.extras(sleep.status))
+    }
+
     private inner class PlayerEvents : Player.Listener {
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (!playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM && sleep.songEnded()) {
+                sleepJob?.cancel()
+                endSleepTimer()
+            }
+        }
+
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             logListen(
                 automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
@@ -306,7 +367,13 @@ class PlaybackService : MediaSessionService() {
             }
         }
 
-        override fun onIsPlayingChanged(isPlaying: Boolean) = listens.playing(isPlaying)
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            listens.playing(isPlaying)
+            if (isPlaying && sleep.resumed()) {
+                sleepJob?.cancel()
+                endSleepTimer()
+            }
+        }
 
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.containsAny(
