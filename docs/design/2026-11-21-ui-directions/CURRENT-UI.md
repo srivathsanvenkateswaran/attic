@@ -621,7 +621,7 @@ Material 3 alert dialogs with a `surfaceContainer` background and stock shape. `
 
 ### 2.15 Settings
 
-Purpose: theme, lyrics download, radio options. `ui/SettingsScreen.kt`. A plain scrolling page. The mini player and tab bar remain visible.
+Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. A plain scrolling page. The mini player and tab bar remain visible.
 
 - **Header** (4dp side padding): back button, 4dp gap, "Settings" in `titleLarge`.
 
@@ -643,6 +643,21 @@ Purpose: theme, lyrics download, radio options. `ui/SettingsScreen.kt`. A plain 
     - "All {total} songs analysed."
     - "{done} of {total} songs analysed. The rest continue next time the phone charges."
   - A text button "Analyse now without a charger", shown only when analysis is not running and songs remain.
+
+- **"Backup"** section title, added 2026-11-23 after this extraction, in both styles (`ui/expressive/ExpressiveSettings.kt`, `ui/comfort/ComfortSettings.kt`; state and actions in `ui/model/SettingsModel.kt` and `ui/model/BackupController.kt`). `docs/backup.md` covers the format and merge rules.
+  - "Back up to a file" over "Saves favourites, playlists, listening history, saved lyrics and settings in one file. Keep it somewhere other than this phone." Tapping opens the system's save picker with the name `attic-backup-{yyyy-mm-dd}.json`. While it writes, the supporting line reads "Saving the backup…". Afterwards a snackbar says "Backup saved" or "Couldn't save the backup".
+  - "Restore from a file" over "Adds a backup to what is on this phone. Nothing here is deleted." Tapping opens the system's open picker. While it reads and merges, "Restoring the backup…". Both rows are disabled while either runs. Expressive heads them with `file_save` and `file_open` in tonal circles; Comfort draws them as plain rows.
+  - A note: "Song analysis isn't in the file, so a new phone analyses the songs again while it charges. If backup is on in the phone's settings, Android also keeps a copy, encrypted with your screen lock."
+  - After a file is picked, a dialog "Restore this backup?" with "Made {date}, with {n} favourites, {n} playlists, {n} plays and lyrics for {n} songs. They are added to what is on this phone, and nothing here is deleted. Theme, style and autoplay change to the backup's." and "Cancel" / "Restore".
+  - Then "Backup restored" with "Added {n} favourites, {n} playlists, {n} plays and lyrics for {n} songs." (only what was new), "Songs were also added to {n} playlists that already had the same names." when a playlist merged, and "{matched} of {total} songs in the backup are on this phone." When some are missing, it adds "The rest keep their place in your favourites, playlists and history, and show up when their files are added to this phone." A restore that adds nothing says "Everything in this backup was already on this phone." One button, "Close".
+  - Or "Couldn't restore" with one of these bodies and "Close":
+    - "This file isn't an Attic backup."
+    - "This backup was made by a newer version of Attic. Update Attic, then try again."
+    - "This backup is damaged and can't be read. Nothing was changed."
+    - "This file is too large to be an Attic backup."
+    - "The file couldn't be opened."
+    - "Something went wrong while restoring, so nothing was changed. Try again."
+  - The state lives with the app, so leaving Settings or switching style mid-restore keeps the dialog.
 
 - **"About"** section title. "Attic plays your own music files, from any folder. It has no account and no streaming. {n} songs on this phone." in `bodyMedium` `onSurfaceVariant`.
 
@@ -820,6 +835,8 @@ Purpose: short confirmations and playback or radio errors.
 | "Sleep timer off" | Sleep timer set to "Off" (added 2026-11-23) |
 | "Couldn't share this song" | "Share" found no app to take the file (added 2026-11-23) |
 | "Couldn't open this file" | Attic was asked to open something it can't play, such as a web link, or reading it failed (added 2026-11-23) |
+| "Backup saved" | Settings "Back up to a file" finished (added 2026-11-23) |
+| "Couldn't save the backup" | Writing the backup file failed (added 2026-11-23) |
 
 Liking a song, removing from a playlist, clearing the queue, and renaming or deleting a playlist show no message.
 
@@ -1306,7 +1323,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Loading and empty-period states
 
 **Settings**
-- [ ] "Appearance", "Lyrics", "Song radio", "About" sections with the controls above
+- [ ] "Appearance", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
+- [ ] "Back up to a file" and "Restore from a file", with the restore confirmation, result and problem dialogs
 - [ ] Song count in "About"
 
 **Messages and system states**
