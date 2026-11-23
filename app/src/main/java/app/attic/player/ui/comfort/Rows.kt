@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.SwipeToDismissBox
@@ -243,7 +244,9 @@ fun SongRow(
                 style = onest(17f, 22f, 700).tabular(),
                 color = colors.on2,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.width(20.dp),
+                softWrap = false,
+                // The column is 20dp as in kit.css; "10" is wider and spills evenly past both sides, as the CSS lets it.
+                modifier = Modifier.width(20.dp).wrapContentWidth(unbounded = true),
             )
         }
         when (lead) {
