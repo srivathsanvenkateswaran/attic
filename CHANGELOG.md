@@ -33,7 +33,8 @@ The first public release.
 - Download lyrics for one song or the whole library from LRCLIB, then use them offline
 
 ### Library
-- Reads MP3s from `Music/Offline`; `Artist/Album/` folders become artists and albums
+- Finds MP3, M4A, FLAC, Ogg, Opus and WAV songs in any folder on the phone or an SD card, leaving out ringtones, notification and alarm sounds, recordings, podcasts, audiobooks and voice notes
+- `Artist/Album/` folders under the library root become artists and albums
 - Cleans up messy tags without writing to your files: uploader names, video IDs and "(Lyrics)" suffixes, and differently spelled artists merged into one page
 
 ### Recap

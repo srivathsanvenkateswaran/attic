@@ -1,6 +1,6 @@
-Attic plays the MP3s already on your phone. There is no account, no streaming and no ads, and it plays in airplane mode.
+Attic plays the songs already on your phone: MP3, M4A, FLAC, Ogg, Opus and WAV files. There is no account, no streaming and no ads, and it plays in airplane mode.
 
-Copy your music into the Music/Offline folder and Attic builds albums and artists from it. Album and artist pages take their colour from the cover art.
+Copy your music onto the phone, in Music, Download or any other folder, and Attic builds albums and artists from it. Album and artist pages take their colour from the cover art.
 
 PLAYS YOUR LIBRARY
 - Home, Search and Library tabs, with album, artist and playlist screens
@@ -38,8 +38,8 @@ PRIVACY
 Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
 
 GOOD TO KNOW
-- Attic reads the Music/Offline folder only
+- Attic finds songs in any folder on the phone or its SD card, and leaves out ringtones, recordings, podcasts, audiobooks and voice notes
 - It needs Android 13 or newer and a 64-bit ARM phone
-- It was built for one phone and one library of 279 songs, and the release build has been tested on that phone
+- It was built for one phone and its library of 740 MP3 and M4A songs, and the release build has been tested on that phone
 
 Attic is free software under the GNU General Public License v3.0 or later. The source code, issue tracker and build instructions are at github.com/srivathsanvenkateswaran/attic.

@@ -25,8 +25,10 @@ Compose runs far slower in a debug build, so judge scrolling and start-up on a r
 release build only targets 64-bit ARM (`arm64-v8a`), because the song analysis runtime ships as
 native code.
 
-Attic reads music from `Music/Offline` only. The path and the four folder names that become
-playlists (`English`, `Hindi`, `Tamil`, `Phonk`) are hard-coded in
+Attic reads music from every folder Android's media library indexes.
+[`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) decides which files
+are songs and where each library root starts. The four folder names that become playlists
+(`English`, `Hindi`, `Tamil`, `Phonk`) are hard-coded in
 [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt).
 
 ## Making a change

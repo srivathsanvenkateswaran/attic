@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Attic: a music player for the MP3s already on your phone</title>
-  <meta name="description" content="Attic is an offline Android music player for the MP3s already on your phone. No account, no streaming, no ads. Free software under the GPL.">
+  <title>Attic: a music player for the songs already on your phone</title>
+  <meta name="description" content="Attic is an offline Android music player for the songs already on your phone. No account, no streaming, no ads. Free software under the GPL.">
   <meta property="og:title" content="Attic">
-  <meta property="og:description" content="A music player for the MP3s already on your phone. No account, no streaming, no ads.">
+  <meta property="og:description" content="A music player for the songs already on your phone. No account, no streaming, no ads.">
   <meta property="og:image" content="img/og.png">
   <meta name="theme-color" content="#c6533a">
   <link rel="icon" href="img/icon.svg" type="image/svg+xml">
@@ -29,7 +29,7 @@
 
     <div class="wrap hero">
       <div>
-        <h1>A music player for the MP3s already on your phone.</h1>
+        <h1>A music player for the songs already on your phone.</h1>
         <p>No account, no streaming, no ads. It plays in airplane mode.</p>
         <div class="get">
           <!--
@@ -134,7 +134,7 @@
       <h2 id="privacy">Privacy</h2>
       <div class="privacy">
         <p>Attic has no account, analytics or ads, and playback and song analysis never touch the network.</p>
-        <p>The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.</p>
+        <p>The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net, with the app's version and homepage in the User-Agent. Your music files are never uploaded.</p>
         <p><a href="privacy.html">Read the privacy policy</a></p>
       </div>
     </section>
@@ -144,7 +144,7 @@
       <p class="lead">Attic needs Android 13 or newer and a 64-bit ARM phone.</p>
       <ol>
         <li>Download the latest APK from <a href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">GitHub Releases</a> and open it on your phone.</li>
-        <li>Put your MP3s in <code>Music/Offline</code>. Attic only looks in that folder.</li>
+        <li>Copy your music onto the phone, in <code>Music</code>, <code>Download</code> or any other folder. Attic plays MP3, M4A, FLAC, Ogg, Opus and WAV files, and leaves out ringtones, recordings, podcasts, audiobooks and voice notes.</li>
         <li>Open Attic and allow audio access and notifications.</li>
       </ol>
     </section>

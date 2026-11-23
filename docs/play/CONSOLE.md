@@ -33,8 +33,8 @@ Anything in `<ANGLE BRACKETS>` is for the owner to fill in.
 | Field | Source |
 |---|---|
 | App name | `title.txt` |
-| Short description | `short_description.txt` (71 of 80 characters) |
-| Full description | `full_description.txt` (about 3,000 of 4,000 characters) |
+| Short description | `short_description.txt` (78 of 80 characters) |
+| Full description | `full_description.txt` (about 3,200 of 4,000 characters) |
 | App icon | `images/icon.png`, 512×512, 32-bit PNG |
 | Feature graphic | `images/featureGraphic.png`, 1024×500, 24-bit PNG |
 | Phone screenshots | `images/phoneScreenshots/`, once captured: 2 to 8, and at least four 9:16 shots for recommendation placements |

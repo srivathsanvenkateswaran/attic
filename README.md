@@ -5,7 +5,7 @@
 <h1 align="center">Attic</h1>
 
 <p align="center">
-  <b>A music player for the MP3s already on your phone.</b><br>
+  <b>A music player for the songs already on your phone.</b><br>
   No account, no streaming, no ads. It plays in airplane mode.
 </p>
 
@@ -24,9 +24,9 @@
 
 ## Why it exists
 
-Local music players tend to look like file managers. Attic gives a folder of MP3s album and artist pages tinted from their covers, a mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
+Local music players tend to look like file managers. Attic gives a folder of music files album and artist pages tinted from their covers, a mini player, a queue you can drag around, and lyrics that follow the song. Everything plays from your own storage.
 
-It was built for one phone and one library of 279 songs, and every number below was measured on that phone.
+It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Every number below was measured on that phone, and the counts out of 279 cover the MP3s.
 
 ## What it does
 
@@ -35,8 +35,9 @@ It was built for one phone and one library of 279 songs, and every number below 
 - A mini player and a full Now Playing screen, tinted from the cover art
 - Shuffle, repeat, and a queue with drag to reorder and swipe to remove
 - Favourites and your own playlists, stored on the device
+- MP3, M4A, FLAC, Ogg, Opus and WAV files
 - Dark and light themes, or match the phone
-- Two styles to pick from in Settings, Expressive and Comfort. Samsung phones start in Comfort, other phones in Expressive
+- Two styles to pick from in Settings, Expressive and Comfort. The default depends on the phone
 
 **Finds what to play next, offline**
 - Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
@@ -61,7 +62,7 @@ It was built for one phone and one library of 279 songs, and every number below 
 
 **Cleans up messy tags**
 
-61 of the 279 songs it was built around are YouTube downloads with no album tag and an uploader name where the artist should be, so Attic works out what the tags meant. Nothing is written back to your files.
+61 of the 279 MP3s it was built around are YouTube downloads with no album tag and an uploader name where the artist should be, so Attic works out what the tags meant. Nothing is written back to your files.
 
 | In the file | In Attic |
 |---|---|
@@ -98,7 +99,7 @@ Install the release build for everyday use. Compose runs far slower in a debug b
 
 1. Download `attic-v1.0.0.apk` from [Releases](../../releases).
 2. Open it on your phone and allow the install.
-3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts and chat voice notes.
+3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.
 
 Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
@@ -141,22 +142,23 @@ Language comes from the folder or album name, or from Tamil or Devanagari script
 
 ## Privacy
 
-Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
+Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net, with the app's version and homepage in the User-Agent. Your music files are never uploaded. ONNX Runtime's usage reporting is turned off. [`PRIVACY.md`](PRIVACY.md) is the full policy.
 
 | Permission | Used for |
 |---|---|
 | `READ_MEDIA_AUDIO` | Reading your music |
-| `POST_NOTIFICATIONS` | Playback controls |
+| `POST_NOTIFICATIONS` | Playback controls, and progress while songs are analysed |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK` | Playing with the screen off |
 | `FOREGROUND_SERVICE_DATA_SYNC` | Keeping song analysis running with its progress notification |
 | `INTERNET` | Lyrics downloads only |
+| `RECEIVE_BOOT_COMPLETED` | Added by WorkManager, the Android library that schedules song analysis, so scheduled work survives a restart |
 
 ## Known limits
 
-- The release build has been tested on one phone, whose library sits in `Music/Offline`.
+- The release build has been tested on one phone, whose library sits in `Music/Offline` and holds only MP3 and M4A files.
 - Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
-- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 songs tested.
+- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 MP3s tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
 - Radio doesn't yet match tempo or energy between neighbouring songs.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
