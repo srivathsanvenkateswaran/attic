@@ -1,0 +1,8 @@
+First release.
+
+- Plays MP3s from Music/Offline, with album, artist and playlist screens
+- Two styles, Expressive and Comfort, in light and dark
+- Song radio and daily instant mixes, worked out on the phone
+- Synced lyrics from LRCLIB, saved for offline use
+- Lock-screen controls, media buttons and a home-screen widget
+- Recap of your listening, with cards to share
