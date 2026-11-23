@@ -5,10 +5,12 @@ import app.attic.player.AtticApp
 import app.attic.player.R
 import app.attic.player.analysis.MelodyMatch
 import app.attic.player.analysis.SongAnalyzer
+import app.attic.player.analysis.StyleCodec
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.SongAnalysisEntity
 import app.attic.player.data.SongLanguageEntity
+import app.attic.player.data.SongStylesEntity
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
 import app.attic.player.playback.ListenTracker
@@ -261,8 +263,9 @@ class RadioController(private val app: AtticApp) {
         if (dao.chroma(key) != null) return true
         val track = app.library.await().trackByKey[key] ?: return false
         val analysis = SongAnalyzer(app).use { it.analyze(LibraryRepository.uriFor(track.mediaId)) } ?: return false
-        dao.saveAnalysis(
+        dao.saveAnalysisAndStyles(
             SongAnalysisEntity(key, SongAnalyzer.MODEL_VERSION, SongAnalyzer.toBytes(analysis.embedding), analysis.chroma, System.currentTimeMillis()),
+            SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, StyleCodec.encode(analysis.styles)),
         )
         return true
     }

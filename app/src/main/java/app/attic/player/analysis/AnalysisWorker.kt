@@ -31,7 +31,9 @@ import java.text.NumberFormat
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import app.attic.player.data.LibraryRepository
+import app.attic.player.data.MusicDao
 import app.attic.player.data.SongAnalysisEntity
+import app.attic.player.data.SongStylesEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +42,10 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
 
-/** Works through unanalysed songs. Progress is saved per song, so being stopped loses nothing. */
+/**
+ * Works through unanalysed songs, then songs analysed before their styles were stored. Progress is saved
+ * per song, so being stopped loses nothing.
+ */
 class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val notifications = context.getSystemService(NotificationManager::class.java)
     private var foreground = false
@@ -52,17 +57,19 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val app = applicationContext.attic
         val dao = app.database.dao()
         val library = app.library.await()
-        val done = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
-        // Songs you actually play get ready first.
+        val finished = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
+        val analyzed = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
+        // Songs you actually play get ready first. Songs radio can't use yet come before songs analysed
+        // before styles were stored, which only need their styles.
         val recent = dao.recentKeys(RECENT_FIRST).withIndex().associate { it.value to it.index }
         val todo = library.tracks
-            .filter { it.key !in done }
-            .sortedBy { recent[it.key] ?: Int.MAX_VALUE }
+            .filter { it.key !in finished }
+            .sortedWith(compareBy({ it.key in analyzed }, { recent[it.key] ?: Int.MAX_VALUE }))
         if (todo.isEmpty()) return@withContext Result.success()
 
         val total = library.tracks.size
-        var finished = total - todo.size
-        showProgress(finished, total)
+        var done = total - todo.size
+        showProgress(done, total)
         // A style change in Settings redraws the notification at once rather than at the next song.
         val restyle = launch {
             app.settings.uiStyle.drop(1).collect { notifications.notify(NOTIFICATION_ID, buildNotification(shownDone, shownTotal)) }
@@ -80,18 +87,10 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     val songStarted = System.currentTimeMillis()
                     val analysis = analyzer.analyze(LibraryRepository.uriFor(track.mediaId))
                     if (analysis == null) Log.w(TAG, "Couldn't analyse ${track.key}")
-                    dao.saveAnalysis(
-                        SongAnalysisEntity(
-                            trackKey = track.key,
-                            modelVersion = SongAnalyzer.MODEL_VERSION,
-                            embedding = analysis?.embedding?.let(SongAnalyzer::toBytes),
-                            chroma = analysis?.chroma,
-                            analyzedAt = System.currentTimeMillis(),
-                        ),
-                    )
+                    saveResult(dao, track.key, analysis, hadEmbedding = track.key in analyzed)
                     Log.i(TAG, "Analysed in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
-                    finished++
-                    showProgress(finished, total)
+                    done++
+                    showProgress(done, total)
                 }
             }
         } finally {
@@ -99,9 +98,31 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
             notifications.cancel(NOTIFICATION_ID)
         }
         // Files added during this run didn't get a job of their own, because this one was already going.
-        val analyzed = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
-        if (app.library.await().tracks.any { it.key !in analyzed }) enqueueNextChunk()
+        val finishedNow = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
+        if (app.library.await().tracks.any { it.key !in finishedNow }) enqueueNextChunk()
         Result.success()
+    }
+
+    /**
+     * Saves what one song gave. A song that was analysed before styles were stored keeps its embedding
+     * if its file can't be read now; it gets an empty styles row instead, so it isn't tried again.
+     */
+    private suspend fun saveResult(dao: MusicDao, key: String, analysis: SongAnalyzer.Result?, hadEmbedding: Boolean) {
+        val now = System.currentTimeMillis()
+        if (analysis == null && hadEmbedding) {
+            dao.saveStyles(SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, ByteArray(0)))
+            return
+        }
+        dao.saveAnalysisAndStyles(
+            SongAnalysisEntity(
+                trackKey = key,
+                modelVersion = SongAnalyzer.MODEL_VERSION,
+                embedding = analysis?.embedding?.let(SongAnalyzer::toBytes),
+                chroma = analysis?.chroma,
+                analyzedAt = now,
+            ),
+            analysis?.let { SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, StyleCodec.encode(it.styles)) },
+        )
     }
 
     /**

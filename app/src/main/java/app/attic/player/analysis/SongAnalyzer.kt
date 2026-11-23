@@ -1,6 +1,5 @@
 package app.attic.player.analysis
 
-import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
@@ -13,16 +12,14 @@ import android.system.Os
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import kotlin.math.sqrt
 
-/** Turns one audio file into what radio needs: a sound embedding and a melody fingerprint. */
+/** Turns one audio file into what radio and genres need: a sound embedding, a melody fingerprint and its top styles. */
 class SongAnalyzer(private val context: Context) : Closeable {
-    class Result(val embedding: FloatArray, val chroma: ByteArray)
+    class Result(val embedding: FloatArray, val chroma: ByteArray, val styles: List<StyleScore>)
 
-    private val environment = quietEnvironment()
-    private val session: OrtSession = environment.createSession(
-        context.assets.open(MODEL_ASSET).use { it.readBytes() },
+    private val model = EffnetModel(
+        quietEnvironment(),
+        context.assets.open(EffnetModel.ASSET).use { it.readBytes() },
         OrtSession.SessionOptions().apply {
             addXnnpack(mapOf("intra_op_num_threads" to MODEL_THREADS.toString()))
             setIntraOpNumThreads(1)
@@ -35,33 +32,8 @@ class SongAnalyzer(private val context: Context) : Closeable {
         val pcm = decode(uri) ?: return null
         val patches = mel.patches(pcm)
         if (patches.isEmpty()) return null
-        return Result(embed(patches), Chroma.frames(pcm))
-    }
-
-    private fun embed(patches: List<FloatArray>): FloatArray {
-        val sum = FloatArray(EMBEDDING_SIZE)
-        patches.chunked(1).forEach { batch ->
-            val values = FloatBuffer.allocate(batch.size * batch[0].size)
-            batch.forEach(values::put)
-            values.rewind()
-            val shape = longArrayOf(batch.size.toLong(), MelSpectrogram.PATCH_FRAMES.toLong(), MelSpectrogram.BANDS.toLong())
-            OnnxTensor.createTensor(environment, values, shape).use { tensor ->
-                session.run(mapOf(MODEL_INPUT to tensor), setOf(MODEL_OUTPUT)).use { result ->
-                    @Suppress("UNCHECKED_CAST")
-                    val rows = result[0].value as Array<FloatArray>
-                    for (row in rows) for (i in row.indices) sum[i] += row[i]
-                }
-            }
-        }
-        return normalized(sum)
-    }
-
-    private fun normalized(vector: FloatArray): FloatArray {
-        var norm = 0f
-        for (value in vector) norm += value * value
-        norm = sqrt(norm)
-        if (norm > 0) for (i in vector.indices) vector[i] /= norm
-        return vector
+        val output = model.run(patches)
+        return Result(output.embedding, Chroma.frames(pcm), output.styles)
     }
 
     private fun decode(uri: Uri): FloatArray? {
@@ -133,7 +105,7 @@ class SongAnalyzer(private val context: Context) : Closeable {
         return out.toArray()
     }
 
-    override fun close() = session.close()
+    override fun close() = model.close()
 
     private class GrowingFloats {
         private var values = FloatArray(16_000 * 60 * 5)
@@ -164,11 +136,11 @@ class SongAnalyzer(private val context: Context) : Closeable {
         /** Raise this if the model or its input changes, so every song gets analysed again. */
         const val MODEL_VERSION = 1
 
-        private const val MODEL_ASSET = "discogs-effnet-bsdynamic-1.onnx"
-        private const val MODEL_INPUT = "melspectrogram"
-        private const val MODEL_OUTPUT = "embeddings"
         private const val MODEL_THREADS = 2
-        private const val EMBEDDING_SIZE = 1280
+        const val EMBEDDING_SIZE = 1280
+
+        /** How many Discogs styles the model scores: the length of its `activations` output. */
+        const val STYLE_COUNT = 400
         private const val TARGET_RATE = 16_000
         private const val CODEC_TIMEOUT_US = 10_000L
         private const val MAX_SAMPLES = TARGET_RATE * 60 * 12 // A long mix is judged by its first twelve minutes.

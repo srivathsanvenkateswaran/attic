@@ -15,6 +15,8 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Transaction
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /** All track references below use [Track.key], the file's path, so they outlive a MediaStore rebuild. */
@@ -118,6 +120,17 @@ class SongAnalysisEntity(
     val analyzedAt: Long,
 )
 
+/**
+ * A song's five strongest Discogs styles from the analysis model, as [app.attic.player.analysis.StyleCodec]
+ * stores them. An empty [top] records a song whose file couldn't be read again, so it isn't retried.
+ */
+@Entity(tableName = "song_styles")
+class SongStylesEntity(
+    @PrimaryKey val trackKey: String,
+    val modelVersion: Int,
+    val top: ByteArray,
+)
+
 /** A language from your own correction or an imported file. Everything else is worked out on load. */
 @Entity(tableName = "song_language")
 data class SongLanguageEntity(
@@ -127,6 +140,8 @@ data class SongLanguageEntity(
 )
 
 class EmbeddingRow(val trackKey: String, val embedding: ByteArray)
+
+class StylesRow(val trackKey: String, val top: ByteArray)
 
 class LyricsTextRow(val trackKey: String, val plain: String?, val synced: String?, val instrumental: Boolean)
 
@@ -264,6 +279,35 @@ interface MusicDao {
     @Query("SELECT trackKey, embedding FROM song_analysis WHERE modelVersion = :version AND embedding IS NOT NULL")
     suspend fun embeddings(version: Int): List<EmbeddingRow>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveStyles(entity: SongStylesEntity)
+
+    /** Analysis and styles together, so a song is never left with one and not the other. */
+    @Transaction
+    suspend fun saveAnalysisAndStyles(analysis: SongAnalysisEntity, styles: SongStylesEntity?) {
+        saveAnalysis(analysis)
+        if (styles != null) saveStyles(styles)
+    }
+
+    @Query("SELECT trackKey, top FROM song_styles WHERE modelVersion = :version")
+    fun styles(version: Int): Flow<List<StylesRow>>
+
+    /**
+     * Songs analysis has finished with: read with their styles, or found unreadable. A song analysed
+     * before styles were stored is not finished until its styles are.
+     */
+    @Query(
+        "SELECT a.trackKey FROM song_analysis a LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :version " +
+            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+    )
+    fun finishedKeys(version: Int): Flow<List<String>>
+
+    @Query(
+        "SELECT a.trackKey FROM song_analysis a LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :version " +
+            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+    )
+    suspend fun finishedKeysNow(version: Int): List<String>
+
     @Query("SELECT chroma FROM song_analysis WHERE trackKey = :key")
     suspend fun chroma(key: String): ByteArray?
 
@@ -366,8 +410,9 @@ object PlaylistOrder {
         SongAnalysisEntity::class,
         SongLanguageEntity::class,
         LocalLyricsCheckEntity::class,
+        SongStylesEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
@@ -376,6 +421,24 @@ abstract class AtticDatabase : RoomDatabase() {
 
     companion object {
         fun create(context: Context): AtticDatabase =
-            Room.databaseBuilder(context, AtticDatabase::class.java, "attic.db").build()
+            Room.databaseBuilder(context, AtticDatabase::class.java, "attic.db")
+                .addMigrations(DatabaseMigrations.FROM_3_TO_4)
+                .build()
+    }
+}
+
+/**
+ * Hand-written migrations. Their SQL is kept apart from the [Migration] so the JVM test can run it on
+ * plain SQLite against the exported schemas in `app/schemas`.
+ */
+object DatabaseMigrations {
+    /** Adds `song_styles`. Songs analysed before it get their styles from the next analysis run. */
+    val SQL_3_TO_4 = listOf(
+        "CREATE TABLE IF NOT EXISTS `song_styles` (`trackKey` TEXT NOT NULL, `modelVersion` INTEGER NOT NULL, " +
+            "`top` BLOB NOT NULL, PRIMARY KEY(`trackKey`))",
+    )
+
+    val FROM_3_TO_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) = SQL_3_TO_4.forEach(db::execSQL)
     }
 }

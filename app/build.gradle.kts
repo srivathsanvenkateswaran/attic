@@ -167,6 +167,8 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)
+    testImplementation(libs.sqlite.jdbc)
+    testImplementation(libs.onnxruntime.jvm)
     if (storeShots) {
         testImplementation(platform(libs.compose.bom))
         testImplementation(libs.robolectric)
@@ -175,6 +177,11 @@ dependencies {
         testImplementation(libs.compose.ui.test.junit4)
         testImplementation(libs.androidx.test.core)
     }
+}
+
+// Local unit tests run the desktop ONNX Runtime; the Android one's classes would shadow it without its natives.
+configurations.matching { it.name.endsWith("UnitTestRuntimeClasspath") }.configureEach {
+    exclude(group = "com.microsoft.onnxruntime", module = "onnxruntime-android")
 }
 
 if (storeShots) {
