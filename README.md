@@ -54,7 +54,8 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 
 **Shows lyrics, then keeps them**
 - Synced lyrics highlight the current line, and tapping a line jumps to it
-- Download one song or the whole library from [LRCLIB](https://lrclib.net), then use them offline
+- Reads lyrics already on the phone, with no network: a `.lrc` file with the song's name in the same folder, or lyrics in the file's tags (`SYLT` and `USLT` in MP3s, `©lyr` in M4As, `LYRICS` in FLAC and Ogg)
+- Download the rest, one song or the whole library, from [LRCLIB](https://lrclib.net), then use them offline. Songs with lyrics in their files are skipped
 
 **Cleans up messy tags**
 
@@ -160,7 +161,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 - The release build has been tested on one phone, whose library sits in `Music/Offline` and holds only MP3 and M4A files.
 - Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
-- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 MP3s tested.
+- Songs with no lyrics in their files depend on what LRCLIB has, which found them for 236 of the 279 MP3s tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
 - Radio doesn't yet match tempo or energy between neighbouring songs.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.

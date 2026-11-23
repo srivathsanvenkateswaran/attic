@@ -498,7 +498,7 @@ A full-screen overlay over Now Playing, sliding up over 240 ms. Unlike Now Playi
 
 ### 2.12 Lyrics: card, inline line and full screen
 
-`ui/LyricsScreen.kt`. Lyrics are downloaded per song from LRCLIB and stored on the phone. A song's lyrics can be synced (timed lines), plain (untimed text), marked instrumental, or not found.
+`ui/LyricsScreen.kt`. A song's lyrics come from the phone first, with no network: a synced `.lrc` file with the song's name in its folder, then synced lyrics in the file's tags (ID3 `SYLT`, or LRC text in `USLT` or MP4 `©lyr`), then plain lyrics in the tags, then an untimed `.lrc` file (`data/LyricsPriority.kt`). They are read when the library loads and again when a song is shown, and they replace anything downloaded. Songs without them can be downloaded from LRCLIB. Both kinds are stored on the phone and look the same: nothing in the UI says where lyrics came from. A song's lyrics can be synced (timed lines), plain (untimed text), marked instrumental, or not found.
 
 **Lyrics card** (inside Now Playing, `ui/LyricsScreen.kt:90-155`)
 
@@ -510,7 +510,7 @@ A full-screen overlay over Now Playing, sliding up over 240 ms. Unlike Now Playi
 | Synced lyrics saved | Up to four lines starting at the line being sung. 22sp bold, line height 28, up to two lines each. The current line is white, the following ones are white 55%. A blank timed line shows "♪". The preview advances with playback. Then the "Show lyrics" pill. |
 | Plain lyrics only | The text in 22sp bold, cut off after four lines with an ellipsis. Then the "Show lyrics" pill. |
 | Instrumental | "This song is instrumental." in `bodyLarge`. No button. |
-| Never downloaded | "Download once and they stay on this phone." in `bodyMedium` at white 80%, then a "Download lyrics" button. |
+| None in the song's files, never downloaded | "Download once and they stay on this phone." in `bodyMedium` at white 80%, then a "Download lyrics" button. |
 | Downloaded, none found | "No lyrics were found for this song." then the same "Download lyrics" button, which retries. |
 | Downloading | A white circular progress indicator in place of the button. |
 
@@ -628,9 +628,9 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
 - **"Appearance"** section title. Three rows (padding 16 horizontal, 4 vertical), each a label in `bodyLarge` with a Material radio button at the right: "Match phone", "Dark", "Light". Tapping the row or the button selects it and the theme changes immediately. The default on a fresh install is "Dark" (`data/AppSettings.kt:18`).
 
 - **"Lyrics"** section title.
-  - "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline." in `bodyMedium` `onSurfaceVariant`.
+  - "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline." in `bodyMedium` `onSurfaceVariant`. {saved} counts lyrics read from the songs' files as well as downloaded ones.
   - 4dp, then "Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent." in `bodySmall` `onSurfaceVariant`.
-  - Idle: a text button "Download lyrics for all songs".
+  - Idle: a text button "Download lyrics for all songs". A run reads the songs' files first and skips every song that already has lyrics, so songs with lyrics in their files never go online.
   - Running: 12dp, a linear progress bar across the width (16dp side margins), then "Checked {done} of {total}, found {found}" in `bodySmall`. The button is hidden.
   - After a run with failures, above the button in `bodySmall`: "{n} songs couldn't be checked. Download again to retry them." or, when it gave up after five failures in a row, "Stopped because the connection failed. Check your internet, then download again to continue."
 
@@ -1285,6 +1285,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Shuffle reflected as the real order
 
 **Lyrics**
+- [ ] Lyrics read from `.lrc` files beside songs and from the songs' tags, with no source shown
 - [ ] "Download lyrics" per song, with a busy state
 - [ ] Synced lyrics that follow playback, auto-scroll, and seek on tap
 - [ ] Sung vs upcoming line distinction

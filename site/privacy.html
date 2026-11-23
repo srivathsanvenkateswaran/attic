@@ -34,8 +34,10 @@
       <ul>
       <li><strong>Your music.</strong> With the audio permission you grant, Attic reads the songs Android's media
         library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
-        duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
-        alarm sounds, recordings, podcasts, audiobooks and voice notes.</li>
+        duration), embedded cover art, any lyrics in the tags, and the audio itself. It leaves out
+        ringtones, notification and alarm sounds, recordings, podcasts, audiobooks and voice notes.</li>
+      <li><strong>Lyrics files beside your songs.</strong> With the same permission, Attic reads <code>.lrc</code> lyrics files
+        that have a song's name and sit in its folder. Android lists these with your music.</li>
       <li><strong>A language label file, if you add one.</strong> Attic reads <code>language-labels.tsv</code> from its own folder
         under <code>Android/data/app.attic.player/files/</code> if you put one there.</li>
       </ul>
@@ -45,7 +47,7 @@
       <li>favourites and playlists</li>
       <li>a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap</li>
       <li>the saved play queue and your settings</li>
-      <li>lyrics you have downloaded</li>
+      <li>lyrics you have downloaded, and lyrics read from your music and <code>.lrc</code> files</li>
       <li>the results of song analysis, which turns each song's sound into a list of numbers so radio can
         find similar songs, and any language you set for a song</li>
       </ul>
@@ -80,7 +82,8 @@
       <h2>What leaves your phone: lyrics lookups</h2>
       <p>Attic connects to the internet for one thing: downloading lyrics from
       <a href="https://lrclib.net">LRCLIB</a>, a free lyrics service with no account. It does this only when you
-      tap to download lyrics for a song, or start a download for the whole library in Settings.</p>
+      tap to download lyrics for a song, or start a download for the whole library in Settings. Songs
+      whose files already have lyrics are never looked up.</p>
       <p>For each song, Attic sends an HTTPS request to <code>lrclib.net</code> containing:</p>
       <ul>
       <li>the song's title</li>

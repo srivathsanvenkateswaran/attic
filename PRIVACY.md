@@ -10,8 +10,10 @@ analytics and no crash reporting. The developer receives no data from the app.
 
 - **Your music.** With the audio permission you grant, Attic reads the songs Android's media
   library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
-  duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
-  alarm sounds, recordings, podcasts, audiobooks and voice notes.
+  duration), embedded cover art, any lyrics in the tags, and the audio itself. It leaves out
+  ringtones, notification and alarm sounds, recordings, podcasts, audiobooks and voice notes.
+- **Lyrics files beside your songs.** With the same permission, Attic reads `.lrc` lyrics files
+  that have a song's name and sit in its folder. Android lists these with your music.
 - **A language label file, if you add one.** Attic reads `language-labels.tsv` from its own folder
   under `Android/data/app.attic.player/files/` if you put one there.
 
@@ -22,7 +24,7 @@ All of this stays in the app's private storage on the device:
 - favourites and playlists
 - a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap
 - the saved play queue and your settings
-- lyrics you have downloaded
+- lyrics you have downloaded, and lyrics read from your music and `.lrc` files
 - the results of song analysis, which turns each song's sound into a list of numbers so radio can
   find similar songs, and any language you set for a song
 
@@ -64,7 +66,8 @@ song files. "Restore from a file" reads a file you choose and adds it to what is
 
 Attic connects to the internet for one thing: downloading lyrics from
 [LRCLIB](https://lrclib.net), a free lyrics service with no account. It does this only when you
-tap to download lyrics for a song, or start a download for the whole library in Settings.
+tap to download lyrics for a song, or start a download for the whole library in Settings. Songs
+whose files already have lyrics are never looked up.
 
 For each song, Attic sends an HTTPS request to `lrclib.net` containing:
 

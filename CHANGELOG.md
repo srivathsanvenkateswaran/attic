@@ -30,6 +30,7 @@ The first public release.
 
 ### Lyrics
 - Synced lyrics highlight the current line; tapping a line jumps to it
+- Reads lyrics from a `.lrc` file beside the song or from the song's tags, with no network
 - Download lyrics for one song or the whole library from LRCLIB, then use them offline
 
 ### Library
