@@ -65,10 +65,12 @@
             android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
             tools:node="remove" />
 
+        <!-- Exported without a permission so the system, Bluetooth, cars and watches can control playback. -->
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>

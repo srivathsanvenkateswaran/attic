@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!--
+        MainActivity doesn't handle configuration changes itself, so a new system language recreates it and
+        composition reads the new Locale.getDefault(). Kept visible as a warning, not an error.
+    -->
+    <issue id="NonObservableLocale" severity="warning" />
+
+    <!-- WrappedModel reads its message string when an export finishes, not during composition. -->
+    <issue id="LocalContextGetResourceValueCall">
+        <ignore path="src/main/java/app/attic/player/ui/model/WrappedModel.kt" />
+    </issue>
+
+    <!-- Every widget image takes its contentDescription from widget_styles.xml, which this check doesn't read. -->
+    <issue id="ContentDescription">
+        <ignore regexp="widget_(comfort|expressive)_(small|wide|large)\.xml" />
+    </issue>
+
+    <!--
+        The only hit is recap_banner_body, "%2$d cards": a recap always has more than one card, since several
+        are shown whatever the data. Remove this if strings.xml gains another counted phrase.
+    -->
+    <issue id="PluralsCandidate">
+        <ignore path="src/main/res/values/strings.xml" />
+    </issue>
+</lint>
