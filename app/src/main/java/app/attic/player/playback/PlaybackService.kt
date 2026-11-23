@@ -69,6 +69,7 @@ class PlaybackService : MediaSessionService() {
     private val sleep = SleepTimer(SystemClock::elapsedRealtime)
     private var sleepJob: Job? = null
     private lateinit var levelling: LevellingAudioProcessor
+    private lateinit var crossfade: CrossfadeController
 
     override fun onCreate() {
         super.onCreate()
@@ -91,6 +92,14 @@ class PlaybackService : MediaSessionService() {
             saveRequests.tryEmit(Unit)
         }
         player.addListener(PlayerEvents())
+        crossfade = CrossfadeController(
+            context = this,
+            main = player,
+            mainLevelling = levelling,
+            settingSeconds = { attic.settings.crossfadeSeconds.value },
+            stopsAfterThisSong = { sleep.choice == SleepChoice.EndOfSong },
+            trackFor = { key -> attic.library.library.value?.trackByKey?.get(key)?.let { LevelTrack(it.key, it.albumKey, it.trackNumber) } },
+        )
 
         shuffledPlayer = shuffle.wrappedPlayer()
         session = MediaSession.Builder(this, shuffledPlayer)
@@ -114,6 +123,9 @@ class PlaybackService : MediaSessionService() {
         scope.launch {
             attic.settings.volumeLevelling.collect { levelling.enabled = it }
         }
+        scope.launch {
+            attic.settings.crossfadeSeconds.collect { crossfade.settingsChanged() }
+        }
 
         scope.launch { restoreQueue() }
         startSaving()
@@ -128,6 +140,7 @@ class PlaybackService : MediaSessionService() {
         mainHandler.removeCallbacksAndMessages(null)
         session?.release()
         session = null
+        crossfade.release()
         player.release()
         super.onDestroy()
     }
@@ -374,6 +387,8 @@ class PlaybackService : MediaSessionService() {
     private fun setSleepTimer(choice: SleepChoice) {
         sleep.set(choice)
         player.pauseAtEndOfMediaItems = choice == SleepChoice.EndOfSong
+        // "End of this song" has to let the song reach its end, so no crossfade skips past it.
+        crossfade.settingsChanged()
         runSleepTimer()
         publishSleepTimer()
     }
@@ -386,7 +401,7 @@ class PlaybackService : MediaSessionService() {
                 val songRemaining = if (duration == C.TIME_UNSET) null else (duration - player.currentPosition).coerceAtLeast(0)
                 when (val step = sleep.step(songRemaining)) {
                     is SleepTimer.Step.Play -> {
-                        player.volume = step.volume
+                        crossfade.setMasterVolume(step.volume)
                         delay(step.nextCheckMs)
                     }
                     SleepTimer.Step.Pause -> {
@@ -395,7 +410,7 @@ class PlaybackService : MediaSessionService() {
                         return@launch
                     }
                     SleepTimer.Step.Idle -> {
-                        player.volume = 1f
+                        crossfade.setMasterVolume(1f)
                         return@launch
                     }
                 }
@@ -405,8 +420,9 @@ class PlaybackService : MediaSessionService() {
 
     /** The timer has run out or switched itself off: full volume again for whenever play is pressed. */
     private fun endSleepTimer() {
-        player.volume = 1f
+        crossfade.setMasterVolume(1f)
         player.pauseAtEndOfMediaItems = false
+        crossfade.settingsChanged()
         publishSleepTimer()
     }
 
@@ -429,9 +445,11 @@ class PlaybackService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // A crossfade moves to the next song a few seconds early; that is still the song ending by itself.
             logListen(
                 automatic = reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
-                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT,
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT ||
+                    crossfade.isOwnTransition,
             )
             if (mediaItem != null) {
                 listens.start(mediaItem.mediaId, mediaItem.mediaMetadata.durationMs ?: 0L)
