@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -290,7 +292,15 @@ fun SearchField(
         ComfortIcon(Symbol.Search, tint = colors.on2)
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (query.isEmpty()) {
-                Text(placeholder, style = onest(16f, 22f), color = colors.on3, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // The field itself carries the placeholder as its label, so this copy is hidden from TalkBack.
+                Text(
+                    placeholder,
+                    style = onest(16f, 22f),
+                    color = colors.on3,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.clearAndSetSemantics {},
+                )
             }
             BasicTextField(
                 value = query,
@@ -301,7 +311,10 @@ fun SearchField(
                 cursorBrush = SolidColor(colors.accent),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onSearch?.invoke() }),
-                modifier = Modifier.fillMaxWidth().then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = placeholder }
+                    .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier),
             )
         }
         if (query.isNotEmpty()) {
