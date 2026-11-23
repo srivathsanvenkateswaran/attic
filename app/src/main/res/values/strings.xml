@@ -484,6 +484,34 @@
     <string name="permission_allow">Allow access</string>
     <string name="permission_open_settings">Open app permissions</string>
 
+    <!-- First run (2.18). Shown once, before the app; Back on Welcome leaves the app -->
+    <string name="onboarding_step">Step %1$d of %2$d</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_welcome_title">Welcome to Attic</string>
+    <string name="onboarding_welcome_body">Attic plays the music files on this phone. There\'s no account, and everything works offline.</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_look_title">Pick your look</string>
+    <string name="onboarding_look_body">You can change it any time in Settings.</string>
+    <string name="onboarding_theme">Theme</string>
+    <string name="onboarding_access_title">Let Attic find your music</string>
+    <string name="onboarding_access_audio">Music and audio</string>
+    <string name="onboarding_access_audio_body">Required. Attic needs it to find the songs on this phone.</string>
+    <string name="onboarding_access_notifications">Notifications</string>
+    <string name="onboarding_access_notifications_body">Optional. Shows the playback controls in the notification shade and on the lock screen.</string>
+    <string name="onboarding_access_allow">Allow</string>
+    <string name="onboarding_access_allowed">Allowed</string>
+    <string name="onboarding_access_off">Off</string>
+    <string name="onboarding_scanning">Finding your songs…</string>
+    <plurals name="onboarding_found">
+        <item quantity="one">Found %1$s song</item>
+        <item quantity="other">Found %1$s songs</item>
+    </plurals>
+    <string name="onboarding_optional">Optional</string>
+    <string name="onboarding_empty_hint">Connect the phone to a computer and copy music into the Music folder. Songs show up here as they arrive.</string>
+    <string name="onboarding_radio_note">Radio analyses your songs while the phone charges. It all happens on this phone.</string>
+    <string name="onboarding_radio_settings">Song radio settings</string>
+    <string name="onboarding_start">Start listening</string>
+
     <!-- Media notification and lock screen (2.20) -->
     <string name="notification_shuffle_on">Turn shuffle on</string>
     <string name="notification_shuffle_off">Turn shuffle off</string>
