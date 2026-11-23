@@ -587,6 +587,15 @@ private fun CollectionStrip() {
     Spacer(Modifier.height(12.dp))
     val tiles = listOf("English" to Samples.seeds[1].second, "Hindi" to Samples.seeds[3].second, "Dhurandhar: The Revenge" to Samples.seeds[0].second, "Anbe Aaruyire" to Samples.seeds[2].second)
     TileGrid(tiles) { (title, pair) -> BrowseTile(title, pair.first, {}, Modifier.fillMaxWidth()) { m -> Cover(Art(pair.second), m) } }
+    Spacer(Modifier.height(8.dp))
+    // Search's folder tiles at a phone's width: a name like "Late Night" narrows rather than truncating.
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        for ((title, count) in listOf("Late Night" to "24 songs", "Hindi" to "46 songs")) {
+            BrowseTile(title, Samples.seeds[1].second.first, {}, Modifier.weight(1f), subtitle = count) { m ->
+                Mosaic(listOf(Art(Samples.viva), Art(Samples.oso), Art(Samples.anbe), Art(Samples.rockstar)), m)
+            }
+        }
+    }
 }
 
 @Composable
