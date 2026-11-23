@@ -3,17 +3,16 @@ package app.attic.player.analysis
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
-import android.media.AudioFormat
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.net.Uri
 import android.system.Os
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-/** Turns one audio file into what radio and genres need: a sound embedding, a melody fingerprint and its top styles. */
+/**
+ * Turns one audio file into what radio, genres and volume levelling need: a sound embedding, a melody
+ * fingerprint, its top styles and its loudness.
+ */
 class SongAnalyzer(private val context: Context) : Closeable {
     class Result(val embedding: FloatArray, val chroma: ByteArray, val styles: List<StyleScore>)
 
@@ -27,82 +26,48 @@ class SongAnalyzer(private val context: Context) : Closeable {
     )
     private val mel = MelSpectrogram()
 
-    /** Null when the file is too short or can't be decoded. */
-    fun analyze(uri: Uri): Result? {
-        val pcm = decode(uri) ?: return null
-        val patches = mel.patches(pcm)
-        if (patches.isEmpty()) return null
-        val output = model.run(patches)
-        return Result(output.embedding, Chroma.frames(pcm), output.styles)
-    }
-
-    private fun decode(uri: Uri): FloatArray? {
-        val extractor = MediaExtractor()
-        var codec: MediaCodec? = null
-        try {
-            extractor.setDataSource(context, uri, null)
-            val track = (0 until extractor.trackCount).firstOrNull {
-                extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
-            } ?: return null
-            extractor.selectTrack(track)
-            val format = extractor.getTrackFormat(track)
-            codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
-            codec.configure(format, null, null, 0)
-            codec.start()
-            return drain(extractor, codec)
-        } catch (_: Exception) {
-            return null
-        } finally {
-            runCatching { codec?.stop() }
-            runCatching { codec?.release() }
-            extractor.release()
+    /**
+     * The sound embedding, melody fingerprint and top styles (null when the file is too short or can't be
+     * decoded), and the file's loudness, measured in the same decode.
+     */
+    fun analyze(uri: Uri): Analysis {
+        val decoded = decode(uri) ?: return Analysis(null, null)
+        val patches = mel.patches(decoded.mono)
+        val sound = if (patches.isEmpty()) {
+            null
+        } else {
+            val output = model.run(patches)
+            Result(output.embedding, Chroma.frames(decoded.mono), output.styles)
         }
+        return Analysis(sound, decoded.loudness)
     }
 
-    private fun drain(extractor: MediaExtractor, codec: MediaCodec): FloatArray {
+    class Analysis(val sound: Result?, val loudness: SongLoudness?)
+
+    private class Decoded(val mono: FloatArray, val loudness: SongLoudness?)
+
+    /** Mono 16 kHz audio of the first twelve minutes for the model, and loudness over the whole file. */
+    private fun decode(uri: Uri): Decoded? {
         val out = GrowingFloats()
-        val info = MediaCodec.BufferInfo()
         var resampler: LinearResampler? = null
+        var meter: LoudnessMeter? = null
         var channels = 1
-        var encoding = AudioFormat.ENCODING_PCM_16BIT
-        var inputDone = false
-        var outputDone = false
-        while (!outputDone && out.size < MAX_SAMPLES) {
-            if (!inputDone) {
-                val index = codec.dequeueInputBuffer(0)
-                if (index >= 0) {
-                    val read = extractor.readSampleData(codec.getInputBuffer(index)!!, 0)
-                    if (read < 0) {
-                        codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                        inputDone = true
-                    } else {
-                        codec.queueInputBuffer(index, 0, read, extractor.sampleTime, 0)
-                        extractor.advance()
-                    }
-                }
-            }
-            val index = codec.dequeueOutputBuffer(info, if (inputDone) CODEC_TIMEOUT_US else 0)
-            when {
-                index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    val format = codec.outputFormat
-                    channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-                    resampler = LinearResampler(format.getInteger(MediaFormat.KEY_SAMPLE_RATE), TARGET_RATE)
-                    if (format.containsKey(MediaFormat.KEY_PCM_ENCODING)) encoding = format.getInteger(MediaFormat.KEY_PCM_ENCODING)
-                }
-                index >= 0 -> {
-                    if (info.size > 0 && resampler != null) {
-                        val buffer = codec.getOutputBuffer(index)!!.order(ByteOrder.LITTLE_ENDIAN)
-                        buffer.position(info.offset)
-                        buffer.limit(info.offset + info.size)
-                        val samples = PcmBuffer.samples(buffer, encoding) ?: throw IllegalStateException("Unknown PCM encoding $encoding")
-                        out.add(resampler.push(PcmBuffer.toMono(samples, channels)))
-                    }
-                    codec.releaseOutputBuffer(index, false)
-                    if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) outputDone = true
-                }
-            }
-        }
-        return out.toArray()
+        val decoded = PcmDecoder.decode(
+            context,
+            uri,
+            onFormat = { rate, count ->
+                channels = count
+                resampler = LinearResampler(rate, TARGET_RATE)
+                meter = LoudnessMeter(rate, count)
+            },
+            onSamples = { samples ->
+                meter?.add(samples)
+                if (out.size < MAX_SAMPLES) out.add(resampler!!.push(PcmBuffer.toMono(samples, channels)))
+                true
+            },
+        )
+        if (!decoded) return null
+        return Decoded(out.toArray(), meter?.result())
     }
 
     override fun close() = model.close()
@@ -142,7 +107,6 @@ class SongAnalyzer(private val context: Context) : Closeable {
         /** How many Discogs styles the model scores: the length of its `activations` output. */
         const val STYLE_COUNT = 400
         private const val TARGET_RATE = 16_000
-        private const val CODEC_TIMEOUT_US = 10_000L
         private const val MAX_SAMPLES = TARGET_RATE * 60 * 12 // A long mix is judged by its first twelve minutes.
 
         fun toBytes(vector: FloatArray): ByteArray {

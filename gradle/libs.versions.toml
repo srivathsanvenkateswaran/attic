@@ -53,7 +53,7 @@ compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
 # Android's org.json is a stub in local unit tests; the backup codec tests run on the reference one.
 org-json = { module = "org.json:json", version.ref = "orgJson" }
-# The migration test runs Room's exported SQL on plain SQLite.
+# A real SQLite on the JVM, so the migration tests run Room's exported SQL without a phone.
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
 # The desktop build of the same runtime, so the model test runs the real model on the JVM.
 onnxruntime-jvm = { module = "com.microsoft.onnxruntime:onnxruntime", version.ref = "onnxruntime" }

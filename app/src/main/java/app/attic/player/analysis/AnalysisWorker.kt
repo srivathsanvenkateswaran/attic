@@ -31,9 +31,6 @@ import java.text.NumberFormat
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import app.attic.player.data.LibraryRepository
-import app.attic.player.data.MusicDao
-import app.attic.player.data.SongAnalysisEntity
-import app.attic.player.data.SongStylesEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -43,8 +40,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
 
 /**
- * Works through unanalysed songs, then songs analysed before their styles were stored. Progress is saved
- * per song, so being stopped loses nothing.
+ * Works through songs missing only their loudness, unanalysed songs, then songs analysed before their
+ * styles were stored ([AnalysisPlan]). Progress is saved per song, so being stopped loses nothing.
  */
 class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val notifications = context.getSystemService(NotificationManager::class.java)
@@ -59,12 +56,10 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val library = app.library.await()
         val finished = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
         val analyzed = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
-        // Songs you actually play get ready first. Songs radio can't use yet come before songs analysed
-        // before styles were stored, which only need their styles.
+        val measured = dao.measuredKeysNow(LOUDNESS_VERSION).toSet()
         val recent = dao.recentKeys(RECENT_FIRST).withIndex().associate { it.value to it.index }
-        val todo = library.tracks
-            .filter { it.key !in finished }
-            .sortedWith(compareBy({ it.key in analyzed }, { recent[it.key] ?: Int.MAX_VALUE }))
+        val todo = AnalysisPlan.todo(library.tracks.map { it.key }, finished, analyzed, measured, recent)
+            .mapNotNull { (key, need) -> library.trackByKey[key]?.let { it to need } }
         if (todo.isEmpty()) return@withContext Result.success()
 
         val total = library.tracks.size
@@ -75,9 +70,11 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
             app.settings.uiStyle.drop(1).collect { notifications.notify(NOTIFICATION_ID, buildNotification(shownDone, shownTotal)) }
         }
         try {
-            SongAnalyzer(applicationContext).use { analyzer ->
+            // The model loads only if a song needs it; songs missing only their loudness just get decoded.
+            val analyzer = lazy { SongAnalyzer(applicationContext) }
+            try {
                 val started = System.currentTimeMillis()
-                for (track in todo) {
+                for ((track, need) in todo) {
                     coroutineContext.ensureActive()
                     // A background job gets stopped and retried ever more slowly, so it hands over first.
                     if (!foreground && System.currentTimeMillis() - started > CHUNK_MS) {
@@ -85,13 +82,24 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                         return@withContext Result.success()
                     }
                     val songStarted = System.currentTimeMillis()
-                    val analysis = analyzer.analyze(LibraryRepository.uriFor(track.mediaId))
-                    if (analysis == null) Log.w(TAG, "Couldn't analyse ${track.key}")
-                    saveResult(dao, track.key, analysis, hadEmbedding = track.key in analyzed)
-                    Log.i(TAG, "Analysed in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
+                    val uri = LibraryRepository.uriFor(track.mediaId)
+                    when (need) {
+                        AnalysisNeed.Full -> {
+                            val analysis = analyzer.value.analyze(uri)
+                            if (analysis.sound == null) Log.w(TAG, "Couldn't analyse ${track.key}")
+                            dao.saveAnalysis(track.key, analysis, hadEmbedding = track.key in analyzed)
+                            Log.i(TAG, "Analysed in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
+                        }
+                        AnalysisNeed.Loudness -> {
+                            dao.saveLoudness(track.key, PcmDecoder.measureLoudness(applicationContext, uri))
+                            Log.i(TAG, "Measured loudness in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
+                        }
+                    }
                     done++
                     showProgress(done, total)
                 }
+            } finally {
+                if (analyzer.isInitialized()) analyzer.value.close()
             }
         } finally {
             restyle.cancel()
@@ -99,30 +107,9 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         }
         // Files added during this run didn't get a job of their own, because this one was already going.
         val finishedNow = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
-        if (app.library.await().tracks.any { it.key !in finishedNow }) enqueueNextChunk()
+        val measuredNow = dao.measuredKeysNow(LOUDNESS_VERSION).toSet()
+        if (app.library.await().tracks.any { AnalysisPlan.need(it.key, finishedNow, measuredNow) != null }) enqueueNextChunk()
         Result.success()
-    }
-
-    /**
-     * Saves what one song gave. A song that was analysed before styles were stored keeps its embedding
-     * if its file can't be read now; it gets an empty styles row instead, so it isn't tried again.
-     */
-    private suspend fun saveResult(dao: MusicDao, key: String, analysis: SongAnalyzer.Result?, hadEmbedding: Boolean) {
-        val now = System.currentTimeMillis()
-        if (analysis == null && hadEmbedding) {
-            dao.saveStyles(SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, ByteArray(0)))
-            return
-        }
-        dao.saveAnalysisAndStyles(
-            SongAnalysisEntity(
-                trackKey = key,
-                modelVersion = SongAnalyzer.MODEL_VERSION,
-                embedding = analysis?.embedding?.let(SongAnalyzer::toBytes),
-                chroma = analysis?.chroma,
-                analyzedAt = now,
-            ),
-            analysis?.let { SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, StyleCodec.encode(it.styles)) },
-        )
     }
 
     /**

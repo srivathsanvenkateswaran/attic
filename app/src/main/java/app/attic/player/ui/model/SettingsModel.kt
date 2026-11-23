@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.analysis.AnalysisWorker
+import app.attic.player.analysis.LOUDNESS_VERSION
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.attic
 import app.attic.player.data.BulkProgress
@@ -93,8 +94,10 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val bulk by app.lyrics.bulk.collectAsStateWithLifecycle()
     val saved by app.lyrics.savedKeys().collectAsStateWithLifecycle(emptyList())
     val savedCount = saved.count { it in library.trackByKey }
-    // Counts a song once its styles are stored too, so songs analysed before styles existed show as still to do.
-    val analyzed by remember { app.database.dao().finishedKeys(SongAnalyzer.MODEL_VERSION) }.collectAsStateWithLifecycle(emptyList())
+    // A song counts once the worker has nothing left to do for it: its sound and styles (or found unreadable),
+    // and its loudness. Songs analysed before styles or loudness existed show as still to do.
+    val analyzed by remember { app.database.dao().completeKeys(SongAnalyzer.MODEL_VERSION, LOUDNESS_VERSION) }
+        .collectAsStateWithLifecycle(emptyList())
     val analyzing by AnalysisWorker.running(app).collectAsStateWithLifecycle(false)
     val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)
 

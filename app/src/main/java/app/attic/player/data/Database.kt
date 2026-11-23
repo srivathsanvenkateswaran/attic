@@ -131,6 +131,20 @@ class SongStylesEntity(
     val top: ByteArray,
 )
 
+/**
+ * A song's loudness, measured from the decoded audio during analysis. A null [integratedLufs] records a
+ * file that couldn't be decoded or never rose above silence; it plays at unity gain and isn't measured
+ * again until [version] changes. [samplePeak] is 1.0 at full scale.
+ */
+@Entity(tableName = "song_loudness")
+data class SongLoudnessEntity(
+    @PrimaryKey val trackKey: String,
+    val version: Int,
+    val integratedLufs: Double?,
+    val samplePeak: Double?,
+    val measuredAt: Long,
+)
+
 /** A language from your own correction or an imported file. Everything else is worked out on load. */
 @Entity(tableName = "song_language")
 data class SongLanguageEntity(
@@ -282,11 +296,15 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveStyles(entity: SongStylesEntity)
 
-    /** Analysis and styles together, so a song is never left with one and not the other. */
+    /**
+     * What one decode gave, together, so a song is never left with its analysis and not its styles. A
+     * null part is left as it was (see [app.attic.player.analysis.saveAnalysis]).
+     */
     @Transaction
-    suspend fun saveAnalysisAndStyles(analysis: SongAnalysisEntity, styles: SongStylesEntity?) {
-        saveAnalysis(analysis)
+    suspend fun saveSongAnalysis(analysis: SongAnalysisEntity?, styles: SongStylesEntity?, loudness: SongLoudnessEntity?) {
+        if (analysis != null) saveAnalysis(analysis)
         if (styles != null) saveStyles(styles)
+        if (loudness != null) saveLoudness(loudness)
     }
 
     @Query("SELECT trackKey, top FROM song_styles WHERE modelVersion = :version")
@@ -310,6 +328,30 @@ interface MusicDao {
 
     @Query("SELECT chroma FROM song_analysis WHERE trackKey = :key")
     suspend fun chroma(key: String): ByteArray?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLoudness(entity: SongLoudnessEntity)
+
+    @Query("SELECT trackKey FROM song_loudness WHERE version = :version")
+    suspend fun measuredKeysNow(version: Int): List<String>
+
+    @Query("SELECT trackKey FROM song_loudness WHERE version = :version")
+    fun measuredKeys(version: Int): Flow<List<String>>
+
+    /**
+     * Songs analysis has nothing left to do for: finished as [finishedKeys] says, and with their loudness
+     * saved. This is the count Settings shows as analysed.
+     */
+    @Query(
+        "SELECT a.trackKey FROM song_analysis a " +
+            "LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :modelVersion " +
+            "JOIN song_loudness l ON l.trackKey = a.trackKey AND l.version = :loudnessVersion " +
+            "WHERE a.modelVersion = :modelVersion AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+    )
+    fun completeKeys(modelVersion: Int, loudnessVersion: Int): Flow<List<String>>
+
+    @Query("SELECT * FROM song_loudness WHERE version = :version AND integratedLufs IS NOT NULL")
+    fun loudness(version: Int): Flow<List<SongLoudnessEntity>>
 
     @Query("SELECT * FROM song_language")
     suspend fun storedLanguages(): List<SongLanguageEntity>
@@ -411,8 +453,9 @@ object PlaylistOrder {
         SongLanguageEntity::class,
         LocalLyricsCheckEntity::class,
         SongStylesEntity::class,
+        SongLoudnessEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
@@ -422,14 +465,14 @@ abstract class AtticDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): AtticDatabase =
             Room.databaseBuilder(context, AtticDatabase::class.java, "attic.db")
-                .addMigrations(DatabaseMigrations.FROM_3_TO_4)
+                .addMigrations(DatabaseMigrations.FROM_3_TO_4, DatabaseMigrations.FROM_4_TO_5)
                 .build()
     }
 }
 
 /**
- * Hand-written migrations. Their SQL is kept apart from the [Migration] so the JVM test can run it on
- * plain SQLite against the exported schemas in `app/schemas`.
+ * Hand-written migrations. Their SQL is kept apart from the [Migration] so the JVM test
+ * (DatabaseMigrationTest) can run it on plain SQLite against the exported schemas in `app/schemas`.
  */
 object DatabaseMigrations {
     /** Adds `song_styles`. Songs analysed before it get their styles from the next analysis run. */
@@ -438,7 +481,17 @@ object DatabaseMigrations {
             "`top` BLOB NOT NULL, PRIMARY KEY(`trackKey`))",
     )
 
+    /** Adds `song_loudness`. Nothing existing changes, so every saved row carries over. */
+    val SQL_4_TO_5 = listOf(
+        "CREATE TABLE IF NOT EXISTS `song_loudness` (`trackKey` TEXT NOT NULL, `version` INTEGER NOT NULL, " +
+            "`integratedLufs` REAL, `samplePeak` REAL, `measuredAt` INTEGER NOT NULL, PRIMARY KEY(`trackKey`))",
+    )
+
     val FROM_3_TO_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_3_TO_4.forEach(db::execSQL)
+    }
+
+    val FROM_4_TO_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) = SQL_4_TO_5.forEach(db::execSQL)
     }
 }
