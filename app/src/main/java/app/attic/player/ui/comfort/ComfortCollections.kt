@@ -1,5 +1,7 @@
 package app.attic.player.ui.comfort
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -445,6 +447,7 @@ private fun RowScope.ToolHalf(symbol: Symbol, label: String, onClick: () -> Unit
  */
 @Composable
 private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
+    val haptics = rememberHaptics()
     val tracks = state.tracks
     // The rows follow the playlist, except mid-drag, when they hold the order being dragged.
     val rows = remember { mutableStateListOf<Track>() }
@@ -488,8 +491,12 @@ private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
                                     SongDragHandle(
                                         track.title,
                                         Modifier.draggableHandle(
-                                            onDragStarted = { dragging = true },
+                                            onDragStarted = {
+                                                haptics.perform(Haptic.PickUp)
+                                                dragging = true
+                                            },
                                             onDragStopped = {
+                                                haptics.perform(Haptic.Drop)
                                                 actions.reorder(rows.map { it.key })
                                                 dragging = false
                                             },

@@ -1,5 +1,7 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.Haptics
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -57,6 +59,7 @@ class PlayControlsActions(
 private fun playControls(
     app: AtticApp,
     ui: UiActions,
+    haptics: Haptics,
     player: PlayerUiState,
     tracks: List<Track>,
     contextName: String,
@@ -78,6 +81,7 @@ private fun playControls(
         addToPlaylist = { ui.addToPlaylist(tracks.map { it.key }) },
         shuffle = { app.player.shufflePlay(tracks, contextName) },
         playOrPause = {
+            haptics.toggle(!(isThisContext && player.isPlaying))
             if (isThisContext) app.player.togglePlayPause() else app.player.play(tracks, 0, contextName, shuffled = false)
         },
         toggleSmartShuffle = {
@@ -131,7 +135,7 @@ fun rememberAlbumModel(library: Library, key: String): UiModel<AlbumState, Album
     val album = library.albumByKey[key]
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = album?.tracks.orEmpty()
-    val controls = playControls(app, ui, player, tracks, album?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, album?.name.orEmpty())
     val mediaId = album?.tracks?.first()?.mediaId
     val state = AlbumState(
         album = album,
@@ -185,7 +189,7 @@ fun rememberArtistModel(library: Library, key: String): UiModel<ArtistState, Art
         val rank = recentKeys.withIndex().associate { it.value to it.index }
         artist?.tracks.orEmpty().sortedBy { rank[it.key] ?: Int.MAX_VALUE }
     }
-    val controls = playControls(app, ui, player, artist?.tracks.orEmpty(), artist?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, artist?.tracks.orEmpty(), artist?.name.orEmpty())
     val state = ArtistState(
         artist = artist,
         popular = ranked.take(POPULAR_COUNT),
@@ -231,7 +235,7 @@ fun rememberFolderModel(library: Library, name: String): UiModel<FolderState, Fo
     val folder = library.folders.firstOrNull { it.name == name }
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = folder?.tracks.orEmpty()
-    val controls = playControls(app, ui, player, tracks, folder?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, folder?.name.orEmpty())
     val state = FolderState(folder, controls.state, player.current?.key, player.isPlaying)
     val actions = FolderActions(
         back = { ui.back() },
@@ -274,7 +278,7 @@ fun rememberLikedModel(library: Library): UiModel<LikedState, LikedActions> {
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = remember(likedKeys, library) { likedKeys.mapNotNull { library.trackByKey[it] } }
     var overflow by remember { mutableStateOf(false) }
-    val controls = playControls(app, ui, player, tracks, FAVOURITES_CONTEXT, offersSmartShuffle = true)
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, FAVOURITES_CONTEXT, offersSmartShuffle = true)
     val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying, overflow)
     val actions = LikedActions(
         back = { ui.back() },
@@ -351,7 +355,7 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
     var overflow by remember { mutableStateOf(false) }
 
     val name = playlist?.name.orEmpty()
-    val controls = playControls(app, ui, player, tracks, name, offersSmartShuffle = true)
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, name, offersSmartShuffle = true)
     val state = PlaylistState(
         playlist = playlist,
         tracks = tracks,

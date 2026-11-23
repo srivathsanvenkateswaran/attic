@@ -1,5 +1,7 @@
 package app.attic.player.ui.comfort
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -70,6 +72,7 @@ fun ComfortQueue(state: QueueState, actions: QueueActions) {
 
 @Composable
 private fun QueuePage(state: QueueState, actions: QueueActions) {
+    val haptics = rememberHaptics()
     val colors = Comfort.colors
     val current = state.current
 
@@ -148,10 +151,12 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                                             row.track.title,
                                             Modifier.draggableHandle(
                                                 onDragStarted = {
+                                                    haptics.perform(Haptic.PickUp)
                                                     dragging = true
                                                     dragFrom = row.queueIndex
                                                 },
                                                 onDragStopped = {
+                                                    haptics.perform(Haptic.Drop)
                                                     actions.move(dragFrom, rows.indexOfFirst { it.id == row.id })
                                                     dragFrom = -1
                                                     dragging = false

@@ -1,5 +1,7 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -135,8 +137,9 @@ fun rememberOnboardingModel(): UiModel<OnboardingState, OnboardingActions> {
 
     val state = OnboardingState(step, style, theme, audio, notifications, scan, downloadLyrics)
     val current by rememberUpdatedState(state)
+    val haptics = rememberHaptics()
 
-    val actions = remember(audioPrompt, notificationsPrompt, context) {
+    val actions = remember(audioPrompt, notificationsPrompt, context, haptics) {
         fun end(toSettings: Boolean) {
             val tracks = app.library.library.value?.tracks.orEmpty()
             if (current.downloadLyrics && tracks.isNotEmpty()) app.lyrics.downloadAll(tracks)
@@ -151,7 +154,10 @@ fun rememberOnboardingModel(): UiModel<OnboardingState, OnboardingActions> {
                 }
             },
             back = { step.previous()?.let { step = it } },
-            setUiStyle = app.settings::setUiStyle,
+            setUiStyle = { choice ->
+                if (choice != current.uiStyle) haptics.perform(Haptic.Tick)
+                app.settings.setUiStyle(choice)
+            },
             setThemeMode = app.settings::setThemeMode,
             allowAudio = { audioPrompt.launch(Manifest.permission.READ_MEDIA_AUDIO) },
             openAppPermissions = {

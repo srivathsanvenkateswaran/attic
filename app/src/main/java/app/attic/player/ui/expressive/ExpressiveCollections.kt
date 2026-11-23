@@ -1,5 +1,7 @@
 package app.attic.player.ui.expressive
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -459,6 +461,7 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
 /** Reorder mode (frame D): a contextual bar on the cover's container, then the songs with drag handles. */
 @Composable
 private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name: String, seed: Color) {
+    val haptics = rememberHaptics()
     val tracks = state.tracks
     // The rows follow the playlist, except mid-drag, when they hold the order being dragged.
     val rows = remember { mutableStateListOf<Track>() }
@@ -528,8 +531,12 @@ private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name
                             RowDragHandle(
                                 track.title,
                                 Modifier.draggableHandle(
-                                    onDragStarted = { dragging = true },
+                                    onDragStarted = {
+                                        haptics.perform(Haptic.PickUp)
+                                        dragging = true
+                                    },
                                     onDragStopped = {
+                                        haptics.perform(Haptic.Drop)
                                         actions.reorder(rows.map { it.key })
                                         dragging = false
                                     },

@@ -1,5 +1,6 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.rememberHaptics
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -140,6 +141,7 @@ fun rememberWrappedModel(library: Library): UiModel<WrappedPageState, WrappedPag
     val loaded = data
     val tracks = loaded?.songs.orEmpty().map { it.first }
     val isTopSongs = player.contextName == TOP_SONGS
+    val haptics = rememberHaptics()
     val state = WrappedPageState(
         period = period,
         data = loaded,
@@ -155,7 +157,10 @@ fun rememberWrappedModel(library: Library): UiModel<WrappedPageState, WrappedPag
         setPeriod = { period = it },
         openStory = { storyAt = it },
         closeStory = { storyAt = null },
-        playTopSongs = { if (isTopSongs) app.player.togglePlayPause() else app.player.play(tracks, 0, TOP_SONGS, shuffled = false) },
+        playTopSongs = {
+            haptics.toggle(!(isTopSongs && player.isPlaying))
+            if (isTopSongs) app.player.togglePlayPause() else app.player.play(tracks, 0, TOP_SONGS, shuffled = false)
+        },
         playTopSong = { index -> app.player.play(tracks, index, TOP_SONGS, shuffled = false) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
         openArtist = { ui.openArtist(it.key) },

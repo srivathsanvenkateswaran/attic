@@ -1,5 +1,7 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -97,6 +99,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)
 
     val backupStatus by app.backupSession.status.collectAsStateWithLifecycle()
+    val haptics = rememberHaptics()
     // The system picker writes and reads through the Storage Access Framework, so no storage permission is needed.
     val createFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
         uri?.let(app.backupSession::save)
@@ -109,7 +112,10 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val actions = SettingsActions(
         back = { ui.back() },
         setThemeMode = app.settings::setThemeMode,
-        setUiStyle = app.settings::setUiStyle,
+        setUiStyle = { choice ->
+            if (choice != style) haptics.perform(Haptic.Tick)
+            app.settings.setUiStyle(choice)
+        },
         setAutoplay = app.settings::setAutoplay,
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
         startAnalysis = { AnalysisWorker.startNow(app) },

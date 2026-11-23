@@ -1,5 +1,6 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -37,11 +38,21 @@ fun rememberMiniPlayerModel(player: PlayerUiState, onOpen: () -> Unit): UiModel<
     val track = player.current
     val liked by app.userData.likedSet.collectAsStateWithLifecycle()
     val clock = remember(app) { PlaybackClock(app.player::positionMs) }
-    val state = MiniPlayerState(track, player.isPlaying, track != null && track.key in liked, clock)
+    val haptics = rememberHaptics()
+    val isLiked = track != null && track.key in liked
+    val state = MiniPlayerState(track, player.isPlaying, isLiked, clock)
     val actions = MiniPlayerActions(
         open = onOpen,
-        toggleLike = { track?.let { app.userData.toggleLike(it.key) } },
-        togglePlayPause = { app.player.togglePlayPause() },
+        toggleLike = {
+            track?.let {
+                haptics.toggle(!isLiked)
+                app.userData.toggleLike(it.key)
+            }
+        },
+        togglePlayPause = {
+            haptics.toggle(!player.isPlaying)
+            app.player.togglePlayPause()
+        },
         next = { app.player.next() },
         previous = { app.player.previous() },
     )
@@ -107,6 +118,8 @@ fun rememberNowPlayingModel(
     val lyrics = rememberLyricsModel(track)
     val clock = remember(app) { PlaybackClock(app.player::positionMs) }
     val artist = track?.artistKeys?.firstNotNullOfOrNull { library?.artistByKey?.get(it) }
+    val haptics = rememberHaptics()
+    val isLiked = track != null && track.key in liked
 
     val state = NowPlayingState(
         track = track,
@@ -129,11 +142,19 @@ fun rememberNowPlayingModel(
         openQueue = onOpenQueue,
         openLyrics = onOpenLyrics,
         showMenu = { track?.let { ui.showMenu(TrackMenuRequest(it, fromNowPlaying = true)) } },
-        toggleLike = { track?.let { app.userData.toggleLike(it.key) } },
+        toggleLike = {
+            track?.let {
+                haptics.toggle(!isLiked)
+                app.userData.toggleLike(it.key)
+            }
+        },
         openTrackArtist = track?.artistKeys?.firstOrNull()?.let { key -> { ui.openArtist(key) } },
         openArtist = { artist?.let { ui.openArtist(it.key) } },
         skipTo = { app.player.skipTo(it) },
-        togglePlayPause = { app.player.togglePlayPause() },
+        togglePlayPause = {
+            haptics.toggle(!player.isPlaying)
+            app.player.togglePlayPause()
+        },
         previous = { app.player.previous() },
         next = { app.player.next() },
         toggleShuffle = { app.player.toggleShuffle() },
