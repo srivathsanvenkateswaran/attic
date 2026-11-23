@@ -50,7 +50,7 @@ class BackupCodecTest {
 
     @Test
     fun plainBytesWithByteOrderMarkRead() {
-        val bytes = ("﻿" + BackupCodec.encode(full)).toByteArray(Charsets.UTF_8)
+        val bytes = ("\uFEFF" + BackupCodec.encode(full)).toByteArray(Charsets.UTF_8)
         assertEquals(full, BackupCodec.decode(bytes))
     }
 

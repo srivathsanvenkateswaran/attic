@@ -144,7 +144,7 @@ object BackupCodec {
 
     fun decode(text: String): Backup {
         val root = try {
-            JSONObject(text.trimStart('﻿'))
+            JSONObject(text.trimStart('\uFEFF'))
         } catch (e: JSONException) {
             // Cut short and not JSON at all look alike to the parser; the format marker tells them apart.
             val reason = if (text.contains("\"$FORMAT\"")) BackupReadException.Reason.Damaged else BackupReadException.Reason.NotABackup
