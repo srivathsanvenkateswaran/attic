@@ -359,14 +359,18 @@ fun ExpressiveFab(symbol: Symbol, contentDescription: String, onClick: () -> Uni
     ) { SymbolIcon(symbol) }
 }
 
-/** An extended FAB (`.fab.ext`): a symbol and a label. Not [expanded], it shrinks to the symbol (a list has scrolled). */
+/**
+ * An extended FAB (`.fab.ext`): a symbol and a label. Not [expanded], it shrinks to the symbol (a list
+ * has scrolled). The label is also its description: Material's extended FAB leaves its button node
+ * with no text for accessibility services, expanded or not.
+ */
 @Composable
 fun ExpressiveExtendedFab(text: String, symbol: Symbol, onClick: () -> Unit, modifier: Modifier = Modifier, expanded: Boolean = true) {
     val colors = MaterialTheme.colorScheme
     ExtendedFloatingActionButton(
         onClick = onClick,
         expanded = expanded,
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = text },
         shape = RoundedCornerShape(ExpressiveShapes.Large),
         containerColor = colors.primaryContainer,
         contentColor = colors.onPrimaryContainer,
