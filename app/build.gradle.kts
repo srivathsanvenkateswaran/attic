@@ -4,6 +4,24 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+/** Play's upload key, from Gradle properties or the environment. Null until all four are set. */
+class UploadKey(val storeFile: File, val storePassword: String, val keyAlias: String, val keyPassword: String)
+
+val uploadKey: UploadKey? = run {
+    fun value(name: String): String? =
+        (providers.gradleProperty(name).orNull ?: providers.environmentVariable(name).orNull)?.takeIf { it.isNotBlank() }
+    val store = value("ATTIC_UPLOAD_STORE_FILE")?.let { file(it.replaceFirst(Regex("^~(?=/)"), System.getProperty("user.home"))) }
+    val storePassword = value("ATTIC_UPLOAD_STORE_PASSWORD")
+    val alias = value("ATTIC_UPLOAD_KEY_ALIAS")
+    val keyPassword = value("ATTIC_UPLOAD_KEY_PASSWORD")
+    if (store != null && storePassword != null && alias != null && keyPassword != null) {
+        check(store.isFile) { "ATTIC_UPLOAD_STORE_FILE points at $store, which doesn't exist." }
+        UploadKey(store, storePassword, alias, keyPassword)
+    } else {
+        null
+    }
+}
+
 android {
     namespace = "app.attic.player"
     compileSdk {
@@ -15,18 +33,45 @@ android {
         // 33 is the first release with READ_MEDIA_AUDIO, so there is no legacy storage path to carry.
         minSdk = 33
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = providers.gradleProperty("attic.versionCode").get().toInt()
+        versionName = providers.gradleProperty("attic.versionName").get()
         // The song analysis model ships as native code for phones only, which keeps the APK from tripling.
         ndk {
             abiFilters += "arm64-v8a"
         }
     }
 
+    signingConfigs {
+        if (uploadKey != null) {
+            create("release") {
+                storeFile = uploadKey.storeFile
+                storePassword = uploadKey.storePassword
+                keyAlias = uploadKey.keyAlias
+                keyPassword = uploadKey.keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Personal sideload, so the debug key is enough. Compose only runs smoothly with R8 on.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (uploadKey != null) {
+                signingConfigs.getByName("release")
+            } else {
+                if (gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }) {
+                    logger.warn(
+                        """
+                        |
+                        |WARNING: no Attic upload key, so this release build is signed with the DEBUG key.
+                        |It is fine for a local install. Play rejects it. Set ATTIC_UPLOAD_STORE_FILE,
+                        |ATTIC_UPLOAD_STORE_PASSWORD, ATTIC_UPLOAD_KEY_ALIAS and ATTIC_UPLOAD_KEY_PASSWORD
+                        |in ~/.gradle/gradle.properties or the environment (scripts/make-upload-key.sh).
+                        |
+                        """.trimMargin(),
+                    )
+                }
+                signingConfigs.getByName("debug")
+            }
+            // Compose only runs smoothly with R8 on.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
