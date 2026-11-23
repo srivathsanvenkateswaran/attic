@@ -34,6 +34,21 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import app.attic.player.ui.LocalIsDark
 import android.content.pm.ActivityInfo
 import androidx.test.core.app.ApplicationProvider
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.unit.dp
+import app.attic.player.ui.expressive.AtticMarkIcon
+import com.github.takahirom.roborazzi.captureRoboImage
+import java.io.File
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
@@ -41,6 +56,7 @@ import org.robolectric.Shadows.shadowOf
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -140,4 +156,37 @@ private fun InShell(style: UiStyle, tab: Tab, content: @Composable () -> Unit) {
         lyrics = {},
     )
     if (style == UiStyle.Expressive) ExpressiveShell(s.shell(tab), s.shellActions, slots) else ComfortShell(s.shell(tab), s.shellActions, slots)
+}
+
+/** The Headroom mark on each brand colour, for scripts/store_shots/frame.py to place beside captions. */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [35], qualifiers = "w411dp-h914dp-420dpi", application = Application::class)
+class BrandMarks {
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @get:Rule val rules: RuleChain = RuleChain.outerRule(RegisterActivity).around(compose)
+
+    @Test
+    fun marks() {
+        val marks = listOf("mark-on-cream" to (Cream to Terracotta), "mark-on-terracotta" to (Terracotta to Cream))
+        var current by mutableStateOf(marks.first().second)
+        compose.setContent {
+            val (ground, ink) = current
+            Box(Modifier.size(96.dp).background(ground).testTag("mark"), contentAlignment = Alignment.Center) {
+                AtticMarkIcon(size = 80.dp, tint = ink)
+            }
+        }
+        for ((name, colours) in marks) {
+            current = colours
+            compose.waitForIdle()
+            ShotsDir.mkdirs()
+            compose.onNodeWithTag("mark").captureRoboImage(File(ShotsDir, "$name.png").path)
+        }
+    }
+
+    private companion object {
+        val Cream = Color(0xFFF5EDDD)
+        val Terracotta = Color(0xFFC6533A)
+    }
 }
