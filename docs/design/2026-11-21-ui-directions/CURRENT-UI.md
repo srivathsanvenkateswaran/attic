@@ -96,6 +96,8 @@ Outside the app
 | Lyrics (full screen) | "Show lyrics" pill in the lyrics card |
 | Track menu | Kebab on any track row; long-press on any track row; long-press on a Speed dial tile; long-press on a Wrapped "Top songs" row; kebab in the Now Playing header; long-press on a queue row |
 | Sleep timer | "Sleep timer" in the track menu, only when it was opened from the kebab in the Now Playing header (added 2026-11-23, section 2.13) |
+| Equaliser sheet | "Equaliser" in the track menu opened from the Now Playing kebab, or the equaliser pill in the Now Playing header (added 2026-11-25, section 2.13a) |
+| Equaliser page | Settings > Playback > "Equaliser" (added 2026-11-25, section 2.15) |
 | Now Playing, on a file from another app | Opening an audio file with Attic from a file manager or downloads list (added 2026-11-23, section 2.21) |
 | Smart shuffle | "Smart shuffle" in the more menu of a playlist or Favourites (added 2026-11-23, section 2.9) |
 | Android Auto | The car's app launcher, or "play X on Attic" said to the assistant (added 2026-11-23, section 2.22) |
@@ -613,7 +615,25 @@ The like state appears as a heart in this menu and as a plus or check everywhere
   - Comfort: the first row under the quick actions, with the status at its end, then `unfold_more`. Tapping it opens a pop-over on the row, like "Language": the caption "Sleep timer", the choices, and a tick in the accent on the current one. Tapping outside closes only the pop-over.
   - Choices, in order: "15 minutes", "30 minutes", "45 minutes", "1 hour", "End of this song", "Off". A choice sets the timer, closes the menu and shows a snackbar (section 2.17).
   - The timer runs in the playback service, so it carries on with the app closed (`playback/SleepTimer.kt`, `playback/PlaybackService.kt`). A countdown fades the volume out over its last 10 seconds, then pauses. "End of this song" fades over the song's last 10 seconds and pauses when the song ends. Either way playback is paused, not stopped, and the volume is back to full for the next play. A countdown that runs out while nothing is playing switches itself off and does not pause music started after that.
-- **A song opened from another app that is not in the library** (section 2.21) gets a shorter menu: the song header, then "Sleep timer" when opened from Now Playing, and nothing else. Radio, the queue actions, favourites, playlists, language, "Go to" and "Share" all need a library song.
+- **"Equaliser"** (`equalizer` icon), added 2026-11-25, only in the menu opened from the Now Playing kebab, next to "Sleep timer". Its state reads "Off", the default's preset name ("Bass boost", "Custom", a saved preset's name), "This song · {preset}" or "This album · {preset}". Tapping it replaces the menu with the equaliser sheet (section 2.13a).
+  - Expressive: the second cell of the sleep timer's group, the state as its second line.
+  - Comfort: the row after "Sleep timer", the state at its end in accent ink, then a chevron.
+- **A song opened from another app that is not in the library** (section 2.21) gets a shorter menu: the song header, then "Sleep timer" and "Equaliser" when opened from Now Playing, and nothing else. Radio, the queue actions, favourites, playlists, language, "Go to" and "Share" all need a library song.
+
+### 2.13a Equaliser sheet (added 2026-11-25)
+
+Attic's own ten-band equaliser for the song that is playing. State and actions: `ui/model/EqualiserModel.kt`; drawing: `ui/expressive/ExpressiveEqualiser.kt` and `BandGraph.kt`, `ui/comfort/ComfortEqualiser.kt`; mocks: sheet 11 in `pixel/` and `oneui/`. Over Now Playing it takes the cover's colours, as the track menu does.
+
+**Which setting it changes.** A song plays with its own setting, else its album's, else the default. The sheet always edits the one the song is playing with, and the change is heard at once. The first thing under the title says which: "For all songs" over "Every song without its own setting", "For this album" over the album's name, or "For this song only" over the song's title. Expressive marks an own setting by squaring off the lead glyph and filling it in `primary`; Comfort puts the cover on an `accentSoft` bed.
+
+Top to bottom:
+- "Equaliser" with the switch. Off, the line "Off. Choose a preset or move a band to turn it on." shows under the title, the chips dim and the bands lose their colour; any chip or band movement turns it on. Off means nothing is applied, the default or any song's.
+- **Preset chips**, one scrolling row: "Custom" and "Save as preset" while the bands match no preset, then the user's saved presets, then Flat, Bass boost, Bass reducer, Treble boost, Vocal, Loudness, Acoustic, Electronic, Hip-hop, Classical, Spoken word. A saved preset's chip, when selected, ends in a more glyph; tapping it again or long-pressing any saved chip offers "Rename" and "Delete preset".
+- **Bands**: 31, 62, 125, 250, 500, 1k, 2k, 4k, 8k, 16k, each −12 to +12 dB. Drag up or down in a band's column (1 dB steps); a tap does nothing, a double tap sets 0. While dragging, the value shows in a bubble ("+4 dB"). The real response of the filters is drawn with the bands on one octave axis. Expressive draws each band as a bar from the 0 dB line over the response; Comfort draws the response in a well above ten capsule sliders with knobs.
+- **Actions**: "Save for this song" and "Save for this album" when the song plays with the default (the note "Saved settings come back whenever the song plays." under them); "Save for this song" when it plays with its album's. "Use default" with "Removes this song's setting" or "Removes this album's setting" when it has one, and "Use album setting" when a song's own setting sits over its album's. Saving or removing changes the scope piece in place; the sheet stays open. Saving from the default puts the default back as it was when the sheet opened, so edits made before "Save for this song" don't change every other song.
+- **Dialogs**: "Save as preset" and "Rename preset" with a "Preset name" field ("Another preset has this name" blocks a duplicate); "Delete {name}?" with "Songs and albums saved with it keep their sound and show as Custom."
+
+**Now Playing indicator.** When the equaliser is on and the song plays with its own or its album's setting, a small pill with the `equalizer` glyph and "This song" or "This album" sits in the header beside the kebab. Tapping it opens the sheet.
 
 **Language picker** (`ui/Sheets.kt:174-194`)
 
@@ -674,8 +694,8 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
 - **"Playback"** section title, added 2026-11-23 after this extraction, in both styles between Appearance (Comfort: Style) and Lyrics (`ui/expressive/ExpressiveSettings.kt`, `ui/comfort/ComfortSettings.kt`; state and actions in `ui/model/SettingsModel.kt`).
   - "Volume levelling" over "Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are." with a switch. Default on. Expressive heads it with `volume_up` in a tonal circle.
   - "Crossfade", its length shown as "Off" or "{n} seconds" (Expressive: the supporting line; Comfort: the row's value in accent ink), over "Songs from one album played in order still run straight into each other." Tapping opens the kit's menu of lengths: "Off", "2 seconds", "4 seconds", "6 seconds", "8 seconds", "10 seconds", "12 seconds", the current one ticked (Comfort's pop-over, captioned "Crossfade", opens over its row like the track menu's sleep timer). Default "Off". Expressive heads it with `transition_fade`.
-  - "Equaliser" over "Opens the equaliser on this phone.", with an `open_in_new` glyph at the end. Tapping opens the system's sound-effects panel or an installed equaliser app on Attic's audio session. The row is hidden when nothing on the phone opens one; if opening fails, the snackbar says "Couldn't open the equaliser". Expressive heads it with `equalizer`.
-  - Behind them (`playback/`): levelling brings songs to about -14 LUFS without raising a peak past -1 dBFS, and an album played in order shares one gain. Crossfade never fades between consecutive songs of one album, with repeat-one, or when the sleep timer is set to "End of this song". The analysis status line counts a song once its loudness is measured as well (see "Song radio" below).
+  - "Equaliser" (changed 2026-11-25), always shown. Its state is "Off" or the default's preset name, and when songs or albums have their own setting it adds "With their own setting: 4 songs, 2 albums" (Comfort shows "Ten bands and presets. A song or album can keep its own setting." when none do). Tapping opens the Equaliser page: "Use equaliser" with a switch; "Default" with the same chips, bands and response as the sheet, always editing the default; "Albums with their own setting" and "Songs with their own setting", each row with its preset name and a remove button (no confirmation); "Songs and albums with their own setting" with "None yet. Open Equaliser from the menu on Now Playing and choose “Save for this song”." when there are none; and "Phone equaliser" over "Opens the equaliser on this phone." when the phone has one, which opens the system's sound-effects panel or an installed equaliser app on Attic's audio session ("Couldn't open the equaliser" if that fails).
+  - Behind them (`playback/`): the equaliser is Attic's own filter chain after levelling (`playback/eq/`), so it sounds the same on every phone; levelling brings songs to about -14 LUFS without raising a peak past -1 dBFS, and an album played in order shares one gain. Crossfade never fades between consecutive songs of one album, with repeat-one, or when the sleep timer is set to "End of this song". The analysis status line counts a song once its loudness is measured as well (see "Song radio" below).
 
 - **"Lyrics"** section title.
   - "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline." in `bodyMedium` `onSurfaceVariant`. {saved} counts lyrics read from the songs' files as well as downloaded ones.
@@ -1411,7 +1431,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 
 **Settings**
 - [ ] "Appearance", "Playback", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
-- [ ] "Volume levelling" switch (default on), "Crossfade" length (default off), and "Equaliser" when the phone has one (added 2026-11-23)
+- [ ] "Volume levelling" switch (default on), "Crossfade" length (default off) (added 2026-11-23)
+- [ ] Equaliser (added 2026-11-25): switch (default off), ten bands, eleven presets, saved presets with rename and delete, a setting per song and per album (song, then album, then default), the sheet from Now Playing's menu and its header pill, the Settings page with the lists of own settings, and "Phone equaliser" when the phone has one
 - [ ] "Back up to a file" and "Restore from a file", with the restore confirmation, result and problem dialogs
 - [ ] Song count in "About"
 
@@ -1429,7 +1450,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] "Open with" for audio files: library songs play in context, other files play once and are kept nowhere (added 2026-11-23)
 - [ ] Android Auto: browse tabs with white icons, covers, search, "play X" by voice, and the shuffle and like buttons (added 2026-11-23, section 2.22). A restyle changes the tab icons and the shuffle and like glyphs only.
 
-**Not present today.** Listed so a restyle does not add controls that have nothing behind them: an equaliser of Attic's own (Settings only opens the phone's), playback speed, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
+**Not present today.** Listed so a restyle does not add controls that have nothing behind them: playback speed, volume slider, output or cast picker, per-song download or delete, tag editing, liking an album or artist, playlist cover or description editing, search history, sort options for collections, time-remaining display, queue history, accounts.
 
 ---
 
