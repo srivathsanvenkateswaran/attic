@@ -1,0 +1,9 @@
+# Attic's own code, compiled ahead of time on install.
+#
+# The libraries ship rules for their own code (Compose, Media3, Room, Coil), but nothing covered the
+# app's: until the runtime had seen it run, every Attic method (the screens of both styles, the
+# library store, the player connection) was interpreted on its first calls, at every cold start.
+# The app's code is small next to its libraries, so all of it is listed: startup, Home, Library,
+# Now Playing and the rest, in either style.
+HSPLapp/attic/player/**->**(**)**
+Lapp/attic/player/**;
