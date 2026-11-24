@@ -136,7 +136,8 @@ fun ComfortRecapCard(card: WrappedCard, data: WrappedData, modifier: Modifier = 
                 ),
         ) {
             // The card is a picture, so it ignores the phone's text size setting.
-            CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
+            // Scaled as a layer, so covers keep their clip ([LocalBakedCovers]).
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1f), LocalBakedCovers provides false) {
                 RecapCardColors(card, data) {
                     CardFrame(recapPeriodLabel(data)) { CardContent(card, data, animate) }
                 }

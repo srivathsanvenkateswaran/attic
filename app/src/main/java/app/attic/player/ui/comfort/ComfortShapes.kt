@@ -66,13 +66,17 @@ class SuperellipseShape(val exponent: Double) : Shape {
         }
     }
 
+    /** The outline's corners in a box of [size], as x,y pairs: the polygon [createOutline] draws. */
+    internal fun outlinePoints(size: Size): FloatArray {
+        val unit = unitPointsFor(size.maxDimension)
+        return FloatArray(unit.size) { i -> unit[i] * (if (i % 2 == 0) size.width else size.height) }
+    }
+
     override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-        val points = unitPointsFor(size.maxDimension)
+        val points = outlinePoints(size)
         val path = Path()
         for (i in 0 until points.size / 2) {
-            val x = points[i * 2] * size.width
-            val y = points[i * 2 + 1] * size.height
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            if (i == 0) path.moveTo(points[0], points[1]) else path.lineTo(points[i * 2], points[i * 2 + 1])
         }
         path.close()
         return Outline.Generic(path)
@@ -105,9 +109,13 @@ class SuperellipseShape(val exponent: Double) : Shape {
  */
 @Immutable
 object ArtShape : Shape {
-    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
+        superellipseFor(size, density).createOutline(size, layoutDirection, density)
+
+    /** The superellipse a box of [size] takes. */
+    fun superellipseFor(size: Size, density: Density): SuperellipseShape {
         val large = with(density) { size.minDimension.toDp() } >= ComfortShapes.LargeArtFrom
-        return (if (large) ComfortShapes.SquircleLarge else ComfortShapes.Squircle).createOutline(size, layoutDirection, density)
+        return if (large) ComfortShapes.SquircleLarge else ComfortShapes.Squircle
     }
 }
 
