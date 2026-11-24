@@ -160,7 +160,7 @@ house until they are redrawn.
 | `.swipe` | `SwipeToRemove(onRemove, resetKey) { SongRow(…) }` | the swipe starts over when `resetKey` changes; the queue passes its up-next list, because a row's key passes to the song's next copy after a removal |
 | swipe to queue (no mock) | `SwipeToQueueCell(onQueue) { … }`, or `SongRow(onSwipeToQueue = …)` | towards the end only; uncovers `surfaceContainerHighest` with `queue_music` and "Add to queue", `primaryContainer` once letting go would queue; settles on `fastSpatial`. Thresholds and the confirm haptic are shared (`ui/SwipeToQueue.kt`). Never inside the queue, whose rows swipe to remove |
 | `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode. The handle's `onDragStarted` gives `Haptic.PickUp` and `onDragStopped` gives `Haptic.Drop` (`ui/Haptics.kt`) |
-| `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | |
+| `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | `onClick = null` leaves the row inert, for a list whose only action is a button in `trailing` (the equaliser's albums) |
 | `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick, titleLines = 1)` | `titleLines = 2` for a name that needs it (Home's taste mixes) |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 12dp gaps |
 | `.grid`, `.grid.c3` | `TileGrid(items, columns = 2) { Tile(…, width = null) }` | not lazy |
@@ -171,12 +171,14 @@ house until they are redrawn.
 | `.spot` | `Spotlight(overline, title, art, onOpen) { Shelf { … } }` | |
 | `.browse`, `.browse.folder` | `BrowseTile(title, seed, onClick, modifier, subtitle) { m -> Cover(…, m) }` | takes the cover's scheme itself; with `subtitle` it is Search's 88dp folder tile (sheet 02) with a 64dp picture |
 | `.stat` | `StatTile(value, label, modifier, accent)` | |
-| `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss, bottomPadding) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)` | opens fully expanded; a sheet whose list scrolls to its foot passes `bottomPadding = 0.dp` |
-| `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
-| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger, checked) }` | a null `symbol` keeps its space, so a list of choices ticks only the current one; a non-null `checked` makes an on/off item (smart shuffle): filled primary symbol and a trailing tick while on, read as a toggle |
+| `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss, bottomPadding) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)`, `SheetSubtitle(text, maxLines)` | opens fully expanded; a sheet whose list scrolls to its foot passes `bottomPadding = 0.dp`; the subtitle is the line pulled up under a title (`.sheet-sub`) |
+| `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)`; the field also takes a `TextFieldValue` (prefilled, cursor at the end), with `error` for the line under it and `onDone` for the keyboard's done key |
+| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss, offset) { ExpressiveMenuItem(symbol, label, onClick, danger, checked) }` | anchored to the layout it is declared in, moved by `offset`; a null `symbol` keeps its space, so a list of choices ticks only the current one; a non-null `checked` makes an on/off item (smart shuffle): filled primary symbol and a trailing tick while on, read as a toggle |
 | `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | over the player the shell draws it inside `FromCover`, so it takes the cover scheme's inverse roles (07 J) |
 | `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library; `body = null` for a title alone ("Nothing up next") |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |
+| `.set-row .set-ic` (sheet 08) | `SetIconRow(symbol, modifier, center, trailing) { RowTitle(…); SupportingText(…); Status(…) }` | Settings' own row, a 40dp tonal circle before the text; internal to the package (ExpressiveSettings.kt), shared with the equaliser page |
+| `.set-title` + `.appbar` | `LargeTitlePage(title, listState, onBack) { LazyColumn { item { LargeTitle(title, bottom) } … } }` | a page under Settings whose 36sp title collapses into the bar (licences, equaliser); internal, in ExpressiveLicences.kt |
 | `.switch`, `.radio` | `ExpressiveSwitch(checked, onCheckedChange)`, `ExpressiveRadio(selected, onClick)` | Material's |
 | `.progress`, `.progress.wavy` | `LinearProgress { fraction }`, `WavyLinearProgress({ fraction }, running)` | wavy for long running jobs (analysis) |
 | `.spinner`, `.spinner.busy`, `.spinner.s` | `CircularProgress(progress = null or { fraction }, small)` | |
@@ -218,6 +220,36 @@ ExpressiveLyrics.kt, because they differ from the kit's `LyricLine` as the sheet
 `contextSymbol(kind)` and `contextLabel(name, kind)` (ExpressiveNowPlaying.kt) give the glyph and the
 shared name for what is playing; the queue's bar uses them too. The shell and the mini player are `ExpressiveShell` and
 `ExpressiveMiniPlayer` (ExpressiveShell.kt); the `.dock` and `.nav` placement is there.
+
+## Equaliser (sheet 11)
+
+`ExpressiveEqualiser.kt` holds the sheet over Now Playing (`ExpressiveEqualiserSheet`) and Settings >
+Playback > Equaliser (`ExpressiveEqualiserPage`); `BandGraph.kt` holds the drawing. Both screens are the
+same two group cells, so anything else that edits a curve can reuse them:
+
+| Sheet 11 class | Compose | Notes |
+|---|---|---|
+| `.eq-scope`, `.eq-scope.own` | `EqualiserScopeCell(scope, detail)` | which setting the bands change. Default: round, `secondaryContainer`. A song's or album's own: 12dp corners, `primary`, the glyph filled ("squared off means on"); the corner moves on `fastSpatial`, the colours on `defaultEffects`. One semantics node, a polite live region. `scopeSymbol(scope)` is the glyph each scope goes by everywhere: `LibraryMusic`, `Album`, `MusicNote` |
+| `.eq-cell` | `EqualiserEditor(state, actions)` | the preset chips over the band graph, and the preset dialogs (save, rename, delete) from `state.dialog`. Chips are in 48dp targets, so the cell pads 4dp above them and pulls the graph 8dp up (`Modifier.pullUp`) |
+| `.eq-cell .chips` | inside `EqualiserEditor` | a `LazyRow` of `ExpressiveFilterChip`s read as radio buttons: "Custom" and "Save as preset" while the bands match no preset, then saved presets, then the built-in ones. A saved preset is a chip drawn here to the same measure, because it takes a long press and ends in `MoreVert` while selected; its menu is `ExpressiveMenu(offset = DpOffset(0.dp, (-4).dp))`. The row opens with the selected chip in view and scrolls to it when the selection changes. Off: 50% alpha |
+| `.eq-plot`, `.eq-freqs` | `BandGraph(curve, on, onBand, modifier)` | one `drawWithCache` canvas, 236dp tall at font scale 1: 20dp of room, the 192dp plot (8dp a decibel, 0 dB in the middle), 8dp, the frequency labels; a 30dp gutter for "+12 / 0 / −12" and 10dp after the last band. Always left to right |
+| `.eq-acts`, `.eq-undo`, `.eq-help` | in `ExpressiveEqualiserSheet` | `ButtonGroup(fill = true)` of a filled and a tonal `ExpressiveButton`; the outlined removal button with its consequence beside it, read as one button |
+| `.eq-on` | `EqualiserIndicator` in ExpressiveNowPlaying.kt | Now Playing's header pill: 32dp, `surfaceContainerHigh`, the glyph in `primary`; fades on `defaultEffects`, and composes nothing while the song plays with the default |
+
+How `BandGraph` keeps a drag cheap, which anything added to it has to keep:
+
+- The gains on screen are one `FloatArray` in a `mutableStateOf(…, neverEqualPolicy())`, changed in
+  place and read only in the draw block. A drag invalidates drawing, never composition. So do the
+  colours (`rememberUpdatedState` of the scheme) and the on/off blend.
+- The response path is rebuilt in the draw cache only when the gains differ from the ones last drawn
+  (96 samples of `EqualiserBands.response`). The labels are measured once per size.
+- `onBand` is called at most once a frame (`snapshotFlow` + `conflate`, then a frame's wait), and once
+  more as the finger lifts. Whole decibels only, so the model changes at most 24 times across the range.
+- A new `curve` from the model is eased to over 200 ms by one animation; while a finger is down the
+  finger wins. A double tap and a screen reader's step go through the model and come back the same way.
+- Touch: one `pointerInput` picks the band from x and follows vertical movement from where the bar is.
+  A tap does nothing. Ten empty boxes over the columns carry the slider semantics ("31 Hz", "+4 dB",
+  steps of 1 dB, "Set to 0 dB").
 
 ## Shared copy (strings)
 
@@ -283,3 +315,6 @@ adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --e
   and type, so spacing inside them is Material's (24dp dialog padding, 48dp menu items).
 - Chips and connected-group segments are 32 and 40dp tall with 48dp touch targets, as the mock
   notes.
+- The equaliser's response is the engine's (`EqualiserBands.response`), which passes through the tops
+  of the bars; sheet 11 draws a stand-in with a bump per band. The frequency labels shrink to fit their
+  column at a large font size, which the sheet does not show.
