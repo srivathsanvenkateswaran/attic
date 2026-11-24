@@ -30,8 +30,9 @@ import coil3.size.Size as CoilSize
  * The output is exactly the size the picture is drawn at, cropped and centred the way Coil draws a
  * bitmap with [androidx.compose.ui.layout.ContentScale.Crop] ([cropRect]), so it lands on the same
  * pixels as before. Its edge is [superellipseCoverage], the clip's own coverage, so the edge pixels
- * are those of the clip too. It is then made a hardware bitmap, so it is uploaded once off the
- * RenderThread and holds no copy in the app's heap.
+ * are those of the clip too. It stays an ordinary bitmap: as hardware bitmaps, each cover was a
+ * buffer of its own that the GPU driver looked up on every frame it was bound, and scrolling Home
+ * cost the RenderThread more (texture binds 18% of its time, against 7%).
  *
  * [tile] is one quarter of a mosaic: the bitmap is that quarter, and the outline is the whole box's.
  */
@@ -62,7 +63,7 @@ internal class SuperellipseMask(
         // result), so its pixels go now rather than at the next garbage collection.
         if (picture !== input) picture.recycle()
         if (input.config != Bitmap.Config.HARDWARE) input.recycle()
-        return masked.copy(Bitmap.Config.HARDWARE, false)?.also { masked.recycle() } ?: masked
+        return masked
     }
 
     override fun equals(other: Any?) =
