@@ -166,8 +166,9 @@ fun SheetTitle(text: String, modifier: Modifier = Modifier, subtitle: String? = 
  * `.sheet-row`: an icon in `--on-2`, the label, and at the end a [value] ("Change") or, when
  * [selected], a tick in accent ink (and a semibold label). [danger] colours it `--danger`. [end] is a
  * quiet trailing glyph in `--on-3` for a row that opens something in place (`.end.go`: `chevron_right`
- * to a picker, `unfold_more` to a pop-over). Split by hairlines inset to the label when placed in a
- * [Hairlined].
+ * to a picker, `unfold_more` to a pop-over). [summary] is `.sheet-row.two`: a second line under the
+ * label (13.5/18 in `--on-2`) saying what the row leads to, in a 64dp row. Split by hairlines inset to
+ * the label when placed in a [Hairlined].
  */
 @Composable
 fun SheetRow(
@@ -179,6 +180,7 @@ fun SheetRow(
     selected: Boolean = false,
     danger: Boolean = false,
     end: Symbol? = null,
+    summary: String? = null,
 ) {
     val colors = Comfort.colors
     val ink = if (danger) colors.danger else colors.on
@@ -187,20 +189,22 @@ fun SheetRow(
             .fillMaxWidth()
             .hairlineAbove(LocalHairlineAbove.current, 66.dp, 24.dp)
             .clickable(onClick = onClick)
-            .heightIn(min = 52.dp)
+            .heightIn(min = if (summary != null) 64.dp else 52.dp)
             .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         if (symbol != null) ComfortIcon(symbol, tint = if (danger) colors.danger else colors.on2) else Box(Modifier.size(24.dp))
-        Text(
-            label,
-            style = onest(16f, 22f, if (selected) 600 else 400),
-            color = ink,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                label,
+                style = onest(16f, 22f, if (selected) 600 else 400),
+                color = ink,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (summary != null) Text(summary, style = Comfort.type.sub, color = colors.on2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
         if (value != null) Text(value, style = onest(14f, 18f), color = colors.on2, maxLines = 1)
         if (selected) ComfortIcon(Symbol.Check, tint = colors.accentInk)
         if (end != null) ComfortIcon(end, tint = colors.on3)
