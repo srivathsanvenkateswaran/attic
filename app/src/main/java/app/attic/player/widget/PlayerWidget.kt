@@ -61,7 +61,10 @@ class PlayerWidget : AppWidgetProvider() {
         val pending = goAsync()
         context.attic.scope.launch {
             try {
-                render(context, read(context))
+                // An update arrives on the main thread at every cold start, ahead of the app's first
+                // frame (about 3ms in startup traces); the saved song is read off it.
+                val state = withContext(Dispatchers.IO) { read(context) }
+                render(context, state)
             } finally {
                 pending.finish()
             }
