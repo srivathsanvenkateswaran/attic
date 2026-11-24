@@ -114,10 +114,13 @@ class EqualiserStore(
 
     private val pending = HashMap<EqTarget, Job>()
 
+    /** A database change arrived while saves were waiting, so it was set aside; it is read again once they finish. */
+    private var missedRows = false
+
     init {
         scope.launch {
             dao.eqSettings().collect { rows ->
-                if (pending.isEmpty()) publish(EqualiserState.of(_state.value.on, _state.value.default, rows))
+                if (pending.isEmpty()) publish(EqualiserState.of(_state.value.on, _state.value.default, rows)) else missedRows = true
             }
         }
         // A restore writes the settings directly; follow it.
@@ -193,6 +196,13 @@ class EqualiserStore(
             delay(delayMs)
             withContext(Dispatchers.IO) { write() }
             if (pending[target] === job) pending.remove(target)
+            // A restore that landed during a save of the default writes nothing the default's save
+            // would echo back, so read the rows again now rather than wait for the next change.
+            if (pending.isEmpty() && missedRows) {
+                missedRows = false
+                val rows = withContext(Dispatchers.IO) { dao.allEqSettings() }
+                if (pending.isEmpty()) publish(EqualiserState.of(_state.value.on, _state.value.default, rows))
+            }
         }
         pending[target] = job
     }
