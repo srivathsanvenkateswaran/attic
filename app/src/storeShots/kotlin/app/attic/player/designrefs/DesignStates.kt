@@ -343,7 +343,6 @@ object DesignStates {
             backup = backup,
             volumeLevelling = base.volumeLevelling,
             crossfadeSeconds = base.crossfadeSeconds,
-            equaliserAvailable = base.equaliserAvailable,
             equaliser = base.equaliser,
         )
     }

@@ -296,7 +296,6 @@
         <item quantity="one">%1$d second</item>
         <item quantity="other">%1$d seconds</item>
     </plurals>
-    <string name="settings_equaliser">Equaliser</string>
     <string name="settings_equaliser_body">Opens the equaliser on this phone.</string>
     <string name="settings_equaliser_failed">Couldn\'t open the equaliser</string>
     <!-- Settings > Playback > Equaliser, when no song or album has a setting of its own -->

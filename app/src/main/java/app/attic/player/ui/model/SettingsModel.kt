@@ -2,7 +2,6 @@ package app.attic.player.ui.model
 
 import app.attic.player.ui.Haptic
 import app.attic.player.ui.rememberHaptics
-import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -23,7 +22,6 @@ import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.data.backup.RestoreReport
 import app.attic.player.playback.CrossfadePlan
-import app.attic.player.playback.Equaliser
 import app.attic.player.ui.LocalUi
 import java.time.LocalDate
 
@@ -37,8 +35,6 @@ class SettingsState(
     val volumeLevelling: Boolean,
     /** Seconds one song fades into the next; 0 is off. One of [crossfadeChoices]. */
     val crossfadeSeconds: Int,
-    /** False when nothing on the phone opens an equaliser panel, and the row is hidden. */
-    val equaliserAvailable: Boolean,
     /** The download-all-lyrics run, if one is going or has just finished. */
     val bulkLyrics: BulkProgress,
     /** Songs in the library with lyrics saved. */
@@ -47,7 +43,7 @@ class SettingsState(
     val analysis: AnalysisProgress,
     val backup: BackupUiState,
     /** The Equaliser row: on or off, the default's preset, and how many songs and albums have their own. */
-    val equaliser: EqualiserSettingsRow = EqualiserSettingsRow(on = false, presetName = "", ownSongs = 0, ownAlbums = 0),
+    val equaliser: EqualiserSettingsRow,
 ) {
     /** The crossfade lengths offered, in seconds, Off first. */
     val crossfadeChoices: List<Int> get() = CrossfadePlan.choices
@@ -87,10 +83,8 @@ class SettingsActions(
     val setAutoplay: (Boolean) -> Unit,
     val setVolumeLevelling: (Boolean) -> Unit,
     val setCrossfadeSeconds: (Int) -> Unit,
-    /** Opens the phone's equaliser on Attic's audio session. Moved to the Equaliser page's "Phone equaliser" row. */
-    val openEqualiser: () -> Unit,
     /** Opens Settings > Playback > Equaliser. */
-    val openEqualiserPage: () -> Unit = {},
+    val openEqualiserPage: () -> Unit,
     val downloadAllLyrics: () -> Unit,
     /** Analyses songs now instead of waiting for a charger. */
     val startAnalysis: () -> Unit,
@@ -114,10 +108,6 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val autoplay by app.settings.autoplay.collectAsStateWithLifecycle()
     val levelling by app.settings.volumeLevelling.collectAsStateWithLifecycle()
     val crossfade by app.settings.crossfadeSeconds.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    // Checked each time Settings opens, so an equaliser installed meanwhile shows up.
-    val equaliserAvailable = remember { Equaliser.isAvailable(context) }
-    val equaliser = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val bulk by app.lyrics.bulk.collectAsStateWithLifecycle()
     val saved by app.lyrics.savedKeys().collectAsStateWithLifecycle(emptyList())
     val savedCount = saved.count { it in library.trackByKey }
@@ -144,7 +134,6 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         autoplay,
         levelling,
         crossfade,
-        equaliserAvailable,
         bulk,
         savedCount,
         library.tracks.size,
@@ -162,13 +151,6 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         setAutoplay = app.settings::setAutoplay,
         setVolumeLevelling = app.settings::setVolumeLevelling,
         setCrossfadeSeconds = app.settings::setCrossfadeSeconds,
-        openEqualiser = {
-            try {
-                equaliser.launch(Equaliser.panelIntent(context, app.audioSessionId.value))
-            } catch (_: ActivityNotFoundException) {
-                app.messages.tryEmit(app.getString(R.string.settings_equaliser_failed))
-            }
-        },
         openEqualiserPage = { ui.openEqualiser() },
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
         startAnalysis = { AnalysisWorker.startNow(app) },
