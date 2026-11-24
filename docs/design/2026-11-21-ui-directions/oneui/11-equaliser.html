@@ -1,0 +1,822 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Attic · One UI · 11 Equaliser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../shared/page.css">
+<link rel="stylesheet" href="../shared/covers.css">
+<link rel="stylesheet" href="kit.css">
+<style>
+  /* This sheet draws the phone at 411 by 914dp, the size of the app's reference renders. */
+  .col{width:411px}
+  .phone{width:411px;height:914px}
+  .phone.long{height:auto;min-height:914px}
+  .phone .screen{min-height:870px}
+  .phone:not(.long) .screen{height:870px}
+    .lbl{color:#98a2ad;font-size:12px;line-height:1.5;margin:14px 2px 6px}
+  .col > .lbl:first-of-type{margin-top:0}
+  .strips{display:flex;flex-direction:column}
+  .strip.sheetlike{padding:12px 0;background:var(--raised)}
+  .phone > .gpill{z-index:40}
+
+  /* Now Playing at 411dp: the deck sits low and the space above it is spare, as ComfortNowPlaying lays it out. */
+  .phone .np-page{min-height:858px;display:flex;flex-direction:column}
+  .phone .np-page .deck{margin-top:auto;margin-bottom:28px}
+
+  /* Track menu, as sheet 07 and ComfortSheets.kt draw it. */
+  .phone .quick{display:grid;grid-template-columns:repeat(4,1fr);padding:2px 12px 8px}
+  .phone .qa{display:flex;flex-direction:column;align-items:center;gap:8px;min-height:104px;padding-top:6px;text-align:center;
+    font-size:12.5px;line-height:16px;font-weight:500;color:var(--on)}
+  .phone .qa span.t{max-width:86px}
+  .phone .sheet .qa .ib.tonal{background:var(--fill-2)}
+  .phone.light .sheet .qa .ib.tonal{background:var(--fill)}
+  .phone .sheet .qa .ib.tonal.on,.phone.light .sheet .qa .ib.tonal.on{background:var(--accent)}
+  .phone .quick + .sheet-row::before{content:"";position:absolute;top:0;left:24px;right:24px;height:1px;background:var(--line)}
+  :is(.phone,.strip) .sheet-row .end.go{color:var(--on-3)}
+  :is(.phone,.strip) .sheet-row .val + .end{margin-left:10px}
+  .phone .menu.on-sheet{background:var(--fill)}
+  /* a dialog over a sheet: one more scrim, and the pieces above it */
+  .phone .scrim.top{z-index:22}
+  .phone .scrim.top ~ :is(.dialog,.kbd){z-index:23}
+  .strip .dialog{position:static;margin:12px;box-shadow:none;background:var(--fill)}
+  /* Settings, as sheet 08 and ComfortSettings.kt draw it. */
+  .phone .tools.lead{justify-content:flex-start;padding-left:8px}
+  :is(.phone,.strip) .set-block small{color:var(--on-2)}
+  :is(.phone,.strip) .set-row .val + .ms{margin-left:-6px}
+
+  /* ── The equaliser ───────────────────────────────────────────────────────
+     New in this sheet. Colours come from the kit's tokens only. */
+  /* the sheet's title with the master switch at its end */
+  :is(.phone,.strip) .eq-title{display:flex;align-items:center;padding:6px 24px 8px}
+  :is(.phone,.strip) .eq-title h3{flex:1;font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.015em}
+  :is(.phone,.strip) .eq-off{padding:0 24px 8px;margin-top:-4px;font-size:13.5px;line-height:18px;color:var(--on-2)}
+  /* scope head: what the bands below change. A song or album of its own lies on the tonal bed the kit gives the current song. */
+  :is(.phone,.strip) .eq-scope{position:relative;display:flex;align-items:center;gap:14px;min-height:64px;margin:0 16px 4px;padding:8px}
+  :is(.phone,.strip) .eq-scope > *{position:relative}
+  :is(.phone,.strip) .eq-scope .txt b{font-size:17px;line-height:22px;font-weight:700;letter-spacing:-.01em}
+  :is(.phone,.strip) .eq-scope.own::before{content:"";position:absolute;inset:0;border-radius:var(--r-ctl);background:var(--accent-soft)}
+  :is(.phone,.strip) .eq-scope.own .txt span{color:var(--on-accent-soft)}
+  :is(.phone,.strip) .sheet .eq-scope .ibox.neutral{background:var(--fill-2)}
+  :is(.phone,.strip).light .sheet .eq-scope .ibox.neutral{background:var(--fill)}
+  /* presets */
+  :is(.phone,.strip) .chip .ms.more{margin:0 -8px 0 0;font-size:18px}
+  :is(.phone,.strip) .chip.save{color:var(--accent-ink)}
+  /* the response, in a well */
+  :is(.phone,.strip) .eq-well{position:relative;height:120px;margin:4px 16px 0;border-radius:var(--r-ctl);background:var(--fill)}
+  :is(.phone,.strip) .group .eq-well{margin:4px 8px 0}
+  :is(.phone,.strip) .eq-well svg{position:absolute;left:30px;top:12px;overflow:visible}
+  :is(.phone,.strip) .eq-well .ax{position:absolute;left:0;width:24px;margin-top:4px;text-align:right;font-style:normal;font-size:11px;line-height:16px;
+    color:var(--on-2);font-variant-numeric:tabular-nums}
+  /* the ten bands */
+  :is(.phone,.strip) .eq-bands{position:relative;height:184px;margin:6px 26px 0 46px}
+  :is(.phone,.strip) .group .eq-bands{margin:6px 18px 0 38px}
+  :is(.phone,.strip) .eq-bands svg{position:absolute;left:0;top:0;overflow:visible}
+  :is(.phone,.strip) .eq-bands text{font-family:'Onest',sans-serif;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+  :is(.phone,.strip) .eq-freqs{display:flex;margin:2px 26px 0 46px}
+  :is(.phone,.strip) .group .eq-freqs{margin:2px 18px 0 38px}
+  :is(.phone,.strip) .eq-freqs span{flex:1;text-align:center;font-size:12px;line-height:16px;color:var(--on-2)}
+  :is(.phone,.strip) .eq-dim{opacity:.5}
+  :is(.phone,.strip) .group.eq-card{padding:10px 0 16px}
+  :is(.phone,.strip) .group.eq-card .chips{padding:6px 12px}
+  /* the actions under the editor: sheet rows, the first under a full-width hairline */
+  :is(.phone,.strip) .eq-rows{margin-top:12px}
+  :is(.phone,.strip) .eq-rows .sheet-row:first-child::before{content:"";position:absolute;top:0;left:24px;right:24px;height:1px;background:var(--line)}
+  :is(.phone,.strip) .sheet-row.two{min-height:64px}
+  :is(.phone,.strip) .sheet-row .t2 b{display:block;font-weight:400;line-height:22px}
+  :is(.phone,.strip) .sheet-row .t2 small{display:block;font-size:13.5px;line-height:18px;color:var(--on-2)}
+  :is(.phone,.strip) .eq-note{padding:4px 24px 0;font-size:13px;line-height:18px;color:var(--on-2)}
+  .phone .sheet .menu{left:16px;top:210px}
+  /* the indicator in Now Playing's header */
+  .phone .eq-on{display:inline-flex;align-items:center;gap:6px;flex:none;height:32px;margin-right:2px;padding:0 12px 0 10px;border-radius:16px;
+    background:var(--fill);color:var(--on-2);font-size:13px;line-height:18px;font-weight:500}
+  .phone .eq-on .ms{font-size:18px;color:var(--accent-ink)}
+  /* rows of the "with their own setting" lists */
+  :is(.phone,.strip) .row .val + .ib,:is(.phone,.strip) .song .meta + .ib{margin-left:-12px}
+</style>
+
+<div class="intro">
+  <h1>11 · Equaliser</h1>
+  <p class="date">2026-11-25 · UI directions · One UI · sheet 11</p>
+  <p>Attic gets its own ten-band equaliser, and a song or an album can keep a setting of its own. This sheet draws it in the Comfort style: the entry in Now Playing's menu, the sheet in its states, the indicator on Now Playing, and the Settings page that edits the default.</p>
+  <p>The sheet always edits the setting the song is playing with. <b>Which one that is, is the head of the sheet</b>, and the rows that change it are its foot.</p>
+</div>
+
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">A · Track menu from Now Playing</p>
+  <p class="why">“Equaliser” is the row under “Sleep timer”. Its state sits at the row's end, where the timer shows its minutes: here the equaliser is on and this song plays with the default, so it reads the default's preset. The chevron says it opens a sheet, not a pop-over.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="sheet-head"><div class="cv art-revenge sq w48 plain"></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div></div>
+      <div class="quick">
+        <a class="qa"><span class="ib tonal lg"><span class="ms">sensors</span></span><span class="t">Start radio</span></a>
+        <a class="qa"><span class="ib tonal lg heart"><span class="ms">favorite</span></span><span class="t">Add to favourites</span></a>
+        <a class="qa"><span class="ib tonal lg"><span class="ms">playlist_play</span></span><span class="t">Play next</span></a>
+        <a class="qa"><span class="ib tonal lg"><span class="ms">queue_music</span></span><span class="t">Add to queue</span></a>
+      </div>
+      <div class="sheet-row"><span class="ms">bedtime</span>Sleep timer<span class="ms end go">unfold_more</span></div>
+      <div class="sheet-row"><span class="ms">equalizer</span>Equaliser<span class="val">Bass boost</span><span class="ms end go">chevron_right</span></div>
+      <div class="sheet-row"><span class="ms">playlist_add</span>Add to playlist<span class="ms end go">chevron_right</span></div>
+      <div class="sheet-row"><span class="ms">language</span>Language: Hindi<span class="ms end go">unfold_more</span></div>
+      <div class="sheet-row"><span class="ms">album</span>Go to album</div>
+      <div class="sheet-row"><span class="ms">person</span>Go to artist</div>
+      <div class="sheet-row"><span class="ms">share</span>Share</div>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">B · Equaliser, the default</p>
+  <p class="why"><b>The head of the sheet names what the bands change.</b> For the default it is a neutral icon box and “For all songs”. The response sits in a well; under it each band is a capsule track with the switch's knob, lined up under its part of the curve. The two ways to save are rows at the foot.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope"><div class="ibox sq neutral w48"><span class="ms">library_music</span></div><div class="txt"><b>For all songs</b><span>Every song without its own setting</span></div></div>
+      <div class="chips"><a class="chip">Flat</a><a class="chip on"><span class="ms">check</span>Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,36.1 L2.4,34.3 L4.8,32.3 L7.3,30.2 L9.7,28.1 L12.1,26.1 L14.5,24.5 L16.9,23.7 L19.4,23.6 L21.8,24.1 L24.2,25.1 L26.6,26.1 L29.1,27 L31.5,27.6 L33.9,27.9 L36.3,27.8 L38.7,27.4 L41.2,26.6 L43.6,25.7 L46,24.9 L48.4,24.3 L50.9,24.1 L53.3,24.6 L55.7,25.5 L58.1,26.6 L60.5,27.9 L63,29 L65.4,29.8 L67.8,30.3 L70.2,30.5 L72.6,30.4 L75.1,30.1 L77.5,29.6 L79.9,29.1 L82.3,28.9 L84.8,29 L87.2,29.5 L89.6,30.5 L92,31.6 L94.4,32.9 L96.9,34.1 L99.3,35 L101.7,35.8 L104.1,36.4 L106.5,36.8 L109,36.9 L111.4,37 L113.8,37.1 L116.2,37.2 L118.7,37.5 L121.1,38 L123.5,38.6 L125.9,39.4 L128.3,40.2 L130.8,41 L133.2,41.7 L135.6,42.2 L138,42.7 L140.4,43.1 L142.9,43.4 L145.3,43.7 L147.7,43.9 L150.1,44.1 L152.6,44.4 L155,44.6 L157.4,44.9 L159.8,45.2 L162.2,45.5 L164.7,45.8 L167.1,46.1 L169.5,46.3 L171.9,46.5 L174.3,46.7 L176.8,46.8 L179.2,47 L181.6,47.1 L184,47.2 L186.4,47.3 L188.9,47.4 L191.3,47.4 L193.7,47.5 L196.1,47.6 L198.6,47.6 L201,47.6 L203.4,47.7 L205.8,47.7 L208.2,47.7 L210.7,47.8 L213.1,47.8 L215.5,47.8 L217.9,47.8 L220.3,47.8 L222.8,47.9 L225.2,47.9 L227.6,47.9 L230,47.9 L232.5,47.9 L234.9,47.9 L237.3,47.9 L239.7,47.9 L242.1,47.9 L244.6,47.9 L247,48 L249.4,48 L251.8,48 L254.2,48 L256.7,48 L259.1,48 L261.5,48 L263.9,48 L266.4,48 L268.8,48 L271.2,48 L273.6,48 L276,48 L278.5,48 L280.9,48 L283.3,48 L285.7,48 L288.1,48 L290.6,48 L293,48 L295.4,48 L297.8,48 L300.3,48 L302.7,48 L305.1,48 L307.5,48 L309.9,48 L312.4,48 L314.8,48 L317.2,48 L319.6,48 L322.1,48 L324.5,48 L326.9,48 L329.3,48 L331.7,48 L334.2,48 L336.6,48 L339,48 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,36.1 L2.4,34.3 L4.8,32.3 L7.3,30.2 L9.7,28.1 L12.1,26.1 L14.5,24.5 L16.9,23.7 L19.4,23.6 L21.8,24.1 L24.2,25.1 L26.6,26.1 L29.1,27 L31.5,27.6 L33.9,27.9 L36.3,27.8 L38.7,27.4 L41.2,26.6 L43.6,25.7 L46,24.9 L48.4,24.3 L50.9,24.1 L53.3,24.6 L55.7,25.5 L58.1,26.6 L60.5,27.9 L63,29 L65.4,29.8 L67.8,30.3 L70.2,30.5 L72.6,30.4 L75.1,30.1 L77.5,29.6 L79.9,29.1 L82.3,28.9 L84.8,29 L87.2,29.5 L89.6,30.5 L92,31.6 L94.4,32.9 L96.9,34.1 L99.3,35 L101.7,35.8 L104.1,36.4 L106.5,36.8 L109,36.9 L111.4,37 L113.8,37.1 L116.2,37.2 L118.7,37.5 L121.1,38 L123.5,38.6 L125.9,39.4 L128.3,40.2 L130.8,41 L133.2,41.7 L135.6,42.2 L138,42.7 L140.4,43.1 L142.9,43.4 L145.3,43.7 L147.7,43.9 L150.1,44.1 L152.6,44.4 L155,44.6 L157.4,44.9 L159.8,45.2 L162.2,45.5 L164.7,45.8 L167.1,46.1 L169.5,46.3 L171.9,46.5 L174.3,46.7 L176.8,46.8 L179.2,47 L181.6,47.1 L184,47.2 L186.4,47.3 L188.9,47.4 L191.3,47.4 L193.7,47.5 L196.1,47.6 L198.6,47.6 L201,47.6 L203.4,47.7 L205.8,47.7 L208.2,47.7 L210.7,47.8 L213.1,47.8 L215.5,47.8 L217.9,47.8 L220.3,47.8 L222.8,47.9 L225.2,47.9 L227.6,47.9 L230,47.9 L232.5,47.9 L234.9,47.9 L237.3,47.9 L239.7,47.9 L242.1,47.9 L244.6,47.9 L247,48 L249.4,48 L251.8,48 L254.2,48 L256.7,48 L259.1,48 L261.5,48 L263.9,48 L266.4,48 L268.8,48 L271.2,48 L273.6,48 L276,48 L278.5,48 L280.9,48 L283.3,48 L285.7,48 L288.1,48 L290.6,48 L293,48 L295.4,48 L297.8,48 L300.3,48 L302.7,48 L305.1,48 L307.5,48 L309.9,48 L312.4,48 L314.8,48 L317.2,48 L319.6,48 L322.1,48 L324.5,48 L326.9,48 L329.3,48 L331.7,48 L334.2,48 L336.6,48 L339,48" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="88.8" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="88.8" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row"><span class="ms">music_note</span>Save for this song</div>
+        <div class="sheet-row"><span class="ms">album</span>Save for this album</div>
+      </div>
+      <p class="eq-note">Saved settings come back whenever the song plays.</p>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">own setting</span></div>
+  <p class="cap">C · After “Save for this song”</p>
+  <p class="why">The head now shows the song's cover and name on the tonal bed the kit gives the current song. Edits stay with this song. The knobs were moved, so the selection is “Custom” and “Save as preset” appears beside it. “Use default” says what it removes on its second line.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope own"><div class="cv art-revenge sq w48 plain"></div><div class="txt"><b>For this song only</b><span>Jaan Se Guzarte Hain</span></div></div>
+      <div class="chips"><a class="chip on"><span class="ms">check</span>Custom</a><a class="chip save"><span class="ms">add</span>Save as preset</a><a class="chip">Flat</a><a class="chip">Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,39.1 L2.4,37.8 L4.8,36.4 L7.3,34.8 L9.7,33.2 L12.1,31.7 L14.5,30.5 L16.9,29.7 L19.4,29.4 L21.8,29.4 L24.2,29.6 L26.6,29.9 L29.1,30 L31.5,29.8 L33.9,29.4 L36.3,28.5 L38.7,27.4 L41.2,26 L43.6,24.5 L46,23 L48.4,21.9 L50.9,21.5 L53.3,21.7 L55.7,22.6 L58.1,23.8 L60.5,25.1 L63,26.2 L65.4,27.1 L67.8,27.6 L70.2,27.7 L72.6,27.4 L75.1,26.9 L77.5,26.2 L79.9,25.6 L82.3,25.2 L84.8,25.4 L87.2,26.1 L89.6,27.3 L92,28.8 L94.4,30.4 L96.9,32 L99.3,33.3 L101.7,34.4 L104.1,35.3 L106.5,35.9 L109,36.4 L111.4,36.7 L113.8,37 L116.2,37.3 L118.7,37.9 L121.1,38.6 L123.5,39.5 L125.9,40.6 L128.3,41.7 L130.8,42.8 L133.2,43.9 L135.6,44.9 L138,45.9 L140.4,46.8 L142.9,47.7 L145.3,48.5 L147.7,49.3 L150.1,49.9 L152.6,50.4 L155,50.7 L157.4,50.9 L159.8,51 L162.2,51.2 L164.7,51.3 L167.1,51.5 L169.5,51.7 L171.9,52.1 L174.3,52.5 L176.8,53 L179.2,53.4 L181.6,53.8 L184,54 L186.4,54 L188.9,53.6 L191.3,53.1 L193.7,52.3 L196.1,51.5 L198.6,50.6 L201,49.6 L203.4,48.8 L205.8,47.9 L208.2,47 L210.7,46.2 L213.1,45.4 L215.5,44.7 L217.9,44 L220.3,43.5 L222.8,43.1 L225.2,42.7 L227.6,42.4 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.7 L239.7,39.9 L242.1,39 L244.6,38 L247,36.9 L249.4,35.9 L251.8,35.1 L254.2,34.6 L256.7,34.4 L259.1,34.6 L261.5,35 L263.9,35.4 L266.4,35.6 L268.8,35.6 L271.2,35.4 L273.6,34.8 L276,33.9 L278.5,32.7 L280.9,31.3 L283.3,29.9 L285.7,28.9 L288.1,28.6 L290.6,29.2 L293,30.7 L295.4,32.6 L297.8,34.6 L300.3,36.4 L302.7,37.9 L305.1,39.1 L307.5,39.8 L309.9,40.2 L312.4,40.1 L314.8,39.5 L317.2,38.4 L319.6,37 L322.1,36.4 L324.5,37.9 L326.9,40.9 L329.3,43.6 L331.7,45.5 L334.2,46.7 L336.6,47.4 L339,47.8 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,39.1 L2.4,37.8 L4.8,36.4 L7.3,34.8 L9.7,33.2 L12.1,31.7 L14.5,30.5 L16.9,29.7 L19.4,29.4 L21.8,29.4 L24.2,29.6 L26.6,29.9 L29.1,30 L31.5,29.8 L33.9,29.4 L36.3,28.5 L38.7,27.4 L41.2,26 L43.6,24.5 L46,23 L48.4,21.9 L50.9,21.5 L53.3,21.7 L55.7,22.6 L58.1,23.8 L60.5,25.1 L63,26.2 L65.4,27.1 L67.8,27.6 L70.2,27.7 L72.6,27.4 L75.1,26.9 L77.5,26.2 L79.9,25.6 L82.3,25.2 L84.8,25.4 L87.2,26.1 L89.6,27.3 L92,28.8 L94.4,30.4 L96.9,32 L99.3,33.3 L101.7,34.4 L104.1,35.3 L106.5,35.9 L109,36.4 L111.4,36.7 L113.8,37 L116.2,37.3 L118.7,37.9 L121.1,38.6 L123.5,39.5 L125.9,40.6 L128.3,41.7 L130.8,42.8 L133.2,43.9 L135.6,44.9 L138,45.9 L140.4,46.8 L142.9,47.7 L145.3,48.5 L147.7,49.3 L150.1,49.9 L152.6,50.4 L155,50.7 L157.4,50.9 L159.8,51 L162.2,51.2 L164.7,51.3 L167.1,51.5 L169.5,51.7 L171.9,52.1 L174.3,52.5 L176.8,53 L179.2,53.4 L181.6,53.8 L184,54 L186.4,54 L188.9,53.6 L191.3,53.1 L193.7,52.3 L196.1,51.5 L198.6,50.6 L201,49.6 L203.4,48.8 L205.8,47.9 L208.2,47 L210.7,46.2 L213.1,45.4 L215.5,44.7 L217.9,44 L220.3,43.5 L222.8,43.1 L225.2,42.7 L227.6,42.4 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.7 L239.7,39.9 L242.1,39 L244.6,38 L247,36.9 L249.4,35.9 L251.8,35.1 L254.2,34.6 L256.7,34.4 L259.1,34.6 L261.5,35 L263.9,35.4 L266.4,35.6 L268.8,35.6 L271.2,35.4 L273.6,34.8 L276,33.9 L278.5,32.7 L280.9,31.3 L283.3,29.9 L285.7,28.9 L288.1,28.6 L290.6,29.2 L293,30.7 L295.4,32.6 L297.8,34.6 L300.3,36.4 L302.7,37.9 L305.1,39.1 L307.5,39.8 L309.9,40.2 L312.4,40.1 L314.8,39.5 L317.2,38.4 L319.6,37 L322.1,36.4 L324.5,37.9 L326.9,40.9 L329.3,43.6 L331.7,45.5 L334.2,46.7 L336.6,47.4 L339,47.8" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="98.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="92" x2="186.4" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="92" x2="220.3" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="92" x2="254.2" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="92" x2="288.1" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="92" x2="322.1" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="98.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row two"><span class="ms">library_music</span><span class="t2"><b>Use default</b><small>Removes this song's setting</small></span></div>
+      </div>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">own setting</span></div>
+  <p class="cap">D · A song playing with its album's setting</p>
+  <p class="why">The same bed, with the album's name. A change here changes every song on the album. The song can still take a setting of its own; “Use default” removes the album's.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope own"><div class="cv art-revenge sq w48 plain"></div><div class="txt"><b>For this album</b><span>Dhurandhar: The Revenge</span></div></div>
+      <div class="chips"><a class="chip" style="margin-left:-262px">Flat</a><a class="chip">Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip on"><span class="ms">check</span>Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,52 L2.4,52.6 L4.8,53.3 L7.3,54 L9.7,54.7 L12.1,55.4 L14.5,55.9 L16.9,56.2 L19.4,56.2 L21.8,56.1 L24.2,55.8 L26.6,55.5 L29.1,55.2 L31.5,55.1 L33.9,55 L36.3,55.1 L38.7,55.3 L41.2,55.6 L43.6,56 L46,56.3 L48.4,56.5 L50.9,56.5 L53.3,56.3 L55.7,55.9 L58.1,55.3 L60.5,54.7 L63,54.1 L65.4,53.6 L67.8,53.2 L70.2,52.9 L72.6,52.6 L75.1,52.5 L77.5,52.4 L79.9,52.2 L82.3,52.1 L84.8,51.8 L87.2,51.4 L89.6,50.9 L92,50.3 L94.4,49.6 L96.9,48.9 L99.3,48.2 L101.7,47.5 L104.1,46.8 L106.5,46.1 L109,45.4 L111.4,44.7 L113.8,44 L116.2,43.5 L118.7,43 L121.1,42.6 L123.5,42.3 L125.9,42 L128.3,41.7 L130.8,41.3 L133.2,40.8 L135.6,40.2 L138,39.4 L140.4,38.5 L142.9,37.5 L145.3,36.4 L147.7,35.5 L150.1,34.7 L152.6,34.2 L155,34 L157.4,34.1 L159.8,34.4 L162.2,34.6 L164.7,34.8 L167.1,34.8 L169.5,34.6 L171.9,34.1 L174.3,33.4 L176.8,32.5 L179.2,31.4 L181.6,30.5 L184,29.8 L186.4,29.4 L188.9,29.5 L191.3,30 L193.7,30.7 L196.1,31.5 L198.6,32.1 L201,32.6 L203.4,32.7 L205.8,32.6 L208.2,32.2 L210.7,31.5 L213.1,30.8 L215.5,30.1 L217.9,29.6 L220.3,29.5 L222.8,29.8 L225.2,30.6 L227.6,31.6 L230,32.6 L232.5,33.6 L234.9,34.3 L237.3,34.8 L239.7,35.1 L242.1,35.1 L244.6,34.9 L247,34.5 L249.4,34.2 L251.8,34.1 L254.2,34.2 L256.7,34.7 L259.1,35.6 L261.5,36.6 L263.9,37.7 L266.4,38.8 L268.8,39.7 L271.2,40.5 L273.6,41.1 L276,41.5 L278.5,41.8 L280.9,42 L283.3,42.1 L285.7,42.3 L288.1,42.5 L290.6,42.9 L293,43.4 L295.4,44 L297.8,44.6 L300.3,45.2 L302.7,45.6 L305.1,46.1 L307.5,46.4 L309.9,46.7 L312.4,47 L314.8,47.2 L317.2,47.3 L319.6,47.5 L322.1,47.6 L324.5,47.7 L326.9,47.8 L329.3,47.8 L331.7,47.9 L334.2,47.9 L336.6,48 L339,48 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,52 L2.4,52.6 L4.8,53.3 L7.3,54 L9.7,54.7 L12.1,55.4 L14.5,55.9 L16.9,56.2 L19.4,56.2 L21.8,56.1 L24.2,55.8 L26.6,55.5 L29.1,55.2 L31.5,55.1 L33.9,55 L36.3,55.1 L38.7,55.3 L41.2,55.6 L43.6,56 L46,56.3 L48.4,56.5 L50.9,56.5 L53.3,56.3 L55.7,55.9 L58.1,55.3 L60.5,54.7 L63,54.1 L65.4,53.6 L67.8,53.2 L70.2,52.9 L72.6,52.6 L75.1,52.5 L77.5,52.4 L79.9,52.2 L82.3,52.1 L84.8,51.8 L87.2,51.4 L89.6,50.9 L92,50.3 L94.4,49.6 L96.9,48.9 L99.3,48.2 L101.7,47.5 L104.1,46.8 L106.5,46.1 L109,45.4 L111.4,44.7 L113.8,44 L116.2,43.5 L118.7,43 L121.1,42.6 L123.5,42.3 L125.9,42 L128.3,41.7 L130.8,41.3 L133.2,40.8 L135.6,40.2 L138,39.4 L140.4,38.5 L142.9,37.5 L145.3,36.4 L147.7,35.5 L150.1,34.7 L152.6,34.2 L155,34 L157.4,34.1 L159.8,34.4 L162.2,34.6 L164.7,34.8 L167.1,34.8 L169.5,34.6 L171.9,34.1 L174.3,33.4 L176.8,32.5 L179.2,31.4 L181.6,30.5 L184,29.8 L186.4,29.4 L188.9,29.5 L191.3,30 L193.7,30.7 L196.1,31.5 L198.6,32.1 L201,32.6 L203.4,32.7 L205.8,32.6 L208.2,32.2 L210.7,31.5 L213.1,30.8 L215.5,30.1 L217.9,29.6 L220.3,29.5 L222.8,29.8 L225.2,30.6 L227.6,31.6 L230,32.6 L232.5,33.6 L234.9,34.3 L237.3,34.8 L239.7,35.1 L242.1,35.1 L244.6,34.9 L247,34.5 L249.4,34.2 L251.8,34.1 L254.2,34.2 L256.7,34.7 L259.1,35.6 L261.5,36.6 L263.9,37.7 L266.4,38.8 L268.8,39.7 L271.2,40.5 L273.6,41.1 L276,41.5 L278.5,41.8 L280.9,42 L283.3,42.1 L285.7,42.3 L288.1,42.5 L290.6,42.9 L293,43.4 L295.4,44 L297.8,44.6 L300.3,45.2 L302.7,45.6 L305.1,46.1 L307.5,46.4 L309.9,46.7 L312.4,47 L314.8,47.2 L317.2,47.3 L319.6,47.5 L322.1,47.6 L324.5,47.7 L326.9,47.8 L329.3,47.8 L331.7,47.9 L334.2,47.9 L336.6,48 L339,48" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="98.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="92" x2="186.4" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="92" x2="220.3" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="92" x2="254.2" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="92" x2="288.1" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="98.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row"><span class="ms">music_note</span>Save for this song</div>
+        <div class="sheet-row two"><span class="ms">library_music</span><span class="t2"><b>Use default</b><small>Removes this album's setting</small></span></div>
+      </div>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">off</span></div>
+  <p class="cap">E · Master switch off</p>
+  <p class="why">Off is said in words under the title. The knobs keep their places, the accent colour goes, and the response is the flat line it really is. Choosing a preset or moving a knob turns the equaliser back on.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch"></span></div>
+      <p class="eq-off">Off. Choose a preset or move a band to turn it on.</p>
+      <div class="eq-scope"><div class="ibox sq neutral w48"><span class="ms">library_music</span></div><div class="txt"><b>For all songs</b><span>Every song without its own setting</span></div></div>
+      <div class="chips eq-dim"><a class="chip">Flat</a><a class="chip on"><span class="ms">check</span>Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,48 L2.4,48 L4.8,48 L7.3,48 L9.7,48 L12.1,48 L14.5,48 L16.9,48 L19.4,48 L21.8,48 L24.2,48 L26.6,48 L29.1,48 L31.5,48 L33.9,48 L36.3,48 L38.7,48 L41.2,48 L43.6,48 L46,48 L48.4,48 L50.9,48 L53.3,48 L55.7,48 L58.1,48 L60.5,48 L63,48 L65.4,48 L67.8,48 L70.2,48 L72.6,48 L75.1,48 L77.5,48 L79.9,48 L82.3,48 L84.8,48 L87.2,48 L89.6,48 L92,48 L94.4,48 L96.9,48 L99.3,48 L101.7,48 L104.1,48 L106.5,48 L109,48 L111.4,48 L113.8,48 L116.2,48 L118.7,48 L121.1,48 L123.5,48 L125.9,48 L128.3,48 L130.8,48 L133.2,48 L135.6,48 L138,48 L140.4,48 L142.9,48 L145.3,48 L147.7,48 L150.1,48 L152.6,48 L155,48 L157.4,48 L159.8,48 L162.2,48 L164.7,48 L167.1,48 L169.5,48 L171.9,48 L174.3,48 L176.8,48 L179.2,48 L181.6,48 L184,48 L186.4,48 L188.9,48 L191.3,48 L193.7,48 L196.1,48 L198.6,48 L201,48 L203.4,48 L205.8,48 L208.2,48 L210.7,48 L213.1,48 L215.5,48 L217.9,48 L220.3,48 L222.8,48 L225.2,48 L227.6,48 L230,48 L232.5,48 L234.9,48 L237.3,48 L239.7,48 L242.1,48 L244.6,48 L247,48 L249.4,48 L251.8,48 L254.2,48 L256.7,48 L259.1,48 L261.5,48 L263.9,48 L266.4,48 L268.8,48 L271.2,48 L273.6,48 L276,48 L278.5,48 L280.9,48 L283.3,48 L285.7,48 L288.1,48 L290.6,48 L293,48 L295.4,48 L297.8,48 L300.3,48 L302.7,48 L305.1,48 L307.5,48 L309.9,48 L312.4,48 L314.8,48 L317.2,48 L319.6,48 L322.1,48 L324.5,48 L326.9,48 L329.3,48 L331.7,48 L334.2,48 L336.6,48 L339,48" fill="none" style="stroke:var(--on-3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="53" style="stroke:var(--on-3)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="59.5" style="stroke:var(--on-3)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="66" style="stroke:var(--on-3)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--on-3)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="88.8" style="stroke:var(--on-3)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="50.9" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="84.8" cy="66" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="152.6" cy="88.8" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="186.4" cy="92" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="220.3" cy="92" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="254.2" cy="92" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="288.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/><circle cx="322.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--on-3)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row"><span class="ms">music_note</span>Save for this song</div>
+        <div class="sheet-row"><span class="ms">album</span>Save for this album</div>
+      </div>
+      <p class="eq-note">Saved settings come back whenever the song plays.</p>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">F1 · Save as preset</p>
+  <p class="why">The kit's bottom dialog, riding above the keyboard, with the field focused. “Save” waits for a name that no other preset has.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope own"><div class="cv art-revenge sq w48 plain"></div><div class="txt"><b>For this song only</b><span>Jaan Se Guzarte Hain</span></div></div>
+      <div class="chips"><a class="chip on"><span class="ms">check</span>Custom</a><a class="chip save"><span class="ms">add</span>Save as preset</a><a class="chip">Flat</a><a class="chip">Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,39.1 L2.4,37.8 L4.8,36.4 L7.3,34.8 L9.7,33.2 L12.1,31.7 L14.5,30.5 L16.9,29.7 L19.4,29.4 L21.8,29.4 L24.2,29.6 L26.6,29.9 L29.1,30 L31.5,29.8 L33.9,29.4 L36.3,28.5 L38.7,27.4 L41.2,26 L43.6,24.5 L46,23 L48.4,21.9 L50.9,21.5 L53.3,21.7 L55.7,22.6 L58.1,23.8 L60.5,25.1 L63,26.2 L65.4,27.1 L67.8,27.6 L70.2,27.7 L72.6,27.4 L75.1,26.9 L77.5,26.2 L79.9,25.6 L82.3,25.2 L84.8,25.4 L87.2,26.1 L89.6,27.3 L92,28.8 L94.4,30.4 L96.9,32 L99.3,33.3 L101.7,34.4 L104.1,35.3 L106.5,35.9 L109,36.4 L111.4,36.7 L113.8,37 L116.2,37.3 L118.7,37.9 L121.1,38.6 L123.5,39.5 L125.9,40.6 L128.3,41.7 L130.8,42.8 L133.2,43.9 L135.6,44.9 L138,45.9 L140.4,46.8 L142.9,47.7 L145.3,48.5 L147.7,49.3 L150.1,49.9 L152.6,50.4 L155,50.7 L157.4,50.9 L159.8,51 L162.2,51.2 L164.7,51.3 L167.1,51.5 L169.5,51.7 L171.9,52.1 L174.3,52.5 L176.8,53 L179.2,53.4 L181.6,53.8 L184,54 L186.4,54 L188.9,53.6 L191.3,53.1 L193.7,52.3 L196.1,51.5 L198.6,50.6 L201,49.6 L203.4,48.8 L205.8,47.9 L208.2,47 L210.7,46.2 L213.1,45.4 L215.5,44.7 L217.9,44 L220.3,43.5 L222.8,43.1 L225.2,42.7 L227.6,42.4 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.7 L239.7,39.9 L242.1,39 L244.6,38 L247,36.9 L249.4,35.9 L251.8,35.1 L254.2,34.6 L256.7,34.4 L259.1,34.6 L261.5,35 L263.9,35.4 L266.4,35.6 L268.8,35.6 L271.2,35.4 L273.6,34.8 L276,33.9 L278.5,32.7 L280.9,31.3 L283.3,29.9 L285.7,28.9 L288.1,28.6 L290.6,29.2 L293,30.7 L295.4,32.6 L297.8,34.6 L300.3,36.4 L302.7,37.9 L305.1,39.1 L307.5,39.8 L309.9,40.2 L312.4,40.1 L314.8,39.5 L317.2,38.4 L319.6,37 L322.1,36.4 L324.5,37.9 L326.9,40.9 L329.3,43.6 L331.7,45.5 L334.2,46.7 L336.6,47.4 L339,47.8 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,39.1 L2.4,37.8 L4.8,36.4 L7.3,34.8 L9.7,33.2 L12.1,31.7 L14.5,30.5 L16.9,29.7 L19.4,29.4 L21.8,29.4 L24.2,29.6 L26.6,29.9 L29.1,30 L31.5,29.8 L33.9,29.4 L36.3,28.5 L38.7,27.4 L41.2,26 L43.6,24.5 L46,23 L48.4,21.9 L50.9,21.5 L53.3,21.7 L55.7,22.6 L58.1,23.8 L60.5,25.1 L63,26.2 L65.4,27.1 L67.8,27.6 L70.2,27.7 L72.6,27.4 L75.1,26.9 L77.5,26.2 L79.9,25.6 L82.3,25.2 L84.8,25.4 L87.2,26.1 L89.6,27.3 L92,28.8 L94.4,30.4 L96.9,32 L99.3,33.3 L101.7,34.4 L104.1,35.3 L106.5,35.9 L109,36.4 L111.4,36.7 L113.8,37 L116.2,37.3 L118.7,37.9 L121.1,38.6 L123.5,39.5 L125.9,40.6 L128.3,41.7 L130.8,42.8 L133.2,43.9 L135.6,44.9 L138,45.9 L140.4,46.8 L142.9,47.7 L145.3,48.5 L147.7,49.3 L150.1,49.9 L152.6,50.4 L155,50.7 L157.4,50.9 L159.8,51 L162.2,51.2 L164.7,51.3 L167.1,51.5 L169.5,51.7 L171.9,52.1 L174.3,52.5 L176.8,53 L179.2,53.4 L181.6,53.8 L184,54 L186.4,54 L188.9,53.6 L191.3,53.1 L193.7,52.3 L196.1,51.5 L198.6,50.6 L201,49.6 L203.4,48.8 L205.8,47.9 L208.2,47 L210.7,46.2 L213.1,45.4 L215.5,44.7 L217.9,44 L220.3,43.5 L222.8,43.1 L225.2,42.7 L227.6,42.4 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.7 L239.7,39.9 L242.1,39 L244.6,38 L247,36.9 L249.4,35.9 L251.8,35.1 L254.2,34.6 L256.7,34.4 L259.1,34.6 L261.5,35 L263.9,35.4 L266.4,35.6 L268.8,35.6 L271.2,35.4 L273.6,34.8 L276,33.9 L278.5,32.7 L280.9,31.3 L283.3,29.9 L285.7,28.9 L288.1,28.6 L290.6,29.2 L293,30.7 L295.4,32.6 L297.8,34.6 L300.3,36.4 L302.7,37.9 L305.1,39.1 L307.5,39.8 L309.9,40.2 L312.4,40.1 L314.8,39.5 L317.2,38.4 L319.6,37 L322.1,36.4 L324.5,37.9 L326.9,40.9 L329.3,43.6 L331.7,45.5 L334.2,46.7 L336.6,47.4 L339,47.8" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="98.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="92" x2="186.4" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="92" x2="220.3" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="92" x2="254.2" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="92" x2="288.1" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="92" x2="322.1" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="98.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row two"><span class="ms">library_music</span><span class="t2"><b>Use default</b><small>Removes this song's setting</small></span></div>
+      </div>
+    </div><div class="scrim top"></div>
+    <div class="dialog above-kbd">
+      <h3>Save as preset</h3>
+      <div class="field"><label>Preset name</label><div class="q">Car speakers<i class="caret"></i></div></div>
+      <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text">Save</button></div>
+    </div>
+    <div class="kbd"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="w2"></i><i class="sp"></i><i class="w2"></i><i></i></div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">F2 · A preset of your own</p>
+  <p class="why">Saved presets come first in the row. The selected one ends in the “more” glyph: tapping it again, or holding any saved preset, opens the kit's pop-over with Rename and Delete preset. Built-in presets have no menu.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope"><div class="ibox sq neutral w48"><span class="ms">library_music</span></div><div class="txt"><b>For all songs</b><span>Every song without its own setting</span></div></div>
+      <div class="chips"><a class="chip on"><span class="ms">check</span>Car speakers<span class="ms more">more_vert</span></a><a class="chip">Night, low</a><a class="chip">Flat</a><a class="chip">Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,37.6 L2.4,36 L4.8,34.3 L7.3,32.5 L9.7,30.6 L12.1,28.8 L14.5,27.5 L16.9,26.6 L19.4,26.4 L21.8,26.6 L24.2,27.2 L26.6,27.8 L29.1,28.3 L31.5,28.5 L33.9,28.3 L36.3,27.8 L38.7,27 L41.2,25.8 L43.6,24.6 L46,23.4 L48.4,22.6 L50.9,22.4 L53.3,22.9 L55.7,24.1 L58.1,25.7 L60.5,27.3 L63,28.9 L65.4,30.3 L67.8,31.3 L70.2,32 L72.6,32.5 L75.1,32.7 L77.5,32.7 L79.9,32.8 L82.3,33 L84.8,33.4 L87.2,34.2 L89.6,35.3 L92,36.5 L94.4,37.8 L96.9,39.1 L99.3,40.3 L101.7,41.4 L104.1,42.4 L106.5,43.3 L109,44.1 L111.4,44.8 L113.8,45.4 L116.2,46 L118.7,46.5 L121.1,47 L123.5,47.5 L125.9,48.1 L128.3,48.6 L130.8,49.1 L133.2,49.7 L135.6,50.4 L138,51 L140.4,51.8 L142.9,52.5 L145.3,53.3 L147.7,53.9 L150.1,54.4 L152.6,54.7 L155,54.7 L157.4,54.4 L159.8,54 L162.2,53.6 L164.7,53.1 L167.1,52.7 L169.5,52.4 L171.9,52.2 L174.3,52 L176.8,51.9 L179.2,51.9 L181.6,51.8 L184,51.7 L186.4,51.5 L188.9,51.1 L191.3,50.7 L193.7,50.1 L196.1,49.5 L198.6,48.8 L201,48.2 L203.4,47.5 L205.8,46.8 L208.2,46.1 L210.7,45.5 L213.1,44.8 L215.5,44.2 L217.9,43.6 L220.3,43.2 L222.8,42.8 L225.2,42.6 L227.6,42.3 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.8 L239.7,40 L242.1,39.2 L244.6,38.2 L247,37.2 L249.4,36.3 L251.8,35.5 L254.2,35.1 L256.7,35.1 L259.1,35.3 L261.5,35.8 L263.9,36.3 L266.4,36.7 L268.8,37 L271.2,36.9 L273.6,36.6 L276,36 L278.5,35.1 L280.9,34.1 L283.3,33.1 L285.7,32.4 L288.1,32.2 L290.6,32.8 L293,34 L295.4,35.6 L297.8,37.2 L300.3,38.8 L302.7,40.1 L305.1,41.1 L307.5,41.8 L309.9,42.2 L312.4,42.2 L314.8,41.9 L317.2,41.3 L319.6,40.4 L322.1,40.1 L324.5,41.1 L326.9,43.1 L329.3,45 L331.7,46.3 L334.2,47.1 L336.6,47.6 L339,47.9 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,37.6 L2.4,36 L4.8,34.3 L7.3,32.5 L9.7,30.6 L12.1,28.8 L14.5,27.5 L16.9,26.6 L19.4,26.4 L21.8,26.6 L24.2,27.2 L26.6,27.8 L29.1,28.3 L31.5,28.5 L33.9,28.3 L36.3,27.8 L38.7,27 L41.2,25.8 L43.6,24.6 L46,23.4 L48.4,22.6 L50.9,22.4 L53.3,22.9 L55.7,24.1 L58.1,25.7 L60.5,27.3 L63,28.9 L65.4,30.3 L67.8,31.3 L70.2,32 L72.6,32.5 L75.1,32.7 L77.5,32.7 L79.9,32.8 L82.3,33 L84.8,33.4 L87.2,34.2 L89.6,35.3 L92,36.5 L94.4,37.8 L96.9,39.1 L99.3,40.3 L101.7,41.4 L104.1,42.4 L106.5,43.3 L109,44.1 L111.4,44.8 L113.8,45.4 L116.2,46 L118.7,46.5 L121.1,47 L123.5,47.5 L125.9,48.1 L128.3,48.6 L130.8,49.1 L133.2,49.7 L135.6,50.4 L138,51 L140.4,51.8 L142.9,52.5 L145.3,53.3 L147.7,53.9 L150.1,54.4 L152.6,54.7 L155,54.7 L157.4,54.4 L159.8,54 L162.2,53.6 L164.7,53.1 L167.1,52.7 L169.5,52.4 L171.9,52.2 L174.3,52 L176.8,51.9 L179.2,51.9 L181.6,51.8 L184,51.7 L186.4,51.5 L188.9,51.1 L191.3,50.7 L193.7,50.1 L196.1,49.5 L198.6,48.8 L201,48.2 L203.4,47.5 L205.8,46.8 L208.2,46.1 L210.7,45.5 L213.1,44.8 L215.5,44.2 L217.9,43.6 L220.3,43.2 L222.8,42.8 L225.2,42.6 L227.6,42.3 L230,42.1 L232.5,41.8 L234.9,41.3 L237.3,40.8 L239.7,40 L242.1,39.2 L244.6,38.2 L247,37.2 L249.4,36.3 L251.8,35.5 L254.2,35.1 L256.7,35.1 L259.1,35.3 L261.5,35.8 L263.9,36.3 L266.4,36.7 L268.8,37 L271.2,36.9 L273.6,36.6 L276,36 L278.5,35.1 L280.9,34.1 L283.3,33.1 L285.7,32.4 L288.1,32.2 L290.6,32.8 L293,34 L295.4,35.6 L297.8,37.2 L300.3,38.8 L302.7,40.1 L305.1,41.1 L307.5,41.8 L309.9,42.2 L312.4,42.2 L314.8,41.9 L317.2,41.3 L319.6,40.4 L322.1,40.1 L324.5,41.1 L326.9,43.1 L329.3,45 L331.7,46.3 L334.2,47.1 L336.6,47.6 L339,47.9" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="92" x2="186.4" y2="98.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="92" x2="220.3" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="92" x2="254.2" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="92" x2="288.1" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="92" x2="322.1" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="98.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row"><span class="ms">music_note</span>Save for this song</div>
+        <div class="sheet-row"><span class="ms">album</span>Save for this album</div>
+      </div>
+      <p class="eq-note">Saved settings come back whenever the song plays.</p>
+      <div class="menu on-sheet">
+        <div class="menu-row"><span class="ms">edit</span>Rename</div>
+        <div class="menu-row danger"><span class="ms">delete</span>Delete preset</div>
+      </div>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">indicator</span></div>
+  <p class="cap">G · Now Playing, this song has its own setting</p>
+  <p class="why">A capsule in the header, beside the menu that holds the entry point: the equaliser glyph in the accent ink and “This song” (or “This album”) in the second ink, on <code>--fill</code>. Nothing in the deck changes. Tapping it opens the sheet.</p>
+  <div class="phone art-revenge tinted wash">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <a class="eq-on"><span class="ms">equalizer</span>This song</a><button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">H · Settings, Playback, Equaliser</p>
+  <p class="why">The page edits the default in one card, in Lamplight since no cover is involved. Under it, the albums and the songs that have their own setting, each with the preset it holds and a button that removes it. The phone's own equaliser is the last card.</p>
+  <div class="phone long">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen pad-dock">
+      <header class="hero short"><h1>Equaliser</h1></header>
+      <div class="tools lead"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button></div>
+      <div class="group">
+        <div class="set-row"><div class="txt"><b>Use equaliser</b></div><span class="switch on"></span></div>
+      </div>
+      <div class="label">Default</div>
+      <div class="group eq-card">
+      <div class="chips"><a class="chip" style="margin-left:-104px">Car speakers</a><a class="chip">Night, low</a><a class="chip">Flat</a><a class="chip on"><span class="ms">check</span>Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 323 96" width="323" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="323" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="323" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="323" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,36.1 L2.3,34.3 L4.6,32.3 L6.9,30.2 L9.2,28.1 L11.5,26.1 L13.8,24.5 L16.1,23.7 L18.5,23.6 L20.8,24.1 L23.1,25.1 L25.4,26.1 L27.7,27 L30,27.6 L32.3,27.9 L34.6,27.8 L36.9,27.4 L39.2,26.6 L41.5,25.7 L43.8,24.9 L46.1,24.3 L48.5,24.1 L50.8,24.6 L53.1,25.5 L55.4,26.6 L57.7,27.9 L60,29 L62.3,29.8 L64.6,30.3 L66.9,30.5 L69.2,30.4 L71.5,30.1 L73.8,29.6 L76.1,29.1 L78.4,28.9 L80.8,29 L83.1,29.5 L85.4,30.5 L87.7,31.6 L90,32.9 L92.3,34.1 L94.6,35 L96.9,35.8 L99.2,36.4 L101.5,36.8 L103.8,36.9 L106.1,37 L108.4,37.1 L110.7,37.2 L113,37.5 L115.4,38 L117.7,38.6 L120,39.4 L122.3,40.2 L124.6,41 L126.9,41.7 L129.2,42.2 L131.5,42.7 L133.8,43.1 L136.1,43.4 L138.4,43.7 L140.7,43.9 L143,44.1 L145.3,44.4 L147.7,44.6 L150,44.9 L152.3,45.2 L154.6,45.5 L156.9,45.8 L159.2,46.1 L161.5,46.3 L163.8,46.5 L166.1,46.7 L168.4,46.8 L170.7,47 L173,47.1 L175.3,47.2 L177.7,47.3 L180,47.4 L182.3,47.4 L184.6,47.5 L186.9,47.6 L189.2,47.6 L191.5,47.6 L193.8,47.7 L196.1,47.7 L198.4,47.7 L200.7,47.8 L203,47.8 L205.3,47.8 L207.6,47.8 L209.9,47.8 L212.3,47.9 L214.6,47.9 L216.9,47.9 L219.2,47.9 L221.5,47.9 L223.8,47.9 L226.1,47.9 L228.4,47.9 L230.7,47.9 L233,47.9 L235.3,48 L237.6,48 L239.9,48 L242.2,48 L244.6,48 L246.9,48 L249.2,48 L251.5,48 L253.8,48 L256.1,48 L258.4,48 L260.7,48 L263,48 L265.3,48 L267.6,48 L269.9,48 L272.2,48 L274.6,48 L276.9,48 L279.2,48 L281.5,48 L283.8,48 L286.1,48 L288.4,48 L290.7,48 L293,48 L295.3,48 L297.6,48 L299.9,48 L302.2,48 L304.5,48 L306.9,48 L309.2,48 L311.5,48 L313.8,48 L316.1,48 L318.4,48 L320.7,48 L323,48 L323,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,36.1 L2.3,34.3 L4.6,32.3 L6.9,30.2 L9.2,28.1 L11.5,26.1 L13.8,24.5 L16.1,23.7 L18.5,23.6 L20.8,24.1 L23.1,25.1 L25.4,26.1 L27.7,27 L30,27.6 L32.3,27.9 L34.6,27.8 L36.9,27.4 L39.2,26.6 L41.5,25.7 L43.8,24.9 L46.1,24.3 L48.5,24.1 L50.8,24.6 L53.1,25.5 L55.4,26.6 L57.7,27.9 L60,29 L62.3,29.8 L64.6,30.3 L66.9,30.5 L69.2,30.4 L71.5,30.1 L73.8,29.6 L76.1,29.1 L78.4,28.9 L80.8,29 L83.1,29.5 L85.4,30.5 L87.7,31.6 L90,32.9 L92.3,34.1 L94.6,35 L96.9,35.8 L99.2,36.4 L101.5,36.8 L103.8,36.9 L106.1,37 L108.4,37.1 L110.7,37.2 L113,37.5 L115.4,38 L117.7,38.6 L120,39.4 L122.3,40.2 L124.6,41 L126.9,41.7 L129.2,42.2 L131.5,42.7 L133.8,43.1 L136.1,43.4 L138.4,43.7 L140.7,43.9 L143,44.1 L145.3,44.4 L147.7,44.6 L150,44.9 L152.3,45.2 L154.6,45.5 L156.9,45.8 L159.2,46.1 L161.5,46.3 L163.8,46.5 L166.1,46.7 L168.4,46.8 L170.7,47 L173,47.1 L175.3,47.2 L177.7,47.3 L180,47.4 L182.3,47.4 L184.6,47.5 L186.9,47.6 L189.2,47.6 L191.5,47.6 L193.8,47.7 L196.1,47.7 L198.4,47.7 L200.7,47.8 L203,47.8 L205.3,47.8 L207.6,47.8 L209.9,47.8 L212.3,47.9 L214.6,47.9 L216.9,47.9 L219.2,47.9 L221.5,47.9 L223.8,47.9 L226.1,47.9 L228.4,47.9 L230.7,47.9 L233,47.9 L235.3,48 L237.6,48 L239.9,48 L242.2,48 L244.6,48 L246.9,48 L249.2,48 L251.5,48 L253.8,48 L256.1,48 L258.4,48 L260.7,48 L263,48 L265.3,48 L267.6,48 L269.9,48 L272.2,48 L274.6,48 L276.9,48 L279.2,48 L281.5,48 L283.8,48 L286.1,48 L288.4,48 L290.7,48 L293,48 L295.3,48 L297.6,48 L299.9,48 L302.2,48 L304.5,48 L306.9,48 L309.2,48 L311.5,48 L313.8,48 L316.1,48 L318.4,48 L320.7,48 L323,48" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 323 184" width="323" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="329" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.1" y1="14" x2="16.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.1" y1="92" x2="16.1" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="48.5" y1="14" x2="48.5" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="48.5" y1="92" x2="48.5" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="80.8" y1="14" x2="80.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="80.8" y1="92" x2="80.8" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="113" y1="14" x2="113" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="113" y1="92" x2="113" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="145.3" y1="14" x2="145.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="145.3" y1="92" x2="145.3" y2="88.8" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="177.7" y1="14" x2="177.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="209.9" y1="14" x2="209.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="242.2" y1="14" x2="242.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="274.6" y1="14" x2="274.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="306.9" y1="14" x2="306.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.1" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="48.5" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="80.8" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="113" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="145.3" cy="88.8" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="177.7" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="209.9" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="242.2" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="274.6" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="306.9" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      </div>
+      <p class="note">Every song without its own setting plays with this.</p>
+      <div class="label">Albums with their own setting</div>
+      <div class="group">
+        <div class="row"><div class="cv art-revenge sq w56 plain"></div><div class="txt"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div><span class="val">Vocal</span><button class="ib dim" aria-label="Remove the setting for Dhurandhar: The Revenge"><span class="ms">close</span></button></div>
+        <div class="row"><div class="cv art-rockstar sq w56 plain"></div><div class="txt"><b>Rockstar</b><span>A. R. Rahman</span></div><span class="val">Custom</span><button class="ib dim" aria-label="Remove the setting for Rockstar"><span class="ms">close</span></button></div>
+      </div>
+      <div class="label">Songs with their own setting</div>
+      <div class="group">
+        <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><span class="meta">Car speakers</span><button class="ib" aria-label="Remove the setting for GHOST!"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><span class="meta">Custom</span><button class="ib" aria-label="Remove the setting for Jaan Se Guzarte Hain"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><span class="meta">Acoustic</span><button class="ib" aria-label="Remove the setting for Malare"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><span class="meta">Bass boost</span><button class="ib" aria-label="Remove the setting for Viva La Vida"><span class="ms">close</span></button></div>
+      </div>
+      <div class="label">On this phone</div>
+      <div class="group">
+        <div class="set-row"><div class="txt"><b>Phone equaliser</b><span>Opens the equaliser on this phone.</span></div><span class="ms">open_in_new</span></div>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini tinted art-revenge" style="--p:.323">
+        <div class="cv art-revenge sq w44 plain"></div>
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+        <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+      </div>
+      <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+  <p class="cap">H · The same page, light</p>
+  <p class="why">Light: plaster ground, white cards, Brass for amber text.</p>
+  <div class="phone long light">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen pad-dock">
+      <header class="hero short"><h1>Equaliser</h1></header>
+      <div class="tools lead"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button></div>
+      <div class="group">
+        <div class="set-row"><div class="txt"><b>Use equaliser</b></div><span class="switch on"></span></div>
+      </div>
+      <div class="label">Default</div>
+      <div class="group eq-card">
+      <div class="chips"><a class="chip" style="margin-left:-104px">Car speakers</a><a class="chip">Night, low</a><a class="chip">Flat</a><a class="chip on"><span class="ms">check</span>Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 323 96" width="323" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="323" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="323" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="323" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,36.1 L2.3,34.3 L4.6,32.3 L6.9,30.2 L9.2,28.1 L11.5,26.1 L13.8,24.5 L16.1,23.7 L18.5,23.6 L20.8,24.1 L23.1,25.1 L25.4,26.1 L27.7,27 L30,27.6 L32.3,27.9 L34.6,27.8 L36.9,27.4 L39.2,26.6 L41.5,25.7 L43.8,24.9 L46.1,24.3 L48.5,24.1 L50.8,24.6 L53.1,25.5 L55.4,26.6 L57.7,27.9 L60,29 L62.3,29.8 L64.6,30.3 L66.9,30.5 L69.2,30.4 L71.5,30.1 L73.8,29.6 L76.1,29.1 L78.4,28.9 L80.8,29 L83.1,29.5 L85.4,30.5 L87.7,31.6 L90,32.9 L92.3,34.1 L94.6,35 L96.9,35.8 L99.2,36.4 L101.5,36.8 L103.8,36.9 L106.1,37 L108.4,37.1 L110.7,37.2 L113,37.5 L115.4,38 L117.7,38.6 L120,39.4 L122.3,40.2 L124.6,41 L126.9,41.7 L129.2,42.2 L131.5,42.7 L133.8,43.1 L136.1,43.4 L138.4,43.7 L140.7,43.9 L143,44.1 L145.3,44.4 L147.7,44.6 L150,44.9 L152.3,45.2 L154.6,45.5 L156.9,45.8 L159.2,46.1 L161.5,46.3 L163.8,46.5 L166.1,46.7 L168.4,46.8 L170.7,47 L173,47.1 L175.3,47.2 L177.7,47.3 L180,47.4 L182.3,47.4 L184.6,47.5 L186.9,47.6 L189.2,47.6 L191.5,47.6 L193.8,47.7 L196.1,47.7 L198.4,47.7 L200.7,47.8 L203,47.8 L205.3,47.8 L207.6,47.8 L209.9,47.8 L212.3,47.9 L214.6,47.9 L216.9,47.9 L219.2,47.9 L221.5,47.9 L223.8,47.9 L226.1,47.9 L228.4,47.9 L230.7,47.9 L233,47.9 L235.3,48 L237.6,48 L239.9,48 L242.2,48 L244.6,48 L246.9,48 L249.2,48 L251.5,48 L253.8,48 L256.1,48 L258.4,48 L260.7,48 L263,48 L265.3,48 L267.6,48 L269.9,48 L272.2,48 L274.6,48 L276.9,48 L279.2,48 L281.5,48 L283.8,48 L286.1,48 L288.4,48 L290.7,48 L293,48 L295.3,48 L297.6,48 L299.9,48 L302.2,48 L304.5,48 L306.9,48 L309.2,48 L311.5,48 L313.8,48 L316.1,48 L318.4,48 L320.7,48 L323,48 L323,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,36.1 L2.3,34.3 L4.6,32.3 L6.9,30.2 L9.2,28.1 L11.5,26.1 L13.8,24.5 L16.1,23.7 L18.5,23.6 L20.8,24.1 L23.1,25.1 L25.4,26.1 L27.7,27 L30,27.6 L32.3,27.9 L34.6,27.8 L36.9,27.4 L39.2,26.6 L41.5,25.7 L43.8,24.9 L46.1,24.3 L48.5,24.1 L50.8,24.6 L53.1,25.5 L55.4,26.6 L57.7,27.9 L60,29 L62.3,29.8 L64.6,30.3 L66.9,30.5 L69.2,30.4 L71.5,30.1 L73.8,29.6 L76.1,29.1 L78.4,28.9 L80.8,29 L83.1,29.5 L85.4,30.5 L87.7,31.6 L90,32.9 L92.3,34.1 L94.6,35 L96.9,35.8 L99.2,36.4 L101.5,36.8 L103.8,36.9 L106.1,37 L108.4,37.1 L110.7,37.2 L113,37.5 L115.4,38 L117.7,38.6 L120,39.4 L122.3,40.2 L124.6,41 L126.9,41.7 L129.2,42.2 L131.5,42.7 L133.8,43.1 L136.1,43.4 L138.4,43.7 L140.7,43.9 L143,44.1 L145.3,44.4 L147.7,44.6 L150,44.9 L152.3,45.2 L154.6,45.5 L156.9,45.8 L159.2,46.1 L161.5,46.3 L163.8,46.5 L166.1,46.7 L168.4,46.8 L170.7,47 L173,47.1 L175.3,47.2 L177.7,47.3 L180,47.4 L182.3,47.4 L184.6,47.5 L186.9,47.6 L189.2,47.6 L191.5,47.6 L193.8,47.7 L196.1,47.7 L198.4,47.7 L200.7,47.8 L203,47.8 L205.3,47.8 L207.6,47.8 L209.9,47.8 L212.3,47.9 L214.6,47.9 L216.9,47.9 L219.2,47.9 L221.5,47.9 L223.8,47.9 L226.1,47.9 L228.4,47.9 L230.7,47.9 L233,47.9 L235.3,48 L237.6,48 L239.9,48 L242.2,48 L244.6,48 L246.9,48 L249.2,48 L251.5,48 L253.8,48 L256.1,48 L258.4,48 L260.7,48 L263,48 L265.3,48 L267.6,48 L269.9,48 L272.2,48 L274.6,48 L276.9,48 L279.2,48 L281.5,48 L283.8,48 L286.1,48 L288.4,48 L290.7,48 L293,48 L295.3,48 L297.6,48 L299.9,48 L302.2,48 L304.5,48 L306.9,48 L309.2,48 L311.5,48 L313.8,48 L316.1,48 L318.4,48 L320.7,48 L323,48" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 323 184" width="323" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="329" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.1" y1="14" x2="16.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.1" y1="92" x2="16.1" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="48.5" y1="14" x2="48.5" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="48.5" y1="92" x2="48.5" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="80.8" y1="14" x2="80.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="80.8" y1="92" x2="80.8" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="113" y1="14" x2="113" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="113" y1="92" x2="113" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="145.3" y1="14" x2="145.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="145.3" y1="92" x2="145.3" y2="88.8" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="177.7" y1="14" x2="177.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="209.9" y1="14" x2="209.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="242.2" y1="14" x2="242.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="274.6" y1="14" x2="274.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="306.9" y1="14" x2="306.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.1" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="48.5" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="80.8" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="113" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="145.3" cy="88.8" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="177.7" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="209.9" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="242.2" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="274.6" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="306.9" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      </div>
+      <p class="note">Every song without its own setting plays with this.</p>
+      <div class="label">Albums with their own setting</div>
+      <div class="group">
+        <div class="row"><div class="cv art-revenge sq w56 plain"></div><div class="txt"><b>Dhurandhar: The Revenge</b><span>Shashwat Sachdev</span></div><span class="val">Vocal</span><button class="ib dim" aria-label="Remove the setting for Dhurandhar: The Revenge"><span class="ms">close</span></button></div>
+        <div class="row"><div class="cv art-rockstar sq w56 plain"></div><div class="txt"><b>Rockstar</b><span>A. R. Rahman</span></div><span class="val">Custom</span><button class="ib dim" aria-label="Remove the setting for Rockstar"><span class="ms">close</span></button></div>
+      </div>
+      <div class="label">Songs with their own setting</div>
+      <div class="group">
+        <div class="song"><div class="lead"><div class="cv art-ghost sq w48 plain"></div></div><div class="txt"><b>GHOST!</b><span>phonk.me, KIIXSHI</span></div><span class="meta">Car speakers</span><button class="ib" aria-label="Remove the setting for GHOST!"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-revenge sq w48 plain"></div></div><div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div><span class="meta">Custom</span><button class="ib" aria-label="Remove the setting for Jaan Se Guzarte Hain"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-premam sq w48 plain"></div></div><div class="txt"><b>Malare</b><span>Vijay Yesudas</span></div><span class="meta">Acoustic</span><button class="ib" aria-label="Remove the setting for Malare"><span class="ms">close</span></button></div>
+        <div class="song"><div class="lead"><div class="cv art-viva sq w48 plain"></div></div><div class="txt"><b>Viva La Vida</b><span>Coldplay</span></div><span class="meta">Bass boost</span><button class="ib" aria-label="Remove the setting for Viva La Vida"><span class="ms">close</span></button></div>
+      </div>
+      <div class="label">On this phone</div>
+      <div class="group">
+        <div class="set-row"><div class="txt"><b>Phone equaliser</b><span>Opens the equaliser on this phone.</span></div><span class="ms">open_in_new</span></div>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini tinted art-revenge" style="--p:.323">
+        <div class="cv art-revenge sq w44 plain"></div>
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+        <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+      </div>
+      <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag light">light</span></div>
+  <p class="cap">I · Frame B in light</p>
+  <p class="why">The sheet over the player takes the cover's wash in light as well.</p>
+  <div class="phone art-revenge tinted wash light">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen">
+      <div class="np-page">
+        <div class="np-head">
+          <button class="ib" aria-label="Close player"><span class="ms">expand_more</span></button>
+          <div class="txt"><em>Playing from</em><b>Dhurandhar: The Revenge</b></div>
+          <button class="ib" aria-label="More options for Jaan Se Guzarte Hain"><span class="ms">more_vert</span></button>
+        </div>
+        <div class="np-cover"><div class="cv art-revenge sq-lg"></div></div>
+        <div class="np-title"><h1>Jaan Se Guzarte Hain</h1><p class="by">Khan Saab, Shashwat Sachdev</p></div>
+        <div class="np-lyric"><span class="ms s18">lyrics</span><span>The window lamp stays lit</span></div>
+        <div class="deck">
+          <div class="seek" style="--p:.323"><span class="at">1:47</span><span class="end">5:31</span></div>
+          <div class="transport">
+            <button class="tp"><span class="ms">skip_previous</span></button>
+            <button class="play"><span class="ms">pause</span></button>
+            <button class="tp"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="toggles">
+            <button class="ib tonal lg"><span class="ms">shuffle</span></button>
+            <button class="ib tonal lg"><span class="ms">repeat</span></button>
+            <button class="ib tonal lg heart"><span class="ms">favorite</span></button>
+            <button class="ib tonal lg"><span class="ms">queue_music</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scrim"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="eq-title"><h3>Equaliser</h3><span class="switch on"></span></div>
+      <div class="eq-scope"><div class="ibox sq neutral w48"><span class="ms">library_music</span></div><div class="txt"><b>For all songs</b><span>Every song without its own setting</span></div></div>
+      <div class="chips"><a class="chip">Flat</a><a class="chip on"><span class="ms">check</span>Bass boost</a><a class="chip">Bass reducer</a><a class="chip">Treble boost</a><a class="chip">Vocal</a><a class="chip">Loudness</a><a class="chip">Acoustic</a><a class="chip">Electronic</a><a class="chip">Hip-hop</a><a class="chip">Classical</a><a class="chip">Spoken word</a></div>
+      <div class="eq-well"><i class="ax" style="top:6.9px">+12</i><i class="ax" style="top:48px">0</i><i class="ax" style="top:89.1px">−12</i><svg viewBox="0 0 339 96" width="339" height="96" aria-hidden="true"><line x1="0" y1="6.9" x2="339" y2="6.9" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="89.1" x2="339" y2="89.1" style="stroke:var(--fill-2)" stroke-width="1" stroke-dasharray="2 4"/><line x1="0" y1="48" x2="339" y2="48" style="stroke:var(--fill-2)" stroke-width="1"/><path d="M0,36.1 L2.4,34.3 L4.8,32.3 L7.3,30.2 L9.7,28.1 L12.1,26.1 L14.5,24.5 L16.9,23.7 L19.4,23.6 L21.8,24.1 L24.2,25.1 L26.6,26.1 L29.1,27 L31.5,27.6 L33.9,27.9 L36.3,27.8 L38.7,27.4 L41.2,26.6 L43.6,25.7 L46,24.9 L48.4,24.3 L50.9,24.1 L53.3,24.6 L55.7,25.5 L58.1,26.6 L60.5,27.9 L63,29 L65.4,29.8 L67.8,30.3 L70.2,30.5 L72.6,30.4 L75.1,30.1 L77.5,29.6 L79.9,29.1 L82.3,28.9 L84.8,29 L87.2,29.5 L89.6,30.5 L92,31.6 L94.4,32.9 L96.9,34.1 L99.3,35 L101.7,35.8 L104.1,36.4 L106.5,36.8 L109,36.9 L111.4,37 L113.8,37.1 L116.2,37.2 L118.7,37.5 L121.1,38 L123.5,38.6 L125.9,39.4 L128.3,40.2 L130.8,41 L133.2,41.7 L135.6,42.2 L138,42.7 L140.4,43.1 L142.9,43.4 L145.3,43.7 L147.7,43.9 L150.1,44.1 L152.6,44.4 L155,44.6 L157.4,44.9 L159.8,45.2 L162.2,45.5 L164.7,45.8 L167.1,46.1 L169.5,46.3 L171.9,46.5 L174.3,46.7 L176.8,46.8 L179.2,47 L181.6,47.1 L184,47.2 L186.4,47.3 L188.9,47.4 L191.3,47.4 L193.7,47.5 L196.1,47.6 L198.6,47.6 L201,47.6 L203.4,47.7 L205.8,47.7 L208.2,47.7 L210.7,47.8 L213.1,47.8 L215.5,47.8 L217.9,47.8 L220.3,47.8 L222.8,47.9 L225.2,47.9 L227.6,47.9 L230,47.9 L232.5,47.9 L234.9,47.9 L237.3,47.9 L239.7,47.9 L242.1,47.9 L244.6,47.9 L247,48 L249.4,48 L251.8,48 L254.2,48 L256.7,48 L259.1,48 L261.5,48 L263.9,48 L266.4,48 L268.8,48 L271.2,48 L273.6,48 L276,48 L278.5,48 L280.9,48 L283.3,48 L285.7,48 L288.1,48 L290.6,48 L293,48 L295.4,48 L297.8,48 L300.3,48 L302.7,48 L305.1,48 L307.5,48 L309.9,48 L312.4,48 L314.8,48 L317.2,48 L319.6,48 L322.1,48 L324.5,48 L326.9,48 L329.3,48 L331.7,48 L334.2,48 L336.6,48 L339,48 L339,48 L0,48 Z" style="fill:var(--accent)" opacity=".2"/><path d="M0,36.1 L2.4,34.3 L4.8,32.3 L7.3,30.2 L9.7,28.1 L12.1,26.1 L14.5,24.5 L16.9,23.7 L19.4,23.6 L21.8,24.1 L24.2,25.1 L26.6,26.1 L29.1,27 L31.5,27.6 L33.9,27.9 L36.3,27.8 L38.7,27.4 L41.2,26.6 L43.6,25.7 L46,24.9 L48.4,24.3 L50.9,24.1 L53.3,24.6 L55.7,25.5 L58.1,26.6 L60.5,27.9 L63,29 L65.4,29.8 L67.8,30.3 L70.2,30.5 L72.6,30.4 L75.1,30.1 L77.5,29.6 L79.9,29.1 L82.3,28.9 L84.8,29 L87.2,29.5 L89.6,30.5 L92,31.6 L94.4,32.9 L96.9,34.1 L99.3,35 L101.7,35.8 L104.1,36.4 L106.5,36.8 L109,36.9 L111.4,37 L113.8,37.1 L116.2,37.2 L118.7,37.5 L121.1,38 L123.5,38.6 L125.9,39.4 L128.3,40.2 L130.8,41 L133.2,41.7 L135.6,42.2 L138,42.7 L140.4,43.1 L142.9,43.4 L145.3,43.7 L147.7,43.9 L150.1,44.1 L152.6,44.4 L155,44.6 L157.4,44.9 L159.8,45.2 L162.2,45.5 L164.7,45.8 L167.1,46.1 L169.5,46.3 L171.9,46.5 L174.3,46.7 L176.8,46.8 L179.2,47 L181.6,47.1 L184,47.2 L186.4,47.3 L188.9,47.4 L191.3,47.4 L193.7,47.5 L196.1,47.6 L198.6,47.6 L201,47.6 L203.4,47.7 L205.8,47.7 L208.2,47.7 L210.7,47.8 L213.1,47.8 L215.5,47.8 L217.9,47.8 L220.3,47.8 L222.8,47.9 L225.2,47.9 L227.6,47.9 L230,47.9 L232.5,47.9 L234.9,47.9 L237.3,47.9 L239.7,47.9 L242.1,47.9 L244.6,47.9 L247,48 L249.4,48 L251.8,48 L254.2,48 L256.7,48 L259.1,48 L261.5,48 L263.9,48 L266.4,48 L268.8,48 L271.2,48 L273.6,48 L276,48 L278.5,48 L280.9,48 L283.3,48 L285.7,48 L288.1,48 L290.6,48 L293,48 L295.4,48 L297.8,48 L300.3,48 L302.7,48 L305.1,48 L307.5,48 L309.9,48 L312.4,48 L314.8,48 L317.2,48 L319.6,48 L322.1,48 L324.5,48 L326.9,48 L329.3,48 L331.7,48 L334.2,48 L336.6,48 L339,48" fill="none" style="stroke:var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="88.8" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="88.8" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="92" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g></svg></div>
+      <div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div>
+      <div class="eq-rows">
+        <div class="sheet-row"><span class="ms">music_note</span>Save for this song</div>
+        <div class="sheet-row"><span class="ms">album</span>Save for this album</div>
+      </div>
+      <p class="eq-note">Saved settings come back whenever the song plays.</p>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span></div>
+  <p class="cap">J · Settings, the Playback section</p>
+  <p class="why">The row now opens the page in frame H. Its value is the state, as “Crossfade” shows its length: the default's preset, or “Off”. The line under the title counts what has its own setting; with nothing saved it describes the feature instead.</p>
+  <div class="phone">
+    <div class="sbar">
+      <span>9:41</span>
+      <span class="sys">
+        <svg width="17" height="13" viewBox="0 0 17 13"><path d="M8.5 2.6c2.4 0 4.6.9 6.3 2.5l1.2-1.3C14 1.9 11.3.8 8.5.8S3 1.9 1 3.8l1.2 1.3C3.9 3.5 6.1 2.6 8.5 2.6Zm0 3.5c1.5 0 2.8.5 3.9 1.5l1.2-1.3C12.2 5 10.4 4.3 8.5 4.3S4.8 5 3.4 6.3l1.2 1.3c1.1-1 2.4-1.5 3.9-1.5Zm0 3.4c-.9 0-1.7.3-2.3.9l2.3 2.4 2.3-2.4c-.6-.6-1.4-.9-2.3-.9Z"/></svg>
+        <svg width="15" height="13" viewBox="0 0 15 13"><path d="M13.5 0 0 13h13.5V0Z"/></svg>
+        <svg width="11" height="15" viewBox="0 0 11 15"><path d="M3.5 0h4v1.5H9.5c.8 0 1.5.7 1.5 1.5v10.5c0 .8-.7 1.5-1.5 1.5h-8C.7 15 0 14.3 0 13.5V3c0-.8.7-1.5 1.5-1.5h2V0Z"/></svg>
+      </span>
+    </div>
+    <div class="screen pad-dock">
+      <div class="bar lift"><button class="ib" aria-label="Back"><span class="ms">arrow_back</span></button><h2>Settings</h2></div>
+      <div class="label">Playback</div>
+      <div class="group">
+        <div class="set-row"><div class="txt"><b>Volume levelling</b><span>Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are.</span></div><span class="switch on"></span></div>
+        <div class="set-row"><div class="txt"><b>Crossfade</b><span>Songs from one album played in order still run straight into each other.</span></div><span class="val">Off</span></div>
+        <div class="set-row"><div class="txt"><b>Equaliser</b><span>With their own setting: 4 songs, 2 albums</span></div><span class="val">Bass boost</span><span class="ms">chevron_right</span></div>
+      </div>
+      <div class="label">Lyrics</div>
+      <div class="group">
+        <div class="set-block">
+          <p><b>52 of 127 songs</b> have lyrics saved on this phone. Saved lyrics work offline.</p>
+          <small>Downloading sends each song's title, artist, album and length to lrclib.net. Your music files are never sent.</small>
+          <button class="btn text">Download lyrics for all songs</button>
+        </div>
+      </div>
+    </div>
+    <div class="dock">
+      <div class="mini tinted art-revenge" style="--p:.323">
+        <div class="cv art-revenge sq w44 plain"></div>
+        <div class="txt"><b>Jaan Se Guzarte Hain</b><span>Khan Saab, Shashwat Sachdev</span></div>
+        <button class="ib heart" aria-label="Add to favourites"><span class="ms">favorite</span></button>
+        <button class="ib" aria-label="Pause"><span class="ms fill">pause</span></button>
+      </div>
+      <nav class="tabs"><a class="tab on"><span class="ms">home</span>Home</a><a class="tab"><span class="ms">search</span>Search</a><a class="tab"><span class="ms">library_music</span>Library</a></nav>
+    </div>
+    <div class="gpill"></div>
+  </div>
+</div>
+</div>
+<div class="rowset">
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">states</span></div>
+  <p class="cap">Menu row and the over-album case</p>
+  <p class="why">Wording for the states the frames above do not show.</p>
+  <div class="strips"><p class="lbl"><b style="color:#dfe4ea">The menu row's value.</b> Off; on with the default (its preset); on with this song's own setting; on with the album's.</p><div class="strip art-revenge tinted wash sheetlike" style="width:411px"><div class="sheet-row"><span class="ms">equalizer</span>Equaliser<span class="val">Off</span><span class="ms end go">chevron_right</span></div><div class="sheet-row"><span class="ms">equalizer</span>Equaliser<span class="val">Bass boost</span><span class="ms end go">chevron_right</span></div><div class="sheet-row"><span class="ms">equalizer</span>Equaliser<span class="val">This song · Custom</span><span class="ms end go">chevron_right</span></div><div class="sheet-row"><span class="ms">equalizer</span>Equaliser<span class="val">This album · Vocal</span><span class="ms end go">chevron_right</span></div></div><p class="lbl"><b style="color:#dfe4ea">A song's setting over its album's.</b> Removing the song's setting drops it to the album's, so the row says so.</p><div class="strip art-revenge tinted wash sheetlike" style="width:411px"><div style="margin-top:-12px"><div class="eq-rows">
+        <div class="sheet-row two"><span class="ms">album</span><span class="t2"><b>Use album setting</b><small>Removes this song's setting</small></span></div>
+      </div></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">states</span></div>
+  <p class="cap">Band states</p>
+  <p class="why">Dragging.</p>
+  <div class="strips"><p class="lbl"><b style="color:#dfe4ea">A band while it is dragged.</b> The knob grows from 20 to 26dp and its value rides above it in the toast's colours. Nothing else on the sheet moves.</p><div class="strip art-revenge tinted wash sheetlike" style="width:411px"><div style="height:36px"></div><div class="eq-bands"><svg viewBox="0 0 339 184" width="339" height="184" aria-hidden="true"><line x1="-6" y1="92" x2="345" y2="92" style="stroke:var(--fill-2)" stroke-width="1"/><line x1="16.9" y1="14" x2="16.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="16.9" y1="92" x2="16.9" y2="66" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="14" x2="50.9" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="50.9" y1="92" x2="50.9" y2="53" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="14" x2="84.8" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="84.8" y1="92" x2="84.8" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="14" x2="118.7" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="118.7" y1="92" x2="118.7" y2="79" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="14" x2="152.6" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="152.6" y1="92" x2="152.6" y2="98.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="14" x2="186.4" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="186.4" y1="92" x2="186.4" y2="105" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="14" x2="220.3" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="220.3" y1="92" x2="220.3" y2="85.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="14" x2="254.2" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="254.2" y1="92" x2="254.2" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="14" x2="288.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="288.1" y1="92" x2="288.1" y2="59.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="14" x2="322.1" y2="170" style="stroke:var(--fill-2)" stroke-width="6" stroke-linecap="round"/><line x1="322.1" y1="92" x2="322.1" y2="72.5" style="stroke:var(--accent)" stroke-width="6" stroke-linecap="round"/><g style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))"><circle cx="16.9" cy="66" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="50.9" cy="53" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="84.8" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="118.7" cy="79" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="152.6" cy="98.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="186.4" cy="105" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="220.3" cy="85.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="254.2" cy="72.5" r="12" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="288.1" cy="59.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/><circle cx="322.1" cy="72.5" r="9" style="fill:var(--knob);stroke:var(--accent)" stroke-width="2"/></g><rect x="223.2" y="22.5" width="62" height="28" rx="14" style="fill:var(--toast)"/><text x="254.2" y="41" text-anchor="middle" style="fill:var(--on-toast)">+3 dB</text></svg></div><div class="eq-freqs"><span>31</span><span>62</span><span>125</span><span>250</span><span>500</span><span>1k</span><span>2k</span><span>4k</span><span>8k</span><span>16k</span></div></div></div>
+</div>
+<div class="col">
+  <div class="tags"><span class="tag proposal">proposal</span><span class="tag dark">dark</span><span class="tag state">states</span></div>
+  <p class="cap">Dialogs and the empty list</p>
+  <p class="why">The rest of the copy.</p>
+  <div class="strips"><p class="lbl"><b style="color:#dfe4ea">Rename and delete.</b> The kit's dialogs.</p><div class="strip art-revenge tinted wash " style="width:411px"><div class="dialog"><h3>Rename preset</h3>
+      <div class="field"><label>Preset name</label><div class="q">Car speakers<i class="caret"></i></div></div>
+      <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text">Rename</button></div></div>
+    <div class="dialog"><h3>Delete Car speakers?</h3><p>Songs and albums saved with it keep their sound and show as Custom.</p>
+      <div class="dialog-btns"><button class="btn text">Cancel</button><button class="btn text danger">Delete preset</button></div></div></div><p class="lbl"><b style="color:#dfe4ea">Settings, nothing saved yet.</b> One note in place of the two lists.</p><div class="strip" style="width:411px"><div class="label tight">Songs and albums with their own setting</div>
+    <div class="group"><div class="set-block">None yet. Open Equaliser from the menu on Now Playing and choose “Save for this song”.</div></div><div style="height:16px"></div></div></div>
+</div>
+</div>
+
+<div class="spec">
+  <h2>What is new</h2>
+  <ul>
+    <li><b>Scope head.</b> The sheet's head names what the bands change: “For all songs”, “For this album”, “For this song only”. The default is a neutral icon box; a song or album of its own shows its cover on the <code>--accent-soft</code> bed the kit uses for the current song.</li>
+    <li><b>Response well.</b> A card on <code>--fill</code> with the engine's response in the accent, 14 dB either way, dashed lines at ±12.</li>
+    <li><b>Band sliders.</b> Ten capsule tracks with the switch's white knob and an accent run from 0 dB to the knob. They share the well's ten-octave axis, so each knob is under its bump.</li>
+    <li><b>Preset chips</b>, the kit's pills in one scrolling row: “Custom” and “Save as preset” first when the bands match no preset, then saved presets, then the eleven built in.</li>
+    <li><b>Action rows</b> at the foot: “Save for this song”, “Save for this album”, and “Use default” with what it removes on a second line.</li>
+    <li><b>Indicator.</b> A capsule in Now Playing's header while the song plays with its own or its album's setting.</li>
+  </ul>
+  <h2>What was kept</h2>
+  <ul>
+    <li>The track menu, with “Sleep timer” where it was. “Equaliser” is the next row and puts its state where the timer puts its minutes.</li>
+    <li>The sheet, chips, switch, bottom dialog, pop-over and settings rows are the kit's own. Over the player the sheet takes the cover's wash; in Settings it is Lamplight.</li>
+    <li>“Opens the equaliser on this phone.” keeps its wording and moves to the last card of the new page, under the title “Phone equaliser”.</li>
+  </ul>
+  <h2>Open questions</h2>
+  <ul>
+    <li><b>Edits made before “Save for this song” stay in the default.</b> The sheet edits what is playing, so someone who moves a knob and then saves for the song has changed every song first. Saving could instead put the default back to what it was when the sheet opened.</li>
+    <li><b>“Use default” cannot be undone.</b> The toast has no action today. An “Undo” there would make the row safe to tap.</li>
+    <li><b>Preset curves</b> in these frames are placeholders; the engine owns the real ones.</li>
+  </ul>
+</div>
