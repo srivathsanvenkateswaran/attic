@@ -27,6 +27,12 @@ import app.attic.player.R
 import app.attic.player.data.UiStyle
 import app.attic.player.storeshots.DemoLibrary
 import app.attic.player.storeshots.DemoStates
+import app.attic.player.storeshots.EqualiserDemo
+import app.attic.player.ui.comfort.ComfortEqualiserPage
+import app.attic.player.ui.comfort.ComfortEqualiserSheet
+import app.attic.player.ui.expressive.ExpressiveEqualiserPage
+import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
+import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.ShellSlots
 import app.attic.player.ui.Tab
@@ -191,7 +197,9 @@ class Ref(
             "queue", "queue_radio", "queue_empty",
             "lyrics_synced", "lyrics_plain", "lyrics_none", "lyrics_not_downloaded", "lyrics_instrumental", "lyrics_downloading",
             "sheet_track_menu", "sheet_track_menu_playlist", "sheet_track_menu_now_playing", "sheet_track_menu_open_with",
-            "sheet_sleep_timer", "sleep_timer_active", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
+            "sheet_sleep_timer", "sleep_timer_active",
+            "sheet_equaliser", "sheet_equaliser_song", "sheet_equaliser_album", "sheet_equaliser_off", "dialog_equaliser_save_preset",
+            "now_playing_equaliser", "settings_equaliser", "settings_equaliser_empty", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
             "dialog_new_playlist", "dialog_name_playlist", "dialog_rename_playlist", "dialog_delete_playlist", "menu_playlist_overflow",
             "snackbar", "snackbar_over_player",
             "settings", "settings_analysis", "settings_lyrics_download", "settings_backup",
@@ -412,6 +420,20 @@ class Ref(
                     Capture.Screen,
                     sheet = menu(d.trackMenu(DemoLibrary.nowPlaying, fromNowPlaying = true, timer = d.timerRunning), overPlayer = true),
                 )
+                "sheet_equaliser" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetDefault) })
+                "sheet_equaliser_song" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetSong) })
+                "sheet_equaliser_album" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetAlbum) })
+                "sheet_equaliser_off" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetOff) })
+                "dialog_equaliser_save_preset" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetSavePreset) })
+                "now_playing_equaliser" -> overlayRef(nowPlaying = d.nowPlayingWithEqualiser)
+                "settings_equaliser" -> shell(Tab.Home) {
+                    val page = EqualiserDemo.page()
+                    if (e) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+                }
+                "settings_equaliser_empty" -> shell(Tab.Home) {
+                    val page = EqualiserDemo.page(empty = true)
+                    if (e) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+                }
                 "sheet_playlist_picker" -> overHome {
                     if (e) ExpressivePlaylistPicker(d.playlistPicker, d.playlistPickerActions) else ComfortPlaylistPicker(d.playlistPicker, d.playlistPickerActions)
                 }
@@ -581,6 +603,16 @@ private fun InShell(
         },
     )
     if (e) ExpressiveShell(state, s.shellActions, slots) else ComfortShell(state, s.shellActions, slots)
+}
+
+/** The equaliser sheet over Now Playing, in the scheme the track menu takes there. */
+@Composable
+private fun EqSheet(style: UiStyle, state: EqualiserSheetState) {
+    if (style == UiStyle.Expressive) {
+        FromCover(DemoLibrary.nowPlaying.mediaId) { ExpressiveEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    } else {
+        TintedCover(DemoLibrary.nowPlaying.mediaId, wash = true) { ComfortEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    }
 }
 
 /**

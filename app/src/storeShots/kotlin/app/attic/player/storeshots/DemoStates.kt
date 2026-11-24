@@ -329,6 +329,7 @@ object DemoStates {
         songCount = lib.tracks.size,
         analysis = AnalysisProgress(lib.tracks.size, lib.tracks.size, running = false),
         backup = BackupUiState(saving = false, restoring = false, confirm = null, restored = null, problem = null),
+        equaliser = EqualiserDemo.settingsRow,
     )
 
     val settingsActions = SettingsActions(

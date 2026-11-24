@@ -65,6 +65,7 @@ class UiActions(
     fun openSettings() = go("settings")
     fun openWrapped() = go("wrapped")
     fun openLicences() = go("licences")
+    fun openEqualiser() = go("equaliser")
     fun openLicence(id: String) = go("licences/${Uri.encode(id)}")
     fun openSearch() = selectTab("search")
     fun addToPlaylist(keys: List<String>) = pickPlaylist(keys)
@@ -73,9 +74,15 @@ class UiActions(
 
 /**
  * [playlistId] is set when the menu opens from a playlist, which adds "Remove from this playlist".
- * [fromNowPlaying] is set when it opens from Now Playing's menu button, which adds "Sleep timer".
+ * [fromNowPlaying] is set when it opens from Now Playing's menu button, which adds "Sleep timer" and
+ * "Equaliser". [equaliser] opens straight on the equaliser, as Now Playing's indicator does.
  */
-data class TrackMenuRequest(val track: Track, val playlistId: Long? = null, val fromNowPlaying: Boolean = false)
+data class TrackMenuRequest(
+    val track: Track,
+    val playlistId: Long? = null,
+    val fromNowPlaying: Boolean = false,
+    val equaliser: Boolean = false,
+)
 
 val LocalUi = staticCompositionLocalOf<UiActions> { error("No UiActions") }
 
@@ -249,6 +256,7 @@ private fun AppNavHost(nav: NavHostController, library: Library, transitions: Na
         composable("settings") { SettingsScreen(library) }
         composable("wrapped") { WrappedScreen(library) }
         composable("licences") { LicencesScreen() }
+        composable("equaliser") { EqualiserScreen(library) }
         composable("licences/{id}") { entry -> LicenceScreen(Uri.decode(entry.arguments?.getString("id").orEmpty())) }
     }
 }

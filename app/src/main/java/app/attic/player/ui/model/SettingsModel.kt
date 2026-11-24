@@ -46,6 +46,8 @@ class SettingsState(
     val songCount: Int,
     val analysis: AnalysisProgress,
     val backup: BackupUiState,
+    /** The Equaliser row: on or off, the default's preset, and how many songs and albums have their own. */
+    val equaliser: EqualiserSettingsRow = EqualiserSettingsRow(on = false, presetName = "", ownSongs = 0, ownAlbums = 0),
 ) {
     /** The crossfade lengths offered, in seconds, Off first. */
     val crossfadeChoices: List<Int> get() = CrossfadePlan.choices
@@ -85,8 +87,10 @@ class SettingsActions(
     val setAutoplay: (Boolean) -> Unit,
     val setVolumeLevelling: (Boolean) -> Unit,
     val setCrossfadeSeconds: (Int) -> Unit,
-    /** Opens the phone's equaliser on Attic's audio session. */
+    /** Opens the phone's equaliser on Attic's audio session. Moved to the Equaliser page's "Phone equaliser" row. */
     val openEqualiser: () -> Unit,
+    /** Opens Settings > Playback > Equaliser. */
+    val openEqualiserPage: () -> Unit = {},
     val downloadAllLyrics: () -> Unit,
     /** Analyses songs now instead of waiting for a charger. */
     val startAnalysis: () -> Unit,
@@ -146,6 +150,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         library.tracks.size,
         analysis,
         BackupUiState.of(backupStatus),
+        rememberEqualiserSettingsRow(library),
     )
     val actions = SettingsActions(
         back = { ui.back() },
@@ -164,6 +169,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
                 app.messages.tryEmit(app.getString(R.string.settings_equaliser_failed))
             }
         },
+        openEqualiserPage = { ui.openEqualiser() },
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },
         startAnalysis = { AnalysisWorker.startNow(app) },
         openLicences = { ui.openLicences() },
