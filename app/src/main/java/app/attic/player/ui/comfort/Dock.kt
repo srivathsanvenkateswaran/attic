@@ -48,6 +48,9 @@ import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import kotlin.math.roundToInt
 
+/** How far the content fades out above the dock's card before the ground is solid (`linear-gradient` over 36dp). */
+internal val DockFade = 36.dp
+
 /** One tab of the dock. */
 data class TabItem(val label: String, val symbol: Symbol)
 
@@ -71,7 +74,7 @@ fun Dock(
     Box(
         modifier
             .fillMaxWidth()
-            .background(Brush.verticalGradient(0f to Color.Transparent, 1f to colors.ground, startY = 0f, endY = with(androidx.compose.ui.platform.LocalDensity.current) { 36.dp.toPx() }))
+            .background(Brush.verticalGradient(0f to Color.Transparent, 1f to colors.ground, startY = 0f, endY = with(androidx.compose.ui.platform.LocalDensity.current) { DockFade.toPx() }))
             .padding(start = 12.dp, end = 12.dp, top = 28.dp, bottom = bottom),
     ) {
         Column(
