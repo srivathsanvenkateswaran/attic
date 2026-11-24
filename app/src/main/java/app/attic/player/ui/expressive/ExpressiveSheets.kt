@@ -58,6 +58,7 @@ import app.attic.player.ui.model.PlaylistPickerActions
 import app.attic.player.ui.model.PlaylistPickerState
 import app.attic.player.ui.model.TrackMenuActions
 import app.attic.player.ui.model.TrackMenuState
+import app.attic.player.ui.model.equaliserSummary
 import java.text.NumberFormat
 
 /*
@@ -69,7 +70,8 @@ import java.text.NumberFormat
  * The track menu (frame A, G, H): the song, the three ways to play it as a button group, then two
  * grouped lists: filing it (favourites, a playlist, its language, out of this playlist) and going
  * somewhere else (its album and artist, each shown by its cover and name, and the share sheet).
- * Opened from Now Playing, "Sleep timer" sits in a group of its own under the song.
+ * Opened from Now Playing, "Sleep timer" and "Equaliser" share a group under the song, each saying
+ * what it is doing on its second line; "Equaliser" replaces the menu with the equaliser sheet.
  */
 @Composable
 fun ExpressiveTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
@@ -77,15 +79,31 @@ fun ExpressiveTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
     ExpressiveSheet(onDismiss = actions.dismiss) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             SheetHeader(track.title, track.artist) { m -> Cover(Art.of(track.mediaId), m) }
-            state.sleepTimer?.let { timer ->
-                ListGroup(1) {
-                    MenuCell(
-                        stringResource(R.string.sleep_timer),
-                        actions.pickSleepTimer,
-                        supporting = sleepTimerSummary(timer),
-                        lead = { CellSymbol(Symbol.Bedtime, filled = timer.choice != SleepChoice.Off, on = timer.choice != SleepChoice.Off) },
-                    )
+            // What is playing: both rows are there only when the menu opens from Now Playing.
+            val playing = buildList<@Composable () -> Unit> {
+                state.sleepTimer?.let { timer ->
+                    add {
+                        MenuCell(
+                            stringResource(R.string.sleep_timer),
+                            actions.pickSleepTimer,
+                            supporting = sleepTimerSummary(timer),
+                            lead = { CellSymbol(Symbol.Bedtime, filled = timer.choice != SleepChoice.Off, on = timer.choice != SleepChoice.Off) },
+                        )
+                    }
                 }
+                state.equaliser?.let { equaliser ->
+                    add {
+                        MenuCell(
+                            stringResource(R.string.equaliser),
+                            actions.openEqualiser,
+                            supporting = equaliserSummary(equaliser),
+                            lead = { CellSymbol(Symbol.Equalizer, on = equaliser.on) },
+                        )
+                    }
+                }
+            }
+            if (playing.isNotEmpty()) {
+                ListGroup(playing.size) { playing[it]() }
                 Spacer(Modifier.height(ExpressiveShapes.GroupSpacing))
             }
             // A song opened from another app isn't in the library, so nothing below applies to it.
