@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -246,7 +247,7 @@ fun BandGraph(curve: EqCurve, on: Boolean, onBand: (band: Int, gainDb: Float) ->
     val colors by rememberUpdatedState(MaterialTheme.colorScheme)
     val live by animateFloatAsState(if (on) 1f else 0f, ExpressiveMotion.defaultEffects(), label = "graphLive")
     val measurer = rememberTextMeasurer()
-    val context = LocalContext.current
+    val resources = LocalResources.current
     // Remembered, so the draw cache below is rebuilt for a new size or font and not for every new curve.
     val typography = MaterialTheme.typography
     val labelStyle = typography.labelSmall
@@ -347,7 +348,7 @@ fun BandGraph(curve: EqCurve, on: Boolean, onBand: (band: Int, gainDb: Float) ->
                             val gain = gains[held]
                             var text = bubbleText
                             if (text == null || gain != bubbleGain) {
-                                text = measurer.measure(context.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)), bubbleStyle)
+                                text = measurer.measure(resources.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)), bubbleStyle)
                                 bubbleGain = gain
                                 bubbleText = text
                             }

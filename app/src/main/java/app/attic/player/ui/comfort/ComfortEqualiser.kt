@@ -83,6 +83,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -930,10 +931,10 @@ private fun BandSliders(
 ) {
     val colors = rememberUpdatedState(Comfort.colors)
     val shadow = Comfort.colors.shadowSmall
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val measurer = rememberTextMeasurer(cacheSize = 16)
     // The bubble's words for each half decibel from -12 to +12, made as they are first needed.
-    val values = remember(context) { arrayOfNulls<String>(49) }
+    val values = remember(resources) { arrayOfNulls<String>(49) }
     Box(modifier.fillMaxWidth().pointerInput(bands) { bandGestures(bands) }) {
         Column {
             Spacer(
@@ -997,7 +998,7 @@ private fun BandSliders(
                                 drawRoundRect(ink.toast, Offset(x - bubble.width / 2, top), bubble, bubbleCorner, alpha = grown)
                                 val slot = ((gain - EqualiserBands.MIN_DB) * 2f).roundToInt().coerceIn(0, values.lastIndex)
                                 val words = values[slot]
-                                    ?: context.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)).also { values[slot] = it }
+                                    ?: resources.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)).also { values[slot] = it }
                                 val text = measurer.measure(words, bubbleStyle)
                                 drawText(
                                     text,
