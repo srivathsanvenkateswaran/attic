@@ -35,6 +35,7 @@ import app.attic.player.ui.comfort.ComfortShapes
 import app.attic.player.ui.comfort.SuperellipseShape
 import app.attic.player.ui.coverSwatch
 import app.attic.player.ui.coverTint
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.await
@@ -124,9 +125,20 @@ class PlayerWidget : AppWidgetProvider() {
         private var lastCoverId: Long? = null
         private var lastCover: Bitmap? = null
 
+        /** What [publish] last drew, in which style, so a repeat of the same state draws nothing. */
+        private var lastPublished: Pair<WidgetState, UiStyle>? = null
+
+        /** Comfort's cuts of [lastCover], by shape, so a redraw for the same song cuts nothing. */
+        private val coverCuts = ConcurrentHashMap<SuperellipseShape, Bitmap>()
+
         /** Saves the state so a widget added later, or after a reboot, still shows the last song. */
         fun publish(context: Context, state: WidgetState) {
             live = state
+            // The player reports several events for one change (a new queue: timeline, then item,
+            // then playing), and each redraw sends every cover across to the launcher again.
+            val drawn = state to context.attic.settings.uiStyle.value
+            if (drawn == lastPublished) return
+            lastPublished = drawn
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putString("title", state.title)
                 .putString("artist", state.artist)
@@ -205,8 +217,17 @@ class PlayerWidget : AppWidgetProvider() {
                 )
             }
 
-        /** The centre square of [source] inside [shape], transparent outside it. */
+        /**
+         * The centre square of [source] inside [shape], transparent outside it. Immutable: RemoteViews
+         * copies a mutable bitmap into shared memory for every layout it is set on, at every redraw
+         * (17 to 25MB at launch, held until the next garbage collection), and sends an immutable one as it is.
+         */
         private fun cutTo(source: Bitmap, shape: SuperellipseShape): Bitmap {
+            if (source === lastCover) coverCuts[shape]?.let { return it }
+            return cutOnce(source, shape).also { if (source === lastCover) coverCuts[shape] = it }
+        }
+
+        private fun cutOnce(source: Bitmap, shape: SuperellipseShape): Bitmap {
             val size = min(source.width, source.height)
             val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
             val shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
@@ -221,7 +242,7 @@ class PlayerWidget : AppWidgetProvider() {
             }
             path.close()
             Canvas(out).drawPath(path, Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader })
-            return out
+            return out.copy(Bitmap.Config.ARGB_8888, false).also { out.recycle() }
         }
 
         private suspend fun cover(context: Context, mediaId: Long?): Bitmap? {
@@ -234,6 +255,7 @@ class PlayerWidget : AppWidgetProvider() {
             }
             lastCoverId = mediaId
             lastCover = bitmap
+            coverCuts.clear()
             return bitmap
         }
 
