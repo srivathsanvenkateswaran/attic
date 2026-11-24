@@ -28,16 +28,22 @@ TEMPLATE = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{title}</title>
   <meta name="description" content="What Attic reads, stores and sends. Attic has no account, analytics or ads; lyrics lookups go to lrclib.net.">
-  <meta name="theme-color" content="#c6533a">
+  <link rel="canonical" href="https://srivathsanvenkateswaran.github.io/attic/privacy.html">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#c6533a" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#8f3b29" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="img/icon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Generated from PRIVACY.md by scripts/render_privacy_page.py. Edit that file, not this one. -->
-  <div class="top slim">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="hero-ground slim">
     <header class="wrap bar">
-      <a class="brand" href="./" aria-label="Attic home">
-        <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="24" fill="#F5EDDD"/><path fill="#C6533A" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5Z"/><path fill="#F5EDDD" fill-rule="evenodd" d="M41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
+      <a class="brand" href="./">
+        <svg viewBox="35.2 27 36 51.5" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
         Attic
       </a>
       <nav aria-label="Site">
@@ -46,13 +52,15 @@ TEMPLATE = """<!doctype html>
       </nav>
     </header>
   </div>
-  <main class="wrap">
+  <main id="main" class="wrap">
     <div class="doc">
 {body}
     </div>
   </main>
-  <footer class="wrap">
-    <p>The source of this page is <a href="{repo}PRIVACY.md">PRIVACY.md</a>, and its history lists every change.</p>
+  <footer class="site-footer doc-footer">
+    <div class="wrap footer-grid">
+      <p>The source of this page is <a href="{repo}PRIVACY.md">PRIVACY.md</a>, and its history lists every change.</p>
+    </div>
   </footer>
 </body>
 </html>

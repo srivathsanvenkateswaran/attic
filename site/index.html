@@ -4,156 +4,443 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Attic: a music player for the songs already on your phone</title>
-  <meta name="description" content="Attic is an offline Android music player for the songs already on your phone. No account, no streaming, no ads. Free software under the GPL.">
-  <meta property="og:title" content="Attic">
-  <meta property="og:description" content="A music player for the songs already on your phone. No account, no streaming, no ads.">
-  <meta property="og:image" content="img/og.png">
-  <meta name="theme-color" content="#c6533a">
+  <meta name="description" content="Attic is a free, open-source Android music player for the music files already on your phone. No account, no streaming, no ads, and it plays offline.">
+  <link rel="canonical" href="https://srivathsanvenkateswaran.github.io/attic/">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#c6533a" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#8f3b29" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Attic">
+  <meta property="og:url" content="https://srivathsanvenkateswaran.github.io/attic/">
+  <meta property="og:title" content="Attic: a music player for the songs already on your phone">
+  <meta property="og:description" content="Free and open source for Android. No account, no streaming, no ads, and it plays offline.">
+  <meta property="og:image" content="https://srivathsanvenkateswaran.github.io/attic/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The Attic logo beside two phones, one in the Expressive style and one in the Comfort style">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Attic: a music player for the songs already on your phone">
+  <meta name="twitter:description" content="Free and open source for Android. No account, no streaming, no ads, and it plays offline.">
+  <meta name="twitter:image" content="https://srivathsanvenkateswaran.github.io/attic/img/og.png">
+  <meta name="twitter:image:alt" content="The Attic logo beside two phones, one in the Expressive style and one in the Comfort style">
   <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="img/icon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="preload" href="fonts/onest.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="top">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="hero-ground">
     <header class="wrap bar">
-      <a class="brand" href="./" aria-label="Attic home">
-        <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" rx="24" fill="#F5EDDD"/><path fill="#C6533A" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5Z"/><path fill="#F5EDDD" fill-rule="evenodd" d="M41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
+      <a class="brand" href="./">
+        <svg viewBox="35.2 27 36 51.5" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
         Attic
       </a>
       <nav aria-label="Site">
-        <a href="privacy.html">Privacy</a>
-        <!-- GitHub link: update if the repository moves. -->
+        <a href="#styles">Styles</a>
+        <a class="wide-only" href="#features">Features</a>
+        <a href="#privacy">Privacy</a>
+        <a class="wide-only" href="#faq">FAQ</a>
         <a href="https://github.com/srivathsanvenkateswaran/attic">GitHub</a>
       </nav>
     </header>
 
     <div class="wrap hero">
-      <div>
+      <div class="hero-copy">
+        <svg class="hero-mark" viewBox="35.2 27 36 51.5" role="img" aria-label="Attic logo: a speaker cabinet cut to the slope of a roof"><path fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
         <h1>A music player for the songs already on your phone.</h1>
-        <p>No account, no streaming, no ads. It plays in airplane mode.</p>
+        <p class="hero-sub">No account, no streaming, no ads. Attic plays your own music files offline, and its source code is open under the GPL.</p>
         <div class="get">
           <!--
-            Google Play badge placeholder. Once the listing is live, replace this span with the
-            official badge from https://play.google.com/intl/en_us/badges/ (keep Google's
-            artwork unmodified), linking to
-            https://play.google.com/store/apps/details?id=app.attic.player
+            Google Play slot. Once the listing is live, replace this <span> with Google's official
+            badge from https://play.google.com/intl/en_us/badges/ (artwork unmodified), wrapped in
+            <a class="play-badge" href="https://play.google.com/store/apps/details?id=app.attic.player">.
+            The .play-badge rule in style.css sizes it to match the buttons.
           -->
-          <span class="button play-placeholder">Coming to Google Play</span>
+          <span class="button soon" id="play-slot">Google Play: coming soon</span>
           <a class="button solid" href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">Download the APK</a>
-          <a class="button line" href="https://github.com/srivathsanvenkateswaran/attic">Source on GitHub</a>
+          <a class="button line" href="https://github.com/srivathsanvenkateswaran/attic">View source on GitHub</a>
+        </div>
+        <p class="hero-note">For Android 13 or newer on a 64-bit ARM phone. The APK is 58 MB, from GitHub Releases.</p>
+      </div>
+      <div class="hero-phones">
+        <div class="phone back">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-360.png">
+            <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
+            <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style" fetchpriority="high" decoding="async">
+          </picture>
+        </div>
+        <div class="phone front">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-now-playing-360.png">
+            <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
+            <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style" fetchpriority="high" decoding="async">
+          </picture>
         </div>
       </div>
-      <!-- The Headroom mark: a speaker cabinet cut to the slope of a roof. -->
-      <svg class="mark" viewBox="35.2 27 36 51.5" role="img" aria-label="Attic logo: a speaker cabinet with a sloping top">
-        <path fill="#F5EDDD" fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/>
-      </svg>
     </div>
   </div>
 
-  <main class="wrap">
-    <section aria-labelledby="styles">
-      <h2 id="styles">Two styles, one app</h2>
-      <p class="lead">Pick one in Settings, under Appearance. Both come in light and dark, and you can switch at any time.</p>
-      <div class="styles">
-        <figure>
-          <div class="phone">
-            <!-- Replace this placeholder with <img src="img/expressive.png" alt="Attic's Home screen in the Expressive style" width="1080" height="2400"> -->
-            <div class="placeholder">Expressive screenshot</div>
+  <main id="main">
+    <section class="styles" id="styles" aria-labelledby="styles-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="styles-title">Two styles, one app</h2>
+          <p>Expressive and Comfort each restyle every screen. Switch in Settings &gt; Appearance: the change applies at once and the song keeps playing. Both come in light and dark.</p>
+        </div>
+
+        <div class="controls">
+          <fieldset class="seg">
+            <legend>Screen</legend>
+            <input type="radio" name="screen" id="s-home" checked><label for="s-home">Home</label>
+            <input type="radio" name="screen" id="s-now-playing"><label for="s-now-playing">Now Playing</label>
+            <input type="radio" name="screen" id="s-album"><label for="s-album">Album</label>
+            <input type="radio" name="screen" id="s-artist"><label for="s-artist">Artist</label>
+          </fieldset>
+          <fieldset class="seg">
+            <legend>Theme</legend>
+            <input type="radio" name="theme" id="t-auto" checked><label for="t-auto">Match device</label>
+            <input type="radio" name="theme" id="t-light"><label for="t-light">Light</label>
+            <input type="radio" name="theme" id="t-dark"><label for="t-dark">Dark</label>
+          </fieldset>
+        </div>
+
+        <div class="pair">
+          <figure class="style expressive">
+            <div class="phone">
+              <div class="screen" data-screen="home">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/expressive-light-home-360.webp 360w, img/screens/expressive-light-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-light-home-360.png" width="360" height="800" alt="Home in the Expressive style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-dark-home-360.png" width="360" height="800" alt="Home in the Expressive style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="now-playing">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="album">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/expressive-light-album-360.webp 360w, img/screens/expressive-light-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-light-album-360.png" width="360" height="800" alt="Album in the Expressive style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-album-360.webp 360w, img/screens/expressive-dark-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-dark-album-360.png" width="360" height="800" alt="Album in the Expressive style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="artist">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/expressive-light-artist-360.webp 360w, img/screens/expressive-light-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-light-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-artist-360.webp 360w, img/screens/expressive-dark-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/expressive-dark-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+            </div>
+            <figcaption>
+              <h3>Expressive</h3>
+              <p>Colour taken from the album art and the phone's wallpaper, a wavy progress line, and buttons that change shape as you press them.</p>
+            </figcaption>
+          </figure>
+          <figure class="style comfort">
+            <div class="phone">
+              <div class="screen" data-screen="home">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-dark-home-360.png" width="360" height="800" alt="Home in the Comfort style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="now-playing">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/comfort-light-now-playing-360.webp 360w, img/screens/comfort-light-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="album">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/comfort-light-album-360.webp 360w, img/screens/comfort-light-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-light-album-360.png" width="360" height="800" alt="Album in the Comfort style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-album-360.webp 360w, img/screens/comfort-dark-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-dark-album-360.png" width="360" height="800" alt="Album in the Comfort style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+              <div class="screen" data-screen="artist">
+                <picture class="shot-light">
+                  <source type="image/webp" srcset="img/screens/comfort-light-artist-360.webp 360w, img/screens/comfort-light-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-light-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, light theme" loading="lazy" decoding="async">
+                </picture>
+                <picture class="shot-dark">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-artist-360.webp 360w, img/screens/comfort-dark-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <img src="img/screens/comfort-dark-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, dark theme" loading="lazy" decoding="async">
+                </picture>
+              </div>
+            </div>
+            <figcaption>
+              <h3>Comfort</h3>
+              <p>Soft rounded cards, a warm amber accent, and a dock at the bottom for Home, Search and Library. Album pages still take a tint from the cover.</p>
+            </figcaption>
+          </figure>
+        </div>
+        <p class="demo-note">The screenshots use a demo library with invented artists and generated covers.</p>
+      </div>
+    </section>
+
+    <section class="features" id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <h2 id="features-title" class="visually-hidden">What Attic does</h2>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Plays any folder, and tidies messy tags without touching the files</h3>
+            <p>Copy music onto the phone, into <code>Music</code>, <code>Download</code>, an SD card or any other folder Android indexes, and Attic builds artists and albums from it. <code>Artist/Album/song.mp3</code> becomes an artist and an album; a folder like <code>Bollywood/</code> or <code>Workout/</code> becomes a playlist.</p>
+            <p>Downloaded files often have no album tag and an uploader's name where the artist should be. Attic works out what the tags meant and shows that instead. Nothing is written back to your files.</p>
+            <table class="tags">
+              <caption class="visually-hidden">How Attic reads messy tags</caption>
+              <thead><tr><th scope="col">In the file</th><th scope="col">In Attic</th></tr></thead>
+              <tbody>
+                <tr><td><code>Coldplay - Hymn For The Weekend (Lyrics)</code> by <code>DopeMusic</code></td><td><b>Hymn For The Weekend</b> by Coldplay</td></tr>
+                <tr><td><code>Gulabi [kTpyO8iwlSY].mp3</code>, no tags</td><td><b>Gulabi</b></td></tr>
+                <tr><td><code>A.R. RAHMAN</code>, <code>A.R. Rahman</code>, <code>A. R. Rahman</code></td><td>One artist page</td></tr>
+                <tr><td><code>Various Artists/</code> folder</td><td>The real performers get the credit</td></tr>
+              </tbody>
+            </table>
           </div>
-          <figcaption>
-            <h3>Expressive</h3>
-            <p>Takes its colours from your wallpaper, with rounded shapes, pill buttons and a carousel of covers on Home.</p>
-          </figcaption>
-        </figure>
-        <figure>
-          <div class="phone">
-            <!-- Replace this placeholder with <img src="img/comfort.png" alt="Attic's Library screen in the Comfort style" width="1080" height="2400"> -->
-            <div class="placeholder">Comfort screenshot</div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-library-360.webp 360w, img/screens/comfort-dark-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-library-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-library-360.webp 360w, img/screens/comfort-light-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-library-360.png" width="360" height="800" alt="The Library screen in the Comfort style, listing playlists" loading="lazy" decoding="async">
+            </picture>
           </div>
-          <figcaption>
-            <h3>Comfort</h3>
-            <p>A fixed warm palette, large titles with room above them, and lists grouped into rounded blocks.</p>
-          </figcaption>
-        </figure>
+        </article>
+
+        <article class="feature flip">
+          <div class="feature-copy">
+            <h3>Radio built from how your songs sound</h3>
+            <p>Start radio from any song and Attic keeps ten similar songs in the queue. It finds them by analysing each song's sound on the phone, in the background while it charges. Nothing is uploaded.</p>
+            <ul>
+              <li>Learns from skips, finishes and likes, in a listening log kept on the phone</li>
+              <li>Stays in the language you're listening to, with about one song in ten from another language when the match is strong</li>
+              <li>Spots the same song in another language and plays one version, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both</li>
+              <li>Nine instant mixes on Home, from your favourites and unplayed songs that sound like them, changing daily</li>
+            </ul>
+          </div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-queue-360.webp 360w, img/screens/expressive-dark-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-queue-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-queue-360.webp 360w, img/screens/expressive-light-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-queue-360.png" width="360" height="800" alt="The queue in the Expressive style, with eleven songs up next" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature-copy">
+            <h3>Synced lyrics that work offline</h3>
+            <p>The current line is highlighted, and tapping a line jumps to it.</p>
+            <ul>
+              <li>Reads lyrics already on the phone, with no network: a <code>.lrc</code> file with the song's name in the same folder, or lyrics in the file's tags</li>
+              <li>Downloads the rest from <a href="https://lrclib.net">LRCLIB</a>, for one song or the whole library, and keeps them for offline use</li>
+            </ul>
+          </div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-lyrics-360.webp 360w, img/screens/comfort-dark-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-lyrics-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-lyrics-360.webp 360w, img/screens/comfort-light-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-lyrics-360.png" width="360" height="800" alt="Synced lyrics in the Comfort style, with the current line highlighted" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature flip">
+          <div class="feature-copy">
+            <h3>Recap of your listening</h3>
+            <p>Your top songs, artists and listening clock for the week, month, year or all time, counted from the log on your phone. Save or share any of the cards as an image.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-recap-360.webp 360w, img/screens/expressive-dark-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-recap-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-recap-360.webp 360w, img/screens/expressive-light-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-recap-360.png" width="360" height="800" alt="Recap in the Expressive style, showing minutes, plays, songs, artists and the longest streak for the year" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <div class="more">
+          <div>
+            <h3>Outside the app</h3>
+            <ul>
+              <li>Notification and lock-screen controls, including shuffle and like</li>
+              <li>Bluetooth and headset media buttons, and a pause when another app takes audio focus</li>
+              <li>A resizable home-screen widget with the current song, controls and five recent albums</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Backup, sleep timer and first run</h3>
+            <ul>
+              <li>Back up favourites, playlists, listening history, saved lyrics and settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
+              <li>Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch</li>
+              <li>A sleep timer pauses the music after 15, 30, 45 or 60 minutes, or at the end of the song</li>
+              <li>On first run, pick a style and theme, allow access to your music, and Attic shows the songs it found</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section aria-labelledby="what">
-      <h2 id="what">What it does</h2>
-      <div class="features">
+    <section class="privacy" id="privacy" aria-labelledby="privacy-title">
+      <div class="wrap privacy-grid">
         <div>
-          <h3>Plays your library</h3>
-          <ul>
-            <li>Album, artist and playlist screens, tinted from the cover art</li>
-            <li>A queue you drag to reorder and swipe to remove from</li>
-            <li>Favourites and your own playlists, stored on the phone</li>
-          </ul>
+          <h2 id="privacy-title">What leaves your phone</h2>
+          <p class="privacy-lead">Attic has no account, no analytics, no ads and no crash reporting, and the developer receives no data from the app. Playback and song analysis never touch the network. The one request Attic makes itself is a lyrics lookup.</p>
+          <p><a href="privacy.html">Read the privacy policy</a></p>
         </div>
-        <div>
-          <h3>Finds what to play next, offline</h3>
-          <ul>
-            <li>Start radio from any song, and Attic keeps ten similar songs in the queue</li>
-            <li>Nine instant mixes on Home, changing daily</li>
-            <li>Learns from skips, finishes and likes in a listening log kept on the phone</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Keeps playing outside the app</h3>
-          <ul>
-            <li>Notification and lock-screen controls, including shuffle and like</li>
-            <li>Bluetooth and headset media buttons</li>
-            <li>A resizable home-screen widget with five recent albums</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Shows lyrics, then keeps them</h3>
-          <ul>
-            <li>Synced lyrics highlight the current line; tap a line to jump to it</li>
-            <li>Download from LRCLIB for one song or the whole library, then read them offline</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Cleans up messy tags</h3>
-          <ul>
-            <li>"Artist - Song (Lyrics)" by an uploader shows as Song by Artist</li>
-            <li>Three spellings of one artist become one artist page</li>
-            <li>Nothing is written back to your files</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Recap</h3>
-          <ul>
-            <li>Your top songs, artists and listening clock for the week, month, year or all time</li>
-            <li>Cards you can save or share as images</li>
-          </ul>
-        </div>
+        <dl class="ledger">
+          <div>
+            <dt>Sent to lrclib.net when you download lyrics</dt>
+            <dd>The song's title, artist, album and length, with the app's version and homepage in the User-Agent</dd>
+          </div>
+          <div>
+            <dt>Copied by Android's backup, if you turn it on</dt>
+            <dd>Favourites, playlists, the listening log, downloaded lyrics and settings, encrypted end to end so neither Google nor the developer can read them</dd>
+          </div>
+          <div>
+            <dt>Never uploaded</dt>
+            <dd>Your music files and the results of song analysis</dd>
+          </div>
+          <div>
+            <dt>Switched off</dt>
+            <dd>ONNX Runtime's usage reporting</dd>
+          </div>
+        </dl>
       </div>
     </section>
 
-    <section aria-labelledby="privacy">
-      <h2 id="privacy">Privacy</h2>
-      <div class="privacy">
-        <p>Attic has no account, analytics or ads, and playback and song analysis never touch the network.</p>
-        <p>The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net, with the app's version and homepage in the User-Agent. Your music files are never uploaded.</p>
-        <p><a href="privacy.html">Read the privacy policy</a></p>
+    <section class="performance" id="performance" aria-labelledby="performance-title">
+      <div class="wrap perf-grid">
+        <div>
+          <h2 id="performance-title">Measured on one phone</h2>
+          <p>A POCO M4 Pro 4G running Android 16, with release builds and a library of 740 songs. Each figure is a median: 20 cold starts and 6 scrolls of the full song list per style.</p>
+          <p>Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.</p>
+        </div>
+        <table class="perf">
+          <caption class="visually-hidden">Performance of each style</caption>
+          <thead><tr><td></td><th scope="col">Expressive</th><th scope="col">Comfort</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Janky frames, scrolling the song list</th><td>2.2%</td><td>2.5%</td></tr>
+            <tr><th scope="row">Cold start</th><td>0.25 s</td><td>0.24 s</td></tr>
+            <tr><th scope="row">Memory at Home (PSS)</th><td>242 MB</td><td>243 MB</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section class="install" aria-labelledby="install">
-      <h2 id="install">Install</h2>
-      <p class="lead">Attic needs Android 13 or newer and a 64-bit ARM phone.</p>
-      <ol>
-        <li>Download the latest APK from <a href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">GitHub Releases</a> and open it on your phone.</li>
-        <li>Copy your music onto the phone, in <code>Music</code>, <code>Download</code> or any other folder. Attic plays MP3, M4A, FLAC, Ogg, Opus and WAV files, and leaves out ringtones, recordings, podcasts, audiobooks and voice notes.</li>
-        <li>Open Attic and allow audio access and notifications.</li>
-      </ol>
+    <section class="open" id="open-source" aria-labelledby="open-title">
+      <div class="wrap open-grid">
+        <div>
+          <h2 id="open-title">Open source, down to the design files</h2>
+          <p>Attic's code is licensed under the GNU General Public License v3.0 or later. The source, the issue tracker and the build instructions are on GitHub.</p>
+          <p class="open-links">
+            <a class="button line-ink" href="https://github.com/srivathsanvenkateswaran/attic">Source on GitHub</a>
+            <a class="button line-ink" href="https://github.com/srivathsanvenkateswaran/attic/blob/main/CONTRIBUTING.md">How to contribute</a>
+          </p>
+        </div>
+        <dl class="facts">
+          <div>
+            <dt>Contributing</dt>
+            <dd>Bug reports, fixes and small features are welcome. Attic was built around one phone and one library, so reports from other phones and other libraries help most. <a href="https://github.com/srivathsanvenkateswaran/attic/issues">Open an issue</a>.</dd>
+          </div>
+          <div>
+            <dt>Design files</dt>
+            <dd>Both styles are drawn in <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/design"><code>design/</code></a> as FigCraft files: every screen in light and dark, the components, and the colour, type and shape foundations. FigCraft is free and open source.</dd>
+          </div>
+          <div>
+            <dt>Licences</dt>
+            <dd>Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, licensed for non-commercial use, and ONNX Runtime under the MIT License. The Onest and Google Sans Flex fonts are under the SIL Open Font License and the Material Symbols icons under the Apache License 2.0. <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/third_party">See the notices</a>.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq-grid">
+        <h2 id="faq-title">Questions</h2>
+        <div class="faq-list">
+          <details>
+            <summary>Is there an iPhone version?</summary>
+            <p>No. Attic is for Android only.</p>
+          </details>
+          <details>
+            <summary>Does it stream music?</summary>
+            <p>No. Attic plays audio files stored on your phone or its SD card. There is no streaming service and no account.</p>
+          </details>
+          <details>
+            <summary>Which formats does it play?</summary>
+            <p>MP3, M4A, FLAC, Ogg, Opus and WAV.</p>
+          </details>
+          <details>
+            <summary>Where does it look for music?</summary>
+            <p>In any folder Android indexes, including <code>Music</code>, <code>Download</code> and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.</p>
+          </details>
+          <details>
+            <summary>Which Android version does it need?</summary>
+            <p>Android 13 or newer, on a 64-bit ARM phone. The release build has been tested on one phone so far, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from other phones</a> are welcome.</p>
+          </details>
+          <details>
+            <summary>Why is the APK 58 MB?</summary>
+            <p>It carries the song analysis model and its runtime, which radio uses to compare how songs sound. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
+          </details>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer class="wrap">
-    <p>Attic is free software under the <a href="https://github.com/srivathsanvenkateswaran/attic/blob/main/LICENSE">GNU General Public License v3.0 or later</a>. Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, licensed for non-commercial use. Lyrics come from <a href="https://lrclib.net">LRCLIB</a>.</p>
-    <p><a href="privacy.html">Privacy policy</a>. <a href="https://github.com/srivathsanvenkateswaran/attic/issues">Report a problem</a>.</p>
-    <p>This site sets no cookies and loads nothing from other servers.</p>
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <a class="brand" href="./">
+        <svg viewBox="35.2 27 36 51.5" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M35.2,78.5L35.2,47.78L71.2,27L71.2,78.5ZM41.2,60.5a12,12 0 1,0 24,0a12,12 0 1,0 -24,0ZM48.4,60.5a4.8,4.8 0 1,0 9.6,0a4.8,4.8 0 1,0 -9.6,0ZM57.2,42a3.8,3.8 0 1,0 7.6,0a3.8,3.8 0 1,0 -7.6,0Z"/></svg>
+        Attic
+      </a>
+      <nav aria-label="Footer">
+        <a href="https://github.com/srivathsanvenkateswaran/attic">GitHub</a>
+        <a href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">Releases</a>
+        <a href="privacy.html">Privacy policy</a>
+        <a href="https://github.com/srivathsanvenkateswaran/attic/blob/main/LICENSE">Licence: GPL v3 or later</a>
+        <a href="https://github.com/srivathsanvenkateswaran/attic/issues">Report a problem</a>
+      </nav>
+      <p>This site sets no cookies and loads nothing from other servers.</p>
+    </div>
   </footer>
 </body>
 </html>
