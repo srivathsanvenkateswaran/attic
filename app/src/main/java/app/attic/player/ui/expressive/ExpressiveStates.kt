@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.rememberLoadingIndicatorShown
 import app.attic.player.ui.model.RootActions
 import app.attic.player.ui.model.RootState
 
@@ -142,10 +143,13 @@ private fun GateArt(refused: Boolean) {
     }
 }
 
-/** The first library scan (sheet 08 D1): the loading indicator on the surface colour and nothing else. */
+/**
+ * The first library scan (sheet 08 D1): the loading indicator on the surface colour and nothing else.
+ * The indicator waits 400 ms ([rememberLoadingIndicatorShown]), so a quick load never flashes it.
+ */
 @Composable
 fun ExpressiveLoading() {
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface), contentAlignment = Alignment.Center) {
-        LoadingIndicator()
+        if (rememberLoadingIndicatorShown()) LoadingIndicator()
     }
 }

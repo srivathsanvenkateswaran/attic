@@ -5,14 +5,19 @@ import android.content.Context
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.data.AppSettings
 import app.attic.player.data.LibraryRepository
+import app.attic.player.data.LocalLyricsFinder
 import app.attic.player.data.LyricsRepository
 import app.attic.player.data.AtticDatabase
+import app.attic.player.data.OnboardingGate
 import app.attic.player.data.UserData
+import app.attic.player.data.backup.BackupRepository
 import app.attic.player.playback.PlayerClient
 import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
 import app.attic.player.ui.ArtKeyer
+import app.attic.player.ui.model.BackupController
+import app.attic.player.ui.warmStyleTypefaces
 import app.attic.player.widget.PlayerWidget
 import app.attic.player.wrapped.WrappedRepository
 import coil3.ImageLoader
@@ -24,9 +29,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AtticApp : Application(), SingletonImageLoader.Factory {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -36,26 +43,62 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val userData by lazy { UserData(database.dao(), scope) }
     val lyrics by lazy {
         val version = packageManager.getPackageInfo(packageName, 0).versionName
-        LyricsRepository(database.dao(), scope, userAgent = "Attic/$version (https://github.com/srivathsanvenkateswaran/attic)")
+        LyricsRepository(
+            database.dao(),
+            scope,
+            userAgent = "Attic/$version (https://github.com/srivathsanvenkateswaran/attic)",
+            finder = LocalLyricsFinder(this),
+        )
     }
     val settings by lazy { AppSettings(this) }
+
+    /** Whether to show the first run. Decided once per install, on first use. */
+    val onboarding by lazy {
+        OnboardingGate(
+            saved = { settings.onboardingDone },
+            settingsHadValues = { settings.hadValuesAtStart },
+            hasUserData = { withContext(Dispatchers.IO) { database.dao().hasUserData() } },
+            save = settings::setOnboardingDone,
+        ).also { it.start(scope) }
+    }
     val player by lazy { PlayerClient(this, library, scope) }
     val radio by lazy { RadioController(this) }
     val wrapped by lazy { WrappedRepository(this) }
+    val backup by lazy {
+        BackupRepository(database, settings, library, packageManager.getPackageInfo(packageName, 0).versionName, filesDir, noBackupFilesDir)
+    }
+    val backupSession by lazy { BackupController(this) }
 
-    /** Short confirmations and playback errors, shown as a snackbar. */
     /** Set when a widget tile opens the app on an album, then cleared once navigated. */
     val requestedAlbum = MutableStateFlow<String?>(null)
 
+    /** Set when a file opened from another app starts playing, so Now Playing opens on it. */
+    val requestedNowPlaying = MutableStateFlow(false)
+
+    /** Set when the first run ends on its radio link, so the shell opens Settings; cleared once navigated. */
+    val requestedSettings = MutableStateFlow(false)
+
+    /** Short confirmations and playback errors, shown as a snackbar. */
     val messages = MutableSharedFlow<String>(extraBufferCapacity = 8)
 
     override fun onCreate() {
         super.onCreate()
+        // Settings and the database are read before anything this launch writes to them.
+        onboarding
         scope.launch { library.refresh() }
+        // The style's typefaces take a few milliseconds each; make them now, off the main thread, so
+        // the first screen finds them ready (ui/VariableFonts.kt).
+        scope.launch(Dispatchers.Default) { warmStyleTypefaces(this@AtticApp, settings.uiStyle.value) }
         scope.launch { LanguageImport.run(this@AtticApp) }
+        // A new install that Android restored from a backup merges the copy it came with.
+        scope.launch { backup.restoreSnapshotOnce() }
         // New files get analysed the next time the phone charges.
         scope.launch {
             library.library.filterNotNull().collect { if (it.tracks.isNotEmpty()) AnalysisWorker.scheduleWhileCharging(this@AtticApp) }
+        }
+        // Lyrics in the songs' files and in .lrc files beside them, read again whenever the library changes.
+        scope.launch {
+            library.library.filterNotNull().collectLatest { lyrics.syncLocal(it.tracks) }
         }
         // The widget is drawn in the app's style, so a new style redraws it at once.
         scope.launch {

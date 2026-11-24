@@ -360,7 +360,7 @@ private fun Languages(data: WrappedData) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        Box(Modifier.size(12.dp).clip(ComfortShapes.Squircle).background(steps[index]))
+                        Box(Modifier.size(12.dp).background(steps[index], ComfortShapes.Squircle))
                         Text(languageName(share.language), style = onest(16f, 22f, 500), color = colors.on, modifier = Modifier.weight(1f))
                         Text(stringResource(R.string.recap_percent, (share.share * 100).toInt()), style = onest(14f, 18f).tabular(), color = colors.on2)
                     }

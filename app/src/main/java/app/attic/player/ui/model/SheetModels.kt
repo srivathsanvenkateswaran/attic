@@ -1,9 +1,11 @@
 package app.attic.player.ui.model
 
+import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -15,9 +17,13 @@ import app.attic.player.data.LanguageLabels
 import app.attic.player.data.Library
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
+import app.attic.player.data.isExternal
+import app.attic.player.playback.SleepChoice
 import app.attic.player.ui.LocalUi
+import app.attic.player.ui.SongShare
 import app.attic.player.ui.TrackMenuRequest
 import app.attic.player.ui.mosaicIds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // Track menu
@@ -46,7 +52,25 @@ class TrackMenuState(
     val artistName: String? = null,
     /** A cover of that artist's, for drawing the artist. */
     val artistCover: Long? = null,
+    /**
+     * Opened from another app and not in the library ("Open with"). The menu then offers only what
+     * doesn't file the song anywhere: no radio, queue, favourites, playlists, language or sharing.
+     */
+    val external: Boolean = false,
+    /** Offered for any song in the library: it is shared as its MediaStore file. */
+    val canShare: Boolean = false,
+    /** The sleep timer, offered only when the menu opens from Now Playing. Null elsewhere. */
+    val sleepTimer: SleepTimerMenuState? = null,
+    /** "Sleep timer" was chosen, so its choices are showing. */
+    val pickingSleepTimer: Boolean = false,
 )
+
+/**
+ * The sleep timer as the menu shows it. [remainingMs] counts down once a second while the menu is
+ * open, and is null for "End of this song" and Off.
+ */
+@Immutable
+data class SleepTimerMenuState(val choice: SleepChoice, val remainingMs: Long?)
 
 /** Each choice does its thing and closes the menu, except the two that open a picker. */
 class TrackMenuActions(
@@ -64,16 +88,33 @@ class TrackMenuActions(
     val dismiss: () -> Unit,
     /** Closes the language picker and leaves the menu open, for a style that draws the picker over the menu. */
     val stopPickingLanguage: () -> Unit = {},
+    /** Hands the song's file to the share sheet. */
+    val share: () -> Unit = {},
+    val pickSleepTimer: () -> Unit = {},
+    /** Sets the timer (or turns it off) and closes the menu. */
+    val chooseSleepTimer: (SleepChoice) -> Unit = {},
+    /** Closes the timer's choices and leaves the menu open, for a style that draws them over the menu. */
+    val stopPickingSleepTimer: () -> Unit = {},
 )
 
 @Composable
 fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismiss: () -> Unit): UiModel<TrackMenuState, TrackMenuActions> {
     val app = LocalContext.current.attic
     val ui = LocalUi.current
+    val context = LocalContext.current
     val track = request.track
     val liked by app.userData.likedSet.collectAsStateWithLifecycle()
     var pickingPlaylist by remember { mutableStateOf(false) }
     var pickingLanguage by remember { mutableStateOf(false) }
+    var pickingSleepTimer by remember { mutableStateOf(false) }
+    val player by app.player.state.collectAsStateWithLifecycle()
+    val sleepRemaining by produceState<Long?>(null, player.sleepTimer) {
+        while (true) {
+            value = player.sleepTimer.remainingMs(SystemClock.elapsedRealtime())
+            if (value == null) break
+            delay(1_000)
+        }
+    }
     val language by remember(track.key) { app.radio.languageFlow(track) }.collectAsStateWithLifecycle(null)
     val albumKey = track.albumKey?.takeIf { it in library.albumByKey }
     val artistKey = track.artistKeys.firstOrNull { it in library.artistByKey }
@@ -92,6 +133,10 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         albumName = albumKey?.let { library.albumByKey[it]?.name },
         artistName = artist?.name,
         artistCover = artist?.let { a -> a.tracks.firstOrNull { it.key == track.key }?.mediaId ?: a.tracks.firstOrNull()?.mediaId },
+        external = track.isExternal,
+        canShare = !track.isExternal && track.mediaId >= 0,
+        sleepTimer = if (request.fromNowPlaying) SleepTimerMenuState(player.sleepTimer.choice, sleepRemaining) else null,
+        pickingSleepTimer = pickingSleepTimer,
     )
     val actions = TrackMenuActions(
         startRadio = {
@@ -132,6 +177,23 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         },
         dismiss = onDismiss,
         stopPickingLanguage = { pickingLanguage = false },
+        share = {
+            onDismiss()
+            if (!SongShare.share(context, track)) app.messages.tryEmit(app.getString(R.string.message_share_failed))
+        },
+        pickSleepTimer = { pickingSleepTimer = true },
+        chooseSleepTimer = { choice ->
+            app.player.setSleepTimer(choice)
+            app.messages.tryEmit(
+                when (choice) {
+                    SleepChoice.Off -> app.getString(R.string.message_sleep_timer_off)
+                    SleepChoice.EndOfSong -> app.getString(R.string.message_sleep_timer_end_of_song)
+                    else -> app.getString(R.string.message_sleep_timer_set, choice.minutes)
+                },
+            )
+            onDismiss()
+        },
+        stopPickingSleepTimer = { pickingSleepTimer = false },
     )
     return UiModel(state, actions)
 }

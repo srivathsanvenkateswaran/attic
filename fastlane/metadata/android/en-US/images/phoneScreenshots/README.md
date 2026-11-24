@@ -1,6 +1,6 @@
 # Phone screenshots
 
-Empty on purpose. Real screenshots get captured on the phone and framed before they go here.
+Rendered from a demo library by `scripts/store_shots/run.sh`, which also frames them. Invented artists and generated covers, so no copyrighted artwork appears in the listing.
 
 ## What Play accepts
 

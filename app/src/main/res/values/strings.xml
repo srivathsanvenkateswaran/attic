@@ -93,7 +93,6 @@
     <string name="library_filter_albums">Albums</string>
     <string name="library_filter_artists">Artists</string>
     <string name="library_filter_songs">Songs</string>
-    <string name="library_recents">Recents</string>
     <string name="library_show_grid_cd">Show as grid</string>
     <string name="library_show_list_cd">Show as list</string>
     <plurals name="library_playlist_subtitle">
@@ -170,6 +169,8 @@
     <string name="now_playing_performed_by">Performed by</string>
     <string name="now_playing_album">Album</string>
     <string name="now_playing_year">Year</string>
+    <string name="now_playing_composer">Composer</string>
+    <string name="now_playing_genre">Genre</string>
     <!-- Context names shown under "Playing from" -->
     <string name="context_favourites">Favourites</string>
     <string name="context_recently_played">Recently played</string>
@@ -210,6 +211,19 @@
     <string name="menu_remove_from_playlist">Remove from this playlist</string>
     <string name="menu_go_to_album">Go to album</string>
     <string name="menu_go_to_artist">Go to artist</string>
+    <string name="menu_share">Share</string>
+    <!-- Sleep timer, in the track menu that Now Playing's menu button opens -->
+    <string name="sleep_timer">Sleep timer</string>
+    <string name="sleep_timer_15">15 minutes</string>
+    <string name="sleep_timer_30">30 minutes</string>
+    <string name="sleep_timer_45">45 minutes</string>
+    <string name="sleep_timer_60">1 hour</string>
+    <string name="sleep_timer_end_of_song">End of this song</string>
+    <string name="sleep_timer_off">Off</string>
+    <!-- Under or beside "Sleep timer" while a countdown runs. %1$d is whole minutes, rounded up -->
+    <string name="sleep_timer_minutes_left">%1$d min left</string>
+    <string name="sleep_timer_under_a_minute">Less than a minute left</string>
+    <string name="sleep_timer_stops_after_song">After this song</string>
     <string name="language_picker_title">Song language</string>
     <string name="language_tamil">Tamil</string>
     <string name="language_hindi">Hindi</string>
@@ -270,6 +284,59 @@
     <string name="settings_analysis_done">All %1$s songs analysed.</string>
     <string name="settings_analysis_partial">%1$s of %2$s songs analysed. The rest continue next time the phone charges.</string>
     <string name="settings_analyse_now">Analyse now without a charger</string>
+
+    <!-- Settings, Backup -->
+    <string name="settings_backup">Backup</string>
+    <string name="settings_backup_save">Back up to a file</string>
+    <string name="settings_backup_save_body">Saves favourites, playlists, listening history, saved lyrics and settings in one file. Keep it somewhere other than this phone.</string>
+    <string name="settings_backup_restore">Restore from a file</string>
+    <string name="settings_backup_restore_body">Adds a backup to what is on this phone. Nothing here is deleted.</string>
+    <string name="settings_backup_note">Song analysis isn\'t in the file, so a new phone analyses the songs again while it charges. If backup is on in the phone\'s settings, Android also keeps a copy, encrypted with your screen lock.</string>
+    <string name="settings_backup_saving">Saving the backup…</string>
+    <string name="settings_backup_restoring">Restoring the backup…</string>
+    <string name="backup_saved">Backup saved</string>
+    <string name="backup_save_failed">Couldn\'t save the backup</string>
+    <plurals name="backup_favourites">
+        <item quantity="one">%1$s favourite</item>
+        <item quantity="other">%1$s favourites</item>
+    </plurals>
+    <plurals name="backup_playlists">
+        <item quantity="one">%1$s playlist</item>
+        <item quantity="other">%1$s playlists</item>
+    </plurals>
+    <plurals name="backup_plays">
+        <item quantity="one">%1$s play</item>
+        <item quantity="other">%1$s plays</item>
+    </plurals>
+    <plurals name="backup_lyrics">
+        <item quantity="one">lyrics for %1$s song</item>
+        <item quantity="other">lyrics for %1$s songs</item>
+    </plurals>
+    <string name="restore_confirm_title">Restore this backup?</string>
+    <!-- %1$s is the date the backup was made; %2$s to %5$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics. -->
+    <string name="restore_confirm_body">Made %1$s, with %2$s, %3$s, %4$s and %5$s. They are added to what is on this phone, and nothing here is deleted. Theme, style and autoplay change to the backup\'s.</string>
+    <string name="restore_confirm">Restore</string>
+    <string name="restore_done_title">Backup restored</string>
+    <!-- %1$s to %4$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics, counting only what was new. -->
+    <string name="restore_done_added">Added %1$s, %2$s, %3$s and %4$s.</string>
+    <string name="restore_done_nothing">Everything in this backup was already on this phone.</string>
+    <plurals name="restore_done_merged">
+        <item quantity="one">Songs were also added to %1$s playlist that already had the same name.</item>
+        <item quantity="other">Songs were also added to %1$s playlists that already had the same names.</item>
+    </plurals>
+    <!-- Quantity follows %2$s, the songs the backup mentions. -->
+    <plurals name="restore_done_matched">
+        <item quantity="one">%1$s of %2$s song in the backup is on this phone.</item>
+        <item quantity="other">%1$s of %2$s songs in the backup are on this phone.</item>
+    </plurals>
+    <string name="restore_done_missing">The rest keep their place in your favourites, playlists and history, and show up when their files are added to this phone.</string>
+    <string name="restore_failed_title">Couldn\'t restore</string>
+    <string name="restore_problem_not_backup">This file isn\'t an Attic backup.</string>
+    <string name="restore_problem_too_new">This backup was made by a newer version of Attic. Update Attic, then try again.</string>
+    <string name="restore_problem_damaged">This backup is damaged and can\'t be read. Nothing was changed.</string>
+    <string name="restore_problem_too_large">This file is too large to be an Attic backup.</string>
+    <string name="restore_problem_open">The file couldn\'t be opened.</string>
+    <string name="restore_problem_failed">Something went wrong while restoring, so nothing was changed. Try again.</string>
     <string name="settings_about">About</string>
     <!-- %1$s is the song count with its noun, from song_count: "127 songs" -->
     <string name="settings_licences">Open-source licences</string>
@@ -402,6 +469,14 @@
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>
+    <!-- %1$d is 15, 30, 45 or 60 -->
+    <string name="message_sleep_timer_set">Music will pause in %1$d minutes</string>
+    <string name="message_sleep_timer_end_of_song">Music will pause after this song</string>
+    <string name="message_sleep_timer_off">Sleep timer off</string>
+    <string name="message_share_failed">Couldn\'t share this song</string>
+    <string name="message_open_failed">Couldn\'t open this file</string>
+    <!-- Title for a song opened from another app when neither its tags nor its file name give one -->
+    <string name="open_with_untitled">Audio file</string>
 
     <!-- Permission, loading and empty states (2.18) -->
     <string name="permission_title">Attic plays the music on this phone</string>
@@ -409,6 +484,34 @@
     <string name="permission_body_refused">Audio access is off, so Attic can\'t see your songs. Turn on Music and audio in the app\'s permissions.</string>
     <string name="permission_allow">Allow access</string>
     <string name="permission_open_settings">Open app permissions</string>
+
+    <!-- First run (2.18). Shown once, before the app; Back on Welcome leaves the app -->
+    <string name="onboarding_step">Step %1$d of %2$d</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_welcome_title">Welcome to Attic</string>
+    <string name="onboarding_welcome_body">Attic plays the music files on this phone. There\'s no account, and everything works offline.</string>
+    <string name="onboarding_get_started">Get started</string>
+    <string name="onboarding_look_title">Pick your look</string>
+    <string name="onboarding_look_body">You can change it any time in Settings.</string>
+    <string name="onboarding_theme">Theme</string>
+    <string name="onboarding_access_title">Let Attic find your music</string>
+    <string name="onboarding_access_audio">Music and audio</string>
+    <string name="onboarding_access_audio_body">Required. Attic needs it to find the songs on this phone.</string>
+    <string name="onboarding_access_notifications">Notifications</string>
+    <string name="onboarding_access_notifications_body">Optional. Shows the playback controls in the notification shade and on the lock screen.</string>
+    <string name="onboarding_access_allow">Allow</string>
+    <string name="onboarding_access_allowed">Allowed</string>
+    <string name="onboarding_access_off">Off</string>
+    <string name="onboarding_scanning">Finding your songs…</string>
+    <plurals name="onboarding_found">
+        <item quantity="one">Found %1$s song</item>
+        <item quantity="other">Found %1$s songs</item>
+    </plurals>
+    <string name="onboarding_optional">Optional</string>
+    <string name="onboarding_empty_hint">Connect the phone to a computer and copy music into the Music folder. Songs show up here as they arrive.</string>
+    <string name="onboarding_radio_note">Radio analyses your songs while the phone charges. It all happens on this phone.</string>
+    <string name="onboarding_radio_settings">Song radio settings</string>
+    <string name="onboarding_start">Start listening</string>
 
     <!-- Media notification and lock screen (2.20) -->
     <string name="notification_shuffle_on">Turn shuffle on</string>

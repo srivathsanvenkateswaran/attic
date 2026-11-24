@@ -56,6 +56,9 @@ class WidgetHostActivity : Activity() {
                 break
             }
             val view = host.createView(themed, id, manager.getAppWidgetInfo(id))
+            // The platform pads a host view by about 8dp a side; the sizes above are the widget's own, as
+            // the mocks measure it (and as Launcher3 lays it out), so the padding goes.
+            view.setPadding(0, 0, 0, 0)
             view.updateAppWidgetSize(Bundle(), listOf(SizeF(width.toFloat(), height.toFloat())))
             column.addView(view, LinearLayout.LayoutParams(dp(width), dp(height)).apply { bottomMargin = dp(16) })
         }

@@ -33,6 +33,9 @@
         <item name="android:fontFamily">@font/onest_widget</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">16sp</item>
+        <!-- oneui/10-system .wg .txt: 16/21 and 13/17, so the two lines, the gaps and the 44dp controls
+             make the 88dp of the cover beside them. -->
+        <item name="android:lineHeight">21sp</item>
         <item name="android:textColor">@color/comfort_widget_on</item>
         <item name="android:text">@string/app_name</item>
     </style>
@@ -41,6 +44,7 @@
         <item name="android:fontFamily">@font/onest_widget</item>
         <item name="android:layout_marginTop">3dp</item>
         <item name="android:textSize">13sp</item>
+        <item name="android:lineHeight">17sp</item>
         <item name="android:textColor">@color/comfort_widget_on_2</item>
         <item name="android:text">@string/widget_empty</item>
     </style>

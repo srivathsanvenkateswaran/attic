@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicInteger
 
 /** Reads every song MediaStore indexes, on all volumes, and keeps the result current as files change. */
 class LibraryRepository(
@@ -30,6 +31,12 @@ class LibraryRepository(
 
     /** Null until the first scan finishes. Empty if audio access has not been granted. */
     val library: StateFlow<Library?> = _library.asStateFlow()
+
+    private val running = AtomicInteger(0)
+    private val _scanning = MutableStateFlow(false)
+
+    /** True while a scan with audio access is running, so a screen can tell "still looking" from "found none". */
+    val scanning: StateFlow<Boolean> = _scanning.asStateFlow()
 
     private var observerRegistered = false
     private var pendingRescan: Job? = null
@@ -56,7 +63,12 @@ class LibraryRepository(
             context.contentResolver.registerContentObserver(COLLECTION, true, observer)
             observerRegistered = true
         }
-        _library.value = withContext(Dispatchers.IO) { LibraryBuilder.build(query()) }
+        _scanning.value = running.incrementAndGet() > 0
+        try {
+            _library.value = withContext(Dispatchers.IO) { LibraryBuilder.build(query()) }
+        } finally {
+            _scanning.value = running.decrementAndGet() > 0
+        }
     }
 
     /** Suspends until a scan has finished, scanning now if none has. */
@@ -84,6 +96,9 @@ class LibraryRepository(
             MediaStore.Audio.Media.IS_PODCAST,
             MediaStore.Audio.Media.IS_AUDIOBOOK,
             MediaStore.Audio.Media.IS_RECORDING,
+            MediaStore.Audio.Media.ALBUM_ARTIST,
+            MediaStore.Audio.Media.COMPOSER,
+            MediaStore.Audio.Media.GENRE,
         )
         val rows = ArrayList<RawTrack>(300)
         context.contentResolver.query(
@@ -118,6 +133,9 @@ class LibraryRepository(
                     year = c.getInt(8).takeIf { it > 0 },
                     dateAddedSec = c.getLong(9),
                     volume = c.getString(10) ?: RawTrack.PRIMARY_VOLUME,
+                    albumArtist = c.getString(17),
+                    composer = c.getString(18),
+                    genre = c.getString(19),
                 )
             }
         }

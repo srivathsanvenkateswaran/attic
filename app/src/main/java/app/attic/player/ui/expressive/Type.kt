@@ -10,7 +10,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.variableFont
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -41,10 +41,10 @@ object GoogleSansFlex {
     fun family(axes: Axes): FontFamily = families.getOrPut(axes) {
         FontFamily(
             weights.map { weight ->
-                Font(
+                variableFont(
                     R.font.google_sans_flex,
-                    weight = FontWeight(weight),
-                    variationSettings = FontVariation.Settings(
+                    FontWeight(weight),
+                    FontVariation.Settings(
                         FontVariation.weight(weight),
                         FontVariation.width(axes.width.toFloat()),
                         FontVariation.Setting("ROND", if (axes.round) 100f else 0f),
@@ -136,6 +136,16 @@ class ExpressiveTypography(
         labelSmall = labelSmall,
     )
 }
+
+/** Every style, the ones lists and rows use first, for [app.attic.player.ui.warmTypefaces]. */
+internal fun ExpressiveTypography.allStyles(): List<TextStyle> = listOf(
+    bodyLarge, bodyMedium, titleMedium, labelLarge, titleSmall, labelMedium, bodySmall, labelSmall,
+    titleLarge, headlineSmall, headlineMedium, headlineLarge, displaySmall, displayMedium, displayLarge,
+    titleMediumEmphasized, bodyLargeEmphasized, bodyMediumEmphasized, labelLargeEmphasized, titleSmallEmphasized,
+    labelMediumEmphasized, bodySmallEmphasized, labelSmallEmphasized, titleLargeEmphasized, headlineSmallEmphasized,
+    headlineMediumEmphasized, headlineLargeEmphasized, displaySmallEmphasized, displayMediumEmphasized,
+    displayLargeEmphasized,
+)
 
 /** The emphasised partner of any style from this kit: heavier and fully rounded. */
 fun TextStyle.emphasized(weight: FontWeight = FontWeight.Bold): TextStyle {

@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -29,15 +31,21 @@ data class BulkProgress(
 enum class LyricsResult { Found, NotFound, Offline }
 
 /**
- * Lyrics come from LRCLIB, a free service with no account or key. A request sends only the song's
- * title, artist, album and length. Once saved in Room, lyrics work with no connection.
+ * Lyrics come first from the phone: a `.lrc` file beside the song, then the song's own tags (see
+ * [LyricsPriority]). Those are read with no network and saved in Room like downloaded ones.
+ * Songs without them can be looked up on LRCLIB, a free service with no account or key. A request
+ * sends only the song's title, artist, album and length. Once saved, lyrics work with no connection.
  */
 class LyricsRepository(
     private val dao: MusicDao,
     private val scope: CoroutineScope,
     /** LRCLIB asks clients to name themselves with a version and a homepage. */
     private val userAgent: String,
+    private val finder: LocalLyricsFinder,
 ) {
+    /** One library-wide read of local lyrics at a time. Single songs don't wait for it. */
+    private val sweep = Mutex()
+
     private val _bulk = MutableStateFlow(BulkProgress(0, 0, 0, running = false))
     val bulk: StateFlow<BulkProgress> = _bulk.asStateFlow()
     private var bulkJob: Job? = null
@@ -46,7 +54,71 @@ class LyricsRepository(
 
     fun savedKeys(): Flow<List<String>> = dao.lyricsFoundKeys()
 
+    /**
+     * Reads lyrics from every song's files and saves what it finds. Files unchanged since the last
+     * read, and whose `.lrc` file hasn't come, gone or changed, are skipped.
+     */
+    suspend fun syncLocal(tracks: List<Track>) = sweep.withLock {
+        withContext(Dispatchers.IO) {
+            val files = safely { finder.audioFiles() } ?: return@withContext
+            val sidecars = safely { finder.sidecars() } ?: return@withContext
+            val checks = dao.localLyricsChecks().associateBy { it.trackKey }
+            for (track in tracks) {
+                val file = files[track.mediaId] ?: continue
+                syncOne(track, file, sidecars[finder.sidecarKey(file)], checks[track.key])
+            }
+        }
+    }
+
+    /** [syncLocal] for one song, such as the one that just started playing. */
+    suspend fun syncLocal(track: Track) = withContext(Dispatchers.IO) {
+        val file = safely { finder.audioFiles(track.mediaId) }?.get(track.mediaId) ?: return@withContext
+        val sidecars = safely { finder.sidecars(inFolderOf = file) } ?: return@withContext
+        syncOne(track, file, sidecars[finder.sidecarKey(file)], dao.localLyricsCheck(track.key))
+    }
+
+    private suspend fun syncOne(track: Track, file: LocalLyricsFinder.AudioFile, sidecar: LocalLyricsFinder.Sidecar?, check: LocalLyricsCheckEntity?) {
+        if (check != null && check.audioModifiedSec == file.modifiedSec && check.sidecarModifiedSec == sidecar?.modifiedSec) return
+        val sidecarText = sidecar?.let { safely { finder.readSidecar(it) } }
+        val embedded = safely { finder.readEmbedded(file) } ?: EmbeddedLyrics.None
+        val local = LyricsPriority.local(sidecarText, embedded)
+        when (val update = LyricsPriority.update(local, dao.lyricsNow(track.key))) {
+            is LyricsUpdate.Save -> dao.saveLyrics(
+                LyricsEntity(
+                    trackKey = track.key,
+                    synced = update.lyrics.synced,
+                    plain = update.lyrics.plain,
+                    instrumental = false,
+                    found = true,
+                    fetchedAt = System.currentTimeMillis(),
+                    source = update.lyrics.source.id,
+                ),
+            )
+            LyricsUpdate.Remove -> dao.deleteLyrics(track.key)
+            LyricsUpdate.Keep -> Unit
+        }
+        dao.saveLocalLyricsCheck(LocalLyricsCheckEntity(track.key, file.modifiedSec, sidecar?.modifiedSec))
+    }
+
+    /** A file that can't be read, or a missing permission, just means no local lyrics. */
+    private inline fun <T> safely(block: () -> T): T? = try {
+        block()
+    } catch (_: IOException) {
+        null
+    } catch (_: RuntimeException) {
+        null
+    }
+
+    /** Lyrics on the phone are used before asking LRCLIB, so a song with them never goes online. */
     suspend fun download(track: Track): LyricsResult = withContext(Dispatchers.IO) {
+        syncLocal(track)
+        dao.lyricsNow(track.key)?.let { saved ->
+            if (saved.found && LyricsSource.of(saved.source) != LyricsSource.Lrclib) return@withContext LyricsResult.Found
+        }
+        fetch(track)
+    }
+
+    private suspend fun fetch(track: Track): LyricsResult = withContext(Dispatchers.IO) {
         val match = try {
             exact(track) ?: searched(track)
         } catch (_: IOException) {
@@ -65,10 +137,15 @@ class LyricsRepository(
         if (match != null) LyricsResult.Found else LyricsResult.NotFound
     }
 
-    /** Fetches lyrics for every song without them, giving up only if the connection looks gone. */
+    /**
+     * Fetches lyrics for every song without them, giving up only if the connection looks gone.
+     * Songs with lyrics in their files are read first and skipped, like songs already checked.
+     */
     fun downloadAll(tracks: List<Track>) {
         if (bulkJob?.isActive == true) return
         bulkJob = scope.launch {
+            _bulk.value = BulkProgress(0, 0, 0, running = true)
+            syncLocal(tracks)
             val have = withContext(Dispatchers.IO) { dao.lyricsCheckedKeys().toSet() }
             val todo = tracks.filter { it.key !in have }
             var found = 0
@@ -76,7 +153,7 @@ class LyricsRepository(
             var failuresInARow = 0
             _bulk.value = BulkProgress(0, todo.size, 0, running = true)
             for ((index, track) in todo.withIndex()) {
-                when (download(track)) {
+                when (fetch(track)) {
                     LyricsResult.Found -> {
                         found++
                         failuresInARow = 0

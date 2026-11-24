@@ -5,7 +5,16 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.attic.player.attic
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
@@ -22,12 +31,15 @@ import app.attic.player.data.Track
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
 import app.attic.player.ui.comfort.ComfortLoading
+import app.attic.player.ui.comfort.ComfortOnboarding
 import app.attic.player.ui.comfort.ComfortPermission
 import app.attic.player.ui.comfort.ComfortShell
 import app.attic.player.ui.expressive.ExpressiveLoading
+import app.attic.player.ui.expressive.ExpressiveOnboarding
 import app.attic.player.ui.expressive.ExpressivePermission
 import app.attic.player.ui.expressive.ExpressiveShell
 import app.attic.player.ui.model.RootState
+import app.attic.player.ui.model.rememberOnboardingModel
 import app.attic.player.ui.model.rememberRootModel
 import app.attic.player.ui.model.rememberShellModel
 
@@ -58,8 +70,11 @@ class UiActions(
     fun back() = nav.popBackStack()
 }
 
-/** [playlistId] is set when the menu opens from a playlist, which adds "Remove from this playlist". */
-data class TrackMenuRequest(val track: Track, val playlistId: Long? = null)
+/**
+ * [playlistId] is set when the menu opens from a playlist, which adds "Remove from this playlist".
+ * [fromNowPlaying] is set when it opens from Now Playing's menu button, which adds "Sleep timer".
+ */
+data class TrackMenuRequest(val track: Track, val playlistId: Long? = null, val fromNowPlaying: Boolean = false)
 
 val LocalUi = staticCompositionLocalOf<UiActions> { error("No UiActions") }
 
@@ -101,6 +116,31 @@ class ShellSlots(
 
 @Composable
 fun AppRoot() {
+    val app = LocalContext.current.attic
+    val onboarded by app.onboarding.done.collectAsStateWithLifecycle()
+    when (onboarded) {
+        // Deciding takes one small database read on the first launch only; the bare surface avoids a flash.
+        null -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface))
+        false -> FirstRun()
+        true -> MainRoot()
+    }
+}
+
+/** The first run, in whichever style is current; picking a look on its second step redraws it at once. */
+@Composable
+private fun FirstRun() {
+    val (state, actions) = rememberOnboardingModel()
+    // Welcome has no previous step, so back there falls through and leaves the app.
+    BackHandler(enabled = state.step.previous() != null) { actions.back() }
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ExpressiveOnboarding(state, actions)
+        UiStyle.Comfort -> ComfortOnboarding(state, actions)
+    }
+}
+
+/** After the first run: the access gate if audio access was taken away, the first scan, then the shell. */
+@Composable
+private fun MainRoot() {
     val (state, actions) = rememberRootModel()
     when (state) {
         is RootState.NeedsAccess -> when (LocalUiStyle.current) {

@@ -187,7 +187,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.sheet`, `.grab` | `ComfortSheet(onDismiss, modifier, sheetState) { … }`; `StaticSheet { … }` for previews | opens expanded |
 | `.sheet-head`, `.sheet-title` (`small`) | `SheetHeader(title, subtitle, art = { m -> Cover(art, m) })`, `SheetTitle(text, modifier, subtitle)` | |
 | `.sheet-row` (`.on`, `.danger`, `.val`, `.end.go`) | `Hairlined { item { SheetRow(symbol, label, onClick, modifier, value, selected, danger, end) } }` | `end`: a quiet trailing glyph (`chevron_right`, `unfold_more`) |
-| `.dialog`, `.dialog-btns`, `.above-kbd` | `ComfortDialog(title, onDismiss, confirmText, onConfirm, dismissText, modifier, body, confirmEnabled, danger) { DialogField(…) }`; `DialogCard(…)` for previews | rides above the keyboard by itself |
+| `.dialog`, `.dialog-btns`, `.above-kbd` | `ComfortDialog(title, onDismiss, confirmText, onConfirm, dismissText, modifier, body, confirmEnabled, danger) { DialogField(…) }`; `DialogCard(…)` for previews | rides above the keyboard by itself; `dismissText = null` draws the confirm button alone, for a result to acknowledge (the restore result) |
 | `.field` | `DialogField(value, onValueChange, label, modifier, placeholder, focusRequester, onDone)` | a prefilled value opens with the cursor at its end |
 | `.menu`, `.menu.on-sheet`, `.menu-cap`, `.menu-row` | `ComfortMenu(expanded, onDismiss, modifier, offset, onSheet) { MenuCaption(text); MenuRow(symbol, label, onClick, modifier, selected, danger, check) }`; `StaticMenu` for previews | anchor: a Box around the trigger; `onSheet` takes `--fill`; `check` ends the selected row in a tick |
 | `.toast` | `ToastHost(snackbarHostState, modifier)`; `Toast(text)` | place 180dp up with the mini player, 116 with tabs alone, 56 over an overlay |
@@ -238,6 +238,8 @@ empty state, 18 menu, dialogs, toast, action bar, 19 bottom sheet, 20 index scru
 the header flips the theme. It does not touch the app's settings. Without `--es style comfort` it
 opens the Expressive kit.
 
+The first run in Comfort: add `--es screen onboarding` (extras in ui/expressive/KIT.md, "Gallery").
+
 ## Known differences from the mock
 
 - `miniInk2`: the mini player's second line is one step lighter (dark) or darker (light) than
@@ -263,7 +265,7 @@ opens the Expressive kit.
 - Optical sizes: the icon font is set at fixed optical sizes 20 / 24 / 40 by size, where the browser
   follows the exact size.
 - Every Comfort surface now draws Comfort: the shell, the mini player, Home, Search, Library,
-  Settings, Now Playing, the permission screen and loading, plus the collection screens, the queue,
+  Settings, Now Playing, the first run, the permission screen and loading, plus the collection screens, the queue,
   full-screen lyrics, the sheets, dialogs and menus, and Recap (page, story, cards; tables below).
 
 ## Screens drawn from the kit (sheets 04, 06, 07, 09)

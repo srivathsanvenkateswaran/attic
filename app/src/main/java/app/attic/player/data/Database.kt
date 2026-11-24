@@ -80,6 +80,19 @@ data class LyricsEntity(
     val instrumental: Boolean,
     val found: Boolean,
     val fetchedAt: Long,
+    /** A [LyricsSource] ID. Lyrics read from the song's files replace downloaded ones. */
+    @ColumnInfo(defaultValue = "lrclib") val source: String = LyricsSource.Lrclib.id,
+)
+
+/**
+ * When a song's files were last read for lyrics, so unchanged files aren't read again. Times are
+ * MediaStore's DATE_MODIFIED in seconds; a null [sidecarModifiedSec] means there was no `.lrc` file.
+ */
+@Entity(tableName = "local_lyrics_checks")
+data class LocalLyricsCheckEntity(
+    @PrimaryKey val trackKey: String,
+    val audioModifiedSec: Long,
+    val sidecarModifiedSec: Long?,
 )
 
 /** One row per listen, kept for good: radio learns from it and it can answer "what did I play this year?". */
@@ -123,6 +136,8 @@ class CrossCount(val outcome: String, val total: Int)
 
 class PlayCount(val trackKey: String, val playCount: Int)
 
+class EventStart(val trackKey: String, val startedAt: Long)
+
 class ListenRow(val trackKey: String, val startedAt: Long, val listenedMs: Long, val outcome: String, val contextName: String?)
 
 @Dao
@@ -138,6 +153,24 @@ interface MusicDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveLyrics(entity: LyricsEntity)
+
+    @Query("SELECT * FROM lyrics WHERE trackKey = :key")
+    suspend fun lyricsNow(key: String): LyricsEntity?
+
+    @Query("SELECT * FROM lyrics")
+    suspend fun allLyrics(): List<LyricsEntity>
+
+    @Query("DELETE FROM lyrics WHERE trackKey = :key")
+    suspend fun deleteLyrics(key: String)
+
+    @Query("SELECT * FROM local_lyrics_checks")
+    suspend fun localLyricsChecks(): List<LocalLyricsCheckEntity>
+
+    @Query("SELECT * FROM local_lyrics_checks WHERE trackKey = :key")
+    suspend fun localLyricsCheck(key: String): LocalLyricsCheckEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLocalLyricsCheck(entity: LocalLyricsCheckEntity)
 
 
     @Query("SELECT trackKey FROM liked ORDER BY likedAt DESC")
@@ -179,10 +212,18 @@ interface MusicDao {
     @Insert
     suspend fun insertPlaylistTracks(entities: List<PlaylistTrackEntity>)
 
+    @Query("SELECT trackKey FROM playlist_tracks WHERE playlistId = :id ORDER BY position")
+    suspend fun playlistKeys(id: Long): List<String>
+
+    /**
+     * Puts [keys] in this order. The screen only shows songs that are on the phone, so songs it
+     * didn't pass (a restored song whose file isn't here yet) keep their order after them.
+     */
     @Transaction
     suspend fun reorderPlaylist(id: Long, keys: List<String>) {
+        val order = PlaylistOrder.reordered(playlistKeys(id), keys)
         clearPlaylist(id)
-        insertPlaylistTracks(keys.mapIndexed { i, key -> PlaylistTrackEntity(id, key, i) })
+        insertPlaylistTracks(order.mapIndexed { i, key -> PlaylistTrackEntity(id, key, i) })
     }
 
     @Query("SELECT * FROM history ORDER BY lastPlayedAt DESC LIMIT 200")
@@ -250,6 +291,61 @@ interface MusicDao {
 
     @Query("SELECT COUNT(*) FROM listening_events WHERE listenedMs > 0")
     fun listenCount(): Flow<Int>
+
+    // Backup and restore read whole tables and write in bulk.
+
+    @Query("SELECT * FROM liked ORDER BY likedAt")
+    suspend fun allLiked(): List<LikedEntity>
+
+    @Query("SELECT * FROM playlists ORDER BY createdAt, id")
+    suspend fun allPlaylists(): List<PlaylistEntity>
+
+    @Query("SELECT * FROM playlist_tracks ORDER BY playlistId, position")
+    suspend fun allPlaylistTracks(): List<PlaylistTrackEntity>
+
+    @Query("SELECT * FROM history")
+    suspend fun allHistory(): List<HistoryEntity>
+
+    @Query("SELECT * FROM listening_events ORDER BY startedAt, id")
+    suspend fun allEvents(): List<ListeningEventEntity>
+
+    @Query("SELECT trackKey, startedAt FROM listening_events")
+    suspend fun eventStarts(): List<EventStart>
+
+    @Query("SELECT * FROM lyrics WHERE found = 1")
+    suspend fun allFoundLyrics(): List<LyricsEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertLiked(entities: List<LikedEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlaylistTracksIfAbsent(entities: List<PlaylistTrackEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveHistory(entities: List<HistoryEntity>)
+
+    @Insert
+    suspend fun insertEvents(entities: List<ListeningEventEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveLyrics(entities: List<LyricsEntity>)
+
+    /** True when anything has been saved: likes, playlists, plays, a queue, lyrics, analysis or languages. */
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM liked) OR EXISTS(SELECT 1 FROM playlists) OR EXISTS(SELECT 1 FROM history) " +
+            "OR EXISTS(SELECT 1 FROM saved_queue) OR EXISTS(SELECT 1 FROM lyrics) OR EXISTS(SELECT 1 FROM listening_events) " +
+            "OR EXISTS(SELECT 1 FROM song_analysis) OR EXISTS(SELECT 1 FROM song_language)",
+    )
+    suspend fun hasUserData(): Boolean
+}
+
+/** Keeps songs a reorder didn't mention, in their old order, after the ones it did. */
+object PlaylistOrder {
+    fun reordered(current: List<String>, shown: List<String>): List<String> {
+        val placed = shown.distinct()
+        val set = placed.toSet()
+        return placed + current.filter { it !in set }
+    }
 }
 
 @Database(
@@ -263,10 +359,11 @@ interface MusicDao {
         ListeningEventEntity::class,
         SongAnalysisEntity::class,
         SongLanguageEntity::class,
+        LocalLyricsCheckEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
 abstract class AtticDatabase : RoomDatabase() {
     abstract fun dao(): MusicDao

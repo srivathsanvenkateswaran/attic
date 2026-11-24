@@ -423,7 +423,7 @@ fun IndexScrubber(
 @Composable
 fun IndexPop(letter: String, modifier: Modifier = Modifier) {
     val colors = Comfort.colors
-    Box(modifier.size(56.dp).clip(ComfortShapes.Squircle).background(colors.accent), contentAlignment = Alignment.Center) {
+    Box(modifier.size(56.dp).background(colors.accent, ComfortShapes.Squircle), contentAlignment = Alignment.Center) {
         Text(letter, style = onest(26f, 32f, 700), color = colors.onAccent)
     }
 }

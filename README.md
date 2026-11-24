@@ -16,10 +16,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/home.jpg" width="24%" alt="Home screen">
-  <img src="docs/screenshots/album.jpg" width="24%" alt="Album screen">
-  <img src="docs/screenshots/artist.jpg" width="24%" alt="Artist screen">
-  <img src="docs/screenshots/now_playing.jpg" width="24%" alt="Now Playing screen">
+  <img src="docs/screenshots/expressive-home.jpg" width="24%" alt="Home in the Expressive style">
+  <img src="docs/screenshots/expressive-now-playing.jpg" width="24%" alt="Now Playing in the Expressive style">
+  <img src="docs/screenshots/comfort-home.jpg" width="24%" alt="Home in the Comfort style">
+  <img src="docs/screenshots/comfort-now-playing.jpg" width="24%" alt="Now Playing in the Comfort style">
 </p>
 
 ## Why it exists
@@ -51,14 +51,11 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Media button support for Bluetooth and headsets, and it pauses when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
 
-<p align="center">
-  <img src="docs/screenshots/lock_screen.jpg" width="48%" alt="Lock-screen player">
-  <img src="docs/screenshots/widget.jpg" width="48%" alt="Home-screen widget">
-</p>
 
 **Shows lyrics, then keeps them**
 - Synced lyrics highlight the current line, and tapping a line jumps to it
-- Download one song or the whole library from [LRCLIB](https://lrclib.net), then use them offline
+- Reads lyrics already on the phone, with no network: a `.lrc` file with the song's name in the same folder, or lyrics in the file's tags (`SYLT` and `USLT` in MP3s, `©lyr` in M4As, `LYRICS` in FLAC and Ogg)
+- Download the rest, one song or the whole library, from [LRCLIB](https://lrclib.net), then use them offline. Songs with lyrics in their files are skipped
 
 **Cleans up messy tags**
 
@@ -69,15 +66,23 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 | `Coldplay - Hymn For The Weekend (Lyrics)` by `DopeMusic` | **Hymn For The Weekend** by Coldplay |
 | `Gulabi [kTpyO8iwlSY].mp3`, no tags | **Gulabi** |
 | `A.R. RAHMAN`, `A.R. Rahman`, `A. R. Rahman` | One artist page |
-| `English/`, `Hindi/`, `Tamil/`, `Phonk/` folders | Playlists, not artists |
+| `English/`, `Hindi/`, `Bollywood/`, `Snaptube/` folders | Playlists, not artists |
 | `Various Artists/` folder | The real performers get the credit |
+| One soundtrack filed under each singer's folder, album artist `Various Artists` | One album |
+| Genre `Music` or `People & Blogs`, copied from YouTube | No genre |
 
-## Light mode
+## Two styles
+
+Attic has two looks, Expressive and Comfort. Switch between them in Settings > Appearance; the change applies at once and the song keeps playing. Both come in light and dark.
 
 <p align="center">
-  <img src="docs/screenshots/light_home.jpg" width="30%" alt="Home in light mode">
-  <img src="docs/screenshots/light_album.jpg" width="30%" alt="Album in light mode">
+  <img src="docs/screenshots/expressive-album.jpg" width="24%" alt="Album in the Expressive style">
+  <img src="docs/screenshots/expressive-artist.jpg" width="24%" alt="Artist in the Expressive style">
+  <img src="docs/screenshots/comfort-album.jpg" width="24%" alt="Album in the Comfort style">
+  <img src="docs/screenshots/comfort-artist.jpg" width="24%" alt="Artist in the Comfort style">
 </p>
+
+The screenshots use a demo library with invented artists and generated covers.
 
 ## Performance
 
@@ -102,7 +107,9 @@ Install the release build for everyday use. Compose runs far slower in a debug b
 3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.
 
-Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule. `English`, `Hindi`, `Tamil` and `Phonk` become playlists. Those four names are hard-coded in [`LibraryBuilder.kt`](app/src/main/java/app/attic/player/data/LibraryBuilder.kt), so change them there for your own library.
+Folders work like this: `Artist/Album/song.mp3` under the library root becomes an artist and an album. The root is the standard folder the songs sit in, such as `Music/`, or a single folder inside it that holds at least 90% of them in subfolders of its own and isn't named after their artist, so `Music/Offline/Artist/Album/song.mp3` reads the same way.
+
+Each folder at the top of the root is an artist folder when more than half of its tagged songs credit the folder's name as artist, album artist or composer, or when none of its songs has those tags. Any other folder, such as `Bollywood/`, `Workout/` or `Snaptube/`, becomes a read-only playlist. `Various Artists/` holds compilations and credits each song's own performers. Albums group by album name and album artist, falling back to the artist folder when a song has no album artist tag. [`LibraryScope.kt`](app/src/main/java/app/attic/player/data/LibraryScope.kt) has the full rule.
 
 ## Build from source
 
@@ -158,7 +165,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 - The release build has been tested on one phone, whose library sits in `Music/Offline` and holds only MP3 and M4A files.
 - Artists use cover art because there are no artist photos, and an artist's "Top songs" are the ones you played most recently.
 - Android draws the lock-screen player, so the app controls its content but not its layout.
-- Lyrics depend on what LRCLIB has, and found them for 236 of the 279 MP3s tested.
+- Songs with no lyrics in their files depend on what LRCLIB has, which found them for 236 of the 279 MP3s tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
 - Radio doesn't yet match tempo or energy between neighbouring songs.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.

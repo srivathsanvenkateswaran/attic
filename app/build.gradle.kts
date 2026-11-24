@@ -22,6 +22,11 @@ val uploadKey: UploadKey? = run {
     }
 }
 
+// Store screenshots render the real screens on the JVM with Robolectric and Roborazzi, from demo data
+// in src/storeShots. They are off unless -PstoreShots is given, so the everyday test run neither
+// compiles them nor pulls their dependencies. scripts/store_shots/run.sh runs them and frames the output.
+val storeShots = providers.gradleProperty("storeShots").isPresent
+
 android {
     namespace = "app.attic.player"
     compileSdk {
@@ -89,6 +94,12 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        // Robolectric needs the merged resources (fonts, strings) to draw the screens.
+        unitTests.isIncludeAndroidResources = storeShots
+    }
+
+    if (storeShots) {
+        sourceSets.getByName("test").kotlin.directories.add("src/storeShots/kotlin")
     }
 }
 
@@ -155,4 +166,24 @@ dependencies {
     implementation(libs.work.runtime)
 
     testImplementation(libs.junit)
+    testImplementation(libs.org.json)
+    if (storeShots) {
+        testImplementation(platform(libs.compose.bom))
+        testImplementation(libs.robolectric)
+        testImplementation(libs.roborazzi)
+        testImplementation(libs.roborazzi.compose)
+        testImplementation(libs.compose.ui.test.junit4)
+        testImplementation(libs.androidx.test.core)
+    }
+}
+
+if (storeShots) {
+    tasks.withType<Test>().configureEach {
+        // Roborazzi only writes images in record mode.
+        systemProperty("roborazzi.test.record", "true")
+        systemProperty("storeShots.out", providers.gradleProperty("storeShotsOut").getOrElse("/tmp/attic-dev/store-shots/raw"))
+        maxHeapSize = "4g"
+        // Always render afresh: the output lives outside the build directory, where Gradle cannot see it.
+        outputs.upToDateWhen { false }
+    }
 }

@@ -2,6 +2,7 @@ package app.attic.player.playback
 
 import android.content.ComponentName
 import android.content.Context
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -10,6 +11,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import app.attic.player.data.ExternalTrack
 import app.attic.player.data.Library
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.Track
@@ -27,6 +29,7 @@ data class PlayerUiState(
     val shuffle: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val contextName: String? = null,
+    val sleepTimer: SleepTimerStatus = SleepTimerStatus(),
 ) {
     val current: Track? get() = queue.getOrNull(currentIndex)
 }
@@ -54,7 +57,14 @@ class PlayerClient(
         connecting = true
         scope.launch {
             val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
-            val built = MediaController.Builder(context, token).buildAsync().await()
+            val built = MediaController.Builder(context, token)
+                .setListener(
+                    object : MediaController.Listener {
+                        override fun onExtrasChanged(controller: MediaController, extras: Bundle) = publish()
+                    },
+                )
+                .buildAsync()
+                .await()
             connecting = false
             controller = built
             built.addListener(listener)
@@ -91,6 +101,7 @@ class PlayerClient(
             shuffle = c.shuffleModeEnabled,
             repeatMode = c.repeatMode,
             contextName = c.playlistMetadata.title?.toString(),
+            sleepTimer = SleepTimerSession.statusFrom(c.sessionExtras),
         )
     }
 
@@ -104,6 +115,23 @@ class PlayerClient(
             c.prepare()
             c.play()
         }
+    }
+
+    /**
+     * Plays a song opened from another app that isn't in the library. It goes in right after the
+     * current song and plays now, so the rest of the queue, its context and the saved queue stay as
+     * they were, and when it ends the queue carries on. Opening the same file again restarts it.
+     */
+    fun playExternal(track: Track) = act { c ->
+        if (c.currentMediaItem?.mediaId == track.key) {
+            c.seekTo(0L)
+        } else {
+            val at = if (c.mediaItemCount == 0) 0 else c.currentMediaItemIndex + 1
+            c.addMediaItem(at, track.toMediaItem())
+            c.seekTo(at, 0L)
+        }
+        if (c.playbackState == Player.STATE_IDLE) c.prepare()
+        c.play()
     }
 
     fun shufflePlay(tracks: List<Track>, contextName: String?) {
@@ -162,6 +190,8 @@ class PlayerClient(
         if (start < c.mediaItemCount) c.removeMediaItems(start, c.mediaItemCount)
     }
 
+    fun setSleepTimer(choice: SleepChoice) = act { it.sendCustomCommand(SleepTimerSession.COMMAND, SleepTimerSession.args(choice)) }
+
     /** Current playback position, read on demand because it changes too fast to publish as state. */
     fun positionMs(): Long = controller?.currentPosition ?: 0L
 
@@ -172,7 +202,7 @@ class PlayerClient(
 fun Track.toMediaItem(): MediaItem =
     MediaItem.Builder()
         .setMediaId(key)
-        .setUri(LibraryRepository.uriFor(mediaId))
+        .setUri(ExternalTrack.uriOf(key) ?: LibraryRepository.uriFor(mediaId).toString())
         .setMimeType(mimeTypeFor(key))
         .setMediaMetadata(
             MediaMetadata.Builder()

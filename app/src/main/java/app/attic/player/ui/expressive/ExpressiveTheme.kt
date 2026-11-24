@@ -41,9 +41,23 @@ object Expressive {
     val shapes = ExpressiveShapes
 }
 
-/** The app scheme: the system's wallpaper scheme. minSdk is 33, so dynamic colour is always there. */
+/**
+ * The app scheme: the system's wallpaper scheme. minSdk is 33, so dynamic colour is always there.
+ * Favourites is the one thing drawn on the tertiary container, and kit.css keeps that container light
+ * in both themes (`--tertiary-container` is the same tone in its dark and light schemes). Material's
+ * dark scheme darkens it, so dark takes the fixed tertiary roles in its place: a light container with
+ * dark ink, as the cover schemes (ArtScheme) already draw it.
+ */
 @Composable
 fun expressiveColorScheme(dark: Boolean): ColorScheme {
     val context = LocalContext.current
-    return remember(context, dark) { if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context) }
+    return remember(context, dark) {
+        if (dark) {
+            dynamicDarkColorScheme(context).let {
+                it.copy(tertiaryContainer = it.tertiaryFixed, onTertiaryContainer = it.onTertiaryFixedVariant)
+            }
+        } else {
+            dynamicLightColorScheme(context)
+        }
+    }
 }

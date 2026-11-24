@@ -41,7 +41,11 @@ import app.attic.player.data.BulkProgress
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.LocalBottomPadding
+import app.attic.player.ui.model.BackupUiState
 import app.attic.player.ui.model.SettingsActions
+import app.attic.player.ui.model.restoreConfirmBody
+import app.attic.player.ui.model.restoreProblemBody
+import app.attic.player.ui.model.restoreResultBody
 import app.attic.player.ui.model.SettingsState
 import java.text.NumberFormat
 
@@ -50,7 +54,8 @@ import java.text.NumberFormat
  * the bar, a primary label and one group per section, and an icon in a tonal circle at the head of
  * each row. The themes and the style are connected button groups; "Download lyrics for all songs" is
  * a row whose supporting text is the lrclib.net note, and shows a progress line while it runs; the
- * analysis row's line is wavy while songs are being analysed.
+ * analysis row's line is wavy while songs are being analysed. Backup's two rows open the system file
+ * picker; the restore question and its result are dialogs.
  */
 @Composable
 fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
@@ -96,6 +101,30 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
                     if (index == 0) AutoplayRow(state.autoplay, actions) else AnalysisRow(state.analysis, actions)
                 }
             }
+            item(key = "backup") {
+                SettingsSection(stringResource(R.string.settings_backup))
+                ListGroup(3) { index ->
+                    when (index) {
+                        0 -> BackupRow(
+                            Symbol.FileSave,
+                            stringResource(R.string.settings_backup_save),
+                            stringResource(R.string.settings_backup_save_body),
+                            status = if (state.backup.saving) stringResource(R.string.settings_backup_saving) else null,
+                            enabled = !state.backup.busy,
+                            onClick = actions.backUp,
+                        )
+                        1 -> BackupRow(
+                            Symbol.FileOpen,
+                            stringResource(R.string.settings_backup_restore),
+                            stringResource(R.string.settings_backup_restore_body),
+                            status = if (state.backup.restoring) stringResource(R.string.settings_backup_restoring) else null,
+                            enabled = !state.backup.busy,
+                            onClick = actions.restore,
+                        )
+                        else -> SetNote(stringResource(R.string.settings_backup_note))
+                    }
+                }
+            }
             item(key = "about") {
                 SettingsSection(stringResource(R.string.settings_about))
                 ListGroup(2) { index ->
@@ -116,6 +145,50 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
                 }
             }
         }
+    }
+    BackupDialogs(state.backup, actions)
+}
+
+/** "Back up to a file" or "Restore from a file", with a status line while it runs. */
+@Composable
+private fun BackupRow(symbol: Symbol, title: String, body: String, status: String?, enabled: Boolean, onClick: () -> Unit) {
+    SetIconRow(symbol, modifier = Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick)) {
+        RowTitle(title)
+        SupportingText(body)
+        if (status != null) Text(status, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
+    }
+}
+
+/** The question before a restore, then its result or why the file couldn't be used. */
+@Composable
+private fun BackupDialogs(backup: BackupUiState, actions: SettingsActions) {
+    val close: @Composable () -> Unit = {
+        ExpressiveButton(stringResource(R.string.close), actions.dismissBackupDialog, variant = ButtonVariant.Text)
+    }
+    backup.confirm?.let { summary ->
+        ExpressiveDialog(
+            title = stringResource(R.string.restore_confirm_title),
+            onDismiss = actions.dismissBackupDialog,
+            body = restoreConfirmBody(summary),
+            confirmButton = { ExpressiveButton(stringResource(R.string.restore_confirm), actions.confirmRestore, variant = ButtonVariant.Text) },
+            dismissButton = { ExpressiveButton(stringResource(R.string.cancel), actions.dismissBackupDialog, variant = ButtonVariant.Text) },
+        )
+    }
+    backup.restored?.let { report ->
+        ExpressiveDialog(
+            title = stringResource(R.string.restore_done_title),
+            onDismiss = actions.dismissBackupDialog,
+            body = restoreResultBody(report),
+            confirmButton = close,
+        )
+    }
+    backup.problem?.let { problem ->
+        ExpressiveDialog(
+            title = stringResource(R.string.restore_failed_title),
+            onDismiss = actions.dismissBackupDialog,
+            body = restoreProblemBody(problem),
+            confirmButton = close,
+        )
     }
 }
 

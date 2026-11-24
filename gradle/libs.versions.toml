@@ -17,6 +17,10 @@ reorderable = "3.1.0"
 onnxruntime = "1.31.1"
 work = "2.12.0"
 junit = "4.13.2"
+robolectric = "4.18.1"
+roborazzi = "1.79.0"
+androidxTestCore = "1.7.0"
+orgJson = "20250517"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -40,6 +44,14 @@ reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reo
 onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntime" }
 work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 junit = { module = "junit:junit", version.ref = "junit" }
+# Store screenshots only (see app/build.gradle.kts, -PstoreShots).
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
+# Android's org.json is a stub in local unit tests; the backup codec tests run on the reference one.
+org-json = { module = "org.json:json", version.ref = "orgJson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

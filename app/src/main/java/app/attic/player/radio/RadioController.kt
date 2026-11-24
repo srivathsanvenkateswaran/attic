@@ -9,6 +9,7 @@ import app.attic.player.data.LanguageLabels
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.SongAnalysisEntity
 import app.attic.player.data.SongLanguageEntity
+import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
 import app.attic.player.playback.ListenTracker
 import kotlinx.coroutines.Dispatchers
@@ -220,6 +221,7 @@ class RadioController(private val app: AtticApp) {
                 language = LanguageLabels.resolve(track.folder, track.album, stored[track.key], text?.plain ?: text?.synced, text?.instrumental == true),
                 artistKey = track.artistKeys.firstOrNull(),
                 albumKey = track.albumKey,
+                composerKeys = track.composer?.let { TitleCleaner.splitCredits(it) }.orEmpty().map(TitleCleaner::normalize).toSet(),
                 affinity = RadioTaste.affinity(
                     liked = track.key in liked,
                     finished = counts.filter { it.outcome == ListenTracker.FINISHED }.sumOf { it.total },

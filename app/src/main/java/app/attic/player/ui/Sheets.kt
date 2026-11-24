@@ -22,6 +22,7 @@ import app.attic.player.ui.expressive.ExpressiveDeletePlaylistDialog
 import app.attic.player.ui.expressive.ExpressiveLanguagePicker
 import app.attic.player.ui.expressive.ExpressivePlaylistNameDialog
 import app.attic.player.ui.expressive.ExpressivePlaylistPicker
+import app.attic.player.ui.expressive.ExpressiveSleepTimerPicker
 import app.attic.player.ui.expressive.ExpressiveTrackMenu
 import app.attic.player.ui.expressive.FromCover
 import app.attic.player.ui.model.DeletePlaylistActions
@@ -64,6 +65,8 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
         // Comfort opens the language picker as a pop-over on the menu itself.
         state.pickingLanguage && style != UiStyle.Comfort ->
             inScheme { LanguagePickerSheet(current = state.language, title = state.track.title, onChoose = actions.chooseLanguage) }
+        // Comfort opens the sleep timer's choices as a pop-over too.
+        state.pickingSleepTimer && style != UiStyle.Comfort -> inScheme { ExpressiveSleepTimerPicker(state, actions) }
         else -> when (style) {
             UiStyle.Expressive -> inScheme { ExpressiveTrackMenu(state, actions) }
             UiStyle.Comfort -> inScheme { ComfortTrackMenu(state, actions) }

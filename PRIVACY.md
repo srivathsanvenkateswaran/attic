@@ -10,8 +10,10 @@ analytics and no crash reporting. The developer receives no data from the app.
 
 - **Your music.** With the audio permission you grant, Attic reads the songs Android's media
   library lists, in any folder on the phone or its SD card: their tags (title, artist, album,
-  duration), embedded cover art and the audio itself. It leaves out ringtones, notification and
-  alarm sounds, recordings, podcasts, audiobooks and voice notes.
+  duration), embedded cover art, any lyrics in the tags, and the audio itself. It leaves out
+  ringtones, notification and alarm sounds, recordings, podcasts, audiobooks and voice notes.
+- **Lyrics files beside your songs.** With the same permission, Attic reads `.lrc` lyrics files
+  that have a song's name and sit in its folder. Android lists these with your music.
 - **A language label file, if you add one.** Attic reads `language-labels.tsv` from its own folder
   under `Android/data/app.attic.player/files/` if you put one there.
 
@@ -22,22 +24,50 @@ All of this stays in the app's private storage on the device:
 - favourites and playlists
 - a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap
 - the saved play queue and your settings
-- lyrics you have downloaded
+- lyrics you have downloaded, and lyrics read from your music and `.lrc` files
 - the results of song analysis, which turns each song's sound into a list of numbers so radio can
   find similar songs, and any language you set for a song
 
 Song analysis runs on the phone. No audio, and no analysis result, leaves the device.
 
-Attic opts out of Android's cloud backup, so none of this is copied to Google's servers. When you
-move to a new phone, Android's device-to-device transfer may copy it directly from the old phone
-to the new one. Uninstalling Attic, or clearing its storage in Android settings, deletes all of it. Your
-music files are never changed or deleted, and neither are Recap images you saved to `Pictures`.
+Uninstalling Attic, or clearing its storage in Android settings, deletes all of it from the phone.
+Your music files are never changed or deleted, and neither are Recap images you saved to
+`Pictures`. Copies you made with the backups below are not deleted.
+
+## Backups
+
+**Android's backup.** If backup is turned on in your phone's settings, Android copies two things
+to your Google account, usually once a day:
+
+- a backup file Attic keeps in its private storage, with your favourites, playlists, listening log,
+  downloaded lyrics, the languages you set and the saved queue. Each song is named by its file's
+  path on the phone, such as `Music/Hindi/Kabira.mp3`.
+- your settings: theme, style and autoplay
+
+Attic tells Android to send this only when the phone can encrypt it end to end, which needs
+Android 9 or later and a screen lock. Neither Google nor the developer can read it. Song analysis
+results are not sent; a phone restored from the backup analyses its songs again. When Attic is
+installed on a new phone signed in to the same account, Android restores the copy and Attic adds it
+to that phone's data. The developer receives nothing. Turning off backup in Android's settings
+stops it, and the copy already in your Google account is handled by Android and your account, not
+by Attic.
+
+When you move to a new phone by cable or a direct phone-to-phone transfer, Android copies Attic's
+data, song analysis included, straight from the old phone to the new one, without going through a
+server.
+
+**Backup files you make.** Settings > Backup > "Back up to a file" saves the same data, as a JSON
+file, to a place you choose in Android's file picker. If you choose a cloud folder, that service
+stores it under its own terms. Attic doesn't upload the file anywhere itself. The file is not
+encrypted, so keep it somewhere private: it contains your listening history and the names of your
+song files. "Restore from a file" reads a file you choose and adds it to what is on the phone.
 
 ## What leaves your phone: lyrics lookups
 
 Attic connects to the internet for one thing: downloading lyrics from
 [LRCLIB](https://lrclib.net), a free lyrics service with no account. It does this only when you
-tap to download lyrics for a song, or start a download for the whole library in Settings.
+tap to download lyrics for a song, or start a download for the whole library in Settings. Songs
+whose files already have lyrics are never looked up.
 
 For each song, Attic sends an HTTPS request to `lrclib.net` containing:
 

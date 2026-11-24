@@ -156,7 +156,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 /**
  * The Expressive kit laid out the way pixel/00-direction.html lays out its strips, with sample covers
  * drawn in code. Debug builds only. Extras: `theme` (dark, light, system), `section` (the strip to
- * scroll to, from 0) and `style` (`comfort` for the Comfort kit, ComfortGallery.kt). See
+ * scroll to, from 0) and `style` (`comfort` for the Comfort kit, ComfortGallery.kt). With
+ * `--es screen onboarding` it shows the first run instead (OnboardingGallery.kt). See
  * ui/expressive/KIT.md and ui/comfort/KIT.md for the commands.
  */
 class KitGalleryActivity : ComponentActivity() {
@@ -168,9 +169,12 @@ class KitGalleryActivity : ComponentActivity() {
             else -> ThemeMode.Dark
         }
         val section = intent.getIntExtra("section", 0)
-        val uiStyle = if (intent.getStringExtra("style") == "comfort") UiStyle.Comfort else UiStyle.Expressive
+        val initialStyle = if (intent.getStringExtra("style") == "comfort") UiStyle.Comfort else UiStyle.Expressive
+        val onboarding = intent.getStringExtra("screen") == "onboarding"
         setContent {
             var mode by remember { mutableStateOf(initialTheme) }
+            // Only the first-run screens change style; picking a look there redraws them, as in the app.
+            var uiStyle by remember { mutableStateOf(initialStyle) }
             CompositionLocalProvider(LocalUiStyle provides uiStyle) {
                 AtticTheme(mode, uiStyle) {
                     val dark = LocalIsDark.current
@@ -180,7 +184,17 @@ class KitGalleryActivity : ComponentActivity() {
                         enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                     }
                     val toggle = { mode = if (dark) ThemeMode.Light else ThemeMode.Dark }
-                    if (uiStyle == UiStyle.Comfort) ComfortGallery(section, dark, toggle) else Gallery(section, dark, toggle)
+                    when {
+                        onboarding -> OnboardingGallery(
+                            OnboardingSample.from(intent),
+                            uiStyle = uiStyle,
+                            themeMode = mode,
+                            onStyle = { uiStyle = it },
+                            onThemeMode = { mode = it },
+                        )
+                        uiStyle == UiStyle.Comfort -> ComfortGallery(section, dark, toggle)
+                        else -> Gallery(section, dark, toggle)
+                    }
                 }
             }
         }
@@ -573,6 +587,15 @@ private fun CollectionStrip() {
     Spacer(Modifier.height(12.dp))
     val tiles = listOf("English" to Samples.seeds[1].second, "Hindi" to Samples.seeds[3].second, "Dhurandhar: The Revenge" to Samples.seeds[0].second, "Anbe Aaruyire" to Samples.seeds[2].second)
     TileGrid(tiles) { (title, pair) -> BrowseTile(title, pair.first, {}, Modifier.fillMaxWidth()) { m -> Cover(Art(pair.second), m) } }
+    Spacer(Modifier.height(8.dp))
+    // Search's folder tiles at a phone's width: a name like "Late Night" narrows rather than truncating.
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        for ((title, count) in listOf("Late Night" to "24 songs", "Hindi" to "46 songs")) {
+            BrowseTile(title, Samples.seeds[1].second.first, {}, Modifier.weight(1f), subtitle = count) { m ->
+                Mosaic(listOf(Art(Samples.viva), Art(Samples.oso), Art(Samples.anbe), Art(Samples.rockstar)), m)
+            }
+        }
+    }
 }
 
 @Composable

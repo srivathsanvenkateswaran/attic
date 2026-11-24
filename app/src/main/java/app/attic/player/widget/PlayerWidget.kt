@@ -113,6 +113,12 @@ class PlayerWidget : AppWidgetProvider() {
         private val WIDE = SizeF(180f, 50f)
         private val LARGE = SizeF(250f, 180f)
 
+        /**
+         * Comfort's 4 x 2 is drawn to the mock's measure, 14 + 88 + 12 over 1 + 12 + 56 + 14 = 197dp, and
+         * is clipped below that, so a shorter widget gets the 4 x 1 layout instead.
+         */
+        private val COMFORT_LARGE = SizeF(250f, 197f)
+
         /** The real state while the service has published in this process. */
         private var live: WidgetState? = null
         private var lastCoverId: Long? = null
@@ -165,7 +171,7 @@ class PlayerWidget : AppWidgetProvider() {
             return mapOf(
                 SMALL to build(context, comfort, Layout.Small, state, art, look),
                 WIDE to build(context, comfort, Layout.Wide, state, art, look),
-                LARGE to build(context, comfort, Layout.Large, state, art, look),
+                (if (comfort) COMFORT_LARGE else LARGE) to build(context, comfort, Layout.Large, state, art, look),
             )
         }
 

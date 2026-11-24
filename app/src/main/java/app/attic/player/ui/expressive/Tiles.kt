@@ -336,17 +336,22 @@ fun BrowseTile(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text(
-                    title,
-                    style = if (large) {
-                        Expressive.type.titleMediumEmphasized.copy(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
-                    } else {
-                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, lineHeight = 20.sp, letterSpacing = 0.sp)
-                    },
-                    color = colors.onSecondaryContainer,
-                    maxLines = if (large) 1 else 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (large) {
+                    // One line beside the 64dp mosaic leaves about 85dp: the name narrows before it truncates.
+                    NarrowingText(
+                        title,
+                        style = Expressive.type.titleMediumEmphasized.copy(fontSize = 18.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.sp),
+                        color = colors.onSecondaryContainer,
+                    )
+                } else {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold, lineHeight = 20.sp, letterSpacing = 0.sp),
+                        color = colors.onSecondaryContainer,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 if (subtitle != null) {
                     Text(
                         subtitle,

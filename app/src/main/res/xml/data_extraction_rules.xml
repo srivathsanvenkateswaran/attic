@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    What Android's own backup copies. docs/backup.md has the reasoning.
+
+    Cloud backup carries only the backup copy BackupRepository writes (favourites, playlists, the
+    listening log, saved lyrics, languages and the saved queue, gzipped JSON) and the settings. The
+    database stays on the phone: song analysis in it can pass the 25 MB Android allows an app, and
+    past that Android uploads nothing at all. Nothing goes up unless the phone can encrypt it end to
+    end, which needs Android 9 or later with a screen lock.
+
+    Device-to-device transfer copies everything, analysis included, apart from the scheduler's
+    database, the widget's last song (MediaStore IDs differ on the new phone) and the backup copy
+    (the database it was made from travels anyway). Caches and no_backup are never copied.
+
+    minSdk is 33, so every phone reads these rules and none reads android:fullBackupContent.
+-->
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <include domain="file" path="backup/attic-backup.json.gz" />
+        <include domain="sharedpref" path="settings.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="backup/" />
+        <exclude domain="database" path="androidx.work.workdb" />
+        <exclude domain="database" path="androidx.work.workdb-wal" />
+        <exclude domain="database" path="androidx.work.workdb-shm" />
+        <exclude domain="database" path="androidx.work.workdb-journal" />
+        <exclude domain="sharedpref" path="player_widget.xml" />
+    </device-transfer>
+</data-extraction-rules>

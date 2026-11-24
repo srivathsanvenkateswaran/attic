@@ -21,6 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.rememberLoadingIndicatorShown
 import app.attic.player.ui.model.RootActions
 import app.attic.player.ui.model.RootState
 import androidx.compose.foundation.layout.Arrangement
@@ -77,10 +78,13 @@ fun ComfortPermission(state: RootState.NeedsAccess, actions: RootActions) {
     }
 }
 
-/** The first library scan (sheet 08 D1): a spinner in the accent on the bare ground, nothing else. */
+/**
+ * The first library scan (sheet 08 D1): a spinner in the accent on the bare ground, nothing else.
+ * The spinner waits 400 ms ([rememberLoadingIndicatorShown]), so a quick load never flashes it.
+ */
 @Composable
 fun ComfortLoading() {
     Box(Modifier.fillMaxSize().background(Comfort.colors.ground), contentAlignment = Alignment.Center) {
-        Spinner(Modifier.size(44.dp))
+        if (rememberLoadingIndicatorShown()) Spinner(Modifier.size(44.dp))
     }
 }

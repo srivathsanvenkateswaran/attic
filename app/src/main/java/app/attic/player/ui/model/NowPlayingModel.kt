@@ -128,7 +128,7 @@ fun rememberNowPlayingModel(
         close = onClose,
         openQueue = onOpenQueue,
         openLyrics = onOpenLyrics,
-        showMenu = { track?.let { ui.showMenu(TrackMenuRequest(it)) } },
+        showMenu = { track?.let { ui.showMenu(TrackMenuRequest(it, fromNowPlaying = true)) } },
         toggleLike = { track?.let { app.userData.toggleLike(it.key) } },
         openTrackArtist = track?.artistKeys?.firstOrNull()?.let { key -> { ui.openArtist(key) } },
         openArtist = { artist?.let { ui.openArtist(it.key) } },

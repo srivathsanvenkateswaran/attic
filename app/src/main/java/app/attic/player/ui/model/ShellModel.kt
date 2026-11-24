@@ -108,6 +108,26 @@ fun rememberShellModel(): ShellModel {
         }
     }
 
+    // A file opened from another app has started playing.
+    val requestedNowPlaying by app.requestedNowPlaying.collectAsStateWithLifecycle()
+    LaunchedEffect(requestedNowPlaying) {
+        if (requestedNowPlaying) {
+            showQueue = false
+            showLyrics = false
+            showNowPlaying = true
+            app.requestedNowPlaying.value = false
+        }
+    }
+
+    // The first run's radio link asks for Settings.
+    val requestedSettings by app.requestedSettings.collectAsStateWithLifecycle()
+    LaunchedEffect(requestedSettings) {
+        if (requestedSettings) {
+            ui.openSettings()
+            app.requestedSettings.value = false
+        }
+    }
+
     val entry by nav.currentBackStackEntryAsState()
     var currentTab by rememberSaveable { mutableStateOf(Tab.Home) }
     LaunchedEffect(entry) {

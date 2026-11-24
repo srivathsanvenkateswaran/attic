@@ -33,6 +33,30 @@ class ComfortShapesTest {
     @Test
     fun largeSquircleMatchesSqLg() = assertOnCurve(ComfortShapes.SquircleLarge, sqLg)
 
+    /** The outline drawn at each size, with fewer points than [SuperellipseShape.unitPoints], stays within 0.1px of the curve. */
+    @Test
+    fun drawnOutlineStaysWithinATenthOfAPixel() {
+        for (shape in listOf(ComfortShapes.Squircle, ComfortShapes.SquircleLarge, ComfortShapes.SquircleSoft)) {
+            val curve = shape.unitPoints
+            for (sizePx in listOf(30f, 126f, 300f, 420f, 945f, 1500f, 2400f)) {
+                val outline = shape.unitPointsFor(sizePx)
+                val count = outline.size / 2
+                var worst = 0.0
+                for (k in 0 until curve.size / 2) {
+                    val x = curve[k * 2].toDouble()
+                    val y = curve[k * 2 + 1].toDouble()
+                    var best = Double.MAX_VALUE
+                    for (i in 0 until count) {
+                        val j = (i + 1) % count
+                        best = minOf(best, segmentDistance(x, y, outline[i * 2].toDouble(), outline[i * 2 + 1].toDouble(), outline[j * 2].toDouble(), outline[j * 2 + 1].toDouble()))
+                    }
+                    worst = maxOf(worst, best)
+                }
+                assertTrue("$shape at ${sizePx}px: ${count} points, ${worst * sizePx}px off", worst * sizePx < 0.1)
+            }
+        }
+    }
+
     private fun assertOnCurve(shape: SuperellipseShape, points: List<Pair<Double, Double>>) {
         val outline = shape.unitPoints
         for ((x, y) in points) {

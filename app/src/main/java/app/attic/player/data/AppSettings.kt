@@ -33,6 +33,20 @@ enum class UiStyle {
 class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
+    /**
+     * True when settings.xml held any value other than the first-run flag when the app started, read
+     * before anything could write to it. An older install that changed any setting has this.
+     */
+    val hadValuesAtStart: Boolean = prefs.all.keys.any { it != KEY_ONBOARDING_DONE }
+
+    /** The saved first-run decision: true once onboarded, false while the first run is unfinished, null if never decided. */
+    val onboardingDone: Boolean?
+        get() = if (prefs.contains(KEY_ONBOARDING_DONE)) prefs.getBoolean(KEY_ONBOARDING_DONE, false) else null
+
+    fun setOnboardingDone(done: Boolean) {
+        prefs.edit().putBoolean(KEY_ONBOARDING_DONE, done).apply()
+    }
+
     private val _themeMode = MutableStateFlow(
         ThemeMode.entries.firstOrNull { it.name == prefs.getString(KEY_THEME, null) } ?: ThemeMode.Dark,
     )
@@ -65,5 +79,6 @@ class AppSettings(context: Context) {
         const val KEY_THEME = "theme"
         const val KEY_UI_STYLE = "ui_style"
         const val KEY_AUTOPLAY = "autoplay"
+        const val KEY_ONBOARDING_DONE = "onboarding_done"
     }
 }

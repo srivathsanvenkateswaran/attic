@@ -2,6 +2,7 @@ package app.attic.player.ui.model
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,7 @@ class LyricsState(
 )
 
 class LyricsActions(
-    /** Looks the song up on lrclib.net. Says so in a message when nothing is found or the phone is offline. */
+    /** Reads the song's files, then looks it up on lrclib.net if they have none. Says so in a message when nothing is found or the phone is offline. */
     val download: () -> Unit,
 )
 
@@ -47,6 +48,8 @@ fun rememberLyricsModel(track: Track?): UiModel<LyricsState, LyricsActions> {
     val lines = remember(saved) { saved?.synced?.let(LrcParser::parse).orEmpty() }
     val plain = saved?.plain
     var busy by remember(track?.key) { mutableStateOf(false) }
+    // A song added or retagged since the last library read still shows its own lyrics.
+    LaunchedEffect(track?.key) { track?.let { app.lyrics.syncLocal(it) } }
 
     val state = LyricsState(
         lines = lines,

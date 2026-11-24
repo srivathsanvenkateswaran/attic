@@ -587,13 +587,15 @@ private fun ArtistCard(artist: Artist, onOpen: () -> Unit) {
     }
 }
 
-/** "Credits": performed by, and the album and year when the tags have them. */
+/** "Credits": performed by, and the composer, album, year and genre when the tags have them. */
 @Composable
 private fun CreditsCard(track: Track) {
     InfoCard(title = stringResource(R.string.now_playing_credits)) {
         KeyValue(stringResource(R.string.now_playing_performed_by), track.artist)
+        track.composer?.let { KeyValue(stringResource(R.string.now_playing_composer), it) }
         track.album?.let { KeyValue(stringResource(R.string.now_playing_album), it) }
         track.year?.let { KeyValue(stringResource(R.string.now_playing_year), it.toString()) }
+        track.genre?.let { KeyValue(stringResource(R.string.now_playing_genre), it) }
     }
 }
 

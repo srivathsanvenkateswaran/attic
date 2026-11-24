@@ -24,7 +24,9 @@ functions below.
   light from ThemeMode. minSdk 33, so there is no fallback scheme. Use roles as kit.css names them:
   screens `surface`, group cells `surfaceContainer`, pills and the search bar `surfaceContainerHigh`,
   the one filled action and selected states `primary`, the nav indicator / selected chip / playing
-  row `secondaryContainer`, Favourites `tertiaryContainer` and nothing else.
+  row `secondaryContainer`, Favourites `tertiaryContainer` and nothing else. In dark the app scheme's
+  tertiary container is the wallpaper's `tertiaryFixed` (ink `onTertiaryFixedVariant`), so Favourites stays
+  light as kit.css draws it in both themes.
 - **Type**: `MaterialTheme.typography` is the kit's scale in Google Sans Flex. The emphasised
   partners (`.em`) are `Expressive.type.titleLargeEmphasized` etc. (all 15).
 - **Shape**: `MaterialTheme.shapes` is the kit's 4/8/12/16/28 scale. The rest is `ExpressiveShapes`.
@@ -110,7 +112,8 @@ FontFamily for other combinations; each style already sets an optical size near 
 ## Icons
 
 `SymbolIcon(Symbol.QueueMusic, size = 24.dp, filled = false, tint = LocalContentColor.current)`.
-Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use; `Symbol` is an
+Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use, plus `file_save` and
+`file_open` for Settings' backup rows; `Symbol` is an
 enum named after the ligature in CamelCase (`queue_music` → `Symbol.QueueMusic`,
 `Symbol.named("queue_music")`). Filled is the selected state and the transport glyphs. Sizes 18–40.
 `weight = 300` for Comfort. A name not in the enum is not in the font: add it (see the enum's doc
@@ -253,6 +256,16 @@ adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --e
 11 nav, 12 seek and transport, 13 app bars, 14 art cards and queue, 15 headers, 16 settings and
 progress, 17 sheet, dialog, menu, snackbar, empty). The button in its header flips the theme. It is
 in `app/src/debug/`, so release builds do not contain it. It does not touch the app's settings.
+
+The first run (ExpressiveOnboarding.kt, ComfortOnboarding.kt) opens with `--es screen onboarding`,
+in the style given by `--es style`. Extras: `step` 0 to 3, `audio` and `notifications` (`notasked`,
+`granted`, `refused`), `songs` (-1 still scanning, 0 empty, or a count; default 127). Continue,
+back, the look and theme work; Allow grants at once. Nothing is saved and no permission is asked.
+
+```
+adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --es screen onboarding --ei step 1
+adb -s <serial> shell am start -n app.attic.player/.debug.KitGalleryActivity --es screen onboarding --es style comfort --ei step 3 --ei songs 0
+```
 
 ## Known differences from the mock
 

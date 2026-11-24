@@ -30,6 +30,7 @@ The first public release.
 
 ### Lyrics
 - Synced lyrics highlight the current line; tapping a line jumps to it
+- Reads lyrics from a `.lrc` file beside the song or from the song's tags, with no network
 - Download lyrics for one song or the whole library from LRCLIB, then use them offline
 
 ### Library
@@ -39,5 +40,9 @@ The first public release.
 
 ### Recap
 - Top songs, artists and listening clock for the week, month, year or all time, with cards to save or share
+
+### Backup
+- Back up favourites, playlists, listening history, saved lyrics and settings to a file, and restore it on any phone; a restore adds to what is there and deletes nothing
+- Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch
 
 [1.0.0]: https://github.com/srivathsanvenkateswaran/attic/releases/tag/v1.0.0

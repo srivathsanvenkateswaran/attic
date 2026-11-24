@@ -24,6 +24,24 @@ object TitleCleaner {
     private val ripCreditSplit = Regex("""\s*,\s*|\s+&\s+|\s+x\s+""", RegexOption.IGNORE_CASE)
 
     /** Removes the trailing "[kTpyO8iwlSY]" that YouTube downloads carry. "[Remix]" is too short to match. */
+    /**
+     * YouTube's upload categories. Downloaders copy the video's category into the genre tag, so a
+     * song from YouTube says "Music" or "People & Blogs", which describes the upload, not the song.
+     */
+    private val youtubeCategories = setOf(
+        "music", "film & animation", "autos & vehicles", "pets & animals", "sports", "travel & events",
+        "gaming", "people & blogs", "entertainment", "news & politics", "howto & style", "education",
+        "science & technology", "nonprofits & activism",
+    )
+
+    /** The genre to show, or null for a missing tag, a placeholder or a YouTube category. */
+    fun genre(tag: String?): String? {
+        val genre = tag?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val lower = genre.lowercase()
+        if (lower == "<unknown>" || lower == "unknown" || lower in youtubeCategories) return null
+        return genre
+    }
+
     fun stripYoutubeId(text: String): String = text.replace(youtubeId, "").trim()
 
     /** Filename to title: drops the extension, the YouTube ID and a leading "05 " track number. */

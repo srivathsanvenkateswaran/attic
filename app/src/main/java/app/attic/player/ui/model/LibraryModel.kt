@@ -98,10 +98,11 @@ fun rememberLibraryModel(library: Library): UiModel<LibraryState, LibraryActions
             SongSort.Added -> library.tracks.sortedByDescending { it.dateAddedSec }
         }
     }
-    val items = remember(library, filter, likedKeys.size, playlists, recentKeys) {
+    val items = remember(library, filter, likedKeys, playlists, recentKeys) {
+        // A restored favourite whose file isn't on this phone yet is kept but not counted.
         val liked = LibraryItem(
             "liked", app.getString(R.string.favourites), destination = Destination.Liked,
-            kind = LibraryKind.Favourites, songCount = likedKeys.size,
+            kind = LibraryKind.Favourites, songCount = likedKeys.count { it in library.trackByKey },
         )
         val lists = playlists.map { p ->
             val tracks = p.trackKeys.mapNotNull { library.trackByKey[it] }
