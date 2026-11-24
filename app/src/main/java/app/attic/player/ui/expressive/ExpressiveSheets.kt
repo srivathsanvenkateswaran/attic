@@ -239,20 +239,27 @@ private fun MenuCell(
 @Composable
 private fun TitleBlock(title: String, subtitle: String?) {
     SheetTitle(title)
-    if (subtitle != null) {
-        Text(
-            subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.pullUp(10.dp).padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
-        )
-    }
+    if (subtitle != null) SheetSubtitle(subtitle)
+}
+
+/**
+ * The line under a sheet's title (`.sheet-sub`), pulled 10dp up to it. One line for a name; the
+ * equaliser's "Off" sentence passes more [maxLines] so it can wrap at a large font size.
+ */
+@Composable
+internal fun SheetSubtitle(text: String, maxLines: Int = 1) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.pullUp(10.dp).padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
+    )
 }
 
 /** A negative top margin (`margin-top:-10px`): the line sits closer under the title. */
-private fun Modifier.pullUp(by: Dp): Modifier =
+internal fun Modifier.pullUp(by: Dp): Modifier =
     layout { measurable, constraints ->
         val placeable = measurable.measure(constraints)
         val shift = by.roundToPx()

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
@@ -36,7 +37,7 @@ import app.attic.player.ui.model.OpenSourceNotice
 fun ExpressiveLicences(notices: List<OpenSourceNotice>, actions: LicencesActions) {
     val listState = rememberLazyListState()
     val title = stringResource(R.string.settings_licences)
-    LicencePage(title, listState, actions.back) {
+    LargeTitlePage(title, listState, actions.back) {
         LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 16.dp)) {
             item(key = "title") { LargeTitle(title) }
             groupItems(notices, key = { it.id }) { _, notice ->
@@ -54,7 +55,7 @@ fun ExpressiveLicences(notices: List<OpenSourceNotice>, actions: LicencesActions
 @Composable
 fun ExpressiveLicence(state: LicenceState, back: () -> Unit) {
     val listState = rememberLazyListState()
-    LicencePage(state.notice.name, listState, back) {
+    LargeTitlePage(state.notice.name, listState, back) {
         LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 16.dp)) {
             item(key = "title") { LargeTitle(state.notice.name) }
             val paragraphs = state.paragraphs
@@ -76,9 +77,9 @@ fun ExpressiveLicence(state: LicenceState, back: () -> Unit) {
     }
 }
 
-/** The bar shows [title] once the large one has scrolled away, as in Settings. */
+/** A page under Settings: the bar shows [title] once the large one has scrolled away, as in Settings. */
 @Composable
-private fun LicencePage(title: String, listState: LazyListState, onBack: () -> Unit, content: @Composable () -> Unit) {
+internal fun LargeTitlePage(title: String, listState: LazyListState, onBack: () -> Unit, content: @Composable () -> Unit) {
     val titleGone = with(LocalDensity.current) { 44.dp.toPx() }
     val collapsed by remember(listState) {
         derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > titleGone }
@@ -93,11 +94,12 @@ private fun LicencePage(title: String, listState: LazyListState, onBack: () -> U
     }
 }
 
+/** The 36sp title at the head of the list. [bottom] is the space before what follows it. */
 @Composable
-private fun LargeTitle(text: String) {
+internal fun LargeTitle(text: String, bottom: Dp = 24.dp) {
     Text(
         text,
         style = Expressive.type.displaySmallEmphasized.copy(letterSpacing = (-0.4).sp),
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottom),
     )
 }

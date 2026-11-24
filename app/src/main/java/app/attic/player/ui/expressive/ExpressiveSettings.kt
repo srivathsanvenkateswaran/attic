@@ -404,7 +404,7 @@ private fun AnalysisRow(analysis: AnalysisProgress, actions: SettingsActions) {
  * one-line row.
  */
 @Composable
-private fun SetIconRow(
+internal fun SetIconRow(
     symbol: Symbol,
     modifier: Modifier = Modifier,
     center: Boolean = false,
@@ -419,7 +419,7 @@ private fun SetIconRow(
 )
 
 @Composable
-private fun SetIconRow(
+internal fun SetIconRow(
     icon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     center: Boolean = false,
@@ -441,16 +441,16 @@ private fun SetIconRow(
 }
 
 @Composable
-private fun RowTitle(text: String) {
+internal fun RowTitle(text: String) {
     Text(text, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
 }
 
 @Composable
-private fun SupportingText(text: String) {
+internal fun SupportingText(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
-private fun Status(text: String) {
+internal fun Status(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
