@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -84,7 +85,8 @@ fun NowPlayingHeader(
 fun NowPlayingCover(art: Art?, paused: Boolean, modifier: Modifier = Modifier) {
     val scale by animateFloatAsState(if (paused) 0.86f else 1f, tween(260), label = "cover")
     Box(modifier.fillMaxWidth().padding(start = 30.dp, end = 30.dp, top = 4.dp)) {
-        Cover(art, Modifier.fillMaxWidth().scale(scale))
+        // Scaled as a layer, so the cover keeps its clip, which stays sharp at 86% ([LocalBakedCovers]).
+        CompositionLocalProvider(LocalBakedCovers provides false) { Cover(art, Modifier.fillMaxWidth().scale(scale)) }
     }
 }
 
