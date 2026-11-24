@@ -347,7 +347,7 @@
     </plurals>
     <string name="restore_confirm_title">Restore this backup?</string>
     <!-- %1$s is the date the backup was made; %2$s to %5$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics. -->
-    <string name="restore_confirm_body">Made %1$s, with %2$s, %3$s, %4$s and %5$s. They are added to what is on this phone, and nothing here is deleted. Theme, style and autoplay change to the backup\'s.</string>
+    <string name="restore_confirm_body">Made %1$s, with %2$s, %3$s, %4$s and %5$s. They are added to what is on this phone, and nothing here is deleted. Theme, style, autoplay and the equaliser change to the backup\'s.</string>
     <string name="restore_confirm">Restore</string>
     <string name="restore_done_title">Backup restored</string>
     <!-- %1$s to %4$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics, counting only what was new. -->

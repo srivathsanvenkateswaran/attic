@@ -153,6 +153,31 @@ data class SongLanguageEntity(
     val source: String,
 )
 
+/**
+ * An equaliser curve saved for one song or one album. [scope] is [EQ_SCOPE_SONG], with a song's
+ * [Track.key] as [key], or [EQ_SCOPE_ALBUM], with an album's [Track.albumKey]. [gains] is the curve as
+ * [app.attic.player.playback.eq.EqCurve.encode] writes it, one value in dB per band.
+ */
+@Entity(tableName = "eq_settings", primaryKeys = ["scope", "key"])
+data class EqSettingEntity(
+    val scope: String,
+    val key: String,
+    val gains: String,
+    val savedAt: Long,
+)
+
+const val EQ_SCOPE_SONG = "song"
+const val EQ_SCOPE_ALBUM = "album"
+
+/** A curve saved under a name of your own, offered beside the built-in presets. */
+@Entity(tableName = "eq_presets")
+data class EqPresetEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val gains: String,
+    val createdAt: Long,
+)
+
 class EmbeddingRow(val trackKey: String, val embedding: ByteArray)
 
 class StylesRow(val trackKey: String, val top: ByteArray)
@@ -384,6 +409,27 @@ interface MusicDao {
     @Query("SELECT trackKey, startedAt, outcome FROM listening_events WHERE startedAt >= :since AND listenedMs > 0")
     suspend fun listensSince(since: Long): List<RecentListen>
 
+    @Query("SELECT * FROM eq_settings")
+    fun eqSettings(): Flow<List<EqSettingEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveEqSetting(entity: EqSettingEntity)
+
+    @Query("DELETE FROM eq_settings WHERE scope = :scope AND `key` = :key")
+    suspend fun deleteEqSetting(scope: String, key: String)
+
+    @Query("SELECT * FROM eq_presets ORDER BY createdAt, id")
+    fun eqPresets(): Flow<List<EqPresetEntity>>
+
+    @Insert
+    suspend fun insertEqPreset(entity: EqPresetEntity): Long
+
+    @Query("UPDATE eq_presets SET name = :name WHERE id = :id")
+    suspend fun renameEqPreset(id: Long, name: String)
+
+    @Query("DELETE FROM eq_presets WHERE id = :id")
+    suspend fun deleteEqPreset(id: Long)
+
     // Backup and restore read whole tables and write in bulk.
 
     @Query("SELECT * FROM liked ORDER BY likedAt")
@@ -407,6 +453,18 @@ interface MusicDao {
     @Query("SELECT * FROM lyrics WHERE found = 1")
     suspend fun allFoundLyrics(): List<LyricsEntity>
 
+    @Query("SELECT * FROM eq_settings ORDER BY scope, `key`")
+    suspend fun allEqSettings(): List<EqSettingEntity>
+
+    @Query("SELECT * FROM eq_presets ORDER BY createdAt, id")
+    suspend fun allEqPresets(): List<EqPresetEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertEqSettingsIfAbsent(entities: List<EqSettingEntity>)
+
+    @Insert
+    suspend fun insertEqPresets(entities: List<EqPresetEntity>)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertLiked(entities: List<LikedEntity>)
 
@@ -422,11 +480,12 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveLyrics(entities: List<LyricsEntity>)
 
-    /** True when anything has been saved: likes, playlists, plays, a queue, lyrics, analysis or languages. */
+    /** True when anything has been saved: likes, playlists, plays, a queue, lyrics, analysis, languages or equaliser settings. */
     @Query(
         "SELECT EXISTS(SELECT 1 FROM liked) OR EXISTS(SELECT 1 FROM playlists) OR EXISTS(SELECT 1 FROM history) " +
             "OR EXISTS(SELECT 1 FROM saved_queue) OR EXISTS(SELECT 1 FROM lyrics) OR EXISTS(SELECT 1 FROM listening_events) " +
-            "OR EXISTS(SELECT 1 FROM song_analysis) OR EXISTS(SELECT 1 FROM song_language)",
+            "OR EXISTS(SELECT 1 FROM song_analysis) OR EXISTS(SELECT 1 FROM song_language) " +
+            "OR EXISTS(SELECT 1 FROM eq_settings) OR EXISTS(SELECT 1 FROM eq_presets)",
     )
     suspend fun hasUserData(): Boolean
 }
@@ -454,8 +513,10 @@ object PlaylistOrder {
         LocalLyricsCheckEntity::class,
         SongStylesEntity::class,
         SongLoudnessEntity::class,
+        EqSettingEntity::class,
+        EqPresetEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
@@ -465,7 +526,7 @@ abstract class AtticDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): AtticDatabase =
             Room.databaseBuilder(context, AtticDatabase::class.java, "attic.db")
-                .addMigrations(DatabaseMigrations.FROM_3_TO_4, DatabaseMigrations.FROM_4_TO_5)
+                .addMigrations(DatabaseMigrations.FROM_3_TO_4, DatabaseMigrations.FROM_4_TO_5, DatabaseMigrations.FROM_5_TO_6)
                 .build()
     }
 }
@@ -487,11 +548,23 @@ object DatabaseMigrations {
             "`integratedLufs` REAL, `samplePeak` REAL, `measuredAt` INTEGER NOT NULL, PRIMARY KEY(`trackKey`))",
     )
 
+    /** Adds `eq_settings` and `eq_presets` for the equaliser. Nothing existing changes. */
+    val SQL_5_TO_6 = listOf(
+        "CREATE TABLE IF NOT EXISTS `eq_settings` (`scope` TEXT NOT NULL, `key` TEXT NOT NULL, `gains` TEXT NOT NULL, " +
+            "`savedAt` INTEGER NOT NULL, PRIMARY KEY(`scope`, `key`))",
+        "CREATE TABLE IF NOT EXISTS `eq_presets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, " +
+            "`gains` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
+    )
+
     val FROM_3_TO_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_3_TO_4.forEach(db::execSQL)
     }
 
     val FROM_4_TO_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_4_TO_5.forEach(db::execSQL)
+    }
+
+    val FROM_5_TO_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) = SQL_5_TO_6.forEach(db::execSQL)
     }
 }

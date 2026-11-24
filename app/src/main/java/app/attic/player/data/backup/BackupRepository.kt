@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.room.withTransaction
 import app.attic.player.data.AppSettings
 import app.attic.player.data.AtticDatabase
+import app.attic.player.data.EQ_SCOPE_ALBUM
+import app.attic.player.data.EQ_SCOPE_SONG
 import app.attic.player.data.LibraryRepository
 import app.attic.player.data.PlaylistTrackEntity
 import app.attic.player.data.ThemeMode
@@ -45,6 +47,7 @@ class BackupRepository(
 
     suspend fun export(): Backup = withContext(Dispatchers.IO) {
         val tracks = dao.allPlaylistTracks().groupBy({ it.playlistId }, { it.trackKey })
+        val equaliser = dao.allEqSettings().groupBy({ it.scope }, { BackupEqualiser(it.key, it.gains, it.savedAt) })
         Backup(
             createdAt = System.currentTimeMillis(),
             appVersion = appVersion,
@@ -52,6 +55,8 @@ class BackupRepository(
                 theme = settings.themeMode.value.name,
                 uiStyle = settings.uiStyle.value.name,
                 autoplay = settings.autoplay.value,
+                equaliserOn = settings.equaliserOn.value,
+                equaliserDefault = settings.equaliserDefault.value,
             ),
             likes = dao.allLiked().map { BackupLike(it.trackKey, it.likedAt) },
             playlists = dao.allPlaylists().map { BackupPlaylist(it.name, it.createdAt, tracks[it.id].orEmpty()) },
@@ -73,6 +78,9 @@ class BackupRepository(
                     radioSeed = q.radioSeed,
                 )
             },
+            equaliserSongs = equaliser[EQ_SCOPE_SONG].orEmpty(),
+            equaliserAlbums = equaliser[EQ_SCOPE_ALBUM].orEmpty(),
+            equaliserPresets = dao.allEqPresets().map { BackupEqualiserPreset(it.name, it.gains, it.createdAt) },
         )
     }
 
@@ -106,6 +114,8 @@ class BackupRepository(
                     lyricsFoundKeys = dao.allFoundLyrics().mapTo(HashSet()) { it.trackKey },
                     languageSources = dao.storedLanguages().associate { it.trackKey to it.source },
                     hasSavedQueue = dao.savedQueue() != null,
+                    equaliserTargets = dao.allEqSettings().mapTo(HashSet()) { it.scope to it.key },
+                    equaliserPresetNames = dao.allEqPresets().mapTo(HashSet()) { it.name },
                 )
                 val plan = RestorePlanner.plan(backup, existing, libraryKeys)
                 dao.insertLiked(plan.likes)
@@ -122,6 +132,8 @@ class BackupRepository(
                 dao.saveLyrics(plan.lyrics)
                 dao.saveLanguages(plan.languages)
                 plan.queue?.let { dao.saveQueue(it) }
+                dao.insertEqSettingsIfAbsent(plan.equaliser)
+                dao.insertEqPresets(plan.equaliserPresets)
                 plan
             }
             if (applySettings) backup.settings?.let(::applySettings)
@@ -133,6 +145,8 @@ class BackupRepository(
         ThemeMode.entries.firstOrNull { it.name == saved.theme }?.let(settings::setThemeMode)
         UiStyle.entries.firstOrNull { it.name == saved.uiStyle }?.let(settings::setUiStyle)
         saved.autoplay?.let(settings::setAutoplay)
+        saved.equaliserOn?.let(settings::setEqualiserOn)
+        saved.equaliserDefault?.let(settings::setEqualiserDefault)
     }
 
     /**

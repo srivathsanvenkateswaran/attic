@@ -13,7 +13,8 @@ import java.sql.DriverManager
 /**
  * Runs the hand-written migrations on real SQLite: a database built from one of Room's exported schemas,
  * with data in it, must end up with exactly the tables Room exported for the version it migrates to,
- * data intact. Version 4 adds `song_styles`, version 5 `song_loudness`.
+ * data intact. Version 4 adds `song_styles`, version 5 `song_loudness`, version 6 the equaliser's
+ * `eq_settings` and `eq_presets`.
  */
 class DatabaseMigrationTest {
     private val schemas = File("schemas/app.attic.player.data.AtticDatabase")
@@ -109,11 +110,65 @@ class DatabaseMigrationTest {
     }
 
     @Test
-    fun theMigrationsChainFromThreeToFive() {
+    fun theMigrationsChainFromThreeToSix() {
         assertEquals(3 to 4, DatabaseMigrations.FROM_3_TO_4.startVersion to DatabaseMigrations.FROM_3_TO_4.endVersion)
         assertEquals(4 to 5, DatabaseMigrations.FROM_4_TO_5.startVersion to DatabaseMigrations.FROM_4_TO_5.endVersion)
+        assertEquals(5 to 6, DatabaseMigrations.FROM_5_TO_6.startVersion to DatabaseMigrations.FROM_5_TO_6.endVersion)
         // The newest exported schema is the one the last migration reaches.
-        assertEquals(5, schemas.list()!!.mapNotNull { it.removeSuffix(".json").toIntOrNull() }.max())
+        assertEquals(6, schemas.list()!!.mapNotNull { it.removeSuffix(".json").toIntOrNull() }.max())
+    }
+
+    @Test
+    fun fiveToSixAddsTheEqualiserAndKeepsEverything() {
+        create(schema(5))
+        insertVersion3Rows()
+        db.createStatement().use {
+            it.execute("INSERT INTO song_loudness (trackKey, version, integratedLufs, samplePeak, measuredAt) VALUES ('Music/a.mp3', 1, -9.5, 0.98, 3)")
+        }
+        run(DatabaseMigrations.SQL_5_TO_6)
+
+        assertEquals(storedStatements(6), tables())
+        assertColumnsMatch(6)
+        assertVersion3RowsKept()
+        assertEquals(1, count("song_loudness"))
+        assertEquals(0, count("eq_settings"))
+        db.createStatement().use {
+            it.execute("INSERT INTO eq_settings (scope, `key`, gains, savedAt) VALUES ('song', 'Music/a.mp3', '0,1.5,3,0,0,0,0,0,0,0', 7)")
+            it.execute("INSERT INTO eq_settings (scope, `key`, gains, savedAt) VALUES ('album', 'monsoon|kavya', '6,4,0,0,-2,0,-1,-5,5,1', 8)")
+            it.execute("INSERT INTO eq_presets (name, gains, createdAt) VALUES ('Car', '3,3,0,0,0,0,0,0,2,2', 9)")
+            // A song and an album may share a key; the scope keeps them apart.
+            it.execute("INSERT INTO eq_settings (scope, `key`, gains, savedAt) VALUES ('album', 'Music/a.mp3', '0,0,0,0,0,0,0,0,0,0', 10)")
+            it.executeQuery("SELECT gains FROM eq_settings WHERE scope = 'song' AND `key` = 'Music/a.mp3'").use { row ->
+                assertTrue(row.next())
+                assertEquals("0,1.5,3,0,0,0,0,0,0,0", row.getString(1))
+            }
+            it.executeQuery("SELECT id FROM eq_presets WHERE name = 'Car'").use { row ->
+                assertTrue(row.next())
+                assertEquals(1L, row.getLong(1))
+            }
+        }
+        assertEquals(3, count("eq_settings"))
+    }
+
+    @Test
+    fun threeToSixRunsEveryMigration() {
+        create(schema(3))
+        insertVersion3Rows()
+        run(DatabaseMigrations.SQL_3_TO_4)
+        run(DatabaseMigrations.SQL_4_TO_5)
+        run(DatabaseMigrations.SQL_5_TO_6)
+
+        assertEquals(storedStatements(6), tables())
+        assertColumnsMatch(6)
+        assertVersion3RowsKept()
+    }
+
+    @Test
+    fun versionSixOnlyAddsTheEqualiserTables() {
+        val before = createStatements(schema(5))
+        val after = createStatements(schema(6))
+        assertEquals(before, after - "eq_settings" - "eq_presets")
+        assertEquals(setOf("eq_settings", "eq_presets"), after.keys - before.keys)
     }
 
     @Test
@@ -185,6 +240,10 @@ class DatabaseMigrationTest {
         val strip = { sql: String -> sql.replace("CREATE TABLE IF NOT EXISTS", "").trim() }
         assertEquals(strip(createStatements(schema(4)).getValue("song_styles")), strip(DatabaseMigrations.SQL_3_TO_4.single()))
         assertEquals(strip(createStatements(schema(5)).getValue("song_loudness")), strip(DatabaseMigrations.SQL_4_TO_5.single()))
+        assertEquals(
+            listOf("eq_settings", "eq_presets").map { strip(createStatements(schema(6)).getValue(it)) },
+            DatabaseMigrations.SQL_5_TO_6.map(strip),
+        )
     }
 
     @Test
@@ -196,5 +255,8 @@ class DatabaseMigrationTest {
         run(DatabaseMigrations.SQL_4_TO_5)
         run(DatabaseMigrations.SQL_4_TO_5)
         assertEquals(createStatements(schema(5)).keys, tables().keys)
+        run(DatabaseMigrations.SQL_5_TO_6)
+        run(DatabaseMigrations.SQL_5_TO_6)
+        assertEquals(createStatements(schema(6)).keys, tables().keys)
     }
 }

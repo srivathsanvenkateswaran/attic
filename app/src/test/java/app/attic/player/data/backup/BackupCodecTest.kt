@@ -10,7 +10,13 @@ class BackupCodecTest {
     private val full = Backup(
         createdAt = 1_795_000_000_000,
         appVersion = "1.0.0",
-        settings = BackupSettings(theme = "Light", uiStyle = "Comfort", autoplay = false),
+        settings = BackupSettings(
+            theme = "Light",
+            uiStyle = "Comfort",
+            autoplay = false,
+            equaliserOn = true,
+            equaliserDefault = "6,4,0,0,-2,0,-1,-5,5,1",
+        ),
         likes = listOf(BackupLike("Music/Hindi/Kabira.mp3", 1_790_000_000_000)),
         playlists = listOf(
             BackupPlaylist("Late drive", 1_780_000_000_000, listOf("Music/Hindi/Kabira.mp3", "Music/English/Viva La Vida.mp3")),
@@ -36,6 +42,9 @@ class BackupCodecTest {
             context = "Late drive",
             radioSeed = null,
         ),
+        equaliserSongs = listOf(BackupEqualiser("Music/Hindi/Kabira.mp3", "-1.5,-3,-3,1.5,3.75,3.75,3,1.5,0,-1.5", 1_794_100_000_000)),
+        equaliserAlbums = listOf(BackupEqualiser("monsoon tapes|kavya", "5.5,4.25,3.5,2.5,1.25,0,0,0,0,0", 1_794_200_000_000)),
+        equaliserPresets = listOf(BackupEqualiserPreset("Car \"loud\"", "3,3,0,0,0,0,0,0,2,2", 1_794_300_000_000)),
     )
 
     @Test
@@ -64,7 +73,7 @@ class BackupCodecTest {
     fun fileStartsWithFormatAndVersion() {
         val text = BackupCodec.encode(full)
         assertTrue(text.contains("\"format\":\"attic-backup\""))
-        assertTrue(text.contains("\"schemaVersion\":1"))
+        assertTrue(text.contains("\"schemaVersion\":2"))
     }
 
     @Test
@@ -80,8 +89,27 @@ class BackupCodecTest {
     }
 
     @Test
+    fun versionOneBackupStillReadsWithNoEqualiser() {
+        val backup = BackupCodec.decode(
+            """{"format":"attic-backup","schemaVersion":1,"createdAt":5,"settings":{"theme":"Dark","autoplay":true},
+               "likes":[{"song":"a.mp3","likedAt":2}]}""",
+        )
+        assertEquals(listOf(BackupLike("a.mp3", 2)), backup.likes)
+        assertEquals(BackupSettings(theme = "Dark", uiStyle = null, autoplay = true), backup.settings)
+        assertTrue(backup.equaliserSongs.isEmpty())
+        assertTrue(backup.equaliserAlbums.isEmpty())
+        assertTrue(backup.equaliserPresets.isEmpty())
+    }
+
+    @Test
+    fun equaliserSongsCountAmongTheBackupsSongs() {
+        assertTrue("Music/Hindi/Kabira.mp3" in full.songs())
+        assertTrue("monsoon tapes|kavya" !in full.songs())
+    }
+
+    @Test
     fun newerSchemaIsRefused() {
-        assertReason(BackupReadException.Reason.TooNew, """{"format":"attic-backup","schemaVersion":2,"createdAt":5}""")
+        assertReason(BackupReadException.Reason.TooNew, """{"format":"attic-backup","schemaVersion":3,"createdAt":5}""")
     }
 
     @Test
