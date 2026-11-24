@@ -136,6 +136,17 @@ class EqualiserAudioProcessor(private val source: EqSource, private val logger: 
     private var debug = false
     private var stats: Stats? = null
 
+    /**
+     * Set when the stream ends. Media3 drains the chain to the end of one item and flushes it before
+     * the next, gapless or not, so a flush that follows an end of stream in the same format is a song
+     * boundary with continuous audio, not a seek.
+     */
+    private var streamEnded = false
+
+    override fun onQueueEndOfStream() {
+        streamEnded = true
+    }
+
     override fun onConfigure(inputAudioFormat: AudioFormat): AudioFormat =
         when (inputAudioFormat.encoding) {
             C.ENCODING_PCM_16BIT, C.ENCODING_PCM_FLOAT -> inputAudioFormat
@@ -144,25 +155,40 @@ class EqualiserAudioProcessor(private val source: EqSource, private val logger: 
         }
 
     override fun onFlush(streamMetadata: AudioProcessor.StreamMetadata) {
+        val boundary = streamEnded
+        streamEnded = false
         if (!isActive) return
         debug = logger.enabled
-        sampleRate = inputAudioFormat.sampleRate
-        channels = inputAudioFormat.channelCount
-        design = EqDesign.forRate(sampleRate)
-        val words = EqBands.COUNT * channels * 2
-        if (state.size != words) state = DoubleArray(words) else state.fill(0.0)
-        limiterGain = 1.0
-        release = exp(-1.0 / (RELEASE_SECONDS * sampleRate))
+        val words = EqBands.COUNT * inputAudioFormat.channelCount * 2
+        val continuous = boundary && design != null && sampleRate == inputAudioFormat.sampleRate &&
+            channels == inputAudioFormat.channelCount && state.size == words
         timeline = streamMetadata.timeline
         periodUid = streamMetadata.periodUid
         seenVersion = source.version
-        // A new song (or a seek) starts on its own curve at once; only a change mid-song glides.
+        stats = if (debug) Stats(inputAudioFormat.sampleRate) else null
+        if (continuous) {
+            // The next song follows on without a break, so the filters keep their memory and the
+            // limiter its gain: clearing them would step the output by whatever the filters were
+            // adding, a click at every track of a gapless album. A song with another curve glides to
+            // it over the first 80 ms; one with the same curve changes nothing.
+            val curve = resolve()
+            if (curve != target) startGlide(curve)
+            if (debug) logger.log("item ${streamMetadata.periodUid} (follows on): ${describe()}")
+            return
+        }
+        sampleRate = inputAudioFormat.sampleRate
+        channels = inputAudioFormat.channelCount
+        design = EqDesign.forRate(sampleRate)
+        if (state.size != words) state = DoubleArray(words) else state.fill(0.0)
+        limiterGain = 1.0
+        release = exp(-1.0 / (RELEASE_SECONDS * sampleRate))
+        // A seek, or the first item, starts on its own curve at once, with the filters at rest.
         jumpTo(resolve())
-        stats = if (debug) Stats(sampleRate) else null
         if (debug) logger.log("item ${streamMetadata.periodUid}: ${describe()}")
     }
 
     override fun onReset() {
+        streamEnded = false
         design = null
         target = null
         appliedCurve = null

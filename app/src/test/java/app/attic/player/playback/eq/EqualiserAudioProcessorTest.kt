@@ -55,6 +55,73 @@ class EqualiserAudioProcessorTest {
         assertNull("A flat curve is treated as no curve", p.appliedCurve)
     }
 
+    /**
+     * Plays a 55 Hz and 1 kHz mix through item A, ends the stream and flushes into item B as Media3
+     * does at a gapless boundary, and carries the same waveform on. Returns the largest
+     * sample-to-sample step at the boundary and the largest anywhere else.
+     */
+    private fun boundarySteps(a: EqCurve?, b: EqCurve?): Pair<Int, Int> {
+        val frames = 48_000
+        val bass = sine(55.0, 0.45, frames, 2)
+        val tone = sine(1000.0, 0.1, frames, 2)
+        val mix = DoubleArray(bass.size) { bass[it] + tone[it] }.toShorts()
+        val half = frames // samples: half the frames, both channels
+        val p = EqualiserAudioProcessor(FakeEqSource("A" to a, "B" to b)).start(48_000, 2, PCM16, "A")
+        val first = p.runShorts(mix.copyOfRange(0, half))
+        p.queueEndOfStream()
+        p.getOutput()
+        p.flush(item("B"))
+        val second = p.runShorts(mix.copyOfRange(half, mix.size))
+        val out = first + second
+        val atBoundary = maxStep(out, 2, half - 4, half + 4)
+        val elsewhere = max(maxStep(out, 2, 2_000, half - 4), maxStep(out, 2, half + 4, out.size))
+        return atBoundary to elsewhere
+    }
+
+    @Test
+    fun aGaplessBoundaryWithTheSameCurveDoesNotClick() {
+        val (boundary, elsewhere) = boundarySteps(bass, bass)
+        assertTrue("step $boundary at the boundary, $elsewhere elsewhere", boundary <= elsewhere + 64)
+    }
+
+    @Test
+    fun aGaplessBoundaryIntoAnotherCurveGlidesWithoutAClick() {
+        for ((a, b) in listOf(bass to oneK, bass to null, null to bass)) {
+            val (boundary, elsewhere) = boundarySteps(a, b)
+            assertTrue("$a to $b: step $boundary at the boundary, $elsewhere elsewhere", boundary <= elsewhere + 64)
+        }
+    }
+
+    @Test
+    fun theNextSongsCurveIsTheOneAppliedAfterAGaplessBoundary() {
+        val p = EqualiserAudioProcessor(FakeEqSource("A" to bass, "B" to oneK)).start(48_000, 2, PCM16, "A")
+        p.runShorts(ShortArray(4096))
+        p.queueEndOfStream()
+        p.getOutput()
+        p.flush(item("B"))
+        assertEquals(oneK, p.appliedCurve)
+        p.runShorts(ShortArray(48_000 * 2))
+        // After the glide, B sounds exactly as if it had started on its own.
+        val fresh = EqualiserAudioProcessor(FakeEqSource("B" to oneK)).start(48_000, 2, PCM16, "B")
+        assertEquals(fresh.preGainDb, p.preGainDb, 1e-4f)
+        val input = sine(1000.0, 0.1, 4800, 2).toShorts()
+        val warm = p.runShorts(input)
+        val cold = fresh.runShorts(input)
+        assertTrue(maxStep(warm, 2, 0, warm.size) > 0)
+        assertEquals(rms(cold, 2400, cold.size), rms(warm, 2400, warm.size), 1e-3)
+    }
+
+    @Test
+    fun aSeekStillStartsTheFiltersAtRest() {
+        val p = EqualiserAudioProcessor(FakeEqSource("A" to bass, "B" to oneK)).start(48_000, 2, PCM16, "A")
+        p.runShorts(sine(55.0, 0.5, 4800, 2).toShorts())
+        // No end of stream first: a seek. The new curve applies at once, with no glide.
+        p.flush(item("B"))
+        assertEquals(oneK, p.appliedCurve)
+        val silent = p.runShorts(ShortArray(4096))
+        assertTrue("filters rang on after a seek", silent.all { it.toInt() == 0 })
+    }
+
     @Test
     fun appliesTheCurvesGainAtABandCentre() {
         for (channels in intArrayOf(1, 2, 6)) {
