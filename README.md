@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Android-13%2B-C6533A?logo=android&logoColor=white" alt="Android 13 or newer">
   <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C6533A?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
-  <img src="https://img.shields.io/badge/APK-53%20MB-C6533A" alt="APK size 53 MB">
+  <img src="https://img.shields.io/badge/APK-58%20MB-C6533A" alt="APK size 58 MB">
 </p>
 
 <p align="center">
@@ -86,15 +86,15 @@ The screenshots use a demo library with invented artists and generated covers.
 
 ## Performance
 
-Measured on a POCO M4 Pro 4G running Android 16, scrolling the full song list.
+Measured on a POCO M4 Pro 4G running Android 16, with release builds and a library of 740 songs. Each figure is a median over repeated runs: 20 cold starts and 6 scrolls of the full song list per style.
 
-| | Release build | Debug build |
+| | Expressive | Comfort |
 |---|---|---|
-| Janky frames | 3% | 32% |
-| Cold start | 0.7 s | 1.8 s |
-| APK size | 4.7 MB | 75 MB |
+| Janky frames, scrolling the song list | 2.2% | 2.5% |
+| Cold start | 0.25 s | 0.24 s |
+| Memory at Home (PSS) | 242 MB | 243 MB |
 
-Those numbers predate song radio. The release APK is now 53 MB because it carries the analysis model and its runtime, and only runs on 64-bit ARM phones.
+The release APK is 58 MB because it carries the analysis model and its runtime, and it only runs on 64-bit ARM phones.
 
 Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.
 
