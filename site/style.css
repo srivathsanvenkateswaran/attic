@@ -1,6 +1,7 @@
-/* Attic site. One family (Onest, bundled with the app under the OFL), no scripts, no third-party
-   requests. The one interactive part, the style viewer, runs on radio buttons and :has(); its Style
-   choice also sets the style of every other screenshot on the page. */
+/* Attic site. One family (Onest, bundled with the app under the OFL), no third-party requests. The
+   one interactive part, the style viewer, runs on radio buttons. Its Style choice runs on :has() and
+   sets the style of every screenshot on the page; its Theme choice needs theme.js and sets the theme
+   of every screenshot and of the page itself. */
 
 @font-face {
   font-family: "Onest";
@@ -45,8 +46,10 @@
   --slope: 8vw; /* the hero's cut, at the 30-degree pitch of the Headroom cabinet's roof */
 }
 
+/* Dark colours apply when the device is dark and the Theme choice is not Light, or when the choice is
+   Dark. theme.js sets data-theme on <html> when Light or Dark is picked. Keep the two blocks the same. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --hero: #8f3b29;
     --page: var(--dark);
     --band: #33291f;
@@ -61,6 +64,25 @@
     --ring: 0 0 0 1px rgba(245, 237, 221, 0.14);
   }
 }
+
+:root[data-theme="dark"] {
+  --hero: #8f3b29;
+  --page: var(--dark);
+  --band: #33291f;
+  --ink: var(--cream);
+  --ink-2: #cdbfae;
+  --link: #f0a08a;
+  --rule: rgba(245, 237, 221, 0.16);
+  --code: rgba(245, 237, 221, 0.09);
+  --deep: #1d1613;
+  --bezel: #0f0c0a;
+  --shadow: 0 2.5rem 4rem -2rem rgba(0, 0, 0, 0.7);
+  --ring: 0 0 0 1px rgba(245, 237, 221, 0.14);
+}
+
+/* Scrollbars and form controls follow the choice too. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 /* ---------- Base ---------- */
 
@@ -400,19 +422,12 @@ body:has(#style-comfort:checked) .only-comfort { display: block; }
 .styles:has(#s-album:checked) .screen[data-screen="album"],
 .styles:has(#s-artist:checked) .screen[data-screen="artist"] { display: block; }
 
-/* Theme: the visitor's scheme unless Light or Dark is picked. */
-.shot-dark { display: none; }
-@media (prefers-color-scheme: dark) {
-  .shot-light { display: none; }
-  .shot-dark { display: block; }
-}
-.styles:has(#t-light:checked) .shot-light,
-.styles:has(#t-dark:checked) .shot-dark { display: block; }
-.styles:has(#t-light:checked) .shot-dark,
-.styles:has(#t-dark:checked) .shot-light { display: none; }
+/* Theme is handled by theme.js, which switches each <picture> to its light or dark files. The Theme
+   buttons carry the hidden attribute until it runs. */
+.seg[hidden] { display: none; }
 
 /* Without :has() the controls do nothing, so they and the sentence about them are hidden, and the
-   page shows Expressive throughout, with Home in the visitor's theme in the viewer. */
+   page shows Expressive throughout, with Home in the viewer, all in the visitor's theme. */
 @supports not selector(:has(a)) {
   .controls, .needs-has { display: none; }
 }
@@ -503,12 +518,6 @@ body:has(#style-comfort:checked) .only-comfort { display: block; }
   box-shadow: var(--shadow);
 }
 .tablet img { display: block; width: 100%; height: auto; border-radius: 2% / 3.2%; }
-
-/* Unlike the feature phones, the tablet also follows the viewer's Theme choice. */
-body:has(#t-light:checked) .tablet .shot-light,
-body:has(#t-dark:checked) .tablet .shot-dark { display: block; }
-body:has(#t-light:checked) .tablet .shot-dark,
-body:has(#t-dark:checked) .tablet .shot-light { display: none; }
 
 /* ---------- Privacy ---------- */
 
