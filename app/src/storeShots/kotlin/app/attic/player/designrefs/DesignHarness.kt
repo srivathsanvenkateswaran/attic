@@ -94,7 +94,8 @@ private class DemoArtFetcher(private val data: ArtModel) : Fetcher {
         // A song opened from another app has id -1 and no art, as ArtFetcher finds.
         if (data.mediaId < 0) throw java.io.IOException("No embedded art for ${data.mediaId}")
         val cover = DemoLibrary.coverFor(data.mediaId) ?: error("No demo cover for ${data.mediaId}")
-        return ImageFetchResult(DemoCovers.get(cover).asImage(), isSampled = false, dataSource = DataSource.MEMORY)
+        // A copy: Comfort's cover mask recycles the bitmap it is handed, and the demo covers are shared.
+        return ImageFetchResult(DemoCovers.get(cover).copy(Bitmap.Config.ARGB_8888, false).asImage(), isSampled = false, dataSource = DataSource.MEMORY)
     }
 
     class Factory : Fetcher.Factory<ArtModel> {
