@@ -41,6 +41,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import androidx.compose.foundation.layout.widthIn
+import app.attic.player.ui.adaptive.adaptiveColumns
+import app.attic.player.ui.adaptive.WideMarginDp
+import app.attic.player.ui.adaptive.ReadableWidthDp
+import app.attic.player.ui.adaptive.WindowLayout
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
@@ -75,6 +81,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
         focusManager.clearFocus()
     }
     BackHandler(enabled = docked && !LocalOverlayCovered.current) { undock() }
+    val wide = searchWide(LocalWindowLayout.current)
 
     val browseState = rememberLazyListState()
     Column(Modifier.fillMaxSize().imePadding()) {
@@ -83,7 +90,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
             enter = expandVertically(ExpressiveMotion.defaultSpatial()) + fadeIn(ExpressiveMotion.defaultEffects()),
             exit = shrinkVertically(ExpressiveMotion.defaultSpatial()) + fadeOut(ExpressiveMotion.fastEffects()),
         ) {
-            RootAppBar(stringResource(R.string.search_title), scrolled = browseState.scrolledFraction()) {
+            RootAppBar(stringResource(R.string.search_title), scrolled = browseState.scrolledFraction(), titleInset = if (wide != null) WideExtraMargin else 0.dp) {
                 ExpressiveIconButton(Symbol.Settings, stringResource(R.string.settings), actions.openSettings)
             }
         }
@@ -98,48 +105,51 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
             query = state.query,
             onQueryChange = actions.setQuery,
             placeholder = stringResource(R.string.search_placeholder),
-            modifier = Modifier.padding(horizontal = 16.dp).onFocusChanged { focused = it.isFocused },
+            modifier = (if (wide != null) Modifier.padding(start = WideExtraMargin).widthIn(max = ReadableWidthDp.dp + 32.dp) else Modifier)
+                .padding(horizontal = 16.dp).onFocusChanged { focused = it.isFocused },
             onSearch = { keyboard?.hide() },
             onBack = if (docked) undock else null,
         )
         val results = state.results
         when {
-            !docked -> Browse(state.tiles, state.genres, state.moods, browseState, actions)
+            !docked -> Browse(state.tiles, state.genres, state.moods, browseState, actions, wide)
             results == null -> Unit
             results.isEmpty -> EmptyState(
                 title = stringResource(R.string.search_no_results_title, state.query),
                 body = stringResource(R.string.search_no_results_body),
                 symbol = Symbol.SearchOff,
             )
-            else -> Results(results, state, actions)
+            else -> Results(results, state, actions, wide)
         }
     }
 }
 
 @Composable
-private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, moods: List<BrowseItem>, listState: LazyListState, actions: SearchActions) {
+private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, moods: List<BrowseItem>, listState: LazyListState, actions: SearchActions, wide: SearchWide? = null) {
     val folders = tiles.filter { it.destination is Destination.Folder }
     val albums = tiles.filter { it.destination !is Destination.Folder }
+    val side = if (wide != null) WideExtraMargin else 0.dp
+    val tileColumns = wide?.browseColumns ?: 2
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
+        contentPadding = PaddingValues(start = side, end = side, bottom = LocalBottomPadding.current),
     ) {
         item(key = "browse") { SectionHeader(stringResource(R.string.search_browse)) }
-        tonalTiles(folders, "folders", actions)
+        tonalTiles(folders, "folders", actions, tileColumns)
         // Moods and genres are other ways into the same songs, so they share the folders' tile and sit under them.
         if (moods.isNotEmpty()) {
             item(key = "moodsLabel") { SmallLabel(stringResource(R.string.search_moods)) }
-            tonalTiles(moods, "moods", actions)
+            tonalTiles(moods, "moods", actions, tileColumns)
         }
         if (genres.isNotEmpty()) {
             item(key = "genresLabel") { SmallLabel(stringResource(R.string.search_genres)) }
-            tonalTiles(genres, "genres", actions)
+            tonalTiles(genres, "genres", actions, tileColumns)
         }
         if (albums.isNotEmpty()) {
             item(key = "albumsLabel") { SmallLabel(stringResource(R.string.home_albums)) }
             item(key = "albums") {
-                Shelf {
+                Shelf(if (wide != null) Modifier.bleed(end = side) else Modifier) {
                     items(albums, key = { it.destination.toString() }) { tile ->
                         Tile(
                             title = tile.title,
@@ -156,13 +166,13 @@ private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, moods: Lis
 }
 
 /** Folder and genre tiles two across: tonal containers in their own covers' hues, with the mosaic. */
-private fun LazyListScope.tonalTiles(tiles: List<BrowseItem>, section: String, actions: SearchActions) {
-    items(tiles.chunked(2), key = { row -> "$section:${row.first().destination}" }) { row ->
+private fun LazyListScope.tonalTiles(tiles: List<BrowseItem>, section: String, actions: SearchActions, columns: Int = 2) {
+    items(tiles.chunked(columns), key = { row -> "$section:${row.first().destination}" }) { row ->
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            for (column in 0 until 2) {
+            for (column in 0 until columns) {
                 val tile = row.getOrNull(column)
                 if (tile == null) {
                     Spacer(Modifier.weight(1f))
@@ -207,16 +217,18 @@ private sealed interface Openable {
 }
 
 @Composable
-private fun Results(results: SearchResults, state: SearchState, actions: SearchActions) {
+private fun Results(results: SearchResults, state: SearchState, actions: SearchActions, wide: SearchWide? = null) {
+    val side = if (wide != null) WideExtraMargin else 0.dp
+    val columns = wide?.rowColumns ?: 1
     val openables = remember(results) {
         results.artists.map(Openable::OfArtist) + results.albums.map(Openable::OfAlbum) + results.folders.map(Openable::OfFolder) +
             results.moods.map(Openable::OfMood) + results.genres.map(Openable::OfGenre)
     }
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 12.dp, bottom = LocalBottomPadding.current),
+        contentPadding = PaddingValues(start = side, end = side, top = 12.dp, bottom = LocalBottomPadding.current),
     ) {
-        groupItems(openables, key = { it.key }) { _, hit ->
+        columnGroupItems(openables, columns, key = { it.key }) { _, hit ->
             when (hit) {
                 is Openable.OfArtist -> CollectionRow(
                     title = hit.artist.name,
@@ -254,7 +266,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
             item(key = "songsLabel") {
                 ListLabel(stringResource(R.string.library_filter_songs))
             }
-            groupItems(results.tracks, key = { "track:${it.key}" }) { _, track ->
+            columnGroupItems(results.tracks, columns, key = { "track:${it.key}" }) { _, track ->
                 SongRow(
                     title = track.title,
                     subtitle = track.artist,
@@ -285,3 +297,15 @@ private fun SmallLabel(text: String) {
 @Composable
 private fun songCount(count: Int): String =
     pluralStringResource(R.plurals.song_count, count, NumberFormat.getIntegerInstance().format(count))
+
+/**
+ * Search on a medium or expanded window (SPEC.md, Search): the 24dp margins, the field at most 720dp
+ * wide, Browse's tiles in cells at least 180dp wide, results in columns at least 360dp wide. Null on a phone.
+ */
+private class SearchWide(val rowColumns: Int, val browseColumns: Int)
+
+private fun searchWide(window: WindowLayout): SearchWide? {
+    if (!window.wide) return null
+    val width = window.contentWidthDp
+    return SearchWide(rowColumns = rowColumns(width), browseColumns = adaptiveColumns(width - 2 * WideMarginDp, 180f, 8f))
+}

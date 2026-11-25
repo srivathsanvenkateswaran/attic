@@ -40,6 +40,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -114,21 +115,18 @@ fun ExpressiveAlbum(state: AlbumState, actions: AlbumActions) {
         controls = state.controls,
         controlActions = actions.controls,
         onBack = actions.back,
-        header = { titleModifier ->
-            CollectionHeader(
-                title = album.name,
-                titleModifier = titleModifier,
-                byline = { Byline(album.artist, state.artistMediaId, actions.openArtist) },
-                meta = listOf(albumKindAndYear(album), summary),
-                art = { Cover(Art.of(tracks.firstOrNull()?.mediaId), it) },
-                name = album.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = album.name,
+            byline = { Byline(album.artist, state.artistMediaId, actions.openArtist) },
+            meta = listOf(albumKindAndYear(album), summary),
+            art = { Cover(Art.of(tracks.firstOrNull()?.mediaId), it) },
+            name = album.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+        ),
+    ) { columns ->
         item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-        groupItems(tracks.withIndex().toList(), key = { it.value.key }) { _, (index, track) ->
+        columnGroupItems(tracks.withIndex().toList(), columns.rows, key = { it.value.key }) { _, (index, track) ->
             SongRow(
                 title = track.title,
                 subtitle = track.artist,
@@ -200,22 +198,19 @@ fun ExpressiveArtist(state: ArtistState, actions: ArtistActions) {
         controls = state.controls,
         controlActions = actions.controls,
         onBack = actions.back,
-        header = { titleModifier ->
-            CollectionHeader(
-                title = artist.name,
-                titleModifier = titleModifier,
-                artist = true,
-                meta = listOf(songsAndDuration(artist.tracks)),
-                art = { ArtistCover(Art.of(first), it) },
-                name = artist.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = artist.name,
+            artist = true,
+            meta = listOf(songsAndDuration(artist.tracks)),
+            art = { ArtistCover(Art.of(first), it) },
+            name = artist.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+        ),
+    ) { columns ->
         if (state.popular.isNotEmpty()) {
             item(key = "topHeader") { SectionHeader(stringResource(R.string.artist_top_songs)) }
-            groupItems(state.popular, key = { "top:${it.key}" }) { index, track ->
+            columnGroupItems(state.popular, columns.rows, key = { "top:${it.key}" }) { index, track ->
                 SongRow(
                     title = track.title,
                     subtitle = track.artist,
@@ -232,22 +227,13 @@ fun ExpressiveArtist(state: ArtistState, actions: ArtistActions) {
         if (artist.albums.isNotEmpty()) {
             item(key = "albums") {
                 SectionHeader(stringResource(R.string.artist_albums))
-                Shelf {
-                    items(artist.albums, key = { it.key }) { album ->
-                        Tile(
-                            title = album.name,
-                            onClick = { actions.openAlbum(album) },
-                            art = { Cover(Art.of(album.tracks.firstOrNull()?.mediaId), it) },
-                            subtitle = yearAndKind(album),
-                        )
-                    }
-                }
+                AlbumShelf(artist.albums, columns, actions.openAlbum) { yearAndKind(it) }
             }
         }
         if (state.others.isNotEmpty()) {
             item(key = "allHeader") { SectionHeader(stringResource(R.string.artist_all_songs)) }
             val offset = state.popular.size
-            groupItems(state.others, key = { it.key }) { index, track ->
+            columnGroupItems(state.others, columns.rows, key = { it.key }) { index, track ->
                 SongRow(
                     title = track.title,
                     subtitle = track.artist,
@@ -285,20 +271,17 @@ fun ExpressiveFolder(state: FolderState, actions: FolderActions) {
         controls = state.controls,
         controlActions = actions.controls,
         onBack = actions.back,
-        header = { titleModifier ->
-            CollectionHeader(
-                title = folder.name,
-                titleModifier = titleModifier,
-                meta = listOf(stringResource(R.string.folder_subtitle), songsAndDuration(tracks)),
-                art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
-                name = folder.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = folder.name,
+            meta = listOf(stringResource(R.string.folder_subtitle), songsAndDuration(tracks)),
+            art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
+            name = folder.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+        ),
+    ) { columns ->
         item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+        songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 
@@ -326,38 +309,26 @@ fun ExpressiveGenre(state: GenreState, actions: GenreActions) {
         barActions = {
             ExpressiveIconButton(Symbol.PlaylistAdd, stringResource(R.string.collection_add_to_playlist_cd, genre.name), actions.controls.addToPlaylist)
         },
-        header = { titleModifier ->
-            CollectionHeader(
-                title = genre.name,
-                titleModifier = titleModifier,
-                meta = listOf(stringResource(R.string.genre_subtitle), songsAndDuration(tracks)),
-                art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
-                name = genre.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-                radio = actions.startRadio,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = genre.name,
+            meta = listOf(stringResource(R.string.genre_subtitle), songsAndDuration(tracks)),
+            art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
+            name = genre.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+            radio = actions.startRadio,
+        ),
+    ) { columns ->
         if (genre.albums.isNotEmpty()) {
             item(key = "albums") {
                 SectionHeader(stringResource(R.string.artist_albums))
-                Shelf {
-                    items(genre.albums, key = { it.key }) { album ->
-                        Tile(
-                            title = album.name,
-                            onClick = { actions.openAlbum(album) },
-                            art = { Cover(Art.of(album.tracks.firstOrNull()?.mediaId), it) },
-                            subtitle = album.artist,
-                        )
-                    }
-                }
+                AlbumShelf(genre.albums, columns, actions.openAlbum) { it.artist }
             }
             item(key = "songsHeader") { SectionHeader(stringResource(R.string.library_filter_songs)) }
         } else {
             item(key = "gap") { Spacer(Modifier.height(12.dp)) }
         }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+        songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 
@@ -386,25 +357,22 @@ fun ExpressiveFavourites(state: LikedState, actions: LikedActions) {
                 }
             }
         },
-        header = { titleModifier ->
-            CollectionHeader(
-                title = title,
-                titleModifier = titleModifier,
-                meta = listOf(songsAndDuration(tracks)),
-                art = { FavouritesArt(it) },
-                name = title,
-                controls = state.controls,
-                controlActions = actions.controls,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = title,
+            meta = listOf(songsAndDuration(tracks)),
+            art = { FavouritesArt(it) },
+            name = title,
+            controls = state.controls,
+            controlActions = actions.controls,
+        ),
+    ) { columns ->
         if (tracks.isEmpty()) {
             item(key = "empty") {
                 EmptyState(stringResource(R.string.favourites_empty_title), stringResource(R.string.favourites_empty_body))
             }
         } else {
             item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+            songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
         }
     }
 }
@@ -417,13 +385,14 @@ private fun SmartShuffleItem(controls: PlayControlsState, onToggle: () -> Unit) 
 
 internal fun LazyListScope.songRows(
     tracks: List<Track>,
+    columns: CollectionColumns,
     currentKey: String?,
     isPlaying: Boolean,
     onPlay: (Int) -> Unit,
     onMenu: (Track) -> Unit,
     onQueue: (Track) -> Unit,
 ) {
-    groupItems(tracks, key = { it.key }) { index, track ->
+    columnGroupItems(tracks, columns.rows, key = { it.key }) { index, track ->
         SongRow(
             title = track.title,
             subtitle = track.artist,
@@ -471,18 +440,15 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
                 }
             }
         },
-        header = { titleModifier ->
-            CollectionHeader(
-                title = playlist.name,
-                titleModifier = titleModifier,
-                meta = listOf(songsAndDuration(tracks)),
-                art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
-                name = playlist.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-            )
-        },
-    ) {
+        header = HeaderParts(
+            title = playlist.name,
+            meta = listOf(songsAndDuration(tracks)),
+            art = { Mosaic(mosaicIds(tracks).map(Art::Song), it) },
+            name = playlist.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+        ),
+    ) { columns ->
         item(key = "tools") {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ExpressiveButton(
@@ -508,7 +474,7 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
                 EmptyState(stringResource(R.string.playlist_empty_title), stringResource(R.string.playlist_empty_body))
             }
         } else {
-            groupItems(tracks, key = { it.key }) { _, track ->
+            columnGroupItems(tracks, columns.rows, key = { it.key }) { _, track ->
                 SongRow(
                     title = track.title,
                     subtitle = track.artist,
@@ -633,8 +599,30 @@ internal fun CollectionFrame(
     onBack: () -> Unit,
     listState: LazyListState = rememberLazyListState(),
     barActions: @Composable RowScope.() -> Unit = {},
-    header: @Composable (titleModifier: Modifier) -> Unit,
-    content: LazyListScope.() -> Unit,
+    header: HeaderParts,
+    content: LazyListScope.(CollectionColumns) -> Unit,
+) {
+    if (isWideWindow()) {
+        CollectionPanes(title, seed, controls, controlActions, onBack, listState, barActions, header, content) {
+            CollectionColumn(title, seed, controls, controlActions, onBack, listState, barActions, header, content)
+        }
+        return
+    }
+    CollectionColumn(title, seed, controls, controlActions, onBack, listState, barActions, header, content)
+}
+
+/** The phone's frame: [CollectionFrame] in one column, the header block first. */
+@Composable
+private fun CollectionColumn(
+    title: String,
+    seed: Color,
+    controls: PlayControlsState,
+    controlActions: PlayControlsActions,
+    onBack: () -> Unit,
+    listState: LazyListState,
+    barActions: @Composable RowScope.() -> Unit,
+    header: HeaderParts,
+    content: LazyListScope.(CollectionColumns) -> Unit,
 ) {
     // The title starts 4dp under the bar, so it has gone under it once the list has moved its height and 4.
     var titleHeight by remember { mutableIntStateOf(Int.MAX_VALUE / 2) }
@@ -649,9 +637,9 @@ internal fun CollectionFrame(
             contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
         ) {
             item(key = "header") {
-                FromArt(seed) { header(Modifier.onSizeChanged { titleHeight = it.height }) }
+                FromArt(seed) { CollectionHeader(header, Modifier.onSizeChanged { titleHeight = it.height }) }
             }
-            content()
+            content(CollectionColumns.Phone)
         }
         FromArt(seed) {
             CollectionBar(title, collapsed, controls, controlActions, onBack, barActions)
@@ -665,7 +653,7 @@ internal fun CollectionFrame(
  * for the collection (frame F), squared off while it plays.
  */
 @Composable
-private fun CollectionBar(
+internal fun CollectionBar(
     title: String,
     collapsed: Boolean,
     controls: PlayControlsState,
@@ -704,26 +692,78 @@ private fun CollectionBar(
 }
 
 /**
+ * What a collection's header shows, for whichever layout draws it: the phone's block, or on a tablet
+ * a card beside the songs or a row above them (ExpressiveCollectionPanes.kt).
+ */
+@Immutable
+internal class HeaderParts(
+    val title: String,
+    val meta: List<String>,
+    val art: @Composable (Modifier) -> Unit,
+    /** Names the collection in the buttons' descriptions. */
+    val name: String,
+    val controls: PlayControlsState,
+    val controlActions: PlayControlsActions,
+    /** An artist: the cookie, and the name in the larger title style. */
+    val artist: Boolean = false,
+    val byline: (@Composable () -> Unit)? = null,
+    /** A genre or a mood: radio in place of add to playlist. */
+    val radio: (() -> Unit)? = null,
+    /** What the radio button says to accessibility services; "Start radio from …" by default. */
+    val radioLabel: String? = null,
+)
+
+/**
+ * How many columns a collection's list takes: rows of songs at least 360dp wide, and the albums as a
+ * grid of [tiles] columns instead of a shelf. A phone has one column and the shelf.
+ */
+@Immutable
+internal class CollectionColumns(val rows: Int, val tiles: Int) {
+    companion object {
+        val Phone = CollectionColumns(rows = 1, tiles = 0)
+    }
+}
+
+/** Albums under an artist or a genre: a shelf on a phone, a grid of [CollectionColumns.tiles] columns on a tablet. */
+@Composable
+private fun AlbumShelf(albums: List<Album>, columns: CollectionColumns, onOpen: (Album) -> Unit, subtitle: @Composable (Album) -> String) {
+    if (columns.tiles > 0) {
+        TileGrid(albums, columns = columns.tiles) { album ->
+            Tile(
+                title = album.name,
+                onClick = { onOpen(album) },
+                art = { Cover(Art.of(album.tracks.firstOrNull()?.mediaId), it) },
+                subtitle = subtitle(album),
+                width = null,
+            )
+        }
+        return
+    }
+    Shelf {
+        items(albums, key = { it.key }) { album ->
+            Tile(
+                title = album.name,
+                onClick = { onOpen(album) },
+                art = { Cover(Art.of(album.tracks.firstOrNull()?.mediaId), it) },
+                subtitle = subtitle(album),
+            )
+        }
+    }
+}
+
+/**
  * The header block (`.chead.tf`): the cover scheme's container with 32dp bottom corners, running under
  * the status bar. The title leads in the emphasised style (45sp for an artist), then an optional
  * byline, the meta lines, and the 208dp cover with the play cluster beside it.
  */
 @Composable
-internal fun CollectionHeader(
-    title: String,
-    titleModifier: Modifier,
-    meta: List<String>,
-    art: @Composable (Modifier) -> Unit,
-    name: String,
-    controls: PlayControlsState,
-    controlActions: PlayControlsActions,
-    artist: Boolean = false,
-    byline: (@Composable () -> Unit)? = null,
-    radio: (() -> Unit)? = null,
-    /** What the radio button says to accessibility services; "Start radio from …" by default. */
-    radioLabel: String? = null,
-) {
+internal fun CollectionHeader(parts: HeaderParts, titleModifier: Modifier) {
     val colors = MaterialTheme.colorScheme
+    val title = parts.title
+    val artist = parts.artist
+    val byline = parts.byline
+    val meta = parts.meta
+    val art = parts.art
     Column(
         Modifier
             .fillMaxWidth()
@@ -747,7 +787,7 @@ internal fun CollectionHeader(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             art(Modifier.size(CoverSize))
-            PlayCluster(name, controls, controlActions, Modifier.weight(1f).fillMaxHeight(), radio, radioLabel)
+            PlayCluster(parts.name, parts.controls, parts.controlActions, Modifier.weight(1f).fillMaxHeight(), parts.radio, parts.radioLabel)
         }
     }
 }
@@ -759,7 +799,7 @@ private val CoverSize: Dp = 208.dp
  * only if even that is too wide. 32/36 emphasised; an artist's name 45/48.
  */
 @Composable
-private fun HeaderTitle(text: String, artist: Boolean, modifier: Modifier) {
+internal fun HeaderTitle(text: String, artist: Boolean, modifier: Modifier) {
     val type = Expressive.type
     val style = if (artist) {
         type.displayMediumEmphasized.copy(lineHeight = 48.sp, letterSpacing = (-0.8).sp)

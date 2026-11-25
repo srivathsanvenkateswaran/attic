@@ -146,15 +146,17 @@ fun ExpressiveMood(state: MoodState, actions: MoodActions) {
         onBack = actions.back,
         header = { titleModifier ->
             CollectionHeader(
-                title = tile.name,
-                titleModifier = titleModifier,
-                meta = listOf(stringResource(R.string.mood_kind, songsAndDuration(tracks)), stringResource(R.string.mood_note)),
-                art = { Mosaic(tile.mosaicIds.map(Art::Song), it) },
-                name = tile.name,
-                controls = state.controls,
-                controlActions = actions.controls,
-                radio = actions.startRadio,
-                radioLabel = stringResource(R.string.mood_radio),
+                HeaderParts(
+                    title = tile.name,
+                    meta = listOf(stringResource(R.string.mood_kind, songsAndDuration(tracks)), stringResource(R.string.mood_note)),
+                    art = { Mosaic(tile.mosaicIds.map(Art::Song), it) },
+                    name = tile.name,
+                    controls = state.controls,
+                    controlActions = actions.controls,
+                    radio = actions.startRadio,
+                    radioLabel = stringResource(R.string.mood_radio),
+                ),
+                titleModifier,
             )
         },
     ) {

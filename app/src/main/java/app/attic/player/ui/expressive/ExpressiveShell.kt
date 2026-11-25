@@ -59,6 +59,9 @@ import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.NavTransitions
 import app.attic.player.ui.ShellSlots
 import app.attic.player.ui.Tab
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.NavPlacement
+import app.attic.player.ui.adaptive.PlayerPlacement
 import app.attic.player.ui.isTabRoute
 import app.attic.player.ui.model.MiniPlayerActions
 import app.attic.player.ui.model.MiniPlayerState
@@ -96,7 +99,7 @@ val ExpressiveNavTransitions = NavTransitions(
 )
 
 /** Full-screen overlays rise without overshooting, so no gap opens under them. */
-private fun <T> overlaySpring(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 380f)
+internal fun <T> overlaySpring(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 380f)
 
 private val MiniPlayerHeight = 64.dp
 /** Between the mini player and the navigation bar, or the keyboard. */
@@ -116,6 +119,11 @@ private val NavBarHeight = 64.dp
  */
 @Composable
 fun ExpressiveShell(state: ShellState, actions: ShellActions, slots: ShellSlots) {
+    val window = LocalWindowLayout.current
+    if (window.nav == NavPlacement.Rail) {
+        ExpressiveWideShell(state, actions, slots, window)
+        return
+    }
     val colors = MaterialTheme.colorScheme
     val density = LocalDensity.current
     val ime = WindowInsets.ime
@@ -199,14 +207,14 @@ fun ExpressiveShell(state: ShellState, actions: ShellActions, slots: ShellSlots)
     }
 }
 
-private val Tab.labelRes: Int
+internal val Tab.labelRes: Int
     get() = when (this) {
         Tab.Home -> R.string.tab_home
         Tab.Search -> R.string.tab_search
         Tab.Library -> R.string.tab_library
     }
 
-private val Tab.symbol: Symbol
+internal val Tab.symbol: Symbol
     get() = when (this) {
         Tab.Home -> Symbol.Home
         Tab.Search -> Symbol.Search
@@ -221,6 +229,10 @@ private val Tab.symbol: Symbol
  */
 @Composable
 fun ExpressiveMiniPlayer(state: MiniPlayerState, actions: MiniPlayerActions) {
+    if (LocalWindowLayout.current.player == PlayerPlacement.Bar) {
+        ExpressivePlayerBar(state, actions)
+        return
+    }
     val track = state.track ?: return
     val seed = rememberArtColor(track.mediaId, fallback = Color.Unspecified)
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 500)
