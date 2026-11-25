@@ -79,7 +79,10 @@ private const val GESTURE_BAR_DP = 24
 private class DemoArtFetcher(private val data: ArtModel) : Fetcher {
     override suspend fun fetch(): FetchResult {
         val cover = DemoLibrary.coverFor(data.mediaId) ?: error("No demo cover for ${data.mediaId}")
-        return ImageFetchResult(DemoCovers.get(cover).asImage(), isSampled = false, dataSource = DataSource.MEMORY)
+        // A copy each time: Comfort's SuperellipseMask recycles the bitmap it is handed, as it may with
+        // ArtFetcher's thumbnails, and the cached original has to survive for the next cover.
+        val bitmap = DemoCovers.get(cover).let { it.copy(it.config ?: Bitmap.Config.ARGB_8888, false) }
+        return ImageFetchResult(bitmap.asImage(), isSampled = false, dataSource = DataSource.MEMORY)
     }
 
     class Factory : Fetcher.Factory<ArtModel> {
@@ -128,7 +131,7 @@ private fun install(activity: ComponentActivity) {
 
 /**
  * Draws [content] in the app's theme for [style] and [dark], full screen with a status bar and a
- * gesture bar, runs [settleMs] of frames on the rule's clock, and writes `<name>.png` to [ShotsDir].
+ * gesture bar, runs [settleMs] of frames on the rule's clock, runs [prepare] (a scroll, say), and writes `<name>.png` to [ShotsDir].
  * The clock only moves when told, so looping animations (a marquee, the playing bars) don't hold it up.
  */
 fun ComposeContentTestRule.shoot(
@@ -137,6 +140,7 @@ fun ComposeContentTestRule.shoot(
     style: UiStyle,
     dark: Boolean,
     settleMs: Long = 3000,
+    prepare: ComposeContentTestRule.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     mainClock.autoAdvance = false
@@ -172,6 +176,9 @@ fun ComposeContentTestRule.shoot(
     withInsets = true
     Snapshot.sendApplyNotifications()
     mainClock.advanceTimeBy(settleMs)
+    shadowOf(Looper.getMainLooper()).idle()
+    prepare()
+    mainClock.advanceTimeBy(1000)
     shadowOf(Looper.getMainLooper()).idle()
     ShotsDir.mkdirs()
     activity.window.decorView.captureRoboImage(File(ShotsDir, "$name.png").path)

@@ -49,6 +49,7 @@ import app.attic.player.ui.model.ShellActions
 import app.attic.player.ui.model.ShellState
 import app.attic.player.ui.model.Shortcut
 import app.attic.player.ui.model.SongSort
+import app.attic.player.ui.model.TasteMix
 import app.attic.player.ui.model.UpNextRow
 import app.attic.player.ui.model.WrappedCard
 import app.attic.player.ui.model.WrappedData
@@ -131,11 +132,15 @@ object DemoStates {
                 yearEnded = false,
             ),
             speedDial = listOf("Porch Light", "Platform Ettu", "Patang", "Glasshouse", "Azulejo", "Drift Mode").map(DemoLibrary::track),
-            tasteMixes = emptyList(),
+            tasteMixes = tasteMixes,
             recentTracks = recent,
-            onRepeat = emptyList(),
-            notLately = emptyList(),
-            newlyAdded = emptyList(),
+            onRepeat = listOf(
+                "Porch Light", "Platform Ettu", "Neon Peaches", "Patang", "Drift Mode", "Azulejo", "Kettle On", "Tamarind Skies",
+            ).map(DemoLibrary::track),
+            notLately = listOf(
+                "Umbrella Song", "Maarghazhi Kaalai", "Bheegi Sadak", "Brushes", "Sunburn Choir", "Faro Apagado", "Chrome Lungs",
+            ).map(DemoLibrary::track),
+            newlyAdded = lib.tracks.sortedByDescending { it.dateAddedSec }.take(10),
             startListening = listOf("Moth Letters", "Kadalkarai", "Sheher Ki Shaam", "Rain on the Skylight").map(DemoLibrary::track),
             folders = lib.folders,
             biggestAlbums = albums.sortedByDescending { it.tracks.size },
@@ -146,6 +151,19 @@ object DemoStates {
             favouriteCount = 42,
             radioSeedKey = null,
         )
+    }
+
+    /** Four taste mixes, named as home/TasteMixes.kt names them: after the two most played artists. */
+    private val tasteMixes: List<TasteMix> get() = listOf(
+        "Mix: Mira Okafor, Juniper Vale and more" to listOf("Paper Lanterns", "Glasshouse Summer", "Weather Report", "Room Tone"),
+        "Mix: Kavya Raman, Tide & Tamarind and more" to listOf("Iravu Rail", "Kadalkarai Sessions", "Kolam", "Marea Lenta"),
+        "Mix: Ruhaan Sethi, Paloma Ferrer and more" to listOf("Chhat Pe Dhoop", "Marea Lenta", "Monsoon Tapes", "Glasshouse Summer"),
+        "Mix: Velvet Circuit, Small Hours Tape Club and more" to listOf("Afterglow Protocol", "Tea at 2 AM", "Room Tone", "Weather Report"),
+    ).map { (name, albums) ->
+        // Album by album in turn, as a mix mixes them, so the tile's mosaic has four covers.
+        val lists = albums.map { DemoLibrary.album(it).tracks }
+        val tracks = (0 until lists.maxOf { it.size }).flatMap { i -> lists.mapNotNull { it.getOrNull(i) } }.take(25)
+        TasteMix(name, tracks, mosaicIds(tracks))
     }
 
     val homeActions = HomeActions({}, noop, {}, noop, {}, {}, {}, {}, {}, {}, {}, { _, _ -> }, {})
