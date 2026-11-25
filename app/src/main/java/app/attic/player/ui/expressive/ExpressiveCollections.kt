@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.data.Album
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalBottomPadding
@@ -543,10 +544,13 @@ private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name
                 }
             }
         }
+        // On a tablet the rows are a centred column at most 720dp wide.
+        val window = LocalWindowLayout.current
+        val inset = if (window.wide) window.readableInset() else 0.dp
         LazyColumn(
             Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
+            contentPadding = PaddingValues(start = inset, end = inset, bottom = LocalBottomPadding.current),
         ) {
             item(key = "label") {
                 // "Late drive, 12 songs", as frame D labels the list and the Add songs sheet heads itself.

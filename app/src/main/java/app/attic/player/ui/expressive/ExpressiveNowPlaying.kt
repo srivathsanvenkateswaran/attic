@@ -192,9 +192,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             Column(
                 centred
                     .fillMaxWidth()
-                    .heightIn(min = pageHeight)
+                    // A tablet's tall window would spread the player out; there it keeps its gaps, as drawn.
+                    .then(if (column == null) Modifier.heightIn(min = pageHeight) else Modifier)
                     .statusBarsPadding(),
-                // A tablet's tall window would spread the player out; there it keeps its gaps, as drawn.
                 verticalArrangement = if (column == null) Arrangement.SpaceBetween else Arrangement.Top,
             ) {
                 Header(state, actions, track)

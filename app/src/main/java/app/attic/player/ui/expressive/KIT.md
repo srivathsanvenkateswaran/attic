@@ -276,6 +276,52 @@ applied. Use `stringResource` / `pluralStringResource`; do not write literals in
   "Playlist, 46 songs" / "Artist"; the album detail stays "Album • 2025". The Favourites empty body
   says "Tap the heart on a song to save it." because the plus became a heart.
 
+## Tablet (medium and expanded windows)
+
+docs/design/2026-11-25-tablet/SPEC.md is the rulebook; the design file's Tablet page draws it. Each
+screen reads `LocalWindowLayout` once at its top and keeps its phone path as it was, so a compact
+window composes nothing new. The shared sizes and helpers are in `ExpressiveAdaptive.kt`.
+
+**How the shell switches.** `ExpressiveShell` hands a window whose `nav` is `Rail` to
+`ExpressiveWideShell` (ExpressiveWideShell.kt): the rail at the start edge, the destinations beside
+it, and at the bottom of the content area the player bar (`player == Bar`, expanded) or the phone's
+mini player floating at most 576dp wide and centred, 12dp above the gesture area, over a band of
+`surface` behind the handle (`player == Floating`, medium). Now Playing, the queue and lyrics still
+cover the whole window; the snackbar sits 16dp above the bar or mini player. Destinations get the
+room the bar or mini player takes, plus 24dp, as `LocalBottomPadding`. The movable `ShellSlots` are
+the same in both arrangements, so a resize keeps their state. The mini player slot draws the player
+bar itself when `player == Bar` (`ExpressiveMiniPlayer`); the shell provides the queue and lyrics
+buttons' actions through `LocalPlayerBarLinks`.
+
+| Component | File | Dimensions |
+|---|---|---|
+| `ExpressiveNavigationRail` | ExpressiveRail.kt | 96dp on `surface`, no divider. Headroom mark 32dp in `primary`, 20dp under the status bar; the first item 34dp below it (28 to the item, whose pill sits 6 into it). Items are tabs in a selectable group: a 56 x 32 pill (`secondaryContainer`, icon filled, when selected), label in labelMedium 4dp under, 12dp between items. Focus and hover show on the pill. |
+| `ExpressivePlayerBar` | ExpressivePlayerBar.kt | An 80dp row on the cover scheme's `surfaceContainer`, top corners 28dp, its surface running on behind the gesture inset. Start: 56dp cover, title (bodyLarge SemiBold) over artist, at most 320dp; tapping them opens Now Playing. Centre (36% of the bar, 320 to 480dp): previous, a 48dp play control with no ring (round paused, 16dp corners playing), next, over the elapsed time, `WavyLinearProgress` and the length. End: heart, queue, lyrics. |
+| `CollectionPanes` | ExpressiveCollectionPanes.kt | Lays a collection out for its pane's width (`BoxWithConstraints`, tablets only). 760dp and wider: a 360dp start pane (320 below 1000) with the header as a card (cover scheme `surfaceContainer`, 32dp corners, 16dp padding, cover as wide as the card, play/shuffle/add in one row of medium buttons), the songs beside it. 600 to 760: one column with the header as a row (cover 200dp, titles over the buttons beside it). Narrower: the phone layout. Beside the Library's list there is no bar; the menu moves to the end of the header's buttons. |
+| `ExpressiveNowPlayingWide` | ExpressiveNowPlayingWide.kt | Two halves on an expanded landscape window. Start: the phone's header, the cover (from the height, on the 8dp grid, at most 440) with the next cover's 72dp after it, title block (no sung line under 840dp tall), seek bar, transport, tools. End: a 320dp connected button group (Up next, Lyrics; `rememberSaveable`, opening on `LocalInitialPlayerPanel`), the full-screen button at the end of its row with Lyrics on, then `QueueList` or `LyricsBody`, faded at their top and bottom edges. |
+
+**Screens.** The page margin is 24dp: destinations add `WideExtraMargin` (8dp) to the 16dp their
+components carry, and shelves run on through the end margin to the window's edge (`Modifier.bleed`).
+Lists of rows sit in columns at least 360dp wide, each column its own group filled top to bottom
+(`columnGroupItems`); grids of tiles in cells at least 160dp wide. Home: no mark in the bar, the
+filter at most 512dp with its margins, the carousel 200dp tall around 260dp items under 840dp of
+window height and 280 around 360 above it (`coverSlot` makes a cover fill a slot wider than tall),
+the Recap card beside Instant mixes on expanded (40% of the row, at most 480dp), the mixes in three
+columns, Start listening in two columns on expanded. Library: in the list pane the open row takes
+`CollectionRow(selected = true)`. Search: the field at most 720dp, Browse tiles in cells of 180dp.
+Queue, Settings, licences, Recap and a playlist's reorder mode: a centred column at most 720dp
+(`readableInset`), the bar spanning the window. Upright Now Playing: the phone's player in a
+centred 576dp column, the cover at most 480dp, its gaps kept instead of spread. Full-screen lyrics:
+on an expanded landscape window a 360dp start pane with one card (close, cover, title, seek bar,
+play controls) and the lines in a centred 640dp column; otherwise a centred 640dp column. Recap
+story: a phone's 411:914 proportions, as tall as the window. First run: a centred 560dp column.
+Sheets keep Material's 640dp; dialogs Material's 560, the New playlist dialog 400.
+
+**Input.** A song row opens its menu on a right click on medium and expanded windows
+(`onSecondaryClick`, in `SongRow`). The rail items, the player bar's song area and buttons, and the
+panel switch draw a ripple, which also draws focus and hover. Home's carousel items and Favourites
+pill have no indication on any window; that predates the tablet work.
+
 ## Gallery
 
 A debug-only activity lays the kit out like 00-direction.html's strips, with covers drawn in code
