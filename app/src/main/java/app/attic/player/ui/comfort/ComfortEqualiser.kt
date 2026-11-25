@@ -251,8 +251,8 @@ private fun EqualiserScopeHead(scope: EqScope, songTitle: String, albumName: Str
 }
 
 /**
- * `.eq-rows`: the rows that change which setting the song plays with, under a hairline the sheet's
- * width. Saving is offered while the song has no setting of its own; removing says what it removes on
+ * `.eq-rows`: the rows that change which setting the song plays with, 4dp under the plot's card,
+ * whose edge parts them from the editor. Saving is offered while the song has no setting of its own; removing says what it removes on
  * a second line, since it cannot be undone. The note belongs to the default, where saving is the only
  * thing on offer.
  */
@@ -261,8 +261,7 @@ private fun EqualiserActionRows(canSaveForSong: Boolean, canSaveForAlbum: Boolea
     // A song opened from another app can keep no setting: nothing to offer.
     if (!canSaveForSong && !canSaveForAlbum && removal == null) return
     val colors = Comfort.colors
-    Column(Modifier.padding(top = 12.dp)) {
-        Box(Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(1.dp).background(colors.line))
+    Column(Modifier.padding(top = 4.dp)) {
         Hairlined {
             if (canSaveForSong) {
                 item { SheetRow(Symbol.MusicNote, stringResource(R.string.equaliser_save_song), { calls.value.saveForSong() }) }
