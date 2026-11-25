@@ -131,21 +131,43 @@ class TransitionMeterTest {
     fun aLongFileKeepsOnlyItsEnds() {
         // Six minutes: the meter keeps the first and last 90 s, and still finds both ends' beats.
         val audio = clicks(128.0, seconds = 360.0, firstBeatS = 0.05, noiseDb = -50.0)
-        val result = measure(audio)!!
+        val result = measure(audio, expectedMs = 360_000)!!
         checkBeat("six-minute clicks, outro", 128.0, 0.05, result.outro)
         assertEquals(360_000.0, result.decodedMs.toDouble(), 20.0)
     }
 
     @Test
+    fun knowingTheLengthSkipsTheMiddleAndChangesNothingAtTheEnds() {
+        val audio = drumLoop(126.0, seconds = 240.0, firstBeatS = 0.3, seed = 10)
+        applyFade(audio, fromS = 230.0, toS = 240.0, fadeIn = false)
+        val full = measure(audio)!!
+        val hinted = measure(audio, expectedMs = 240_000)!!
+        assertEquals(full.copy(energy = 0f), hinted.copy(energy = 0f))
+        assertEquals(full.energy, hinted.energy, 0.05f)
+        checkBeat("length known, outro", 126.0, 0.3, hinted.outro)
+        // A header that's a few seconds out still leaves the whole last 90 s measured.
+        assertEquals(full.outro, measure(audio, expectedMs = 243_000)!!.outro)
+    }
+
+    @Test
     fun costPerMinuteOfAudio() {
         val audio = drumLoop(120.0, seconds = 240.0, firstBeatS = 0.0, seed = 9)
-        repeat(2) { measure(audio) } // warm up
-        val started = System.nanoTime()
-        val runs = 3
-        repeat(runs) { measure(audio) }
-        val perMinuteMs = (System.nanoTime() - started) / 1e6 / runs / 4
-        row("JVM cost", "per minute of audio", "%.1f ms".format(perMinuteMs))
-        assertTrue(perMinuteMs < 500)
+        fun perMinute(expectedMs: Long?): Double {
+            repeat(2) { measure(audio, expectedMs) } // warm up
+            val started = System.nanoTime()
+            val runs = 3
+            repeat(runs) { measure(audio, expectedMs) }
+            return (System.nanoTime() - started) / 1e6 / runs / 4
+        }
+        val whole = perMinute(null)
+        val ends = perMinute(240_000)
+        row("JVM cost, 4 min song", "per minute of audio", "%.1f ms, %.1f ms knowing its length".format(whole, ends))
+        assertTrue(whole < 500)
+        // The saving itself, counted rather than timed, since timings shift with whatever else is running.
+        fun spectra(expectedMs: Long?) = TransitionMeter(expectedMs).also { m -> m.add(audio) }.spectrumFrames
+        val counted = spectra(240_000).toDouble() / spectra(null)
+        row("spectra computed, 4 min song", "fewer knowing its length", "%.0f %% of them".format(counted * 100))
+        assertTrue("$counted", counted < 0.8)
     }
 
     // ---- key ----
@@ -196,8 +218,8 @@ class TransitionMeterTest {
         assertTrue("$label confidence ${beat.confidence}", beat.confidence >= BeatTracker.MIN_CONFIDENCE)
     }
 
-    private fun measure(audio: FloatArray): SongTransitions? {
-        val meter = TransitionMeter()
+    private fun measure(audio: FloatArray, expectedMs: Long? = null): SongTransitions? {
+        val meter = TransitionMeter(expectedMs)
         var i = 0
         while (i < audio.size) {
             val end = minOf(audio.size, i + 4_096)

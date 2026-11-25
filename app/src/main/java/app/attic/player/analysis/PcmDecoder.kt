@@ -25,6 +25,8 @@ object PcmDecoder {
         uri: Uri,
         onFormat: (sampleRate: Int, channels: Int) -> Unit,
         onSamples: (FloatArray) -> Boolean,
+        /** The track's length from the file's header, in ms, before any audio; null when the header doesn't say. */
+        onLength: (Long?) -> Unit = {},
     ): Boolean {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
@@ -35,6 +37,7 @@ object PcmDecoder {
             } ?: return false
             extractor.selectTrack(track)
             val format = extractor.getTrackFormat(track)
+            onLength(if (format.containsKey(MediaFormat.KEY_DURATION)) format.getLong(MediaFormat.KEY_DURATION) / 1_000 else null)
             codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
             codec.configure(format, null, null, 0)
             codec.start()
@@ -113,7 +116,7 @@ object PcmDecoder {
     fun measure(context: Context, uri: Uri, mono: ((FloatArray) -> Unit)? = null): Measured? {
         var loudness: LoudnessMeter? = null
         var resampler: LinearResampler? = null
-        val transitions = TransitionMeter()
+        var transitions = TransitionMeter()
         var channels = 1
         var transitionNanos = 0L
         val decoded = decode(
@@ -124,6 +127,7 @@ object PcmDecoder {
                 loudness = LoudnessMeter(rate, count)
                 resampler = LinearResampler(rate, TransitionMeter.SAMPLE_RATE)
             },
+            onLength = { length -> transitions = TransitionMeter(length) },
             onSamples = { samples ->
                 loudness?.add(samples)
                 val resampled = resampler!!.push(PcmBuffer.toMono(samples, channels))

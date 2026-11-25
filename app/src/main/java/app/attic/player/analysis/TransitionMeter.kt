@@ -61,9 +61,35 @@ object EnergyCurve {
  * Measures [SongTransitions] from 16 kHz mono audio, fed in decoder-sized pieces. It keeps two numbers
  * per 10 ms hop, the level and the onset strength (positive spectral flux over 24 log-spaced bands of a
  * 512-point frame), for the first and last 90 s only, plus a histogram of half-second levels and running
- * sums for the whole song. Memory stays at about 60 KB whatever the song's length.
+ * sums. Memory stays at about 150 KB whatever the song's length.
+ *
+ * Given the song's [expectedMs] (from the file's header), it skips the spectrum for the middle of the
+ * song, which nothing reads, and keeps only its level: about a third less work for a four-minute song.
+ * [SongTransitions.energy] then comes from the two ends.
  */
-class TransitionMeter {
+class TransitionMeter(expectedMs: Long? = null) {
+    /** Frames from here to the last 90 s (and a margin, as a header's length can be a little off) skip the spectrum. */
+    private val skipFrom: Int
+    private val skipUntil: Int
+
+    init {
+        val expected = expectedMs?.takeIf { it > 0 }?.let { (it / HOP_MS).toInt() }
+        if (expected != null && expected - KEEP_FRAMES - SKIP_MARGIN_FRAMES > KEEP_FRAMES) {
+            skipFrom = KEEP_FRAMES
+            skipUntil = expected - KEEP_FRAMES - SKIP_MARGIN_FRAMES
+        } else {
+            skipFrom = Int.MAX_VALUE
+            skipUntil = Int.MAX_VALUE
+        }
+    }
+
+    /** False until a frame's bands have been worked out since the last skipped one, so flux isn't read against stale bands. */
+    private var primed = false
+
+    /** How many frames got a spectrum: the meter's main cost. */
+    internal var spectrumFrames = 0
+        private set
+
     private val spectrum = PowerSpectrum(FRAME)
     private val window = FloatArray(FRAME) { (0.5 - 0.5 * cos(2 * PI * it / (FRAME - 1))).toFloat() }
     private val windowed = FloatArray(FRAME)
@@ -105,8 +131,14 @@ class TransitionMeter {
     private fun closeHop() {
         val meanSquare = hopSquares / HOP
         val level = (10 * log10(meanSquare + 1e-12)).toFloat()
-        val flux = flux()
         val index = frames
+        val skipped = index in skipFrom until skipUntil
+        val flux = if (skipped) {
+            primed = false
+            0f
+        } else {
+            flux()
+        }
         if (index < KEEP_FRAMES) {
             headLevel[index] = level
             headFlux[index] = flux
@@ -121,6 +153,7 @@ class TransitionMeter {
             blockSquares = 0.0
             blockFrames = 0
         }
+        if (skipped) return
         // Onset strength above its running half-second mean: spikes count, steady sound doesn't.
         fluxMean += (flux - fluxMean) / ENERGY_SMOOTH_FRAMES
         if (level > ABSOLUTE_SILENCE_DB) {
@@ -135,7 +168,10 @@ class TransitionMeter {
         val start = historyFilled % FRAME
         for (i in 0 until FRAME) windowed[i] = history[(start + i) % FRAME] * window[i]
         spectrum.compute(windowed, power)
+        spectrumFrames++
         var flux = 0.0
+        val first = !primed
+        primed = true
         for (b in bands.indices) {
             var sum = 0.0
             for (bin in BAND_EDGES[b] until BAND_EDGES[b + 1]) sum += power[bin]
@@ -145,7 +181,7 @@ class TransitionMeter {
             previousBands[b] = value
             bands[b] = value
         }
-        return flux.toFloat()
+        return if (first && historyFilled > FRAME) 0f else flux.toFloat()
     }
 
     /** Null when the song was all silence or too short to say anything about. */
@@ -275,6 +311,7 @@ class TransitionMeter {
         const val HOP = 160
         const val HOP_MS = 10L
         private const val KEEP_FRAMES = 9_000 // 90 s
+        private const val SKIP_MARGIN_FRAMES = 500 // 5 s
         private const val BLOCK_FRAMES = 50 // 0.5 s
         private const val SMOOTH_FRAMES = 200 // 2 s
         private const val MIN_FRAMES = 100
