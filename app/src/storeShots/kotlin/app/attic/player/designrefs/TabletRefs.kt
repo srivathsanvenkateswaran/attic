@@ -42,6 +42,17 @@ enum class TabletSize(val key: String, val qualifiers: String, val widthPx: Int,
      * usual 7-inch window, Comfort's Now Playing shortens the title and both players squeeze their buttons.
      */
     SevenInch("seven-inch", "w1024dp-h640dp-land-xhdpi", 2048, 1280),
+
+    /** The narrowest expanded window, 840 dp, at 16:10 and at the 480 dp floor of the wide shell. */
+    Expanded840("w840", "w840dp-h525dp-land-xhdpi", 1680, 1050),
+    Expanded840Short("w840-short", "w840dp-h480dp-land-xhdpi", 1680, 960),
+
+    /** The usual 7-inch tablet sideways, and the same width with a taller window. */
+    Expanded960("w960", "w960dp-h600dp-land-xhdpi", 1920, 1200),
+    Expanded960Tall("w960-tall", "w960dp-h800dp-land-xhdpi", 1920, 1600),
+
+    /** Just under 1100 dp, where the collection panes' header pane widens at 1000 dp and Expressive's labels fitted from 1066. */
+    Expanded1100("w1100", "w1100dp-h688dp-land-xhdpi", 2200, 1376),
 }
 
 /**
@@ -99,13 +110,21 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
         /** The screens the store listing's tablet screenshots and the website's tablet section show. */
         val Store = listOf("home", "library_albums", "album", "search_results", "now_playing", "now_playing_lyrics")
 
+        /**
+         * The expanded windows from 840 to 1280 dp wide: the store's screens and every other screen that
+         * splits in landscape. The 7- and 10-inch store sizes render these too.
+         */
+        val Narrow = Store + listOf("library_playlists", "library_grid", "artist", "playlist", "lyrics_synced", "queue", "settings")
+
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}-{3}")
         fun shots(): List<Array<Any>> = buildList {
             for ((size, keys) in listOf(
                 TabletSize.Landscape to Landscape, TabletSize.Portrait to Portrait, TabletSize.Large to Large,
                 TabletSize.Split to OtherSizes, TabletSize.Floating to OtherSizes, TabletSize.LargePortrait to OtherSizes,
-                TabletSize.TenInch to Store, TabletSize.SevenInch to Store,
+                TabletSize.TenInch to Narrow, TabletSize.SevenInch to Narrow,
+                TabletSize.Expanded840 to Narrow, TabletSize.Expanded840Short to Narrow,
+                TabletSize.Expanded960 to Narrow, TabletSize.Expanded960Tall to Narrow, TabletSize.Expanded1100 to Narrow,
             )) {
                 for (style in UiStyle.entries) for (dark in listOf(true, false)) for (key in keys) add(arrayOf(size, style, dark, key))
             }
