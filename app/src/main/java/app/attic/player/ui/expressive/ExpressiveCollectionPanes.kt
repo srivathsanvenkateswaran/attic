@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,14 +38,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.adaptive.CollectionLayout
+import app.attic.player.ui.adaptive.CoverToFit
 import app.attic.player.ui.adaptive.LocalDetailPane
 import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.adaptive.collectionHeaderPaneDp
@@ -89,7 +91,7 @@ internal fun CollectionPanes(
         val pane = maxWidth.value
         when (collectionLayout(pane)) {
             CollectionLayout.Stacked -> phone()
-            CollectionLayout.TwoPane -> TwoPanes(pane, seed, onBack, listState, barActions, header, content, detail)
+            CollectionLayout.TwoPane -> TwoPanes(pane, maxHeight, seed, onBack, listState, barActions, header, content, detail)
             CollectionLayout.HeaderRow ->
                 HeaderRowColumn(pane, title, seed, controls, controlActions, onBack, listState, barActions, header, content, detail)
         }
@@ -108,6 +110,7 @@ private fun columnsFor(listWidthDp: Float, gap: Dp = 12.dp) = CollectionColumns(
 @Composable
 private fun TwoPanes(
     pane: Float,
+    height: Dp,
     seed: Color,
     onBack: () -> Unit,
     listState: LazyListState,
@@ -123,13 +126,14 @@ private fun TwoPanes(
     // The songs run from 8dp before the start pane's end to 8dp before the pane's own.
     // Under the bar the songs start 8dp down; beside the Library's list, level with the card.
     val columns = remember(pane, start, detail) { columnsFor(pane - start, gap = if (detail) 0.dp else 8.dp) }
+    // The card stops 8dp above the player bar or mini player.
+    val cardBottom = (bottom - 16.dp).coerceAtLeast(8.dp)
     Row(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .width(start.dp)
                 .fillMaxHeight()
-                // The card stops 8dp above the player bar or mini player.
-                .padding(start = lead, end = 16.dp, top = top, bottom = (bottom - 16.dp).coerceAtLeast(8.dp)),
+                .padding(start = lead, end = 16.dp, top = top, bottom = cardBottom),
         ) {
             FromArt(seed) {
                 Column(
@@ -139,13 +143,22 @@ private fun TwoPanes(
                         .clip(RoundedCornerShape(ExpressiveShapes.ExtraLargeIncreased))
                         .background(MaterialTheme.colorScheme.surfaceContainer)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
+                        .padding(CardPadding),
                 ) {
-                    header.art(Modifier.fillMaxWidth().aspectRatio(1f))
-                    Spacer(Modifier.height(16.dp))
-                    HeaderTexts(header, Modifier)
-                    Spacer(Modifier.height(16.dp))
-                    HeaderActions(header, barActions.takeIf { detail }, fill = true)
+                    // The cover is as wide as the card, unless the window is too short for that and the
+                    // buttons: then it narrows, centred, so the card ends above the player bar.
+                    CoverToFit(
+                        height = height - top - cardBottom - CardPadding * 2,
+                        maxCover = start.dp - lead - 16.dp - CardPadding * 2,
+                        minCover = MinCardCover,
+                        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                    ) { cover ->
+                        header.art(Modifier.size(cover))
+                        Spacer(Modifier.height(16.dp))
+                        HeaderTexts(header, Modifier)
+                        Spacer(Modifier.height(16.dp))
+                        HeaderActions(header, barActions.takeIf { detail }, fill = true)
+                    }
                 }
             }
         }
@@ -232,6 +245,12 @@ private fun HeaderRowColumn(
 
 private val HeaderRowCover = 200.dp
 
+/** The two-pane header card's padding. */
+private val CardPadding = 16.dp
+
+/** The smallest the two-pane card's cover gets on a short window before the card scrolls. */
+private val MinCardCover = 120.dp
+
 /** The title, the byline and the details, spaced as the phone's header spaces them. */
 @Composable
 private fun HeaderTexts(header: HeaderParts, titleModifier: Modifier) {
@@ -253,7 +272,9 @@ private fun HeaderTexts(header: HeaderParts, titleModifier: Modifier) {
 /**
  * Play, shuffle and add to playlist in one row (radio in place of add for a genre). Play is the
  * medium filled button, squared off and reading Pause while this collection plays; with [fill] it
- * takes the room the other two leave. [menu] is the bar's menu, for a header with no bar over it.
+ * takes the room the other two leave, and where that room is too narrow for its label (the two-pane
+ * card on a 7-inch tablet, or beside the Library's list with the menu) it takes a row of its own
+ * above them. [menu] is the bar's menu, for a header with no bar over it.
  */
 @Composable
 private fun HeaderActions(header: HeaderParts, menu: (@Composable RowScope.() -> Unit)?, fill: Boolean) {
@@ -261,46 +282,102 @@ private fun HeaderActions(header: HeaderParts, menu: (@Composable RowScope.() ->
     val actions = header.controlActions
     val enabled = state.enabled
     val radio = header.radio
+    val dim = Modifier.alpha(if (enabled) 1f else 0.38f)
+    val play = @Composable { modifier: Modifier ->
+        ExpressiveButton(
+            stringResource(if (state.isPlaying) R.string.pause else R.string.play),
+            onClick = actions.playOrPause,
+            modifier = modifier,
+            size = ButtonSize.Medium,
+            leading = if (state.isPlaying) Symbol.Pause else Symbol.PlayArrow,
+            squared = state.isPlaying,
+            enabled = enabled,
+        )
+    }
+    val others = @Composable {
+        ExpressiveToggleButton(
+            Symbol.Shuffle,
+            checked = state.shuffleOn,
+            onCheckedChange = { actions.shuffle() },
+            contentDescription = stringResource(R.string.collection_shuffle_cd, header.name),
+            modifier = dim,
+            medium = true,
+            tonalWhenOff = true,
+            enabled = enabled,
+        )
+        ExpressiveIconButton(
+            if (radio != null) Symbol.Sensors else Symbol.PlaylistAdd,
+            stringResource(if (radio != null) R.string.collection_radio_cd else R.string.collection_add_to_playlist_cd, header.name),
+            radio ?: actions.addToPlaylist,
+            modifier = dim,
+            variant = IconButtonVariant.Tonal,
+            medium = true,
+            enabled = enabled,
+        )
+    }
+    if (fill) {
+        PlayFirstRow(gap = 8.dp, play = { play(dim) }) {
+            others()
+            if (menu != null) Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, content = menu)
+        }
+        return
+    }
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
         Row(
-            if (fill) Modifier.weight(1f).alpha(if (enabled) 1f else 0.38f) else Modifier.alpha(if (enabled) 1f else 0.38f),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
         ) {
-            ExpressiveButton(
-                stringResource(if (state.isPlaying) R.string.pause else R.string.play),
-                onClick = actions.playOrPause,
-                modifier = if (fill) Modifier.weight(1f) else Modifier,
-                size = ButtonSize.Medium,
-                leading = if (state.isPlaying) Symbol.Pause else Symbol.PlayArrow,
-                squared = state.isPlaying,
-                enabled = enabled,
-            )
-            ExpressiveToggleButton(
-                Symbol.Shuffle,
-                checked = state.shuffleOn,
-                onCheckedChange = { actions.shuffle() },
-                contentDescription = stringResource(R.string.collection_shuffle_cd, header.name),
-                medium = true,
-                tonalWhenOff = true,
-                enabled = enabled,
-            )
-            ExpressiveIconButton(
-                if (radio != null) Symbol.Sensors else Symbol.PlaylistAdd,
-                stringResource(if (radio != null) R.string.collection_radio_cd else R.string.collection_add_to_playlist_cd, header.name),
-                radio ?: actions.addToPlaylist,
-                variant = IconButtonVariant.Tonal,
-                medium = true,
-                enabled = enabled,
-            )
+            play(dim)
+            others()
         }
         if (menu != null) {
-            if (!fill) Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
             menu()
+        }
+    }
+}
+
+/**
+ * [play] then [rest] in one row, [gap] apart, [play] taking the width the rest leave; or, when that
+ * width is less than [play] needs for its label, [play] across the full width with [rest] in a row
+ * under it, [gap] below.
+ */
+@Composable
+private fun PlayFirstRow(gap: Dp, play: @Composable () -> Unit, rest: @Composable () -> Unit) {
+    Layout(contents = listOf(play, rest), modifier = Modifier.fillMaxWidth()) { (playMeasurables, restMeasurables), constraints ->
+        val gapPx = gap.roundToPx()
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        // A bar's menu with nothing in it (an album beside the Library's list) takes no room and no gap.
+        val others = restMeasurables.map { it.measure(loose) }.filter { it.width > 0 }
+        val othersWidth = others.sumOf { it.width } + gapPx * (others.size - 1).coerceAtLeast(0)
+        val button = playMeasurables.first()
+        val beside = constraints.maxWidth - othersWidth - gapPx
+        val oneRow = button.maxIntrinsicWidth(Constraints.Infinity) <= beside
+        val width = if (oneRow) beside else constraints.maxWidth
+        val placed = button.measure(Constraints.fixedWidth(width.coerceAtLeast(0)).copy(maxHeight = loose.maxHeight))
+        val othersHeight = others.maxOfOrNull { it.height } ?: 0
+        val height = if (oneRow) maxOf(placed.height, othersHeight) else placed.height + gapPx + othersHeight
+        layout(constraints.maxWidth, height) {
+            if (oneRow) {
+                placed.placeRelative(0, (height - placed.height) / 2)
+                var x = width + gapPx
+                for (p in others) {
+                    p.placeRelative(x, (height - p.height) / 2)
+                    x += p.width + gapPx
+                }
+            } else {
+                placed.placeRelative(0, 0)
+                var x = 0
+                val y = placed.height + gapPx
+                for (p in others) {
+                    p.placeRelative(x, y + (othersHeight - p.height) / 2)
+                    x += p.width + gapPx
+                }
+            }
         }
     }
 }

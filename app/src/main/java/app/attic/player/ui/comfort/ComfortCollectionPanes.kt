@@ -45,6 +45,7 @@ import app.attic.player.data.Album
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.adaptive.CollectionLayout
+import app.attic.player.ui.adaptive.CoverToFit
 import app.attic.player.ui.adaptive.LocalDetailPane
 import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.adaptive.collectionHeaderPaneDp
@@ -72,7 +73,8 @@ import app.attic.player.ui.mosaicIds
  * The collection screens on medium and expanded windows (docs/design/2026-11-25-tablet/SPEC.md,
  * Album, artist, playlist...). Each lays itself out for the width of the pane it is given:
  * - 760dp or wider, two panes: the header (cover up to 296dp, name, details, the Play row) in a start
- *   pane of 360dp (320 under 1000) that scrolls only if it must, and the songs beside it, in cards
+ *   pane of 360dp (320 under 1000), the cover smaller on a short window so the Play row stays above the
+ *   player bar ([CoverToFit]), scrolling only if it must; and the songs beside it, in cards
  *   side by side at least 360dp wide, filled top to bottom;
  * - 600 to 760dp, one column with the header as a row: the cover at 200dp, the name, details and the
  *   Play row beside it, then the songs;
@@ -80,6 +82,9 @@ import app.attic.player.ui.mosaicIds
  * The bar spans the pane, back at its start. Beside the Library's list ([LocalDetailPane]) there is
  * no back, since the list is right there, and the content starts 16dp under the status bar.
  */
+
+/** The smallest the two-pane header's cover gets on a short window before the header pane scrolls. */
+private val MinHeaderCover = 120.dp
 
 /** True while a collection draws its phone layout from inside [CollectionPanes], so it doesn't branch again. */
 internal val LocalStackedCollection = staticCompositionLocalOf { false }
@@ -112,6 +117,7 @@ private fun CollectionPanes(
     val detail = LocalDetailPane.current
     BoxWithConstraints(Modifier.fillMaxSize().background(colors.ground)) {
         val width = maxWidth
+        val paneHeight = maxHeight
         val layout = collectionLayout(width.value)
         if (layout == CollectionLayout.Stacked) {
             CompositionLocalProvider(LocalStackedCollection provides true) { stacked() }
@@ -134,16 +140,23 @@ private fun CollectionPanes(
                         .verticalScroll(rememberScrollState())
                         .padding(top = top, bottom = bottom),
                 ) {
-                    CollectionHeader(
-                        title = header.title,
-                        art = header.art,
-                        byline = header.byline,
-                        onBylineClick = header.onBylineClick,
-                        meta = header.meta,
-                        person = header.person,
-                        artSize = if (header.person) 200.dp else min(296.dp, pane - 64.dp),
-                    )
-                    playRow(CollectionActionsPadding)
+                    // The cover gives way on a short window, so the Play row stays above the player bar.
+                    CoverToFit(
+                        height = paneHeight - top - bottom,
+                        maxCover = if (header.person) 200.dp else min(296.dp, pane - 64.dp),
+                        minCover = MinHeaderCover,
+                    ) { cover ->
+                        CollectionHeader(
+                            title = header.title,
+                            art = header.art,
+                            byline = header.byline,
+                            onBylineClick = header.onBylineClick,
+                            meta = header.meta,
+                            person = header.person,
+                            artSize = cover,
+                        )
+                        playRow(CollectionActionsPadding)
+                    }
                 }
                 LazyColumn(
                     Modifier.weight(1f).fillMaxHeight(),
