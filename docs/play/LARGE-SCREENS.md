@@ -62,7 +62,7 @@ wide, a compact width, and gets the phone layouts.
 | Keyboard_Shortcuts (LS-I4) | Met | Select, cut, copy, paste, undo and redo in text fields come from Compose's text fields. |
 | Keyboard_Media_Playback (LS-I5) | Met | Space plays and pauses wherever focus is, unless a text field is taking the typing (`MainActivity.dispatchKeyEvent`); a keyboard's media keys reach the media session. Checked on the phone with key events: Space toggled playback, and the media pause key paused it. |
 | Keyboard_Send (LS-I6) | Not applicable | Attic is not a communication app. |
-| Keyboard_Exit (new) | Met | Esc does what Back does when there is something to close: Now Playing, the queue or lyrics, a sheet or dialog, or a screen pushed on a tab. On a tab's root it does nothing rather than leave the app. |
+| Keyboard_Exit (new) | Met | Esc does what Back does when there is something to close, whichever control has focus: Now Playing, the queue or lyrics, or a screen pushed on a tab; sheets and dialogs close on Esc in their own windows. On a tab's root it passes on, so it clears keyboard focus and never leaves the app (`MainActivity.dispatchKeyEvent`). |
 | Context_Menus (LS-I7) | Met, one gap | A right click or secondary tap on a song row opens its menu (`ui/adaptive/Input.kt`). Gap: album, artist and playlist tiles have no right-click menu, as they have no long-press menu on phones. |
 | Content_Zoom (LS-I8) | Not applicable | Attic has no zoomable content (no images, maps or documents to zoom); text follows the system font size. |
 | Hover_States (LS-I9) | Met | Ripple indications draw the hover state on every clickable that has one. |

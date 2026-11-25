@@ -77,38 +77,37 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Space plays and pauses from a keyboard, wherever focus is, unless a text field is taking the
-     * typing (the search field gets its space). It is taken before the screen sees it: once a key
-     * press has left touch mode, Compose focuses the first control and would treat Space as a click
-     * on it. Enter still activates the focused control.
+     * Keyboard keys the app takes before the screen does, since once a key press has left touch mode
+     * Compose focuses a control and would otherwise use them itself:
+     * - Space plays and pauses, unless a text field is taking the typing (the search field gets its
+     *   space). Enter still activates the focused control.
+     * - Esc does what Back does (closes Now Playing, the queue or lyrics, or leaves a screen) when
+     *   there is something to close. On a tab's root it passes, so it clears keyboard focus as usual
+     *   and never leaves the app. Sheets and dialogs are windows of their own and close on Esc there.
      *
      * This overrides android.app.Activity's public dispatchKeyEvent; androidx.core's ComponentActivity
      * re-declares it as restricted only for its own key-event helpers, hence the suppression.
      */
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.keyCode == KeyEvent.KEYCODE_SPACE && !event.isCtrlPressed && !event.isAltPressed && !typing()) {
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) attic.player.togglePlayPause()
-            return true
+        if (!event.isCtrlPressed && !event.isAltPressed) {
+            val down = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_SPACE -> if (!typing()) {
+                    if (down) attic.player.togglePlayPause()
+                    return true
+                }
+                KeyEvent.KEYCODE_ESCAPE -> if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    if (down) onBackPressedDispatcher.onBackPressed()
+                    return true
+                }
+            }
         }
         return super.dispatchKeyEvent(event)
     }
 
     /** A text field has the input method's attention, so keys are text. */
     private fun typing(): Boolean = getSystemService(InputMethodManager::class.java)?.isAcceptingText == true
-
-    /**
-     * Esc does what Back does (closes the player, the queue or lyrics, a sheet, or leaves a screen)
-     * when there is something to close; on a tab's root it does nothing rather than leave the app.
-     * It only arrives here when nothing on screen took it.
-     */
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_ESCAPE && event.repeatCount == 0 && onBackPressedDispatcher.hasEnabledCallbacks()) {
-            onBackPressedDispatcher.onBackPressed()
-            return true
-        }
-        return super.onKeyDown(keyCode, event)
-    }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
