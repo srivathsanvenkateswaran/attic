@@ -63,7 +63,7 @@
           <a class="button solid" href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">Download the APK</a>
           <a class="button line" href="https://github.com/srivathsanvenkateswaran/attic">View source on GitHub</a>
         </div>
-        <p class="hero-note">For Android 13 or newer on a 64-bit ARM phone. The APK is 58 MB, from GitHub Releases.</p>
+        <p class="hero-note">For Android 13 or newer on a 64-bit ARM phone. The APK is 64 MB, from GitHub Releases.</p>
       </div>
       <div class="hero-phones">
         <div class="phone back">
@@ -322,6 +322,82 @@
           </div>
         </article>
 
+        <article class="feature flip" id="moods">
+          <div class="feature-copy">
+            <p class="new">New in 1.3</p>
+            <h3>Mood mixes, sorted by how each song sounds</h3>
+            <p>Home has a Moods shelf after the mixes: Chill, Happy, Energetic, Focus, Party, Melancholy and Romantic. Each mood that at least 8 of your songs fit gets one mix a day, of up to 25 songs. The same tiles are in Search, in a Moods group above Genres.</p>
+            <dl class="ledger">
+              <div>
+                <dt>Song analysis <span class="value">1,280 numbers a song</span></dt>
+                <dd>Analysis already runs while the phone charges, and stores 1,280 numbers that describe how each song sounds. Moods are read from those numbers, not from the audio.</dd>
+              </div>
+              <div>
+                <dt>Classifiers <span class="value">Nine, on the phone</span></dt>
+                <dd>Nine small classifiers that come with Attic score each song for qualities such as happy, sad, relaxed, aggressive, party, danceable and instrumental, and for 56 mood and theme tags. They use no network.</dd>
+              </div>
+              <div>
+                <dt>Fit <span class="value">Ranked within your library</span></dt>
+                <dd>Each mood is a weighted mean of a few of those scores, each taken as its rank among your own songs. Chill leans most on the relaxed score, and a high aggressive score counts against it. A limit on the raw scores keeps the saddest songs of a party library from becoming a Melancholy mix.</dd>
+              </div>
+            </dl>
+            <p class="note">After an update from 1.2, Romantic needs analysis to read each song once more, while the phone charges, so it fills in later. The other moods appear the first time Home opens.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-moods-360.webp 360w, img/screens/expressive-dark-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-moods-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-home-moods-360.webp 360w, img/screens/expressive-light-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-home-moods-360.png" width="360" height="800" alt="Home in the Expressive style, scrolled to the Moods shelf under the line &quot;Your songs, sorted by how they feel&quot;: a Chill tile with 25 songs and &quot;Slow and easy&quot;, and a Happy tile with 23 songs and &quot;Bright and cheerful&quot;, each with four small covers, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-moods-360.webp 360w, img/screens/comfort-dark-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-moods-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-home-moods-360.webp 360w, img/screens/comfort-light-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-home-moods-360.png" width="360" height="800" alt="Home in the Comfort style, scrolled to the Moods shelf beside the line &quot;Your songs, sorted by how they feel&quot;: a Chill card with 25 songs and &quot;Slow and easy&quot;, and a Happy card with 23 songs and &quot;Bright and cheerful&quot;, each with four small covers, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature" id="mood-page">
+          <div class="feature-copy">
+            <h3>Each day's mix follows your picks and what you play</h3>
+            <p>A mood's page lists the day's songs, with Play, shuffle and Mood radio. When more songs fit a mood than a mix holds, Attic ranks them and draws the day's 25.</p>
+            <dl class="ledger">
+              <div>
+                <dt>Ranking <span class="value">Fit counts most</span></dt>
+                <dd>By how well a song fits the mood, then by your picks and listening. A picked genre or language, a like and finished listens move a song up, and skips move it down. Recent listening counts more, and a song heard in the last few hours drops back.</dd>
+              </div>
+              <div>
+                <dt>The day's draw <span class="value">25 from the top 50</span></dt>
+                <dd>A weighted draw from the 50 highest-ranked songs, by a random generator seeded with the date, with at most 3 songs by one artist and 2 from one album. The same library and picks give the same mix all day, and the next day gives a new draw.</dd>
+              </div>
+              <div>
+                <dt>Mood radio <span class="value">On a mood's page</span></dt>
+                <dd>Starts a radio that steers towards the middle of the day's mix and picks only songs that fit the mood. When a mood mix ends, autoplay carries on in that mood without repeating the mix.</dd>
+              </div>
+              <div>
+                <dt>Moods and interests <span class="value">Settings &gt; Moods</span></dt>
+                <dd>A page of moods, genres and languages to pick, all optional, also offered by a card at the start of the Moods shelf. With moods picked, Home shows those moods in your order; with none, every mood that has a mix. With languages picked, a mix leaves out songs in other languages unless fewer than 8 would be left.</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="phone feature-phone">
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-mood-360.webp 360w, img/screens/expressive-dark-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-mood-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-mood-360.webp 360w, img/screens/expressive-light-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-mood-360.png" width="360" height="800" alt="Chill's page in the Expressive style: &quot;Mood mix · 25 songs, 1 hr 32 min&quot; and the line &quot;Picked from how your songs sound and what you play. New each day.&quot;, then four covers beside a large Play button with shuffle and Mood radio buttons under it, and the first four songs of the mix, the second one playing" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-mood-360.webp 360w, img/screens/comfort-dark-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-mood-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-mood-360.webp 360w, img/screens/comfort-light-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-mood-360.png" width="360" height="800" alt="Chill's page in the Comfort style: four covers in one square, then &quot;Mood mix · 25 songs, 1 hr 32 min&quot; and the line &quot;Picked from how your songs sound and what you play. New each day.&quot;, a Play button with shuffle and Mood radio buttons beside it, and the first four songs of the mix, the second one playing" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
         <article class="feature flip">
           <div class="feature-copy">
             <h3>Synced lyrics that work offline</h3>
@@ -396,7 +472,7 @@
           <div>
             <h3>Backup and first run</h3>
             <ul>
-              <li>Back up favourites, playlists, listening history, saved lyrics, equaliser settings and presets, and app settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
+              <li>Back up favourites, playlists, listening history, saved lyrics, equaliser settings and presets, your mood picks, and app settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
               <li>Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch</li>
               <li>On first run, pick a style and theme, allow access to your music, and Attic shows the songs it found</li>
             </ul>
@@ -482,7 +558,7 @@
       <div class="wrap privacy-grid">
         <div>
           <h2 id="privacy-title">What leaves your phone</h2>
-          <p class="privacy-lead">Attic has no account, no analytics, no ads and no crash reporting, and the developer receives no data from the app. Playback and song analysis never touch the network. The one request Attic makes itself is a lyrics lookup.</p>
+          <p class="privacy-lead">Attic has no account, no analytics, no ads and no crash reporting, and the developer receives no data from the app. Playback, song analysis and mood scoring never touch the network. The one request Attic makes itself is a lyrics lookup.</p>
           <p><a href="privacy.html">Read the privacy policy</a></p>
         </div>
         <dl class="ledger">
@@ -492,7 +568,7 @@
           </div>
           <div>
             <dt>Copied by Android's backup, if you turn it on</dt>
-            <dd>Favourites, playlists, the listening log, downloaded lyrics, equaliser settings and presets, and app settings, encrypted end to end so neither Google nor the developer can read them</dd>
+            <dd>Favourites, playlists, the listening log, downloaded lyrics, equaliser settings and presets, the moods, genres and languages you picked, and app settings, encrypted end to end so neither Google nor the developer can read them</dd>
           </div>
           <div>
             <dt>Shown on a car's screen, if you use Android Auto</dt>
@@ -500,7 +576,7 @@
           </div>
           <div>
             <dt>Never uploaded</dt>
-            <dd>Your music files and the results of song analysis</dd>
+            <dd>Your music files and the results of song analysis, mood scores included</dd>
           </div>
           <div>
             <dt>Switched off</dt>
@@ -551,7 +627,7 @@
           </div>
           <div>
             <dt>Licences</dt>
-            <dd>Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, licensed for non-commercial use, and ONNX Runtime under the MIT License. The Onest and Google Sans Flex fonts are under the SIL Open Font License and the Material Symbols icons under the Apache License 2.0. <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/third_party">See the notices</a>.</dd>
+            <dd>Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, and mood scores use nine of the MTG's Essentia classifier models trained on it, all licensed for non-commercial use, and ONNX Runtime under the MIT License. The Onest and Google Sans Flex fonts are under the SIL Open Font License and the Material Symbols icons under the Apache License 2.0. <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/third_party">See the notices</a>.</dd>
           </div>
         </dl>
       </div>
@@ -586,6 +662,14 @@
             <p>Yes, Attic has its own, with ten bands from 31 Hz to 16 kHz and eleven presets. Open Equaliser from the menu on Now Playing. A song or an album can keep its own setting, which comes back whenever it plays, and Settings &gt; Playback &gt; Equaliser sets the default for everything else. It is off until you choose a preset or move a band. The same Settings page has a Phone equaliser row that opens the phone's own equaliser, when the phone has one.</p>
           </details>
           <details>
+            <summary>How does Attic pick songs for a mood?</summary>
+            <p>From how the songs sound. Song analysis, which runs while the phone charges, stores a description of each song's sound, and nine small classifiers that come with Attic score it for qualities such as happy, sad, relaxed, danceable and instrumental. Each mood combines a few of those scores, compared across your own library, and a song is in the running when it scores high enough. The genres and languages you pick, your likes and skips, and what you played in the last few hours then move songs up or down, and each day Attic draws 25 songs from the best 50, with at most three by one artist. The draw is seeded by the date, so a mood's mix stays the same all day and changes the next. You pick moods, genres and languages in Settings &gt; Moods. <a href="#moods">Mood mixes</a> above has the details.</p>
+          </details>
+          <details>
+            <summary>Does mood detection send anything off the phone?</summary>
+            <p>No. The classifiers run on the phone, on the analysis already stored there, and the mixes are built there too. Your picks are kept in the app's settings. They leave the phone only in a backup: a backup file you make yourself, or Android's backup if you have it turned on, which is encrypted end to end. Mood scores aren't backed up at all; a new phone works them out again.</p>
+          </details>
+          <details>
             <summary>Does it work with Android Auto?</summary>
             <p>Attic supports Android Auto. In the car you can browse Home, Playlists, Albums and Artists, search, and say "play &hellip; on Attic". It hasn't been tried in a car yet, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from drivers</a> are welcome.</p>
           </details>
@@ -598,8 +682,8 @@
             <p>Android 13 or newer, on a 64-bit ARM phone. The release build has been tested on one phone so far, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from other phones</a> are welcome.</p>
           </details>
           <details>
-            <summary>Why is the APK 58 MB?</summary>
-            <p>It carries the song analysis model and its runtime, which radio, mixes and genres use to compare how songs sound. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
+            <summary>Why is the APK 64 MB?</summary>
+            <p>It carries the song analysis model and its runtime, which radio, mixes and genres use to compare how songs sound, and the nine mood classifiers, about 6.5 MB of it. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
           </details>
         </div>
       </div>
