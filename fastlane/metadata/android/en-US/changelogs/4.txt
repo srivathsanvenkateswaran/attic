@@ -1,0 +1,9 @@
+A ten-band equaliser, built into Attic.
+
+- Open it from the menu on Now Playing: presets, ten bands, and "Save for this song" or "Save for this album"
+- A saved setting comes back whenever that song or album plays. A pill on Now Playing shows when one is in use
+- Set the default and manage saved settings in Settings > Playback > Equaliser
+- It sounds the same on every phone, and boost presets play quieter rather than distort
+- Backups include it
+
+It's off until you turn it on.
