@@ -1,4 +1,4 @@
-"""The equaliser in Attic Expressive: components, screens, prototype links and the 1.1.0 handoff.
+"""The equaliser in Attic Expressive: components, screens, prototype links and the handoff (1.1.0, then 1.2.0).
 
 Unlike the other modules this one adds to a file that already exists. `Attic Expressive.figcraft` is the
 source now, so nothing here rebuilds what the file holds: `attach` reads the opened file's pages, styles,
@@ -8,7 +8,9 @@ tokens and components into the Doc, and `build` adds to them.
     python3 -m expressive.equaliser "../Attic Expressive.figcraft" /tmp/attic-design/expressive-eq.figcraft \
         [--export /tmp/attic-eq/figcraft/expressive]
 
-Run it on a file at 1.0.0 only: it refuses a file that already has the Equaliser section.
+Run it on a file at 1.0.0 only: it refuses a file that already has the Equaliser section. The result is 1.2.0:
+1.1.0 drew the equaliser from the spec, and 1.2.0 is the review of the built one (the Changelog gets both entries).
+Frames ahead of the code would carry a Proposed annotation (PROPOSALS); the code followed 1.2.0, so none do.
 
 Icons (page Icons)
 ------------------
@@ -19,21 +21,24 @@ New component sets
 ------------------
 Components / Actions
   Equaliser/Preset chip       PresetChip (ExpressiveEqualiser.kt)
-    Kind=Preset|Saved preset|Save action, Selected=False|True.  [Label]
+    Kind=Preset|Saved preset|Save action, Selected=False|True, Equaliser=On|Off.  [Label]
+    Selected is primary while the equaliser is on (1.2.0), tonal while it is off.
 Components / Lists and cards
   Equaliser/Scope cell        EqualiserScopeCell (ExpressiveEqualiser.kt)  Scope=Default|Album|Song.  [Subtitle]
-  Equaliser/Own setting row   the Settings page's rows (ExpressiveEqualiser.kt · ExpressiveEqualiserPage)
+    Album and Song fill the cell with primary container (1.2.0).
+  Equaliser/Own setting row   the Settings page's rows (ExpressiveEqualiser.kt · ownRows and OwnSetting)
     Kind=Album|Song.  [Title, Subtitle]; the nested count (the preset's name) is exposed
 Components / Playback
   Equaliser/Band graph        BandGraph (BandGraph.kt), with its axis and frequency labels
     Curve=Bass boost|Custom|Vocal|Car speakers, State=On|Off|Dragging (the states each screen needs)
-  Now playing/Equaliser indicator   the pill in Header (ExpressiveNowPlaying.kt)  Scope=Song|Album.  Cover mode
+  Now playing/Equaliser indicator   EqualiserIndicator (ExpressiveNowPlaying.kt)  Scope=Song|Album.  Cover mode
 Components / Overlays
-  Equaliser/Sheet title       the sheet's title row with the switch  Checked=True|False
+  Equaliser/Sheet title       EqualiserTitle and the Off line  Checked=True|False
   Equaliser/Editor            EqualiserEditor: the preset chips over the band graph
     Curve=Bass boost|Custom|Vocal|Car speakers, State=On|Off|Dragging
-  Equaliser/Removal row       the outlined removal button and what it removes
-    Removal=Song to default|Song to album|Album to default
+  Equaliser/Actions           the sheet's last block (1.2.0, in place of 1.1.0's save row, note and Removal row):
+    one button group and one caption line in every state, so the sheet keeps its height when the scope changes
+    Playing with=Default|Default without album|Album|Song|Song over album
   Sheet/Equaliser             ExpressiveEqualiserSheet  Scope=Default|Album|Song,
     State=On|Off|Band dragged|Saved preset.  Color mode Cover
 
@@ -57,7 +62,8 @@ The Flow overview gains an Equaliser band with its cards and arrows.
 
 Handoff
 -------
-A Source annotation and ready-for-dev on every new frame; Cover 1.1.0; a Changelog entry dated 2026-11-25.
+A Source annotation on every new frame; ready-for-dev on the frames the code matches and a Proposed annotation on
+the others (PROPOSALS); Cover 1.2.0; Changelog entries for 1.1.0 and 1.2.0, both dated 2026-11-25.
 
 In a build from scratch (`figbuild.run expressive`) this module does nothing but say so: it copies frames, flows
 and pages that only a finished file has. Build 1.0.0 first, then run this module on the saved file.
@@ -82,7 +88,7 @@ from expressive.flows import TRANSITIONS
 
 REFS: dict[str, str] = {}
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UPDATED = "2026-11-25"
 AUTHOR = "Attic maintainers"
 EQ = "ExpressiveEqualiser.kt"
@@ -441,32 +447,44 @@ def build_components(d: Doc, ctx: dict):
 
     # Preset chip (Actions) -------------------------------------------------------------------------
     def chip(vp):
-        kind, sel = vp["Kind"], vp["Selected"] == "True"
+        kind, sel, live = vp["Kind"], vp["Selected"] == "True", vp["Equaliser"] == "On"
         save, more = kind == "Save action", kind == "Saved preset" and sel
         lead = sel or save
-        ink = "Color/on-secondary-container" if sel else "Color/primary" if save else "Color/on-surface-variant"
-        c = comp(d, "Equaliser/Preset chip", layout="h", h=32, gap=8, pad=[0, 8 if more else 16, 0, 8 if lead else 16],
-                 cross="center", sizing=("hug", "fixed"), fill="Color/secondary-container" if sel else None,
+        # Selected is the kit's one-of-N look (the connected group's): primary. Tonal is too close to a group cell
+        # to read as a fill in Light (secondary container on surface container high), so it is kept for off only.
+        on_fill = ("Color/primary", "Color/on-primary") if live else ("Color/secondary-container", "Color/on-secondary-container")
+        ink = on_fill[1] if sel else "Color/primary" if save else "Color/on-surface-variant"
+        c = comp(d, "Equaliser/Preset chip", layout="h", h=32, gap=8, pad=[0, 6 if more else 16, 0, 8 if lead else 16],
+                 cross="center", sizing=("hug", "fixed"), fill=on_fill[0] if sel else None,
                  **({} if sel else {"stroke": "Color/outline-variant", "stroke_w": 1}))
         bind_dim(d, c, "cornerRadius", "radius/small")
         if lead:
             d.icon(c, "add" if save else "check", size=18, color=ink, name="Add" if save else "Check")
         label = S["save_preset"] if save else "Car speakers" if kind == "Saved preset" else "Bass boost"
-        lay = {"l": txt(d, c, label, "Label/Large", ink, "Label")}
+        # PresetChip puts 8dp after the leading glyph and 6dp either side of the more glyph.
+        box = frame(d, c, "Label and more", layout="h", gap=6, cross="center", sizing=("hug", "hug")) if more else c
+        lay = {"l": txt(d, box, label, "Label/Large", ink, "Label")}
         if more:
-            d.icon(c, "more_vert", size=18, color=ink, name="More")
+            d.icon(box, "more_vert", size=18, color=ink, name="More")
         return c, lay
 
     spec("Components / Actions").make(
         "Equaliser/Preset chip", "Equaliser preset chip",
-        "A chip of the equaliser's single-choice preset row, drawn as the filter chip is: 32dp tall, 8dp corners, "
-        "outlined while unselected, tonal with a tick once selected. A saved preset that is selected ends in the more "
-        "glyph (18dp): tapping it again, or a long press on any saved chip, opens Rename and Delete preset. An "
-        "unselected saved preset looks like any preset. Save action is \"Save as preset\", outlined with the add glyph "
-        "and a primary label, shown only next to Custom. With the equaliser off the row draws at 50 %.",
+        "A chip of the equaliser's single-choice preset row, to the filter chip's measure: 32dp tall in a 48dp "
+        "target, 8dp corners, outlined while unselected. The selected chip is filled with primary, its tick and label "
+        "in on primary, as the connected button group marks its one choice: on a group cell the filter chip's tonal "
+        "fill is too close to the cell to be seen in Light. A saved preset that is selected ends in the more glyph "
+        "(18dp, 6dp either side): tapping it again, or a long press on any saved chip, opens Rename and Delete "
+        "preset. An unselected saved preset looks like any preset. Save action is \"Save as preset\", outlined with "
+        "the add glyph and a primary label, shown only next to Custom. Equaliser=Off is the selected chip while the "
+        "switch is off: tonal, with the whole row at 50 %, so nothing in the editor keeps the accent. In the code "
+        "the built-in presets are the kit's ExpressiveFilterChip (Navigation.kt) and PresetChip draws the saved ones "
+        "and the save action.",
         EQ, "PresetChip",
-        [dict(Kind="Preset", Selected="False"), dict(Kind="Preset", Selected="True"),
-         dict(Kind="Saved preset", Selected="True"), {"Kind": "Save action", "Selected": "False"}],
+        [dict(Kind="Preset", Selected="False", Equaliser="On"), dict(Kind="Preset", Selected="True", Equaliser="On"),
+         dict(Kind="Saved preset", Selected="True", Equaliser="On"),
+         {"Kind": "Save action", "Selected": "False", "Equaliser": "On"},
+         dict(Kind="Preset", Selected="True", Equaliser="Off")],
         chip, props=[("Label", "text", "l", None, None)])
     chip_label = C["Equaliser/Preset chip"]["props"]["Label"]
 
@@ -478,15 +496,16 @@ def build_components(d: Doc, ctx: dict):
         title, sub, glyph = scopes[vp["Scope"]]
         own = vp["Scope"] != "Default"
         c = comp(d, "Equaliser/Scope cell", layout="h", w=379, gap=16, pad=[12, 16, 12, 16], cross="center",
-                 sizing=("fixed", "hug"))
+                 sizing=("fixed", "hug"), fill="Color/primary-container" if own else None)
         d.set(c, minHeight=72)
+        ink = "Color/on-primary-container" if own else None
         lead = frame(d, c, "Lead", layout="h", w=40, h=40, cross="center", main="center",
                      fill="Color/primary" if own else "Color/secondary-container")
         bind_dim(d, lead, "cornerRadius", "radius/medium" if own else "radius/full")
         d.icon(lead, glyph, color="Color/on-primary" if own else "Color/on-secondary-container", filled=own, name="Icon")
         col = frame(d, c, "Text column", layout="v", sizing=("fill", "hug"))
-        txt(d, col, title, "Title/Large Emphasized", "Color/on-surface", "Title", fill=True, lines=1)
-        s = txt(d, col, sub, "Body/Medium", "Color/on-surface-variant", "Subtitle", fill=True, lines=1)
+        txt(d, col, title, "Title/Large Emphasized", ink or "Color/on-surface", "Title", fill=True, lines=1)
+        s = txt(d, col, sub, "Body/Medium", ink or "Color/on-surface-variant", "Subtitle", fill=True, lines=1)
         return c, {"s": s}
 
     lists = spec("Components / Lists and cards")
@@ -494,9 +513,12 @@ def build_components(d: Doc, ctx: dict):
         "Equaliser/Scope cell", "Equaliser scope cell",
         "Which setting the equaliser is editing, as the first cell of its group: a 40dp lead, the scope in the emphasised "
         "title (22/28) and what it covers under it on one line. Default is every song without its own setting: a round "
-        "tonal lead. A song or an album with its own setting squares the lead off to 12dp and fills it with primary, the "
-        "glyph filled (the kit's squared off means on); the line names the album or the song. At least 72dp tall, "
-        "16dp in. Put it in List group/Cell by swapping its Row.",
+        "tonal lead on the group's own cell colour. A song or an album with its own setting squares the lead off to "
+        "12dp and fills it with primary, the glyph filled (the kit's squared off means on), and the whole cell turns "
+        "primary container with both lines in on primary container, so the scope is seen from the corner of the eye "
+        "while a band is dragged; the line names the album or the song. The cell's colour and the lead's change on "
+        "default effects, the lead's corner on the fast spatial spring. At least 72dp tall, 16dp in. Put it in List "
+        "group/Cell by swapping its Row.",
         EQ, "EqualiserScopeCell", [dict(Scope="Default"), dict(Scope="Album"), dict(Scope="Song")], scope_cell,
         props=[("Subtitle", "text", "s", None, None)])
 
@@ -522,9 +544,9 @@ def build_components(d: Doc, ctx: dict):
         "A song or an album that has its own equaliser setting, on Settings > Equaliser: the album row (56dp cover, "
         "72dp tall) or the song row (48dp cover, 64dp tall) with the preset its setting is, or Custom, as the row's "
         "figures, then the close button that removes the setting. Only the button is clickable; the row leaves "
-        "without a confirmation. The preset is the nested List row/Count's Count (the Preset layer is exposed). Put "
+        "without a confirmation. The row's end is OwnSetting. The preset is the nested List row/Count's Count (the Preset layer is exposed). Put "
         "the row in List group/Cell by swapping its Row.",
-        EQ, "ExpressiveEqualiserPage", [dict(Kind="Album"), dict(Kind="Song")], own_row,
+        EQ, "ownRows", [dict(Kind="Album"), dict(Kind="Song")], own_row,
         props=[("Title", "text", "t", None, None), ("Subtitle", "text", "s", None, None)], expose=("cnt",))
 
     # Band graph and the Now Playing indicator (Playback) --------------------------------------------
@@ -606,7 +628,8 @@ def build_components(d: Doc, ctx: dict):
         "its own setting or its album's: a 32dp pill on surface container high with the equaliser glyph (18dp) in "
         "primary and \"This song\" or \"This album\". Tapping it opens the equaliser sheet. It fades in and out; the "
         "context name gives up width to it. The compact header that pins on scroll does not carry it.",
-        "ExpressiveNowPlaying.kt", "Header", [dict(Scope="Song"), dict(Scope="Album")], indicator, cover=True)
+        "ExpressiveNowPlaying.kt", "EqualiserIndicator", [dict(Scope="Song"), dict(Scope="Album")], indicator,
+        cover=True)
 
     # Sheet title, editor, removal row and the sheet (Overlays) ---------------------------------------
     def sheet_title(vp):
@@ -627,7 +650,8 @@ def build_components(d: Doc, ctx: dict):
         "The equaliser sheet's title row: \"Equaliser\" in the emphasised headline (24/32) with the master switch at "
         "its end, 24dp in. The whole row toggles. Off adds the line that says how to turn it back on, 2dp under the "
         "title with 16 below; every control still works while off, and a chip or the first band movement turns the "
-        "switch on.", EQ, "ExpressiveEqualiserSheet", [dict(Checked="True"), dict(Checked="False")], sheet_title)
+        "switch on. The Off line is the kit's SheetSubtitle (ExpressiveSheets.kt).", EQ, "EqualiserTitle",
+        [dict(Checked="True"), dict(Checked="False")], sheet_title)
 
     def chips_for(curve):
         """[(label, kind, selected)] in the row's order: Custom and its save action, saved presets, built-ins."""
@@ -644,17 +668,19 @@ def build_components(d: Doc, ctx: dict):
         strip = frame(d, c, "Preset chips", w=379, h=32, clip=True)
         d.set(strip, sizingH="fill")
         row = frame(d, strip, "Chip row", layout="h", gap=8, pad=[0, 12, 0, 12], sizing=("hug", "hug"), x=0, y=0)
-        chosen = None
+        chosen, made = 0, []
         for label, kind, sel in chips_for(curve):
-            ch = inst(d, "Equaliser/Preset chip", row, name=f"Chip {label}", Kind=kind, Selected=str(sel))
+            ch = inst(d, "Equaliser/Preset chip", row, name=f"Chip {label}", Kind=kind, Selected=str(sel),
+                      Equaliser="Off" if sel and state == "Off" else "On")
             set_text(d, ch, chip_label, label)
+            made.append(ch)
             if sel:
-                chosen = ch
-        # The row scrolls until the selected chip is in view, the next chip showing after it.
-        g = d.get(chosen)
-        over = g["x"] + g["width"] - (379 - 36)
-        if over > 0:
-            d.set(row, x=-round(min(over, d.get(row)["width"] - 379)))
+                chosen = len(made) - 1
+        # PresetChips opens with the chip before the selected one first in the row. From the third chip on that chip
+        # starts 8dp in, 4dp short of the row's padding, so the chip before it is wholly out and leaves no sliver.
+        if chosen >= 2:
+            before = d.get(made[chosen - 1])["x"]
+            d.set(row, x=-round(min(before - 8, d.get(row)["width"] - 379)))
         if state == "Off":
             d.set(row, opacity=0.5)
         inst(d, "Equaliser/Band graph", c, name="Band graph", Curve=curve, State=state)
@@ -665,43 +691,71 @@ def build_components(d: Doc, ctx: dict):
         "The second cell of the equaliser's group, the same on the sheet and on Settings > Equaliser: the preset chips "
         "in one row that scrolls sideways (12dp in, 8dp apart), then the band graph, with 12dp above and below. The "
         "chips run Custom (only while the bands match no preset), Save as preset (only next to Custom), the saved "
-        "presets in the order they were saved, then the eleven built-in ones. Choosing a chip applies it at once and "
-        "the row scrolls until it is in view; Custom scrolls it to the start. Off draws the chips at 50 %. Put it in "
-        "List group/Cell by swapping its Row.", EQ, "EqualiserEditor", graph_variants, editor)
+        "presets in the order they were saved, then the eleven built-in ones. The row opens with the selected chip "
+        "second and the chip before it first, that chip 8dp in so the one before it is wholly out of sight. Choosing "
+        "a chip applies it at once and the row scrolls until it is in view; Custom scrolls it to the start. Off draws "
+        "the chips at 50 % and the selected one tonal. Put it in List group/Cell by swapping its Row.",
+        EQ, "EqualiserEditor", graph_variants, editor)
 
-    removals = {"Song to default": (S["use_default"], S["removes_song"]),
-                "Song to album": (S["use_album"], S["removes_song"]),
-                "Album to default": (S["use_default"], S["removes_album"])}
+    # What follows the editor, by what the song is playing with: (buttons, caption, which button the caption is under).
+    # A button is (label, style, layer name).
+    save_song, save_album = (S["save_song"], "Filled", S["save_song"]), (S["save_album"], "Tonal", S["save_album"])
+    actions = {
+        "Default": ([save_song, save_album], S["saved_note"], None),
+        "Default without album": ([save_song], S["saved_note"], None),
+        "Album": ([save_song, (S["use_default"], "Outlined", "Remove")], S["removes_album"], 1),
+        "Song": ([(S["use_default"], "Outlined", "Remove")], S["removes_song"], None),
+        "Song over album": ([(S["use_album"], "Outlined", "Remove")], S["removes_song"], None),
+    }
 
-    def removal(vp):
-        label, what = removals[vp["Removal"]]
-        c = comp(d, "Equaliser/Removal row", layout="h", w=411, gap=12, pad=[0, 16, 0, 16], cross="center",
-                 sizing=("fixed", "hug"))
-        b = inst(d, "Button", c, name="Remove", Style="Outlined", Size="Small", Icon="None", State="Enabled",
-                 Squared="False")
-        set_text(d, b, btn["Label"], label)
-        txt(d, c, what, "Body/Medium", "Color/on-surface-variant", "Consequence", fill=True, lines=1)
+    def actions_block(vp):
+        buttons, caption, under = actions[vp["Playing with"]]
+        c = comp(d, "Equaliser/Actions", layout="v", w=411, gap=10, pad=[16, 16, 0, 16], sizing=("fixed", "hug"))
+        row = frame(d, c, "Buttons", layout="h", gap=8, sizing=("fill", "hug"))
+        for label, style, name in buttons:
+            b = inst(d, "Button", row, name=name, Style=style, Size="Small", Icon="None", State="Enabled", Squared="False")
+            set_text(d, b, btn["Label"], label)
+            d.set(b, sizingH="fill")
+        line = frame(d, c, "Caption row", layout="h", gap=8, sizing=("fill", "hug"))
+        if under is not None:
+            for i in range(len(buttons)):
+                if i != under:
+                    d.set(spacer(d, line, "Under the other button", h=16), sizingH="fill")
+                else:
+                    n = txt(d, line, caption, "Body/Small", "Color/on-surface-variant", "Caption", fill=True, align="center")
+                    d.set(n, textAutoResize="height")
+        else:
+            n = txt(d, line, caption, "Body/Small", "Color/on-surface-variant", "Caption", fill=True, align="center")
+            d.set(n, textAutoResize="height")
         return c, {}
 
     overlays.make(
-        "Equaliser/Removal row", "Equaliser removal row",
-        "The action that takes a song's or an album's own setting away, last in the sheet: a small outlined button, "
-        "then, 12dp on, what it removes in body medium. A song over the default: Use default. A song over its album's "
-        "setting: Use album setting. An album: Use default. TalkBack reads the button and the consequence as one. The "
-        "sheet stays open and its scope cell changes in place.",
-        EQ, "ExpressiveEqualiserSheet", [{"Removal": k} for k in removals], removal)
+        "Equaliser/Actions", "Equaliser actions",
+        "The last block of the equaliser sheet: the actions that change which setting the song plays with. Every "
+        "state is one button group that fills the width (small 40dp buttons, 8dp apart, 16dp in, 16dp under the "
+        "editor) and one caption line 10dp under it (body small 12/16, on surface variant, centred), so the block is the "
+        "same 82dp tall whatever the scope and the sheet does not move when a setting is saved or removed. Playing "
+        "with the default: Save for this song (filled) and Save for this album (tonal), or the first alone for a song "
+        "without an album; the caption says saved settings come back. With the album's setting: Save for this song "
+        "and Use default (outlined), the caption under Use default saying it removes the album's setting. With the "
+        "song's own: Use default alone, or Use album setting when its album has one, and what it removes. TalkBack "
+        "reads a removal and its caption as one button. The scope cell changes in place. At 1.1.0 this was a save "
+        "row with a note, or an outlined button with its consequence beside it (SaveActions and RemovalRow), which "
+        "made the sheet 26dp shorter or 22dp taller as the scope changed.",
+        EQ, "ExpressiveEqualiserSheet", [{"Playing with": k} for k in actions],
+        actions_block)
 
     def group(parent, name):
         return frame(d, parent, name, layout="v", gap=2, pad=[0, 16, 0, 16], sizing=("fill", "hug"))
 
     # What each sheet state shows: scope, editor variant, the scope cell's second line, what follows the editor.
     sheets = [
-        (dict(Scope="Default", State="On"), ("Bass boost", "On"), None, "save both"),
-        (dict(Scope="Default", State="Off"), ("Bass boost", "Off"), None, "save both"),
-        ({"Scope": "Default", "State": "Saved preset"}, ("Car speakers", "On"), None, "save both"),
-        (dict(Scope="Song", State="On"), ("Custom", "On"), SONG, "Song to default"),
-        ({"Scope": "Song", "State": "Band dragged"}, ("Custom", "Dragging"), SONG, "Song to default"),
-        (dict(Scope="Album", State="On"), ("Vocal", "On"), ALBUM, "Album to default"),
+        (dict(Scope="Default", State="On"), ("Bass boost", "On"), None, "Default"),
+        (dict(Scope="Default", State="Off"), ("Bass boost", "Off"), None, "Default"),
+        ({"Scope": "Default", "State": "Saved preset"}, ("Car speakers", "On"), None, "Default"),
+        (dict(Scope="Song", State="On"), ("Custom", "On"), SONG, "Song"),
+        ({"Scope": "Song", "State": "Band dragged"}, ("Custom", "Dragging"), SONG, "Song"),
+        (dict(Scope="Album", State="On"), ("Vocal", "On"), ALBUM, "Album"),
     ]
     by_name = {vname(vp): rest for vp, *rest in sheets}
 
@@ -717,24 +771,7 @@ def build_components(d: Doc, ctx: dict):
         g = group(h, "Setting group")
         scope_row(d, ctx, g, "Sheet", vp["Scope"], sub)
         cell(d, ctx, g, "Bottom", "Sheet", variant(ctx, "Equaliser/Editor", Curve=curve, State=state), "Editor")
-        if tail == "save both" or vp["Scope"] == "Album":
-            row = frame(d, h, "Save actions", layout="h", gap=8, pad=[16, 16, 0, 16], sizing=("fill", "hug"))
-            for label, style in ((S["save_song"], "Filled"), (S["save_album"], "Tonal")):
-                if style == "Tonal" and tail != "save both":
-                    continue
-                b = inst(d, "Button", row, name=label, Style=style, Size="Small", Icon="None", State="Enabled",
-                         Squared="False")
-                set_text(d, b, btn["Label"], label)
-                d.set(b, sizingH="fill")
-        if tail == "save both":
-            box = frame(d, h, "Saved note", layout="v", pad=[10, 24, 0, 24], sizing=("fill", "hug"))
-            n = txt(d, box, S["saved_note"], "Body/Small", "Color/on-surface-variant", "Note", fill=True)
-            d.set(n, textAutoResize="height")
-        else:
-            box = frame(d, h, "Removal", layout="v", pad=[8 if vp["Scope"] == "Album" else 16, 0, 0, 0],
-                        sizing=("fill", "hug"))
-            r = inst(d, "Equaliser/Removal row", box, name="Removal row", Removal=tail)
-            d.set(r, sizingH="fill")
+        inst(d, "Equaliser/Actions", h, name="Actions", Playing_with=tail)
         kids = [k["id"] for k in d.get(h, depth=1)["children"]]
         old = [k["id"] for k in d.get(slot, depth=1).get("children", [])]
         d.cmd("node.reparent", ids=kids, parent=slot)
@@ -748,12 +785,13 @@ def build_components(d: Doc, ctx: dict):
         "Sheet/Equaliser", "Equaliser sheet",
         "Opened from Equaliser in the track menu over Now Playing, in place of the menu, and from the indicator in Now "
         "Playing's header. It edits the setting the song is playing with: the title and the master switch, the scope "
-        "cell and the editor as one group, then the actions that change scope. Playing with the default: Save for this "
-        "song and Save for this album as a button group, and a note. With the album's setting: Save for this song, then "
-        "Use default. With the song's own: Use default, or Use album setting when its album has one. Saving or "
-        "removing changes the scope cell in place and the sheet stays open. Saved preset is the default with a saved "
-        "preset chosen, the state its Rename and Delete preset menu opens over. Color mode Cover, as it only opens "
-        "over the player.", EQ, "ExpressiveEqualiserSheet", [vp for vp, *_ in sheets], sheet)
+        "cell and the editor as one group, then Equaliser/Actions, the actions that change scope. Playing with the "
+        "default: Save for this song and Save for this album. With the album's setting: Save for this song and Use "
+        "default. With the song's own: Use default, or Use album setting when its album has one. Saving or removing "
+        "changes the scope cell in place, from the group's cell colour to primary container and back; the sheet stays "
+        "open and keeps its height. Saved preset is the default with a saved preset chosen, the state its Rename and "
+        "Delete preset menu opens over. Color mode Cover, as it only opens over the player.",
+        EQ, "ExpressiveEqualiserSheet", [vp for vp, *_ in sheets], sheet)
 
 
 def cell(d: Doc, ctx: dict, parent, position: str, surface: str, row_variant: int, name: str) -> tuple[int, int]:
@@ -961,11 +999,26 @@ SRC_SETTINGS = "ui/expressive/ExpressiveSettings.kt · ExpressiveSettings (Equal
 SHEET_NOTE = (f"Mock: {MOCK}. The mock ends the sheet at the screen's foot. On a phone ModalBottomSheet pads its content "
               "by the navigation bar (BottomSheetDefaults.windowInsets), as drawn here: the sheet is 24dp taller.")
 CHIPS_NOTE = (f"Mock: {MOCK}. The mock draws the preset row without saved presets. The demo library has two (Car "
-              "speakers and Night, low), which come before the built-in ones, so the row has scrolled to bring the "
-              "chosen chip into view.")
+              "speakers and Night, low), which come before the built-in ones, so the row opens scrolled: the chosen "
+              "chip second, the chip before it first.")
 DIALOG_NOTE = (f"Mock: {MOCK}. The mock shows a name typed and the keyboard up. The code opens the dialog with the "
                "field empty and Save disabled until there is a name no other preset has; the keyboard is Android's.")
 DIFFERS = "Code differs from mock"
+PROPOSED = "Proposed"
+# What 1.2.0 draws that feature/per-song-equaliser does not do yet. A frame with any of these is not marked ready.
+P_CHIP = ("The selected preset chip is filled with primary, its tick and label on primary. The code draws it tonal "
+          "(secondary container), which is two tones from the group cell in Light and reads as no fill.")
+P_CHIP_ROW = ("The chip row opens with the chip before the selected one 8dp in, so no third chip shows at the cell's "
+              "edge. The code leaves 4dp of it showing.")
+P_SCOPE = ("The scope cell of a song's or an album's own setting is primary container, with both lines on primary "
+           "container. The code changes only the 40dp lead.")
+P_ACTIONS = ("Under the editor every state is one button group and one centred caption line (Equaliser/Actions), 82dp "
+             "in all, so the sheet keeps its height when a setting is saved or removed. The code draws a save row and "
+             "a note, or an outlined button with its consequence beside it, and the sheet's height changes with the "
+             "scope.")
+P_CAPTION = ("The note under the save buttons is centred, as every caption of Equaliser/Actions is. The code starts "
+             "it 24dp in.")
+PROPOSALS: dict[str, list[str]] = {}  # The code followed 1.2.0 on feature/per-song-equaliser; nothing is ahead of it.
 
 
 class Screens:
@@ -1226,7 +1279,10 @@ class Screens:
                 d.annotate(s[theme], f"Compose: {s['source']}", "Source")
                 for category, text in self.notes.get(key, []):
                     d.annotate(s[theme], text, category)
-                d.ready_for_dev(s[theme])
+                for text in PROPOSALS.get(key, []):
+                    d.annotate(s[theme], text, PROPOSED)
+                if key not in PROPOSALS:
+                    d.ready_for_dev(s[theme])
         self.ctx["eq_triggers"] = self.triggers
         self.ctx["eq_screens"] = list(self.area.keys)
 
@@ -1447,7 +1503,7 @@ def update_changelog(d: Doc, ctx: dict):
     entries = top_named(d, page, "Entries")
     before = d.get(entries)["height"]
     P = ctx["components"]["Changelog entry"]["props"]
-    changes = (
+    drawn = (
         "The equaliser, drawn from feature/per-song-equaliser: ten bands and presets, with a setting a song or an "
         "album can keep.\n"
         "• Components: Equaliser/Preset chip, Scope cell, Own setting row, Band graph, Sheet title, Editor and Removal "
@@ -1462,11 +1518,26 @@ def update_changelog(d: Doc, ctx: dict):
         "saved preset's menu. The three track menu frames over Now Playing show the new row.\n"
         "• Prototype: flow 12 Equaliser from Settings > Playback; the track menu's Equaliser row and the indicator "
         "open the sheet. The Flow overview has an Equaliser band.")
-    e = d.instance("Changelog entry", entries, name=f"Entry · {VERSION}")
-    d.cmd("instance.setProperties", ids=[e], properties={P["Version"]: VERSION, P["Date"]: UPDATED, P["Author"]: AUTHOR,
-                                                         P["Changes"]: changes})
-    d.set(e, sizingH="fixed", width=1400)
-    d.cmd("node.reorder", id=e, index=0)
+    reviewed = (
+        "The equaliser after a review of the built one (feature/per-song-equaliser at b7e9e90). The ten frames that "
+        "show the editor or the sheet were redrawn, and the code was then matched to them on the same branch.\n"
+        "• Equaliser/Preset chip: the selected chip is filled with primary. Tonal is kept for the equaliser being off "
+        "(new property Equaliser=On|Off). A selected saved preset has 6dp either side of its more glyph, as the code "
+        "does.\n"
+        "• Equaliser/Scope cell: a song's or an album's own setting turns the whole cell primary container.\n"
+        "• New Equaliser/Actions, in place of Equaliser/Removal row and the sheet's loose save row and note: one "
+        "button group and one caption line in every state, so Sheet/Equaliser is the same height whatever the scope.\n"
+        "• Equaliser/Editor: the chip row opens as the code opens it, the selected chip second, without a sliver of a "
+        "third chip at the cell's edge.\n"
+        "• Descriptions name the composables the code has: EqualiserTitle, EqualiserIndicator, ownRows and "
+        "OwnSetting, PresetChip beside the kit's ExpressiveFilterChip.\n"
+        "• Screens: Settings > Playback, Now Playing with the indicator and the track menu are unchanged.")
+    for version, changes in (("1.1.0", drawn), (VERSION, reviewed)):
+        e = d.instance("Changelog entry", entries, name=f"Entry · {version}")
+        d.cmd("instance.setProperties", ids=[e], properties={P["Version"]: version, P["Date"]: UPDATED,
+                                                             P["Author"]: AUTHOR, P["Changes"]: changes})
+        d.set(e, sizingH="fixed", width=1400)
+        d.cmd("node.reorder", id=e, index=0)
     grew = d.get(entries)["height"] - before
     how = top_named(d, page, "Card · Adding a version")
     d.set(how, y=d.get(how)["y"] + grew)

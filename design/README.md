@@ -8,9 +8,10 @@ files. They are the reference for how each screen looks, and the place to propos
 | `Attic Expressive.figcraft` | Expressive: colour from the phone's wallpaper and the album art, wavy progress, connected button groups, cookie shapes | `app/src/main/java/app/attic/player/ui/expressive/` |
 | `Attic Comfort.figcraft` | Comfort: superellipse cards, the amber Lamplight accent, a bottom dock, the `Tinted(seed, wash)` colours from the album art | `app/src/main/java/app/attic/player/ui/comfort/` |
 
-Both are version 1.1.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 adds the
-equaliser (sheet, Now Playing indicator, Settings page) as built on `feature/per-song-equaliser`. The
-code wins: if a file and the app disagree, the app is right and the file is out of date.
+Both are version 1.2.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
+equaliser (sheet, Now Playing indicator, Settings page), and 1.2.0 is the design review of it as
+built, which the code on `feature/per-song-equaliser` then followed. The code wins: if a file and
+the app disagree, the app is right and the file is out of date.
 
 ## What each file holds
 
@@ -49,7 +50,7 @@ faithfully. Exported and opened again in FigCraft on 2026-11-23:
 - **Expressive:** 100 of 103 Light screens differ from the original. Sheets lose their rows, and the track menu shows only an empty placeholder. Scaled Recap cards lose their scale. Every text style drops its width and roundness axes.
 - **Comfort:** 40 of 96 Light screens differ, mostly in cover images inside nested components and in grid content.
 
-Exported again on 2026-11-25 with the equaliser added (1.1.0), and opened in FigCraft:
+Exported again on 2026-11-25 with the equaliser added (1.1.0; not repeated for 1.2.0), and opened in FigCraft:
 
 - **Expressive:** none of the 254 screen frames comes back pixel-identical, mostly because emphasised text falls back to regular weight. In the plain export the equaliser's band graph, the own-setting rows' covers and presets, the track menu and four sheet states are lost. With `--flat`, 10 of the 26 equaliser frames (the track menu and the default, song, album and off sheets) still show an empty placeholder.
 - **Comfort:** of the 26 equaliser frames, 7 come back identical and 14 differ by under 0.5 % of pixels in the plain export (5 and 17 with `--flat`); curves, wells, sliders, chips and the scope head survive, tabular figures do not. 142 of the 230 older screens differ.
@@ -152,7 +153,8 @@ Version 1.0.0 was generated from the code by the Python scripts in [`build/`](bu
 which drive FigCraft's own automation. From now on the `.figcraft` files are the source: edit them
 in FigCraft. Re-running the scripts would replace any hand edits.
 
-Version 1.1.0's equaliser was added to the saved 1.0.0 files by `build/expressive/equaliser.py` and
-`build/comfort/equaliser.py`, which open a file, add the equaliser's components, screens, links and
-flow, and save it (`python3 -m expressive.equaliser SRC OUT`, from `build/`). Run on the 1.0.0 file,
-each reproduces 1.1.0 frame for frame. They refuse a file that already has the equaliser.
+The equaliser (1.1.0 and 1.2.0) was added to the saved 1.0.0 files by `build/expressive/equaliser.py`
+and `build/comfort/equaliser.py`, which open a file, add the equaliser's components, screens, links
+and flow, and save it (`python3 -m expressive.equaliser SRC OUT`, from `build/`). Run on the 1.0.0
+file (`git show 7a0a399^:"design/Attic Comfort.figcraft"`), each reproduces 1.2.0 frame for frame.
+They refuse a file that already has the equaliser.

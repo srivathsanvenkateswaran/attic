@@ -1,4 +1,4 @@
-"""The equaliser, added to an existing Attic Comfort file (version 1.1.0). Pages: Type, Icons, Components / Actions,
+"""The equaliser, added to an existing Attic Comfort file (versions 1.1.0 and 1.2.0). Pages: Type, Icons, Components / Actions,
 Components / Lists and cards, Components / Playback, Components / Overlays, Screens, Flow overview, Cover, Changelog.
 
 Owner: equaliser design agent. Unlike the other modules this one works on a file that already exists: `attach()`
@@ -12,13 +12,18 @@ on a copy of the file, look at the result, then copy it back:
 It refuses a file that already has the equaliser (a `Band slider` component). In MODULES it comes last, so a
 deliberate regeneration adds the equaliser after the cover, the flows and the handoff pass.
 
+Run on the 1.0.0 file it gives 1.2.0. Version 1.1.0 drew the response in a 120dp well above bare sliders, as the code
+on feature/per-song-equaliser does; 1.2.0 is the design review's redraw, which puts the response behind the sliders in
+one plot (`Band sliders`), which the code then followed. PROPOSED would list frames that differ from
+the code, and the Changelog gets an entry for each version.
+
 Drawn from /tmp/attic-eq/UI-SPEC.md sections 1 and 3, the mock docs/design/2026-11-21-ui-directions/oneui/11-equaliser.html
 (layout only), ui/model/EqualiserModel.kt (state), storeShots EqualiserDemo.kt (demo states), playback/eq/EqPresets.kt
 (preset values) and playback/eq/EqDesign.kt (the response, ported in `response()`).
 
 TEXT STYLES (Type page, card "Equaliser styles")
   Component/Equaliser scope title   17/22 bold      EqualiserScopeHead title
-  Component/Equaliser axis          11/16 tabular   ResponseWell's +12, 0, −12
+  Component/Equaliser axis          11/16 tabular   BandSliders' +12, 0, −12
   Component/Equaliser frequency     12/16           the band labels under BandSliders
   Component/Equaliser value         12.5/16 semibold tabular   the value bubble of a dragged band
   Component/Equaliser indicator     13/18 medium    the Now Playing indicator
@@ -30,12 +35,13 @@ COMPONENTS / ACTIONS
   Preset chip        Kind=Built-in|Saved|Save as preset, Selected=False|True (Save as preset: False only). props Label.
                      ComfortEqualiser.kt PresetChip
   Response curve     Curve=Flat|Bass boost|Bass reducer|Treble boost|Vocal|Loudness|Acoustic|Electronic|Hip-hop|
-                     Classical|Spoken word|Custom|Car speakers. 339 x 96, drawn from EqPresets.kt by the engine's maths.
-  Response well      State=On|Off. The nested "Curve" (Response curve) is exposed. ComfortEqualiser.kt ResponseWell
-  Band slider        State=On|Off|Dragged, Gain=Boost|Cut|Zero. props Value (Dragged). Set the height of "Run" to
-                     |gain| x 6.5 + 6. ComfortEqualiser.kt BandSliders (one band)
-  Band sliders       State=On|Off|Dragged. Ten Band slider instances "Band 31 Hz" .. "Band 16 kHz" (exposed), the 0 dB
-                     line and the frequency labels. ComfortEqualiser.kt BandSliders
+                     Classical|Spoken word|Custom|Car speakers. 339 x 184 at the bands' own scale (6.5dp to a decibel),
+                     drawn from EqPresets.kt by the engine's maths.
+  Band slider        State=On|Off|Dragged, Gain=Boost|Cut|Zero. props Value (Dragged). One band's knob. Set the height
+                     of "Reach" to |gain| x 6.5 + 6. ComfortEqualiser.kt BandSliders (one band)
+  Band sliders       State=On|Off|Dragged. The plot: a fill card with the rules and their labels, ten tracks, the nested
+                     "Curve" (Response curve, exposed; Off draws the flat line), ten Band slider instances "Band 31 Hz"
+                     .. "Band 16 kHz" (exposed) and the frequency labels. ComfortEqualiser.kt BandSliders
 
 COMPONENTS / LISTS AND CARDS
   Settings row       gains Control=Value and chevron (Settings > Playback > Equaliser). ComfortSettings.kt SetRow
@@ -53,7 +59,7 @@ COMPONENTS / OVERLAYS
 SCREENS (section "Equaliser", Light above Dark, keys in KEYS)
   Track menu; Sheet, default; Sheet, this song; Sheet, this album; Sheet, off; Save as preset; Saved preset menu;
   Sheet, band dragged; Now Playing, this song; Settings, Playback; Settings page; Settings page (full length);
-  Settings page, nothing saved.
+  Settings page, nothing saved; Settings page, off.
   The five existing track menus over Now Playing gain the Equaliser row after Sleep timer (UI-SPEC 3.1).
 
 PROTOTYPE
@@ -62,7 +68,8 @@ PROTOTYPE
   Flow starting points "Equaliser" and "Equaliser in Settings". Flow overview: the lane "Equaliser".
 
 HANDOFF
-  A Source annotation and Ready for development on every new frame; Cover 1.1.0; the Changelog entry.
+  A Source annotation on every new frame; Ready for development on the frames that match the code and a Proposed
+  annotation on the ones in PROPOSED; Cover 1.2.0; the Changelog entries for 1.1.0 and 1.2.0.
 """
 from __future__ import annotations
 
@@ -81,7 +88,7 @@ from .components_core import COVER, Components, K, SetBuilder, _props, cover_ima
 from .components_states import block, group, inst, row, setp
 from .foundations import ICON_DROP, MODE_COLLECTIONS, WEIGHT_NAME, text_style
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UPDATED = "2026-11-25"
 SHEET_SRC = "ui/comfort/ComfortEqualiser.kt · ComfortEqualiserSheet"
 PAGE_SRC = "ui/comfort/ComfortEqualiser.kt · ComfortEqualiserPage"
@@ -227,9 +234,17 @@ def _num(v: float) -> str:
     return f"{v:.2f}".rstrip("0").rstrip(".")
 
 
-def curve_paths(curve, width=339.0, height=96.0, clamp=14.0, points=96):
-    """(line, area) SVG paths of the response in the well's plot: 14 dB either way, the area closed on 0 dB."""
-    mid, px = height / 2, height / (2 * clamp)
+# The plot BandSliders draws: 184dp tall with 0 dB in the middle and 6.5dp to a decibel, so a knob's travel is 14 to 170
+# and the response, drawn to 14 dB either way, has 1dp to spare.
+PLOT_W, PLOT_H, PER_DB, RESPONSE_DB = 339.0, 184.0, 6.5, 14.0
+CARD_W, CARD_TOP, CARD_FOOT = 379.0, 6.0, 10.0
+GUTTER_START, GUTTER_END = 30.0, 10.0
+
+
+def curve_paths(curve, width=PLOT_W, height=PLOT_H, clamp=RESPONSE_DB, points=96):
+    """(line, area) SVG paths of the response in the bands' plot: 6.5dp to a decibel, 14 dB either way, the area
+    closed on 0 dB."""
+    mid, px = height / 2, PER_DB
     pts = [(width * i / (points - 1), mid - max(-clamp, min(clamp, db)) * px) for i, db in enumerate(response(curve, points))]
     line = "M " + " L ".join(f"{_num(x)} {_num(y)}" for x, y in pts)
     return line, f"{line} L {_num(width)} {_num(mid)} L 0 {_num(mid)} Z"
@@ -306,7 +321,7 @@ def _variant(d: Doc, set_name: str, variant: str) -> int:
 # (name, size, line, weight, tabular, source)
 EQ_TYPE = [
     ("Component/Equaliser scope title", 17, 22, 700, False, "ComfortEqualiser.kt EqualiserScopeHead title: onest(17f, 22f, 700)"),
-    ("Component/Equaliser axis", 11, 16, 400, True, "ComfortEqualiser.kt ResponseWell axis labels: onest(11f, 16f).tabular()"),
+    ("Component/Equaliser axis", 11, 16, 400, True, "ComfortEqualiser.kt BandSliders axis labels: onest(11f, 16f).tabular()"),
     ("Component/Equaliser frequency", 12, 16, 400, False, "ComfortEqualiser.kt band labels under BandSliders: onest(12f, 16f)"),
     ("Component/Equaliser value", 12.5, 16, 600, True, "ComfortEqualiser.kt BandSliders value bubble: onest(12.5f, 16f, 600).tabular()"),
     ("Component/Equaliser indicator", 13, 18, 500, False, "NowPlayingParts.kt NowPlayingHeader's equaliser indicator: onest(13f, 18f, 500)"),
@@ -454,15 +469,17 @@ def _actions(d: Doc, k: K):
                                 "with a trailing glyph for a saved preset and the Save as preset action.")
 
     # -- Response curve
-    sb = SetBuilder(cc, "Response curve", "ComfortEqualiser.kt · ResponseWell", "ResponseWell",
-                    "What ResponseWell draws for a curve: the response over ten octaves (22 Hz to 22.6 kHz, log), 339 x 96, "
-                    "14 dB either way, so band i sits at (i + 0.5) / 10 of the width. The line is 2.5dp in accent with "
-                    "round ends; the area between it and 0 dB is accent at 20 %. One variant per built-in preset "
-                    "(playback/eq/EqPresets.kt), plus the demo's Custom curve and its saved preset Car speakers "
-                    "(storeShots EqualiserDemo.kt). Each path is the engine's own response (playback/eq/EqDesign.kt), "
-                    "computed by design/build/comfort/equaliser.py: draw another curve there, not by hand.")
+    sb = SetBuilder(cc, "Response curve", "ComfortEqualiser.kt · BandSliders", "BandSliders",
+                    "The response BandSliders draws behind its knobs: ten octaves wide (22 Hz to 22.6 kHz, log), 339 x 184, "
+                    "0 dB in the middle and 6.5dp to a decibel, which is the knobs' own scale, so the line runs through "
+                    "every knob. It is drawn to 14 dB either way, since neighbouring boosts can sum past +12. The line is "
+                    "2.5dp in accent with round ends; the area between it and 0 dB is accent at 20 %, and it is what "
+                    "shows how far a band is from 0. One variant per built-in preset (playback/eq/EqPresets.kt), plus the "
+                    "demo's Custom curve and its saved preset Car speakers (storeShots EqualiserDemo.kt). Each path is the "
+                    "engine's own response (playback/eq/EqDesign.kt), computed by design/build/comfort/equaliser.py: draw "
+                    "another curve there, not by hand.")
     for name, gains in CURVES.items():
-        c = sb.variant({"Curve": name}, w=339, h=96)
+        c = sb.variant({"Curve": name}, w=PLOT_W, h=PLOT_H)
         d.set(c, clip=False)
         line, area = curve_paths(gains)
         if any(gains):
@@ -471,98 +488,90 @@ def _actions(d: Doc, k: K):
         d.vector(c, name="Line", path=line, stroke="Color/accent", stroke_w=2.5, strokeCap="round", strokeJoin="round",
                  constraints={"horizontal": "scale", "vertical": "scale"})
     sb.finish([{"Curve": "Bass boost"}, {"Curve": "Vocal"}, {"Curve": "Custom"}],
-              description_extra="The response ResponseWell draws, one variant per preset in playback/eq/EqPresets.kt plus "
-                                "the demo's Custom and Car speakers curves. Used inside Response well.")
-
-    # -- Response well
-    sb = SetBuilder(cc, "Response well", "ComfortEqualiser.kt · ResponseWell", "ResponseWell",
-                    "The response in a well: 120dp tall, radius 18 (ComfortShapes.Control), fill. The plot is inset 30 at the "
-                    "start, 10 at the end and 12 above and below (96 tall; 339 wide in the sheet, 323 in the Settings "
-                    "card: resize the instance and the curve follows). Dashed rules at +12 and −12 dB (1dp fill-2, 2 on, "
-                    "4 off), a solid one at 0 dB; +12, 0 and −12 in 11/16 tabular on-2, right-aligned in the 24dp before "
-                    "the plot. Pick the curve on the exposed Curve. Off: the flat 0 dB line in on-3, which is what is "
-                    "playing. Not interactive.")
-    px = 96 / 28.0
-    for state in ("On", "Off"):
-        c = sb.variant({"State": state}, w=379, h=120, fill="Color/fill")
-        d.set(c, clip=True)
-        k.bind_radius(c, "control")
-        for nm, db in (("Rule +12 dB", 12), ("Rule 0 dB", 0), ("Rule −12 dB", -12)):
-            y = 12 + 48 - db * px
-            v = d.vector(c, name=nm, path="M 0 0 L 339 0", x=30, y=round(y, 2), stroke="Color/fill-2", stroke_w=1,
-                         constraints={"horizontal": "leftRight", "vertical": "top"})
-            if db:
-                d.set(v, dashes=[2, 4])
-        for nm, chars, db in (("Axis +12", "+12", 12), ("Axis 0", "0", 0), ("Axis −12", "−12", -12)):
-            t = d.text(c, chars, style="Component/Equaliser axis", color="Color/on-2", name=nm, x=0, y=round(12 + 48 - db * px - 8, 2),
-                       width=24, textAutoResize="height", textAlign="right")
-        if state == "On":
-            cv = d.instance("Response curve", c, name="Curve", x=30, y=12)
-            d.cmd("instance.setProperties", ids=[cv], properties={"Curve": "Bass boost"})
-            d.set(cv, constraints={"horizontal": "leftRight", "vertical": "top"})
-            d.cmd("component.exposeInstance", id=cv)
-        else:
-            d.vector(c, name="Flat line", path="M 0 0 L 339 0", x=30, y=60, stroke="Color/on-3", stroke_w=2.5, strokeCap="round",
-                     constraints={"horizontal": "leftRight", "vertical": "top"})
-    sb.finish(description_extra="Part of ComfortEqualiserSheet and ComfortEqualiserPage. Decoration: TalkBack skips it.")
+              description_extra="The response BandSliders draws, one variant per preset in playback/eq/EqPresets.kt plus the "
+                                "demo's Custom and Car speakers curves. Used inside Band sliders.")
 
     # -- Band slider
     sb = SetBuilder(cc, "Band slider", "ComfortEqualiser.kt · BandSliders", "BandSliders",
-                    "One band of BandSliders: a column a tenth of the plot wide and 184dp tall, 0 dB at y = 92, 6.5dp to a "
-                    "decibel, −12 to +12. The track is a 6dp capsule in fill-2 from y = 14 to 170; the run from 0 dB to the "
-                    "knob is 6dp in accent (none at 0); the knob is 20dp in knob with a 2dp accent ring inside its edge "
-                    "and Shadow/Small. To set a gain, pick Gain (Boost above 0 dB, Cut below, Zero) and set the height of "
-                    "the Run layer to |gain| x 6.5 + 6: the knob rides on its end. Dragged: the knob is 26dp and the value "
-                    "shows in a 62 x 28 pill (toast, 12.5/16 semibold tabular on-toast), its foot 10dp above the knob; "
-                    "set Value (\"+4 dB\", \"−2.5 dB\", \"0 dB\"). Off: run and ring in on-3. A drag moves the value from "
+                    "One band's knob in BandSliders: a column a tenth of the plot wide and 184dp tall, 0 dB at y = 92, 6.5dp "
+                    "to a decibel, −12 to +12. The knob is 20dp in knob with a 2dp accent ring inside its edge and "
+                    "Shadow/Small. Its track and the response behind it belong to Band sliders. To set a gain, pick Gain "
+                    "(Boost above 0 dB, Cut below, Zero) and set the height of the Reach layer to |gain| x 6.5 + 6: the "
+                    "knob rides on its end. Dragged: the knob is 26dp and the value shows in a 62 x 28 pill (toast, "
+                    "12.5/16 semibold tabular on-toast), its foot 10dp above the knob; set Value (\"+4 dB\", \"−2.5 dB\", "
+                    "\"0 dB\"). The pill may lie over the neighbouring knobs and, near +12 dB, over the chips above the "
+                    "card: it is there only while the finger is. Off: the ring in on-3. A drag moves the value from "
                     "where it is, snapping to 1 dB; a tap does nothing; a double tap sets 0.")
     for state in ("On", "Off", "Dragged"):
         for gain, demo in (("Boost", 4.0), ("Cut", -2.5), ("Zero", 0.0)):
-            c = sb.variant({"State": state, "Gain": gain}, w=34, h=184)
+            c = sb.variant({"State": state, "Gain": gain}, w=34, h=PLOT_H)
             d.set(c, clip=False)
-            tr = d.rect(c, name="Track", w=6, h=156, x=14, y=14, fill="Color/fill-2")
-            k.bind_radius(tr, "pill")
-            d.set(tr, constraints={"horizontal": "center", "vertical": "top"})
             ink = "Color/on-3" if state == "Off" else "Color/accent"
-            run_h = abs(demo) * 6.5 + 6
+            reach_h = abs(demo) * PER_DB + 6
             up = gain != "Cut"
             tv = d.frame(c, name="Travel", x=14, y=0 if up else 89, w=6, h=95, layout="v", main="max" if up else "min",
                          cross="center", sizing=("fixed", "fixed"), clip=False)
             d.set(tv, constraints={"horizontal": "center", "vertical": "top"})
-            run = d.frame(tv, name="Run", w=6, h=run_h, fill=None if gain == "Zero" else ink, clip=False)
-            k.bind_radius(run, "pill")
+            reach = d.frame(tv, name="Reach", w=6, h=reach_h, clip=False)
             size = 26 if state == "Dragged" else 20
-            ky = 3 - size / 2 if up else run_h - 3 - size / 2
-            kn = d.ellipse(run, name="Knob", w=size, h=size, x=3 - size / 2, y=ky, fill="Color/knob", stroke={"$var": ink},
+            ky = 3 - size / 2 if up else reach_h - 3 - size / 2
+            kn = d.ellipse(reach, name="Knob", w=size, h=size, x=3 - size / 2, y=ky, fill="Color/knob", stroke={"$var": ink},
                            strokeWeight=2, strokeAlign="inside")
             d.set(kn, constraints={"horizontal": "center", "vertical": "top" if up else "bottom"})
             d.cmd("style.apply", ids=[kn], style=d.effect_styles["Shadow/Small"])
             if state == "Dragged":
-                centre = 3 if up else run_h - 3
-                bub = d.frame(run, name="Value bubble", w=62, h=28, x=3 - 31, y=centre - 13 - 10 - 28, layout="h", main="center",
+                centre = 3 if up else reach_h - 3
+                bub = d.frame(reach, name="Value bubble", w=62, h=28, x=3 - 31, y=centre - 13 - 10 - 28, layout="h", main="center",
                               cross="center", fill="Color/toast", sizing=("fixed", "fixed"))
                 k.bind_radius(bub, "pill")
                 d.set(bub, constraints={"horizontal": "center", "vertical": "top" if up else "bottom"})
                 t = d.text(bub, fmt_db(demo), style="Component/Equaliser value", color="Color/on-toast", name="Value")
                 sb.text("Value", t, fmt_db(demo))
     sb.finish([{"State": "On", "Gain": "Boost"}, {"State": "Off", "Gain": "Cut"}, {"State": "Dragged", "Gain": "Boost"}],
-              description_extra="One band of BandSliders. Part of ComfortEqualiserSheet and ComfortEqualiserPage.")
+              description_extra="One band's knob in BandSliders. Part of ComfortEqualiserSheet and ComfortEqualiserPage.")
 
-    # -- Band sliders
+    # -- Band sliders: the plot
     sb = SetBuilder(cc, "Band sliders", "ComfortEqualiser.kt · BandSliders", "BandSliders",
-                    "The ten bands, under the well and as wide as its plot, so each sits under its part of the curve: 184dp, "
-                    "then the frequency labels 2dp below (12/16 on-2, centred per column). The 0 dB hairline (1dp fill-2) "
-                    "runs 6dp past the first and last band. In the sheet it is inset 46 from the start and 26 from the "
-                    "end; in the Settings card 38 and 18. The ten Band slider instances are exposed (Band 31 Hz to Band "
-                    "16 kHz): set each one's Gain and its Run height. On and Off show Bass boost; Dragged shows the demo's "
-                    "Custom curve with 4 kHz held at +2 dB.")
+                    "The equaliser's one drawing: the ten bands with the response they make behind them, on a card (fill, "
+                    "radius 18, 218dp tall: 6 above the plot, the 184dp plot, 2, the 16dp frequency labels, 10). The plot "
+                    "is inset 30 at the start for the labels and 10 at the end; a band's column is a tenth of it (33.9dp "
+                    "in the sheet, 32.3 on the Settings card: resize the instance and everything follows). Back to "
+                    "front: dashed rules at +12 and −12 dB (1dp fill-2, 2 on, 4 off) and a solid one at 0 dB; +12, 0 and "
+                    "−12 in 11/16 tabular on-2, right-aligned in the 24dp before the plot; ten 6dp capsule tracks in "
+                    "fill-2 from +12 to −12; the response (the exposed Curve: pick the preset); the ten knobs (Band 31 Hz "
+                    "to Band 16 kHz, exposed: set each one's Gain and its Reach height); the frequency labels in 12/16 "
+                    "on-2. The response and the knobs share one scale, so the line passes through every knob and the "
+                    "labels at the start read for both. A knob has no accent run under it: the tinted area does that. "
+                    "Off: the knobs' rings and the line are on-3, and the line is the flat 0 dB that is playing. On and "
+                    "Off show Bass boost; Dragged shows the demo's Custom curve with 4 kHz held at +2 dB. In the sheet "
+                    "the card has 16dp side margins and 4 above; in the Settings card 8, 4 above and 8 below.")
+    mid = PLOT_H / 2
     for state in ("On", "Off", "Dragged"):
-        c = sb.variant({"State": state}, layout="v", w=339, gap=2, sizing=("fixed", "hug"))
+        # Auto layout carries the width down (a resized instance reflows its rows); what lies over the rows is absolute.
+        c = sb.variant({"State": state}, layout="v", w=CARD_W, gap=2, pad=[CARD_TOP, GUTTER_END, CARD_FOOT, GUTTER_START],
+                       fill="Color/fill", sizing=("fixed", "hug"))
         d.set(c, clip=False)
-        bands = d.frame(c, name="Bands", layout="h", h=184, sizing=("fill", "fixed"), clip=False)
-        line = d.rect(bands, name="0 dB line", w=351, h=1, fill="Color/fill-2")
-        k.absolute(line, -6, 91.5, 351, 1, {"horizontal": "leftRight", "vertical": "top"})
+        k.bind_radius(c, "control")
+        bands = d.frame(c, name="Bands", layout="h", h=PLOT_H, sizing=("fill", "fixed"), clip=False)
+        for nm, db in (("Rule +12 dB", 12), ("Rule 0 dB", 0), ("Rule −12 dB", -12)):
+            v = d.vector(bands, name=nm, path=f"M 0 0 L {_num(PLOT_W)} 0", stroke="Color/fill-2", stroke_w=1)
+            k.absolute(v, 0, mid - db * PER_DB, constraints={"horizontal": "leftRight", "vertical": "top"})
+            if db:
+                d.set(v, dashes=[2, 4])
+        for i, name in enumerate(BAND_NAMES):
+            tr = d.rect(bands, name=f"Track {name}", w=6, h=156, fill="Color/fill-2")
+            k.bind_radius(tr, "pill")
+            k.absolute(tr, PLOT_W * (i + 0.5) / 10 - 3, 14, 6, 156, {"horizontal": "scale", "vertical": "top"})
         gains = CUSTOM if state == "Dragged" else PRESETS["Bass boost"]
+        if state == "Off":
+            fl = d.vector(bands, name="Flat line", path=f"M 0 0 L {_num(PLOT_W)} 0", stroke="Color/on-3", stroke_w=2.5,
+                          strokeCap="round")
+            k.absolute(fl, 0, mid, constraints={"horizontal": "leftRight", "vertical": "top"})
+        else:
+            cv = d.instance("Response curve", bands, name="Curve")
+            d.cmd("instance.setProperties", ids=[cv], properties={"Curve": "Custom" if state == "Dragged" else "Bass boost"})
+            k.absolute(cv, 0, 0, PLOT_W, PLOT_H, {"horizontal": "leftRight", "vertical": "top"})
+            d.cmd("component.exposeInstance", id=cv)
         for i, g in enumerate(gains):
             b = d.instance("Band slider", bands, name=f"Band {BAND_NAMES[i]}")
             d.set(b, sizingH="fill")
@@ -572,7 +581,12 @@ def _actions(d: Doc, k: K):
         for lab in LABELS:
             t = d.text(fl, lab, style="Component/Equaliser frequency", color="Color/on-2", name=f"Label {lab}", textAlign="center")
             d.set(t, sizingH="fill", textAutoResize="height")
-    sb.finish(description_extra="Part of ComfortEqualiserSheet and ComfortEqualiserPage, with the frequency labels under it.")
+        for nm, chars, db in (("Axis +12", "+12", 12), ("Axis 0", "0", 0), ("Axis −12", "−12", -12)):
+            t = d.text(c, chars, style="Component/Equaliser axis", color="Color/on-2", name=nm, width=24, textAutoResize="height",
+                       textAlign="right")
+            k.absolute(t, 0, CARD_TOP + mid - db * PER_DB - 8, constraints={"horizontal": "left", "vertical": "top"})
+    sb.finish(description_extra="The bands and their response in one card. Part of ComfortEqualiserSheet and "
+                                "ComfortEqualiserPage. TalkBack reads the ten bands as sliders and skips the drawing.")
     cc.dark_preview()
 
 
@@ -580,7 +594,7 @@ def set_band(d: Doc, band: int, gain: float, state: str = "On"):
     """Set a Band slider instance to `gain` dB: its variant, the run's height and, when dragged, the bubble's text."""
     kind = "Boost" if gain > 0 else "Cut" if gain < 0 else "Zero"
     d.cmd("instance.setProperties", ids=[band], properties={"State": state, "Gain": kind})
-    d.override(band, "Run", height=abs(gain) * 6.5 + 6)
+    d.override(band, "Reach", height=abs(gain) * PER_DB + 6)
     if state == "Dragged":
         setp(d, band, Value=fmt_db(gain))
 
@@ -742,7 +756,9 @@ def _overlays(d: Doc, ctx: dict, k: K):
 KEYS = ["sheet_track_menu_equaliser", "sheet_equaliser_default", "sheet_equaliser_song", "sheet_equaliser_album",
         "sheet_equaliser_off", "dialog_equaliser_save_preset", "menu_equaliser_preset", "sheet_equaliser_band_dragged",
         "now_playing_equaliser", "settings_equaliser_row", "settings_equaliser_page", "settings_equaliser_page_full",
-        "settings_equaliser_page_empty"]
+        "settings_equaliser_page_empty", "settings_equaliser_page_off"]
+# The code followed 1.2.0 on feature/per-song-equaliser, so no frame is ahead of it.
+PROPOSED: dict[str, list[str]] = {}
 # The track menus over Now Playing that were in the file before the equaliser: (key, frame name, the row's value).
 OLD_MENUS = [("sheet_track_menu_now_playing", "Track menu / From Now Playing"),
              ("sheet_track_menu_open_with", "Track menu / Opened with Attic"),
@@ -760,7 +776,11 @@ NOTES = {
     "sheet_equaliser_default": [
         "The sheet edits the setting the song plays with: here the default, Bass boost. Saved presets come first in the "
         "row, then the built-in eleven; the row has scrolled to show the selected chip. Over Now Playing the sheet takes "
-        "the cover's colours (Color mode Tinted wash); in Settings it is Lamplight."],
+        "the cover's colours (Color mode Tinted wash); in Settings it is Lamplight.",
+        "The bands and their response are one drawing: the line passes through every knob, and the +12, 0 and −12 labels "
+        "read for both. Without a well of its own for the response the sheet is over 110dp shorter, so the rows that "
+        "save a setting stay on screen on a short phone, where the bands would otherwise take the drag meant to scroll "
+        "to them."],
     "sheet_equaliser_song": [
         "After Save for this song: the head shows the cover and the song's title on the accent-soft bed, and edits stay "
         "with this song. The bands match no preset, so the row starts with Custom and Save as preset. Use default "
@@ -769,8 +789,9 @@ NOTES = {
         "The song plays with its album's setting (Vocal). A change here changes every song on the album. The song can "
         "still take its own; Use default removes the album's."],
     "sheet_equaliser_off": [
-        "Off: the line under the title says so, the chips are at 50 %, the bands lose the accent and the response is the "
-        "flat line that is playing. Everything still responds: a chip or the first band movement turns it on."],
+        "Off: the line under the title says so, the chips are at 50 %, the knobs lose the accent and stay where they "
+        "were, and the response is the flat 0 dB line that is playing, in on-3. Everything still responds: a chip or the "
+        "first band movement turns it on."],
     "dialog_equaliser_save_preset": [
         "Save as preset opens the name dialog over the sheet, above the keyboard: the field empty and focused. Save "
         "waits for a name no other preset has; a taken name shows \"Another preset has this name\" under the field. "
@@ -780,8 +801,10 @@ NOTES = {
         "Delete preset over the chip (Menu, On sheet). Built-in presets have no menu. In the prototype one tap on Car "
         "speakers comes here; in the app the first tap selects it."],
     "sheet_equaliser_band_dragged": [
-        "A band while it is held: the knob grows to 26dp and its value shows in a bubble above it. The value follows the "
-        "finger from where it was, snapping to 1 dB; a tap without movement does nothing, and a double tap sets 0 dB."],
+        "A band while it is held: the knob grows to 26dp and its value shows in a bubble above it, and the line moves "
+        "with the knob. The bubble may lie over the knobs beside it and, near +12 dB, over the chips: it is there only "
+        "while the finger is. The value follows the finger from where it was, snapping to 1 dB; a tap without movement "
+        "does nothing, and a double tap sets 0 dB."],
     "now_playing_equaliser": [
         "While the equaliser is on and the song plays with its own setting, the header shows the indicator before the "
         "kebab (\"This album\" for its album's setting). It opens the equaliser sheet. Nothing in the deck changes."],
@@ -800,14 +823,19 @@ NOTES = {
         "it has one."],
     "settings_equaliser_page_empty": [
         "Nothing has its own setting yet: one card says how to give a song one. Scrolled to the end of the page."],
+    "settings_equaliser_page_off": [
+        "Off on the page: the note is the switch row's summary (the sheet has it under its title), the chips are at "
+        "50 %, the knobs lose the accent and the response is the flat 0 dB line. A chip or a band turns it on."],
 }
 MOCK_NOTES = {
     "sheet_equaliser_default": ["The mock's curves are placeholders and its row has no saved presets. Here the bands are "
                                 "EqPresets.kt's values, the curve is the engine's response, and the demo's two saved "
                                 "presets come first."],
+    "settings_equaliser_page_off": ["The mock has no page with the equaliser off. The code puts the off note under Use "
+                                    "equaliser as the row's summary (UseEqualiserCard), and so does this frame."],
     "settings_equaliser_page_full": ["The mock draws the albums' remove button stronger than the songs'. The spec has it "
-                                     "the other way, and so does this frame: dim on the album rows (ComfortIconButton, dim "
-                                     "= true), the default tone on the song rows."],
+                                     "the other way, and the code follows the spec. This frame draws both dim (see "
+                                     "Proposed)."],
     "dialog_equaliser_save_preset": ["The mock shows a name being typed. The code opens the dialog with the field empty "
                                      "and Save disabled (EqPresetDialog.Save)."],
 }
@@ -842,24 +870,23 @@ def _chips(d: Doc, parent: int, selected: str, *, width: float, side: float, dim
 
 
 def _editor(d: Doc, parent: int, *, width: float, selected: str, on: bool = True, dragged: int | None = None,
-            chip_side: float, well_side: float, band_start: float, band_end: float) -> dict:
-    """The editor both the sheet and the Settings card hold: preset chips, the response well, the bands. Made as three
-    frames in `parent`, for the caller to place."""
+            chip_side: float, plot_side: float) -> dict:
+    """The editor both the sheet and the Settings card hold: the preset chips, then the bands' plot 4dp under them. Made
+    as two frames in `parent`, for the caller to place."""
     gains = CURVES[selected]
     vp, chips = _chips(d, parent, selected, width=width, side=chip_side, dim=not on)
-    wf = d.frame(parent, name="Response", layout="v", w=width, pad=[4, well_side, 0, well_side], sizing=("fixed", "hug"))
-    well = d.instance("Response well", wf, name="Response well")
-    d.cmd("instance.setProperties", ids=[well], properties={"State": "On" if on else "Off"})
-    d.set(well, sizingH="fill")
-    if on:
-        d.cmd("instance.setProperties", ids=[d.child(well, "Curve")], properties={"Curve": selected})
-    bf = d.frame(parent, name="Bands", layout="v", w=width, pad=[6, band_end, 0, band_start], sizing=("fixed", "hug"), clip=False)
+    bf = d.frame(parent, name="Bands", layout="v", w=width, pad=[4, plot_side, 0, plot_side], sizing=("fixed", "hug"), clip=False)
     sl = d.instance("Band sliders", bf, name="Band sliders")
     state = "Dragged" if dragged is not None else "On" if on else "Off"
     d.cmd("instance.setProperties", ids=[sl], properties={"State": state})
     d.set(sl, sizingH="fill")
+    if on:
+        d.cmd("instance.setProperties", ids=[d.child(sl, "Curve")], properties={"Curve": selected})
     set_bands(d, sl, gains, "On" if on else "Off", dragged)
-    return {"pieces": [vp, wf, bf], "chips": chips, "well": well, "sliders": sl}
+    return {"pieces": [vp, bf], "chips": chips, "sliders": sl}
+
+
+ROWS_ABOVE = 4         # EqualiserActionRows: 4dp between the plot's card and the first row
 
 
 def _eq_sheet(d: Doc, ps, f: int, *, scope: str, selected: str, on: bool = True, dragged: int | None = None) -> dict:
@@ -876,11 +903,11 @@ def _eq_sheet(d: Doc, ps, f: int, *, scope: str, selected: str, on: bool = True,
         ps.props(head, {"Subtitle": "Paper Lanterns" if scope == "Album" else "Lights Over the Water"})
         cover_image(d, d.child(head, "Cover"), COVER[0])
     content = d.child(sh, "Content")
-    ed = _editor(d, f, width=W, selected=selected, on=on, dragged=dragged, chip_side=16, well_side=16, band_start=46, band_end=26)
-    rule = d.frame(f, name="Rule", layout="h", w=W, pad=[12, 24, 0, 24], sizing=("fixed", "hug"))
-    d.rect(rule, name="Rule line", w=363, h=1, fill="Color/line", sizingH="fill")
-    d.cmd("node.reparent", ids=ed["pieces"] + [rule], parent=content)
-    for p in ed["pieces"] + [rule]:
+    ed = _editor(d, f, width=W, selected=selected, on=on, dragged=dragged, chip_side=16, plot_side=16)
+    # No hairline over the first row: the plot's card ends just above it, and its edge is the separation.
+    space = d.frame(f, name="Space above the rows", w=W, h=ROWS_ABOVE)
+    d.cmd("node.reparent", ids=ed["pieces"] + [space], parent=content)
+    for p in ed["pieces"] + [space]:
         d.set(p, sizingH="fill")
     ids.update(chips=ed["chips"], sliders=ed["sliders"])
 
@@ -924,6 +951,7 @@ def _menu_row(d: Doc, ps, frame: int, value: str) -> int:
     d.set(rid, name="Row: Equaliser", sizingH="fill")
     ps.props(rid, {"Kind": "Default", "End": "Chevron", "Label": "Equaliser", "Icon": "Icon/equalizer", "Show icon": True,
                    "Show hairline": True, "Show value": True, "Value": value})
+    d.override(d.child(rid, "Icon"), "Glyph", fill="Color/on-2")       # SheetRow's glyph; the swap to a new icon drops it
     g = d.get(sh)
     d.set(sh, y=H - g["height"])
     for c in d.get(frame, depth=1)["children"]:
@@ -955,24 +983,32 @@ def _own_songs(d: Doc, col: int):
                 **{"Show subtitle": True, "Show meta": True, "Show trailing": True, "Show hairline": i > 0})
         tr = d.child(r, "Trailing")
         d.cmd("instance.setProperties", ids=[tr], properties={"Kind": "Add", "Tone": "Default"})
-        d.cmd("instance.swap", ids=[d.child(tr, "Icon")], component=d.comp["Icon/close"])
+        ic = d.child(tr, "Icon")
+        d.cmd("instance.swap", ids=[ic], component=d.comp["Icon/close"])
+        d.override(ic, "Glyph", fill="Color/on-2")        # ComfortIconButton(dim = true), as the album rows have it
         d.set(tr, name="Remove")
         cover_image(d, d.child(r, "Cover"), COVER[cov])
     return g
 
 
-def _page(d: Doc, ss, a, key: str, name: str, *, h: float = H, empty: bool = False, scrolled: bool = False) -> dict:
+def _page(d: Doc, ss, a, key: str, name: str, *, h: float = H, empty: bool = False, scrolled: bool = False,
+          on: bool = True) -> dict:
     """ComfortEqualiserPage: a root page like the licence text's, the default's editor in one card, then the lists."""
     ids = {}
     f, col = ss.phone(a, key, name, PAGE_SRC, h=h)
     ss.hero(col, "Equaliser", short=True)
     ids["back"] = ss.lead_tools(col)
     g, _ = group(d, col, "Use equaliser")
-    row(d, g, "Settings row", "Use equaliser", Control="Switch on", Title="Use equaliser")
+    if on:
+        ids["switch"] = row(d, g, "Settings row", "Use equaliser", Control="Switch on", Title="Use equaliser")
+    else:
+        # ComfortEqualiserPage's UseEqualiserCard: the off note is the switch row's summary.
+        ids["switch"] = row(d, g, "Settings row", "Use equaliser", Control="Switch off", Title="Use equaliser",
+                            Summary="Off. Choose a preset or move a band to turn it on.", **{"Show summary": True})
     ss.label(col, "Default")
     g, slot = group(d, col, "Default")
-    card = d.frame(f, name="Editor", layout="v", w=379, pad=[10, 0, 16, 0], sizing=("fixed", "hug"), clip=False)
-    ed = _editor(d, card, width=379, selected="Bass boost", chip_side=12, well_side=8, band_start=38, band_end=18)
+    card = d.frame(f, name="Editor", layout="v", w=379, pad=[10, 0, 8, 0], sizing=("fixed", "hug"), clip=False)
+    ed = _editor(d, card, width=379, selected="Bass boost", on=on, chip_side=12, plot_side=8)
     for p in ed["pieces"]:
         d.set(p, sizingH="fill")
     for c in d.get(slot, depth=1).get("children", []):
@@ -1123,6 +1159,8 @@ def _screens(d: Doc, ctx: dict, k: K) -> dict:
                                               "Equaliser / Settings page (full length)", h=2000)
     t["settings_equaliser_page_empty"] = _page(d, ss, a, "settings_equaliser_page_empty",
                                                "Equaliser / Settings page, nothing saved", empty=True, scrolled=True)
+    t["settings_equaliser_page_off"] = _page(d, ss, a, "settings_equaliser_page_off", "Equaliser / Settings page, off",
+                                             on=False)
     a.close()
 
     # On a dark sheet a neutral or tonal box is one step up (fill-2), as the playlist picker's is.
@@ -1216,8 +1254,11 @@ def _prototype(d: Doc, t: dict, old_rows: dict) -> list:
     link("now_playing_equaliser", t["now_playing_equaliser"]["indicator"], "sheet_equaliser_song")
     link("now_playing_equaliser", t["now_playing_equaliser"]["close"], "back")
     link("settings_equaliser_row", t["settings_equaliser_row"]["row"], "settings_equaliser_page", kind="detail")
-    for key in ("settings_equaliser_row", "settings_equaliser_page", "settings_equaliser_page_full", "settings_equaliser_page_empty"):
+    for key in ("settings_equaliser_row", "settings_equaliser_page", "settings_equaliser_page_full",
+                "settings_equaliser_page_empty", "settings_equaliser_page_off"):
         link(key, t[key]["back"], "back")
+    link("settings_equaliser_page", t["settings_equaliser_page"]["switch"], "settings_equaliser_page_off", kind="instant")
+    link("settings_equaliser_page_off", t["settings_equaliser_page_off"]["switch"], "settings_equaliser_page", kind="instant")
     # The menus that were in the file: their new row opens the sheet too.
     for key, rows in old_rows.items():
         for th in ("light", "dark"):
@@ -1250,7 +1291,10 @@ def _handoff(d: Doc):
                 d.annotate(fid, f"{n} Mock: {MOCK_FILE}", "Code differs from mock")
             for n in NOTES.get(key, []):
                 d.annotate(fid, n, "Note")
-        d.ready_for_dev([s["light"], s["dark"]])
+            for n in PROPOSED.get(key, []):
+                d.annotate(fid, n, "Proposed")
+        if key not in PROPOSED:
+            d.ready_for_dev([s["light"], s["dark"]])
 
 
 def _flow_lane(d: Doc, ctx: dict) -> int:
@@ -1269,7 +1313,8 @@ def _flow_lane(d: Doc, ctx: dict) -> int:
         ("song", ["sheet_equaliser_song"], None, 3, 0, "screen"),
         ("save", ["dialog_equaliser_save_preset"], None, 4, 0, "screen"),
         ("set", ["settings_equaliser_row"], None, 0, 1, "screen"),
-        ("page", ["settings_equaliser_page", "settings_equaliser_page_full", "settings_equaliser_page_empty"], None, 1, 1, "screen"),
+        ("page", ["settings_equaliser_page", "settings_equaliser_page_full", "settings_equaliser_page_empty",
+                  "settings_equaliser_page_off"], None, 1, 1, "screen"),
         ("off", ["sheet_equaliser_off"], None, 2, 1, "screen"),
         ("album", ["sheet_equaliser_album"], None, 3, 1, "screen"),
         ("drag", ["sheet_equaliser_band_dragged"], None, 4, 1, "screen"),
@@ -1294,7 +1339,7 @@ def _flow_lane(d: Doc, ctx: dict) -> int:
     return lane
 
 
-CHANGES = [
+CHANGES_1_1_0 = [
     "The equaliser, drawn from its UI spec, ui/model/EqualiserModel.kt and the demo states in storeShots "
     "EqualiserDemo.kt on feature/per-song-equaliser. Presets are playback/eq/EqPresets.kt's values and every curve is "
     "the engine's response.",
@@ -1310,10 +1355,26 @@ CHANGES = [
     "Type: five Component/Equaliser styles. Icons: equalizer and transition_fade, which Symbols.kt has gained.",
     "Prototype: the flows Equaliser and Equaliser in Settings. Flow overview: the lane Equaliser.",
 ]
+CHANGES_1_2_0 = [
+    "Design review of the equaliser as built. The code was matched to the changes below on the same branch.",
+    "Band sliders is now the whole plot. The response is drawn behind the knobs, on one fill card, at the knobs' scale "
+    "(6.5dp to a decibel), so the line passes through every knob and the +12, 0 and −12 labels read for both. Before, "
+    "the same curve was drawn twice at two scales: in a 120dp well at 3.4dp to a decibel, and as the knobs under it.",
+    "Response well is removed. Response curve is 339 x 184. Band slider is the knob alone: its track belongs to the "
+    "plot, and the accent run from 0 dB to the knob is gone, since the tinted area under the line shows the same.",
+    "The equaliser sheet is shorter by the well and its gaps, which keeps Save for this song and Save for this album on "
+    "screen on a short phone. Its action rows start 4dp under the plot's card, with no hairline over the first one.",
+    "Settings page: the editor card ends 8dp under the plot, and the remove button is dim on the song rows as on the "
+    "album rows. New screen: Settings page, off, with the off note as the switch row's summary, as the code has it.",
+    "Fix: the Equaliser row's glyph in the six track menus is on-2, like every other row's, as SheetRow draws it.",
+    "Unchanged, because the code is right: the title row and switch, the scope head, the preset chips and their menu, "
+    "the action rows, the dialogs, the Now Playing indicator, the track menu row and the Settings row.",
+]
+ENTRIES = [("1.1.0", CHANGES_1_1_0), (VERSION, CHANGES_1_2_0)]       # oldest first; each goes on top of the last
 
 
 def _cover(d: Doc):
-    """Version, date and what the file matches on the Cover, and the entry on top of the Changelog."""
+    """Version, date and what the file matches on the Cover, and an entry for each version on top of the Changelog."""
     cover = d.child(d.page("Cover"), "Cover")
     for meta, value in (("Meta: Version", VERSION), ("Meta: Last updated", UPDATED),
                         ("Meta: Matches", "ui-redesign at 4fe4dab + the equaliser")):
@@ -1321,12 +1382,13 @@ def _cover(d: Doc):
     pid = d.page("Changelog")
     tops = {c["name"]: c for c in d.get(pid, depth=1)["children"]}
     entries, howto = tops["Entries"], tops["How to add an entry"]
-    i = d.instance("Doc/Changelog entry", entries["id"], name=f"Entry {VERSION}")
-    d.cmd("node.reorder", id=i, index=0)
-    d.cmd("instance.setProperties", ids=[i], properties={"Version": VERSION, "Date": UPDATED, "Author": "Attic maintainers",
-                                                         "Changes": "\n".join(CHANGES)})
-    d.set(i, sizingH="fill")
-    d.set(d.child(i, "Changes"), listStyle="bulleted", paragraphSpacing=10)
+    for version, changes in ENTRIES:
+        i = d.instance("Doc/Changelog entry", entries["id"], name=f"Entry {version}")
+        d.cmd("node.reorder", id=i, index=0)
+        d.cmd("instance.setProperties", ids=[i], properties={"Version": version, "Date": UPDATED, "Author": "Attic maintainers",
+                                                             "Changes": "\n".join(changes)})
+        d.set(i, sizingH="fill")
+        d.set(d.child(i, "Changes"), listStyle="bulleted", paragraphSpacing=10)
     grown = d.get(entries["id"])["height"] - entries["height"]
     d.set(howto["id"], y=howto["y"] + grown)
 

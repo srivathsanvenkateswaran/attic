@@ -5,8 +5,8 @@ reports. The checklist follows the screen map and states in
 [CURRENT-UI.md](../docs/design/2026-11-21-ui-directions/CURRENT-UI.md) sections 1 and 2, at
 ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file unless the Notes say otherwise.
 
-Version 1.1.0 (2026-11-25) adds the Equaliser area and its components by hand, from the equaliser
-modules' reports (`design/build/<style>/equaliser.py`); the rest is as generated.
+Versions 1.1.0 and 1.2.0 (2026-11-25) add the Equaliser area and its components by hand, from the
+equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generated.
 
 | Area | Screen or state | Expressive | Comfort |
 |---|---|:-:|:-:|
@@ -109,6 +109,7 @@ modules' reports (`design/build/<style>/equaliser.py`); the rest is as generated
 | Equaliser | Settings > Equaliser page | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, full length | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, nothing with its own setting | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page, switched off |  | ✓ |
 | Recap | Recap page | ✓ | ✓ |
 | Recap | Recap page, full length | ✓ | ✓ |
 | Recap | Recap, nothing played | ✓ | ✓ |
@@ -276,14 +277,14 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Splash | System | 1 |  |  |
 | System/Media notification | System | 1 |  |  |
 | Widget | System | 6 | Size, State |  |
-| Equaliser/Preset chip | Actions | 4 | Kind, Selected |  |
+| Equaliser/Preset chip | Actions | 5 | Kind, Selected, Equaliser |  |
 | Equaliser/Scope cell | Lists and cards | 3 | Scope |  |
 | Equaliser/Own setting row | Lists and cards | 2 | Kind |  |
 | Equaliser/Band graph | Playback | 6 | Curve, State |  |
 | Now playing/Equaliser indicator | Playback | 2 | Scope |  |
 | Equaliser/Sheet title | Overlays | 2 | Checked |  |
 | Equaliser/Editor | Overlays | 6 | Curve, State |  |
-| Equaliser/Removal row | Overlays | 3 | Removal |  |
+| Equaliser/Actions | Overlays | 5 | Playing with |  |
 | Sheet/Equaliser | Overlays | 6 | Scope, State |  |
 
 ### Comfort
@@ -357,7 +358,6 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Widget | System | 4 | Size, State |  |
 | Preset chip | Actions | 5 | Kind, Selected |  |
 | Response curve | Actions | 13 | Curve |  |
-| Response well | Actions | 2 | State |  |
 | Band slider | Actions | 9 | State, Gain |  |
 | Band sliders | Actions | 3 | State |  |
 | Equaliser indicator | Playback | 2 | Scope |  |
