@@ -382,7 +382,8 @@ private fun DefaultCard(editor: State<EqualiserEditorState>, calls: State<Equali
     Label(stringResource(R.string.equaliser_default))
     Group {
         item {
-            Column(Modifier.padding(top = 10.dp, bottom = 16.dp)) {
+            // The plot's card has 8dp of this card on three sides.
+            Column(Modifier.padding(top = 10.dp, bottom = 8.dp)) {
                 EqualiserEditor(editor.value, calls, chipPadding = 12.dp, plotMargin = 8.dp)
             }
         }
