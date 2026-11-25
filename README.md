@@ -53,7 +53,7 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Learns from skips, finishes and likes in a listening log kept on the phone
 
 **Plays it the way you set it**
-- Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
+- Transitions between songs: off by default, a crossfade of 2 to 12 seconds, or Smart, which starts the next song as this one winds down, skips silence and lines up the beats when the tempos are close. Songs from one album played in order still run straight into each other
 - Volume levelling, on by default: songs play at a similar loudness, from their ReplayGain tags or the loudness measured during analysis
 - A ten-band equaliser of Attic's own, off by default, with eleven presets and your own. Open it from the menu on Now Playing
 - A song or an album can keep its own equaliser setting, which comes back whenever it plays: a song uses its own, else its album's, else the default. A pill on Now Playing shows when one is in use
