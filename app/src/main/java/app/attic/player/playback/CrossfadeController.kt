@@ -288,7 +288,8 @@ class CrossfadeController(
 
     private fun publish(plan: Plan?) {
         val smart = plan?.transition?.takeIf { it.kind == Transition.Kind.Smart }
-        val now = (if (smart == null) null else plan.currentKey) to smart?.fadeStartMs
+        // The point where the seek bar moves to the next song, which the mark stands for.
+        val now = (if (smart == null) null else plan.currentKey) to smart?.let(::joinAt)
         if (now == publishedPlan) return
         publishedPlan = now
         onSmartPlan(now.first, now.second)
@@ -302,7 +303,7 @@ class CrossfadeController(
             replan()
             return
         }
-        when (val step = CrossfadePlan.step(main.currentPosition, waiting.plan.transition.fadeStartMs)) {
+        when (val step = CrossfadePlan.step(main.currentPosition, joinAt(waiting.plan.transition))) {
             is CrossfadePlan.Step.Wait -> handler.postDelayed(evaluate, step.ms)
             CrossfadePlan.Step.Arm -> arm(waiting.plan)
             CrossfadePlan.Step.TooLate -> state = State.Idle
@@ -334,7 +335,7 @@ class CrossfadeController(
     private fun alignTick() {
         val aligning = state as? State.Aligning ?: return
         val tail = tail ?: return
-        val fadeStart = aligning.plan.transition.fadeStartMs
+        val fadeStart = joinAt(aligning.plan.transition)
         val position = main.currentPosition
         if (position >= fadeStart) {
             if (aligning.aligned) startFade(aligning.plan) else cancel()
@@ -362,15 +363,32 @@ class CrossfadeController(
         mainRamp = 0f
         applyVolumes()
         val t = plan.transition
-        val entry = t.incomingStartMs + if (t.beatAligned) entryLeadMs else 0L
         isOwnTransition = true
         try {
-            main.seekTo(nextIndex, entry)
+            main.seekTo(nextIndex, seekTarget(t))
         } finally {
             isOwnTransition = false
         }
         handler.post(fadeTick)
     }
+
+    /**
+     * Where in the outgoing song the main player moves to the next one. A seek into the middle of the next
+     * file makes the main player buffer for a few hundred ms, so when the next song's leading silence is
+     * short the move happens that much earlier, to the next song's start, which ExoPlayer has already
+     * loaded: the tail plays on at full level over the silence and the overlap is the planned one. For
+     * beat-aligned songs the learned [entryLeadMs] moves it earlier still, to make up the main player's
+     * usual lateness.
+     */
+    private fun joinAt(t: Transition): Long =
+        if (joinsAtStart(t)) t.fadeStartMs - t.incomingStartMs - (if (t.beatAligned) entryLeadMs else 0L) else t.fadeStartMs
+
+    private fun seekTarget(t: Transition): Long = when {
+        joinsAtStart(t) -> 0L
+        else -> t.incomingStartMs + if (t.beatAligned) entryLeadMs else 0L
+    }
+
+    private fun joinsAtStart(t: Transition) = t.incomingStartMs in 1..MAX_SILENCE_TO_PLAY_MS
 
     private fun fadeTick() {
         val fading = state as? State.Fading ?: return
@@ -476,5 +494,8 @@ class CrossfadeController(
         const val JOIN_UNTIL_MS = 1_200L
         const val JOIN_READINGS = 5
         const val MAX_ENTRY_LEAD_MS = 300L
+
+        /** Leading silence up to this long is played (under the tail) rather than seeked past. */
+        const val MAX_SILENCE_TO_PLAY_MS = 3_000L
     }
 }
