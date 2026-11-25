@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -75,23 +76,31 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Space plays and pauses from a keyboard, and Esc does what Back does (closes the player, the queue
-     * or lyrics, or leaves a screen) when there is something to close; on a tab's root it does nothing
-     * rather than leave the app. Keys only arrive here when nothing on screen took them: a search
-     * field types the space and a focused button clicks, as they should.
+     * Space plays and pauses from a keyboard, wherever focus is, unless a text field is taking the
+     * typing (the search field gets its space). It is taken before the screen sees it: once a key
+     * press has left touch mode, Compose focuses the first control and would treat Space as a click
+     * on it. Enter still activates the focused control.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_SPACE && !event.isCtrlPressed && !event.isAltPressed && !typing()) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) attic.player.togglePlayPause()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    /** A text field has the input method's attention, so keys are text. */
+    private fun typing(): Boolean = getSystemService(InputMethodManager::class.java)?.isAcceptingText == true
+
+    /**
+     * Esc does what Back does (closes the player, the queue or lyrics, a sheet, or leaves a screen)
+     * when there is something to close; on a tab's root it does nothing rather than leave the app.
+     * It only arrives here when nothing on screen took it.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (event.repeatCount == 0 && !event.isCtrlPressed && !event.isAltPressed) {
-            when (keyCode) {
-                KeyEvent.KEYCODE_SPACE -> {
-                    attic.player.togglePlayPause()
-                    return true
-                }
-                KeyEvent.KEYCODE_ESCAPE -> if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-                    onBackPressedDispatcher.onBackPressed()
-                    return true
-                }
-            }
+        if (keyCode == KeyEvent.KEYCODE_ESCAPE && event.repeatCount == 0 && onBackPressedDispatcher.hasEnabledCallbacks()) {
+            onBackPressedDispatcher.onBackPressed()
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
