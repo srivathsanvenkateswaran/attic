@@ -113,14 +113,28 @@ const val SheetMaxWidthDp = 640f
 /** Material's dialog maximum width. */
 const val DialogMaxWidthDp = 560f
 
-/** The floating mini player's widest, and Now Playing's column when it isn't side by side. */
-const val MiniPlayerMaxWidthDp = 560f
+/**
+ * The floating mini player's widest, and Now Playing's column when it isn't side by side. 576 lines the
+ * mini player up with the 24 dp margins of the Pad upright, whose content area is 624 dp wide.
+ */
+const val MiniPlayerMaxWidthDp = 576f
 
 /** Below this height the phone shell stays, so a short landscape window keeps its bottom bar. */
 const val MinWideShellHeightDp = 480f
 
-/** The Library's list pane when it shows list and detail. */
-const val LibraryListPaneDp = 360f
+/** The Library's list pane when it shows list and detail: the filter chips need 372 dp with one of them on. */
+const val LibraryListPaneDp = 400f
+
+/** The screen margin on medium and expanded windows; phone components carry 16 dp of it themselves. */
+const val WideMarginDp = 24f
+
+/**
+ * The inset at each side that keeps a column at most [maxDp] wide and centred in [availableDp], and
+ * never less than [minDp]. A list keeps its full width (so it scrolls from anywhere) and takes this as
+ * horizontal content padding.
+ */
+fun centredInsetDp(availableDp: Float, maxDp: Float = ReadableWidthDp, minDp: Float = 0f): Float =
+    maxOf(minDp, (availableDp - maxDp) / 2f)
 
 /** A collection pane this wide puts its header beside the songs. */
 const val CollectionTwoPaneMinDp = 760f

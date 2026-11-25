@@ -252,6 +252,8 @@
 
     <!-- Lyrics: card, inline line and full screen (2.12) -->
     <string name="lyrics_title">Lyrics</string>
+    <!-- Tablets, Now Playing beside its panel: the switch between the queue and the lyrics (the other half is lyrics_title). -->
+    <string name="player_panel_up_next">Up next</string>
     <string name="lyrics_open">Open lyrics</string>
     <string name="lyrics_instrumental">This song is instrumental.</string>
     <string name="lyrics_not_downloaded">Download once and they stay on this phone.</string>

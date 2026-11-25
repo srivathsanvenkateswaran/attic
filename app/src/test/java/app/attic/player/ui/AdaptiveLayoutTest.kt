@@ -6,6 +6,7 @@ import app.attic.player.ui.adaptive.PlayerPlacement
 import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.ui.adaptive.WindowLayout
 import app.attic.player.ui.adaptive.adaptiveColumns
+import app.attic.player.ui.adaptive.centredInsetDp
 import app.attic.player.ui.adaptive.collectionHeaderPaneDp
 import app.attic.player.ui.adaptive.collectionLayout
 import app.attic.player.ui.adaptive.locksToPortrait
@@ -122,5 +123,14 @@ class AdaptiveLayoutTest {
         assertTrue(locksToPortrait(599f))
         assertFalse(locksToPortrait(600f))
         assertFalse(locksToPortrait(900f))
+    }
+
+    @Test
+    fun columnsCentreAtTheReadableWidth() {
+        // Settings on the Pad sideways: 1056 dp beside the rail leaves 168 dp each side of a 720 dp column.
+        assertEquals(168f, centredInsetDp(1056f))
+        // Narrower than the column: no inset beyond the margin asked for.
+        assertEquals(24f, centredInsetDp(624f, minDp = 24f))
+        assertEquals(0f, centredInsetDp(411f))
     }
 }

@@ -45,7 +45,15 @@ import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
 import app.attic.player.ui.model.EqualiserBands
 import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.LocalIsDark
+import app.attic.player.ui.LibraryListDetail
 import app.attic.player.ui.ShellSlots
+import app.attic.player.ui.adaptive.LocalInitialPlayerPanel
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.PlayerPanel
+import app.attic.player.ui.comfort.ComfortNowPlayingWide
+import app.attic.player.ui.expressive.ExpressiveNowPlayingWide
+import app.attic.player.ui.model.Destination
+import androidx.compose.runtime.CompositionLocalProvider
 import app.attic.player.ui.Tab
 import app.attic.player.ui.comfort.ComfortAddSongs
 import app.attic.player.ui.comfort.ComfortAlbum
@@ -272,8 +280,7 @@ class Ref(
                 if (e) ExpressiveHome(d.home(filter), s.homeActions) else ComfortHome(d.home(filter), s.homeActions)
             }
             fun library(filter: LibraryFilter?, grid: Boolean = false) = shell(Tab.Library) {
-                val state = d.library(filter, grid)
-                if (e) ExpressiveLibrary(state, s.libraryActions) else ComfortLibrary(state, s.libraryActions)
+                LibraryRef(style, d.library(filter, grid))
             }
             fun search(query: String) = shell(Tab.Search) {
                 val state = s.search(query)
@@ -407,6 +414,8 @@ class Ref(
                 }
 
                 "now_playing" -> overlayRef()
+                // Tablet only: Now Playing beside its lyrics rather than its queue.
+                "now_playing_lyrics" -> Ref({ CompositionLocalProvider(LocalInitialPlayerPanel provides PlayerPanel.Lyrics) { overlayRef().content() } })
                 "now_playing_full" -> Ref(overlayRef().content, stitch = true)
                 "now_playing_paused_radio" -> overlayRef(nowPlaying = d.nowPlayingPausedRadio)
                 "now_playing_transition_mark" -> overlayRef(nowPlaying = d.nowPlayingTransitionMark)
@@ -424,6 +433,26 @@ class Ref(
                 "lyrics_downloading" -> lyricsOver(d.lyricsDownloading)
 
                 "sheet_track_menu" -> overHome(menu(d.trackMenu()))
+                // Tablet only: the menu over the album it opened from, as the Tablet page draws it.
+                "sheet_track_menu_album" -> Ref(
+                    {
+                        InShell(style, Tab.Home) {
+                            val state = s.album("Paper Lanterns")
+                            if (e) ExpressiveAlbum(state, s.albumActions) else ComfortAlbum(state, s.albumActions)
+                        }
+                        TrackMenu(style, d.trackMenu(DemoLibrary.track("Porch Light")), overPlayer = false)
+                    },
+                    capture = Capture.Screen,
+                )
+                // Tablet only: Library's New playlist, over the Library's playlists.
+                "dialog_new_playlist_library" -> Ref(
+                    {
+                        InShell(style, Tab.Library) { LibraryRef(style, d.library(LibraryFilter.Playlists, false)) }
+                        val state = d.nameDialog(stringResource(R.string.dialog_new_playlist_title), stringResource(R.string.create), "")
+                        if (e) ExpressivePlaylistNameDialog(state, d.nameActions) else ComfortPlaylistNameDialog(state, d.nameActions)
+                    },
+                    capture = Capture.Screen,
+                )
                 "sheet_track_menu_playlist" -> overPlaylist(menu(d.trackMenu(DemoLibrary.track("Iravu Rail"), inPlaylist = true)))
                 "sheet_track_menu_now_playing" ->
                     overlayRef(Capture.Screen, sheet = menu(d.trackMenu(DemoLibrary.nowPlaying, fromNowPlaying = true), overPlayer = true))
@@ -680,7 +709,21 @@ private fun InShell(
     val slots = ShellSlots(
         content = { content() },
         miniPlayer = { if (mini != null) { if (e) ExpressiveMiniPlayer(mini, s.miniActions) else ComfortMiniPlayer(mini, s.miniActions) } },
-        nowPlaying = { if (nowPlaying != null) { if (e) ExpressiveNowPlaying(nowPlaying, s.nowPlayingActions) else ComfortNowPlaying(nowPlaying, s.nowPlayingActions) } },
+        nowPlaying = {
+            if (nowPlaying != null) {
+                if (LocalWindowLayout.current.playerSideBySide) {
+                    // As ui/NowPlaying.kt does: the queue and the lyrics beside the player.
+                    val lyricsScreen = DesignStates.lyricsScreen(s.lyrics)
+                    if (e) {
+                        ExpressiveNowPlayingWide(nowPlaying, s.nowPlayingActions, s.queueState, s.queueActions, lyricsScreen, s.lyricsScreenActions)
+                    } else {
+                        ComfortNowPlayingWide(nowPlaying, s.nowPlayingActions, s.queueState, s.queueActions, lyricsScreen, s.lyricsScreenActions)
+                    }
+                } else {
+                    if (e) ExpressiveNowPlaying(nowPlaying, s.nowPlayingActions) else ComfortNowPlaying(nowPlaying, s.nowPlayingActions)
+                }
+            }
+        },
         queue = { if (queue != null) { if (e) ExpressiveQueue(queue, s.queueActions) else ComfortQueue(queue, s.queueActions) } },
         lyrics = {
             if (lyrics != null) {
@@ -699,6 +742,43 @@ private fun EqSheet(style: UiStyle, state: EqualiserSheetState) {
         FromCover(DemoLibrary.nowPlaying.mediaId) { ExpressiveEqualiserSheet(state, EqualiserDemo.sheetActions) }
     } else {
         TintedCover(DemoLibrary.nowPlaying.mediaId, wash = true) { ComfortEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    }
+}
+
+/**
+ * The Library as ui/LibraryScreen.kt draws it: list and detail when the window calls for it, the open
+ * item drawn from the demo library.
+ */
+@Composable
+private fun LibraryRef(style: UiStyle, state: app.attic.player.ui.model.LibraryState) {
+    val s = DemoStates
+    val d = DesignStates
+    val e = style == UiStyle.Expressive
+    val list: @Composable (app.attic.player.ui.model.LibraryState, app.attic.player.ui.model.LibraryActions) -> Unit = { st, a ->
+        if (e) ExpressiveLibrary(st, a) else ComfortLibrary(st, a)
+    }
+    if (!LocalWindowLayout.current.libraryListDetail) {
+        list(state, s.libraryActions)
+        return
+    }
+    LibraryListDetail(state, s.libraryActions, list) { destination ->
+        when (destination) {
+            is Destination.Album -> {
+                val album = s.album(DemoLibrary.library.albums.first { it.key == destination.key }.name)
+                if (e) ExpressiveAlbum(album, s.albumActions) else ComfortAlbum(album, s.albumActions)
+            }
+            is Destination.Artist -> {
+                val artist = s.artist(DemoLibrary.library.artists.first { it.key == destination.key }.name)
+                if (e) ExpressiveArtist(artist, s.artistActions) else ComfortArtist(artist, s.artistActions)
+            }
+            is Destination.Folder -> {
+                val folder = d.folder(destination.name)
+                if (e) ExpressiveFolder(folder, d.folderActions) else ComfortFolder(folder, d.folderActions)
+            }
+            Destination.Liked -> if (e) ExpressiveFavourites(d.favourites, d.likedActions) else ComfortFavourites(d.favourites, d.likedActions)
+            // The demo library has one playlist state; genres never appear in the Library's list.
+            else -> if (e) ExpressivePlaylist(d.playlist(), d.playlistActions) else ComfortPlaylist(d.playlist(), d.playlistActions)
+        }
     }
 }
 

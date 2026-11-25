@@ -57,13 +57,16 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
     }
 
     companion object {
+        // The design file's Tablet frames, by key: tablet_compare.py pairs them.
         val Landscape = listOf(
-            "home", "library_list", "library_grid", "search_browse", "search_results", "album", "artist", "playlist",
-            "now_playing", "lyrics_synced", "queue", "settings", "sheet_track_menu", "dialog_new_playlist",
-            "onboarding_look", "recap", "recap_story_minutes",
+            "home", "library_albums", "search_results", "album", "artist", "playlist",
+            "now_playing", "now_playing_lyrics", "lyrics_synced", "settings", "sheet_track_menu_album",
+            "dialog_new_playlist_library", "onboarding_look",
+            // Not drawn on the Tablet page, rendered to check they hold up.
+            "library_grid", "search_browse", "queue", "recap", "recap_story_intro",
         )
         val Portrait = listOf("home", "library_list", "search_results", "album", "now_playing", "settings", "onboarding_look")
-        val Large = listOf("home", "library_list", "album", "now_playing")
+        val Large = listOf("home", "library_albums", "album", "now_playing")
 
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}-{3}")
