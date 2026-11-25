@@ -95,6 +95,9 @@ class LyricsScreenActions(
     val togglePlayPause: () -> Unit,
     val seekTo: (Long) -> Unit,
     val lyrics: LyricsActions,
+    /** Only the tablet layout beside the lyrics draws previous and next; the phone screen has play and pause. */
+    val previous: () -> Unit = {},
+    val next: () -> Unit = {},
 )
 
 @Composable
@@ -113,6 +116,8 @@ fun rememberLyricsScreenModel(player: PlayerUiState, onClose: () -> Unit): UiMod
         },
         seekTo = { app.player.seekTo(it) },
         lyrics = lyrics.actions,
+        previous = { app.player.previous() },
+        next = { app.player.next() },
     )
     return UiModel(state, actions)
 }

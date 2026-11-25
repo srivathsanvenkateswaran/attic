@@ -2,7 +2,6 @@ package app.attic.player.ui.comfort
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -24,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
@@ -119,12 +117,6 @@ private fun LyricsControls(state: LyricsScreenState, actions: LyricsScreenAction
             onScrub = { scrub = it },
             contentDescription = stringResource(R.string.now_playing_seek_cd, track.title),
         )
-        Row(
-            Modifier.fillMaxWidth().padding(top = 14.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            PlayButton(state.isPlaying, actions.togglePlayPause)
-        }
+        Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
     }
 }

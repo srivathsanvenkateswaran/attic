@@ -80,14 +80,12 @@ import kotlin.math.roundToInt
 fun ExpressiveLyrics(
     state: LyricsScreenState,
     actions: LyricsScreenActions,
-    previous: (() -> Unit)? = null,
-    next: (() -> Unit)? = null,
 ) {
     val track = state.track ?: return
     val window = LocalWindowLayout.current
     FromCover(track.mediaId) {
         when {
-            window.playerSideBySide -> LyricsBeside(state, actions, track, previous, next)
+            window.playerSideBySide -> LyricsBeside(state, actions, track)
             window.wide -> LyricsPage(state, actions, track, column = LyricsColumnMax)
             else -> LyricsPage(state, actions, track)
         }
@@ -365,11 +363,10 @@ internal fun LyricsBody(state: LyricsScreenState, actions: LyricsScreenActions, 
 /**
  * Full-screen lyrics on an expanded landscape window: a 360dp start pane holding one card on the
  * cover scheme's container (close, the cover, title and artist, the seek bar and the play controls),
- * and the lines in the rest of the window in a centred column at most 640dp wide. Previous and next
- * join play or pause when the caller hands them in.
+ * and the lines in the rest of the window in a centred column at most 640dp wide.
  */
 @Composable
-private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, previous: (() -> Unit)?, next: (() -> Unit)?) {
+private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions, track: Track) {
     val colors = MaterialTheme.colorScheme
     val status = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val nav = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -412,13 +409,7 @@ private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions,
             Spacer(Modifier.height(8.dp))
             PaneSeek(state, actions, track)
             Spacer(Modifier.height(16.dp))
-            if (previous != null && next != null) {
-                Transport(state.isPlaying, previous, actions.togglePlayPause, next)
-            } else {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    PlayButton(state.isPlaying, actions.togglePlayPause, size = PlaySize.ExtraLarge)
-                }
-            }
+            Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
         }
         Box(Modifier.weight(1f).fillMaxHeight().padding(bottom = nav).fadeEdges()) {
             LyricsBody(
