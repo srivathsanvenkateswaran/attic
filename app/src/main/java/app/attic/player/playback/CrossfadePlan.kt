@@ -6,14 +6,11 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * When a crossfade happens and how long it lasts, kept free of the players so it can be tested.
- * [CrossfadeController] asks [fadeMs] for the song now playing, then [step] for what to do at the
- * current position.
+ * The fixed crossfade's length and the timing every transition shares, kept free of the players so it
+ * can be tested. [TransitionPlanner] uses [fadeMs] for the Crossfade setting and for Smart without
+ * analysis; [CrossfadeController] asks [step] what to do at the current position.
  */
 object CrossfadePlan {
-    /** The lengths offered in Settings, in seconds. 0 is off. */
-    val choices = listOf(0, 2, 4, 6, 8, 10, 12)
-
     /** The tail player starts this long before the fade, to line up with the main one while silent. */
     const val ARM_LEAD_MS = 5_000L
 
@@ -58,8 +55,9 @@ object CrossfadePlan {
         data object TooLate : Step
     }
 
-    fun step(positionMs: Long, durationMs: Long, fadeMs: Long): Step {
-        val untilFade = durationMs - fadeMs - positionMs
+    /** What to do at [positionMs] for a fade that starts at [fadeStartMs]. */
+    fun step(positionMs: Long, fadeStartMs: Long): Step {
+        val untilFade = fadeStartMs - positionMs
         return when {
             untilFade < MIN_ARM_MS -> Step.TooLate
             untilFade > ARM_LEAD_MS -> Step.Wait(untilFade - ARM_LEAD_MS)

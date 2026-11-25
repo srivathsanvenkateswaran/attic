@@ -82,6 +82,8 @@ class PlaybackService : MediaLibraryService() {
     private var sleepJob: Job? = null
     private lateinit var levelling: LevellingAudioProcessor
     private lateinit var crossfade: CrossfadeController
+    private lateinit var transitionStore: TransitionStore
+    private var transitionMark: TransitionSession.Mark? = null
     private val browse by lazy { CarBrowser(this) }
     private val artGrants by lazy { ArtGrants(this) }
 
@@ -111,10 +113,18 @@ class PlaybackService : MediaLibraryService() {
             main = player,
             mainLevelling = levelling,
             equaliser = attic.equaliser,
-            settingSeconds = { attic.settings.crossfadeSeconds.value },
+            mode = { attic.settings.transitions.value },
+            lengthSeconds = { attic.settings.crossfadeSeconds.value },
             stopsAfterThisSong = { sleep.choice == SleepChoice.EndOfSong },
             trackFor = { key -> attic.library.library.value?.trackByKey?.get(key)?.let { LevelTrack(it.key, it.albumKey, it.trackNumber) } },
+            transitionsFor = { key -> transitionStore[key] },
+            onSmartPlan = { mediaId, at ->
+                transitionMark = if (mediaId == null || at == null) null else TransitionSession.Mark(mediaId, at)
+                publishSessionExtras()
+            },
         )
+        // Built after the controller, whose replan it calls when analysis saves a song.
+        transitionStore = TransitionStore(attic.database.dao(), scope) { crossfade.settingsChanged() }
 
         shuffledPlayer = shuffle.wrappedPlayer()
         session = MediaLibrarySession.Builder(this, shuffledPlayer, SessionCallback())
@@ -139,6 +149,9 @@ class PlaybackService : MediaLibraryService() {
         }
         scope.launch {
             attic.settings.crossfadeSeconds.collect { crossfade.settingsChanged() }
+        }
+        scope.launch {
+            attic.settings.transitions.collect { crossfade.settingsChanged() }
         }
 
         openAudioSession(player.audioSessionId)
@@ -600,9 +613,12 @@ class PlaybackService : MediaLibraryService() {
 
     private fun publishSleepTimer() = publishSessionExtras()
 
-    /** The sleep timer's state and smart shuffle's picks, which every controller receives. */
+    /** The sleep timer's state, smart shuffle's picks and the planned Smart transition, which every controller receives. */
     private fun sessionExtras(): Bundle =
-        SleepTimerSession.extras(sleep.status).also { SmartShuffleSession.putPicks(it, shuffle.smartPicks) }
+        SleepTimerSession.extras(sleep.status).also {
+            SmartShuffleSession.putPicks(it, shuffle.smartPicks)
+            TransitionSession.put(it, transitionMark)
+        }
 
     private fun publishSessionExtras() {
         session?.setSessionExtras(sessionExtras())

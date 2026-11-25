@@ -57,20 +57,20 @@ class CrossfadePlanTest {
     @Test
     fun waitsUntilFiveSecondsBeforeTheFade() {
         // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:49.
-        assertEquals(CrossfadePlan.Step.Wait(229_000 - 100_000), CrossfadePlan.step(100_000, 240_000, 6_000))
+        assertEquals(CrossfadePlan.Step.Wait(229_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
     }
 
     @Test
     fun armsInsideTheLead() {
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(230_000, 240_000, 6_000))
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 240_000, 6_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(230_000, 234_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 234_000))
     }
 
     /** Seeking to just before the end leaves no time to line up, so that song ends without a fade. */
     @Test
     fun seekingCloseToTheEndSkipsTheFade() {
-        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(233_000, 240_000, 6_000))
-        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(239_000, 240_000, 6_000))
+        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(233_000, 234_000))
+        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(239_000, 234_000))
     }
 
     @Test
@@ -87,9 +87,9 @@ class CrossfadePlanTest {
     }
 
     @Test
-    fun choicesAreOffThenTwoToTwelveSeconds() {
-        assertEquals(0, CrossfadePlan.choices.first())
-        assertTrue(CrossfadePlan.choices.drop(1).all { it in 2..12 })
+    fun lengthsAreTwoToTwelveSecondsWithSixTheDefault() {
+        assertEquals(listOf(2, 4, 6, 8, 10, 12), TransitionPlanner.lengthChoices)
+        assertTrue(TransitionPlanner.DEFAULT_LENGTH_SECONDS in TransitionPlanner.lengthChoices)
     }
 }
 

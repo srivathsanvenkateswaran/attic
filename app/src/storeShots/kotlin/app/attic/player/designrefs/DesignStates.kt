@@ -1,5 +1,6 @@
 package app.attic.player.designrefs
 
+import app.attic.player.playback.TransitionMode
 import android.content.Context
 import androidx.media3.common.Player
 import app.attic.player.analysis.AnalysisProgress
@@ -334,6 +335,7 @@ object DesignStates {
         analysing: Boolean = false,
         downloadingLyrics: Boolean = false,
         backup: BackupUiState = base(style, dark).backup,
+        transitions: TransitionMode = base(style, dark).transitions,
     ): SettingsState {
         val base = s.settings(style, dark)
         val total = lib.tracks.size
@@ -347,6 +349,7 @@ object DesignStates {
             analysis = if (analysing) AnalysisProgress(done = 41, total = total, running = true) else base.analysis,
             backup = backup,
             volumeLevelling = base.volumeLevelling,
+            transitions = transitions,
             crossfadeSeconds = base.crossfadeSeconds,
             equaliser = base.equaliser,
         )

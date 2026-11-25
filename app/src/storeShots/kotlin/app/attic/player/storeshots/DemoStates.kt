@@ -1,5 +1,6 @@
 package app.attic.player.storeshots
 
+import app.attic.player.playback.TransitionMode
 import androidx.compose.material3.SnackbarHostState
 import androidx.media3.common.Player
 import app.attic.player.analysis.AnalysisProgress
@@ -322,6 +323,7 @@ object DemoStates {
         uiStyle = style,
         autoplay = true,
         volumeLevelling = true,
+        transitions = TransitionMode.Crossfade,
         crossfadeSeconds = 6,
         bulkLyrics = BulkProgress(done = 0, total = 0, found = 0, running = false),
         savedLyricsCount = 51,
@@ -337,6 +339,7 @@ object DemoStates {
         setUiStyle = {},
         setAutoplay = {},
         setVolumeLevelling = {},
+        setTransitions = {},
         setCrossfadeSeconds = {},
         openEqualiserPage = noop,
         downloadAllLyrics = noop,

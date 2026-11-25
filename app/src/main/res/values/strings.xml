@@ -326,9 +326,17 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_volume_levelling">Volume levelling</string>
     <string name="settings_volume_levelling_body">Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are.</string>
+    <!-- Settings › Playback: what happens between songs. -->
+    <string name="settings_transitions">Transitions</string>
     <string name="settings_crossfade">Crossfade</string>
+    <string name="settings_transitions_smart">Smart</string>
+    <string name="settings_transitions_off_body">The next song starts when this one ends.</string>
+    <string name="settings_transitions_crossfade_body">Fades each song into the next over the crossfade length.</string>
+    <string name="settings_transitions_smart_body">Starts the next song as this one winds down, skips silence and lines up the beats when the tempos are close.</string>
     <string name="settings_crossfade_body">Songs from one album played in order still run straight into each other.</string>
     <string name="settings_crossfade_off">Off</string>
+    <string name="settings_crossfade_length">Crossfade length</string>
+    <string name="settings_crossfade_length_smart_body">Smart uses this for songs that aren\'t analysed yet.</string>
     <plurals name="settings_crossfade_seconds">
         <item quantity="one">%1$d second</item>
         <item quantity="other">%1$d seconds</item>

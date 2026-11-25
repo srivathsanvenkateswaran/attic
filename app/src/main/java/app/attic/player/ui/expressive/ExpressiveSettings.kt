@@ -38,6 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.crossfadeLengthBody
+import app.attic.player.ui.crossfadeLengthLabel
+import app.attic.player.ui.transitionBody
+import app.attic.player.ui.transitionLabel
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.data.BulkProgress
 import app.attic.player.data.ThemeMode
@@ -92,11 +96,18 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
             }
             item(key = "playback") {
                 SettingsSection(stringResource(R.string.settings_playback))
-                ListGroup(3) { index ->
-                    when (index) {
-                        0 -> VolumeLevellingRow(state.volumeLevelling, actions)
-                        1 -> CrossfadeRow(state, actions)
-                        else -> EqualiserRow(state.equaliser, actions)
+                val rows = buildList {
+                    add(PlaybackRow.Levelling)
+                    add(PlaybackRow.Transitions)
+                    if (state.showsCrossfadeLength) add(PlaybackRow.Length)
+                    add(PlaybackRow.Equaliser)
+                }
+                ListGroup(rows.size) { index ->
+                    when (rows[index]) {
+                        PlaybackRow.Levelling -> VolumeLevellingRow(state.volumeLevelling, actions)
+                        PlaybackRow.Transitions -> TransitionsRow(state, actions)
+                        PlaybackRow.Length -> CrossfadeLengthRow(state, actions)
+                        PlaybackRow.Equaliser -> EqualiserRow(state.equaliser, actions)
                     }
                 }
             }
@@ -332,21 +343,51 @@ private fun VolumeLevellingRow(enabled: Boolean, actions: SettingsActions) {
     }
 }
 
-/** "Crossfade" with its length as the supporting line; tapping opens the kit's menu of lengths, the current one ticked. */
+private enum class PlaybackRow { Levelling, Transitions, Length, Equaliser }
+
+/**
+ * "Transitions" with the current choice as the supporting line and what it does under it; tapping opens
+ * the kit's menu of Off, Crossfade and Smart, the current one ticked.
+ */
 @Composable
-private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
+private fun TransitionsRow(state: SettingsState, actions: SettingsActions) {
     var picking by remember { mutableStateOf(false) }
     Box {
         SetIconRow(Symbol.TransitionFade, modifier = Modifier.clickable(role = Role.DropdownList) { picking = true }) {
-            RowTitle(stringResource(R.string.settings_crossfade))
-            SupportingText(crossfadeLabel(state.crossfadeSeconds))
-            Status(stringResource(R.string.settings_crossfade_body))
+            RowTitle(stringResource(R.string.settings_transitions))
+            SupportingText(transitionLabel(state.transitions))
+            Status(transitionBody(state.transitions))
+        }
+        ExpressiveMenu(expanded = picking, onDismiss = { picking = false }, modifier = Modifier) {
+            for (mode in state.transitionChoices) {
+                ExpressiveMenuItem(
+                    symbol = if (mode == state.transitions) Symbol.Check else null,
+                    label = transitionLabel(mode),
+                    onClick = {
+                        picking = false
+                        actions.setTransitions(mode)
+                    },
+                )
+            }
+        }
+    }
+}
+
+/** "Crossfade length", shown for Crossfade and Smart; its menu lists 2 to 12 seconds. */
+@Composable
+private fun CrossfadeLengthRow(state: SettingsState, actions: SettingsActions) {
+    var picking by remember { mutableStateOf(false) }
+    Box {
+        SetIconRow(Symbol.Schedule, modifier = Modifier.clickable(role = Role.DropdownList) { picking = true }) {
+            RowTitle(stringResource(R.string.settings_crossfade_length))
+            SupportingText(crossfadeLengthLabel(state.crossfadeSeconds))
+            crossfadeLengthBody(state.transitions)?.let { Status(it) }
         }
         ExpressiveMenu(expanded = picking, onDismiss = { picking = false }, modifier = Modifier) {
             for (seconds in state.crossfadeChoices) {
                 ExpressiveMenuItem(
                     symbol = if (seconds == state.crossfadeSeconds) Symbol.Check else null,
-                    label = crossfadeLabel(seconds),
+                    label = crossfadeLengthLabel(seconds),
                     onClick = {
                         picking = false
                         actions.setCrossfadeSeconds(seconds)
@@ -357,12 +398,8 @@ private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
     }
 }
 
-@Composable
-private fun crossfadeLabel(seconds: Int): String =
-    if (seconds <= 0) stringResource(R.string.settings_crossfade_off) else pluralStringResource(R.plurals.settings_crossfade_seconds, seconds, seconds)
-
 /**
- * Opens Settings > Playback > Equaliser. Its second line is the state, as "Crossfade" shows its length:
+ * Opens Settings > Playback > Equaliser. Its second line is the state, as "Transitions" shows its choice:
  * "Off" or the default's preset. The small line counts the songs and albums with their own setting and
  * is absent when none has one.
  */

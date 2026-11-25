@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -13,19 +14,28 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import app.attic.player.analysis.SongTransitions
 import app.attic.player.playback.eq.EqSource
 import app.attic.player.playback.eq.EqualiserAudioProcessor
 
 /**
- * Crossfades from one song into the next. Media3 can't overlap two items in one player, so a second,
+ * Crossfades from one song into the next, at the point and for the length [TransitionPlanner] chose:
+ * the last few seconds for the Crossfade setting, or around the outgoing song's outro for Smart, entering
+ * the next song past its leading silence and, when the tempos allow, with a beat of each on the
+ * overlap's middle. Media3 can't overlap two items in one player, so a second,
  * bare ExoPlayer, the tail, plays the end of the outgoing song while the main player moves on:
  *
  * 1. Five seconds before the fade, the tail opens the song the main player is on, silent, and lines
  *    its position up with the main player's to within 20 ms ([TailAlignment]).
- * 2. When the fade is due, the tail is turned up and the main player skips to the next item at
- *    volume 0, so the outgoing song carries on from the tail without a break.
+ * 2. When the fade is due, the tail is turned up and the main player moves to the next item, at the
+ *    planned entry point, at volume 0, so the outgoing song carries on from the tail without a break.
  * 3. Over the fade the tail goes down and the main player comes up on equal-power curves, both
- *    following the main player's position in the new song. Then the tail stops.
+ *    following the main player's position in the new song. Then the tail stops, even if the outgoing
+ *    song had more to play.
+ *
+ * The main player's first audio in the new song can land a few tens of ms late. Early in each fade the
+ * controller measures how far the two songs' positions have slipped against the plan (the join error,
+ * logged under `AtticTransition`), and enters the next beat-aligned song that much further in.
  *
  * The main player is the only one the media session, notification, widget and queue ever see; to
  * them a crossfade is an early move to the next item. Each player has its own equaliser reading the
@@ -47,12 +57,16 @@ class CrossfadeController(
      * keeps its own curve while the incoming one plays with its own.
      */
     private val equaliser: EqSource,
-    private val settingSeconds: () -> Int,
+    private val mode: () -> TransitionMode,
+    private val lengthSeconds: () -> Int,
     /** True while the sleep timer is set to stop at the end of the song, which a fade would skip past. */
     private val stopsAfterThisSong: () -> Boolean,
     private val trackFor: (String) -> LevelTrack?,
+    private val transitionsFor: (String) -> SongTransitions?,
+    /** The planned start of a Smart transition out of the song [mediaId], or null; for Now Playing's mark. */
+    private val onSmartPlan: (mediaId: String?, fadeStartMs: Long?) -> Unit = { _, _ -> },
 ) {
-    private data class Plan(val currentKey: String, val nextKey: String, val fadeMs: Long, val durationMs: Long)
+    private data class Plan(val currentKey: String, val nextKey: String, val transition: Transition, val durationMs: Long)
 
     private sealed interface State {
         data object Idle : State
@@ -61,7 +75,7 @@ class CrossfadeController(
 
         data class Aligning(val plan: Plan, var settleUntil: Long, var aligned: Boolean = false) : State
 
-        data class Fading(val plan: Plan) : State
+        data class Fading(val plan: Plan, val startedAt: Long, val joinReadings: MutableList<Long> = ArrayList()) : State
     }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -73,6 +87,10 @@ class CrossfadeController(
     private var masterVolume = 1f
     private var mainRamp = 1f
     private var tailRamp = 0f
+
+    /** How far past the planned entry point to seek a beat-aligned song, learned from each fade's join error. */
+    private var entryLeadMs = 0L
+    private var publishedPlan: Pair<String?, Long?> = null to null
 
     /** True only while the main player is being moved to the next song for a fade. */
     var isOwnTransition: Boolean = false
@@ -128,7 +146,7 @@ class CrossfadeController(
 
     /** The setting or the sleep timer changed. */
     fun settingsChanged() {
-        if (state is State.Fading && settingSeconds() <= 0) cut()
+        if (state is State.Fading && mode() == TransitionMode.Off) cut()
         replan()
     }
 
@@ -143,6 +161,7 @@ class CrossfadeController(
     private fun replan() {
         if (state is State.Fading) return
         val plan = planNow()
+        publish(plan)
         if (plan == null) {
             cancel()
             return
@@ -160,17 +179,42 @@ class CrossfadeController(
         val nextIndex = main.nextMediaItemIndex
         val next = if (nextIndex == C.INDEX_UNSET) null else main.getMediaItemAt(nextIndex)
         val duration = main.duration.takeIf { it != C.TIME_UNSET } ?: item.mediaMetadata.durationMs ?: return null
-        val fade = CrossfadePlan.fadeMs(
-            settingSeconds = settingSeconds(),
+        val started = System.nanoTime()
+        val transition = TransitionPlanner.plan(
+            mode = mode(),
+            lengthSeconds = lengthSeconds(),
             current = levelTrack(item.mediaId),
             next = next?.let { levelTrack(it.mediaId) },
             currentDurationMs = duration,
             nextDurationMs = next?.mediaMetadata?.durationMs,
             repeatOne = main.repeatMode == Player.REPEAT_MODE_ONE,
             stopsAfterThisSong = stopsAfterThisSong(),
-        )
-        if (fade <= 0 || next == null) return null
-        return Plan(item.mediaId, next.mediaId, fade, duration)
+            outgoing = transitionsFor(item.mediaId),
+            incoming = next?.let { transitionsFor(it.mediaId) },
+        ) ?: return null
+        if (next == null) return null
+        val plan = Plan(item.mediaId, next.mediaId, transition, duration)
+        if (plan != lastLogged) {
+            lastLogged = plan
+            Log.i(TAG, "Plan ${describe(transition)}, planned in ${(System.nanoTime() - started) / 1_000} µs: ${item.mediaId} → ${next.mediaId}")
+        }
+        return plan
+    }
+
+    private var lastLogged: Plan? = null
+
+    private fun describe(t: Transition): String = buildString {
+        append("${t.kind} fade ${t.fadeMs} ms at ${t.fadeStartMs} ms, enters at ${t.incomingStartMs} ms")
+        append(", bpm ${t.outBpm?.let { "%.2f".format(it) } ?: "-"} → ${t.inBpm?.let { "%.2f".format(it) } ?: "-"}")
+        append(if (t.beatAligned) ", beats aligned, drift up to ${t.expectedDriftMs} ms" else ", beats not aligned")
+    }
+
+    private fun publish(plan: Plan?) {
+        val smart = plan?.transition?.takeIf { it.kind == Transition.Kind.Smart }
+        val now = (if (smart == null) null else plan.currentKey) to smart?.fadeStartMs
+        if (now == publishedPlan) return
+        publishedPlan = now
+        onSmartPlan(now.first, now.second)
     }
 
     private fun levelTrack(key: String): LevelTrack = trackFor(key) ?: LevelTrack(key, null, null)
@@ -181,7 +225,7 @@ class CrossfadeController(
             replan()
             return
         }
-        when (val step = CrossfadePlan.step(main.currentPosition, waiting.plan.durationMs, waiting.plan.fadeMs)) {
+        when (val step = CrossfadePlan.step(main.currentPosition, waiting.plan.transition.fadeStartMs)) {
             is CrossfadePlan.Step.Wait -> handler.postDelayed(evaluate, step.ms)
             CrossfadePlan.Step.Arm -> arm(waiting.plan)
             CrossfadePlan.Step.TooLate -> state = State.Idle
@@ -213,7 +257,7 @@ class CrossfadeController(
     private fun alignTick() {
         val aligning = state as? State.Aligning ?: return
         val tail = tail ?: return
-        val fadeStart = aligning.plan.durationMs - aligning.plan.fadeMs
+        val fadeStart = aligning.plan.transition.fadeStartMs
         val position = main.currentPosition
         if (position >= fadeStart) {
             if (aligning.aligned) startFade(aligning.plan) else cancel()
@@ -235,14 +279,16 @@ class CrossfadeController(
             cancel()
             return
         }
-        state = State.Fading(plan)
+        state = State.Fading(plan, SystemClock.elapsedRealtime())
         // The tail takes over the outgoing song at full level as the main player leaves it.
         tailRamp = 1f
         mainRamp = 0f
         applyVolumes()
+        val t = plan.transition
+        val entry = t.incomingStartMs + if (t.beatAligned) entryLeadMs else 0L
         isOwnTransition = true
         try {
-            main.seekTo(nextIndex, 0)
+            main.seekTo(nextIndex, entry)
         } finally {
             isOwnTransition = false
         }
@@ -252,15 +298,39 @@ class CrossfadeController(
     private fun fadeTick() {
         val fading = state as? State.Fading ?: return
         val tail = tail
-        val progress = main.currentPosition.toFloat() / fading.plan.fadeMs
+        val t = fading.plan.transition
+        val progress = (main.currentPosition - t.incomingStartMs).toFloat() / t.fadeMs
         if (tail == null || progress >= 1f || tail.playbackState == Player.STATE_ENDED) {
             finishFade()
             return
         }
+        measureJoin(fading, tail)
         tailRamp = CrossfadePlan.outgoingVolume(progress)
         mainRamp = CrossfadePlan.incomingVolume(progress)
         applyVolumes()
         handler.postDelayed(fadeTick, FADE_TICK_MS)
+    }
+
+    /**
+     * Between [JOIN_FROM_MS] and [JOIN_UNTIL_MS] into a fade, reads how far each player has got since the
+     * join against the plan. Positive means the outgoing song is ahead: the incoming song started late.
+     */
+    private fun measureJoin(fading: State.Fading, tail: ExoPlayer) {
+        val since = SystemClock.elapsedRealtime() - fading.startedAt
+        if (since < JOIN_FROM_MS || since > JOIN_UNTIL_MS || fading.joinReadings.size >= JOIN_READINGS) return
+        if (!main.isPlaying || !tail.isPlaying) return
+        val t = fading.plan.transition
+        fading.joinReadings += (tail.currentPosition - t.fadeStartMs) - (main.currentPosition - t.incomingStartMs)
+        if (fading.joinReadings.size < JOIN_READINGS) return
+        val error = fading.joinReadings.sorted()[JOIN_READINGS / 2]
+        val usedLead = if (t.beatAligned) entryLeadMs else 0L
+        // The error already includes the lead this fade used, so the next lead is that plus the error.
+        entryLeadMs = (usedLead + error).coerceIn(-MAX_ENTRY_LEAD_MS, MAX_ENTRY_LEAD_MS)
+        Log.i(
+            TAG,
+            "Join error $error ms (${if (t.beatAligned) "beats aligned" else "not aligned"}, entry lead was $usedLead ms, " +
+                "next $entryLeadMs ms): ${fading.plan.currentKey} → ${fading.plan.nextKey}",
+        )
     }
 
     private fun finishFade() {
@@ -317,5 +387,10 @@ class CrossfadeController(
         const val SETTLE_MS = 400L
         const val ALIGN_TICK_MS = 50L
         const val FADE_TICK_MS = 30L
+        const val TAG = "AtticTransition"
+        const val JOIN_FROM_MS = 250L
+        const val JOIN_UNTIL_MS = 1_200L
+        const val JOIN_READINGS = 5
+        const val MAX_ENTRY_LEAD_MS = 300L
     }
 }

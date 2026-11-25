@@ -2,6 +2,8 @@ package app.attic.player.data
 
 import android.content.Context
 import android.os.Build
+import app.attic.player.playback.TransitionMode
+import app.attic.player.playback.TransitionPlanner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -101,13 +103,25 @@ class AppSettings(context: Context) {
         _volumeLevelling.value = enabled
     }
 
-    private val _crossfadeSeconds = MutableStateFlow(prefs.getInt(KEY_CROSSFADE_SECONDS, 0))
+    private val savedTransitions = TransitionSetting.read(prefs.getString(KEY_TRANSITIONS, null), prefs.getInt(KEY_CROSSFADE_SECONDS, 0))
 
-    /** How long one song fades into the next, in seconds. 0 is off, the default. */
+    private val _transitions = MutableStateFlow(savedTransitions.mode)
+
+    /** What happens between songs. Off by default. */
+    val transitions: StateFlow<TransitionMode> = _transitions.asStateFlow()
+
+    fun setTransitions(mode: TransitionMode) {
+        prefs.edit().putString(KEY_TRANSITIONS, mode.name).putInt(KEY_CROSSFADE_SECONDS, _crossfadeSeconds.value).apply()
+        _transitions.value = mode
+    }
+
+    private val _crossfadeSeconds = MutableStateFlow(savedTransitions.seconds)
+
+    /** The crossfade length, 2 to 12 seconds: Crossfade's fade, and Smart's for songs not analysed yet. */
     val crossfadeSeconds: StateFlow<Int> = _crossfadeSeconds.asStateFlow()
 
     fun setCrossfadeSeconds(seconds: Int) {
-        prefs.edit().putInt(KEY_CROSSFADE_SECONDS, seconds).apply()
+        prefs.edit().putInt(KEY_CROSSFADE_SECONDS, seconds).putString(KEY_TRANSITIONS, _transitions.value.name).apply()
         _crossfadeSeconds.value = seconds
     }
 
@@ -179,9 +193,26 @@ class AppSettings(context: Context) {
         const val LIST_SEPARATOR = "\u001F"
         const val KEY_THEME = "theme"
         const val KEY_CROSSFADE_SECONDS = "crossfade_seconds"
+        const val KEY_TRANSITIONS = "transitions"
         const val KEY_VOLUME_LEVELLING = "volume_levelling"
         const val KEY_UI_STYLE = "ui_style"
         const val KEY_AUTOPLAY = "autoplay"
         const val KEY_ONBOARDING_DONE = "onboarding_done"
+    }
+}
+
+/**
+ * The saved transition setting. Before Smart existed there was only `crossfade_seconds`, with 0 for off,
+ * so an install that has no `transitions` value reads its mode from that: a length means Crossfade at
+ * that length, 0 means Off with the default length.
+ */
+data class TransitionSetting(val mode: TransitionMode, val seconds: Int) {
+    companion object {
+        fun read(savedMode: String?, savedSeconds: Int): TransitionSetting {
+            val seconds = savedSeconds.takeIf { it in TransitionPlanner.lengthChoices } ?: TransitionPlanner.DEFAULT_LENGTH_SECONDS
+            val mode = TransitionMode.entries.firstOrNull { it.name == savedMode }
+                ?: if (savedSeconds > 0) TransitionMode.Crossfade else TransitionMode.Off
+            return TransitionSetting(mode, seconds)
+        }
     }
 }
