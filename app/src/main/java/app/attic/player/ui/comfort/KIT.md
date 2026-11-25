@@ -288,7 +288,8 @@ full-screen window's dim and bar icons), `rememberProgress` (how far a song has 
 
 ## The equaliser (sheet 11)
 
-ComfortEqualiser.kt draws oneui/11-equaliser.html from `ui/model/EqualiserModel.kt`. Its pieces are
+ComfortEqualiser.kt draws the Equaliser section of `design/Attic Comfort.figcraft` (1.2.0) from
+`ui/model/EqualiserModel.kt`; oneui/11-equaliser.html is the earlier mock the class names come from. Its pieces are
 private to the file, since nothing else draws an equaliser; `EqualiserIndicator` is the one the kit
 table lists. Entry points: `ComfortEqualiserSheet(state, actions)` (from the track menu's "Equaliser"
 row and from the indicator; over the player the caller washes it with the cover) and
@@ -299,17 +300,16 @@ row and from the indicator; over the player the caller washes it with the cover)
 | `.eq-title`, `.eq-off` | `EqualiserTitleRow`, the off line | the whole row is the switch; the line under it folds in and out over 200 ms |
 | `.eq-scope` (`.own`) | `EqualiserScopeHead` | default: neutral 48dp icon box; a song's or album's own setting: its cover on an `--accent-soft` bed, second line in `--on-accent-soft`; one live region for TalkBack |
 | `.chips` here | `PresetChips`, `PresetChip` | single choice (`Role.RadioButton` in a `selectableGroup`), unlike `FilterChip`; "Custom" and "Save as preset" lead while no preset matches; a chosen preset of the listener's own ends in `more_vert` and opens Rename / Delete preset on a second tap or a long press; scrolls its selection into view; half strength while the equaliser is off |
-| `.eq-well` | `ResponseWell` | one drawing: the engine's real response to 14 dB either way, dashed at +12 and -12; flat in `--on-3` when off; decoration to TalkBack |
-| `.eq-bands`, `.eq-freqs` | `BandSliders` | one drawing and one `pointerInput`: relative vertical drag in a band's column snapping to 1 dB, double tap to 0 dB, a tap alone does nothing; knob 20dp (26 while dragged, with the value in a `--toast` bubble); a tick on reaching or passing 0 dB; ten `BandSemantics` sliders over the columns |
-| `.eq-rows`, `.sheet-row.two`, `.eq-note` | `EqualiserActionRows` | `SheetRow`s under a full-width hairline; the removal row carries `summary` |
-| `.eq-card` | `DefaultCard` | the editor in a `Group` on the page: chips 12dp in, well 8dp in |
-| "with their own setting" rows | `OwnAlbumRow`, `OwnSongRow` | `CollectionRow` / `SongRow` that do nothing themselves; the preset and a close button in `trailing`; rows leave with `animateItem()` |
+| `.eq-bands`, `.eq-freqs` | `BandSliders` | a `--fill` card (radius 18; 30dp in at the start for the dB labels, 10dp at the end) holding one drawing and one `pointerInput`. The drawing has the dashed rules at +12 and -12 dB, the 0 dB line and their labels, the tracks, the engine's real response to 14 dB either way with an `--accent` area down to 0 dB, then the knobs, all at the knobs' 6.5dp to a decibel, so the line runs through every knob; off, the line is flat in `--on-3`. The bands: relative vertical drag in a band's column snapping to 1 dB, double tap to 0 dB, a tap alone does nothing; knob 20dp (26 while dragged, with the value in a `--toast` bubble); a tick on reaching or passing 0 dB; ten `BandSemantics` sliders over the columns |
+| `.eq-rows`, `.sheet-row.two`, `.eq-note` | `EqualiserActionRows` | `SheetRow`s 4dp under the plot's card, with no hairline over the first; the removal row carries `summary` |
+| `.eq-card` | `DefaultCard` | the editor in a `Group` on the page: chips 12dp in, the plot's card 8dp in on three sides |
+| "with their own setting" rows | `OwnAlbumRow`, `OwnSongRow` | `CollectionRow` / `SongRow` that do nothing themselves; the preset and a dim close button in `trailing`; rows leave with `animateItem()` |
 | dialogs | `PresetDialog` | `ComfortDialog` + `DialogField`; "Another preset has this name" under the field in `--danger` |
 
 How it stays cheap, which is a rule for anything added to it:
 
-- The gains being drawn live in `BandsState.gains`, a `FloatArray` in a state that only the two draw
-  blocks read. A drag redraws the well and the bands and recomposes neither. The response path is
+- The gains being drawn live in `BandsState.gains`, a `FloatArray` in a state that only the plot's draw
+  block reads. A drag redraws the plot and recomposes nothing in it. The response path is
   rebuilt inside `drawWithCache`'s draw block, and only when the gains' version or the on/off fraction
   changed.
 - The model hands over a new state for every band change. The sheet and the page pass state down as
