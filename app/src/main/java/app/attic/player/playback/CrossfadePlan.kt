@@ -85,6 +85,10 @@ class TailAlignment(
     var leadMs: Long = 80
         private set
 
+    /** The median of the last full set of readings, for the log. */
+    var lastMedianMs: Long = 0
+        private set
+
     private val readings = ArrayList<Long>()
 
     sealed interface Verdict {
@@ -106,6 +110,7 @@ class TailAlignment(
         readings += differenceMs
         if (readings.size < readingsNeeded) return Verdict.NeedMore
         val median = readings.sorted()[readings.size / 2]
+        lastMedianMs = median
         readings.clear()
         if (abs(median) <= toleranceMs) return Verdict.Aligned
         leadMs = (leadMs - median).coerceIn(-MAX_LEAD_MS, MAX_LEAD_MS)

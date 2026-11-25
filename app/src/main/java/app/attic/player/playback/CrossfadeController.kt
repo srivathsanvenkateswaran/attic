@@ -73,7 +73,13 @@ class CrossfadeController(
 
         data class Waiting(val plan: Plan) : State
 
-        data class Aligning(val plan: Plan, var settleUntil: Long, var aligned: Boolean = false) : State
+        data class Aligning(
+            val plan: Plan,
+            var settleUntil: Long,
+            var aligned: Boolean = false,
+            val armedAt: Long = SystemClock.elapsedRealtime(),
+            var seeks: Int = 0,
+        ) : State
 
         data class Fading(val plan: Plan, val startedAt: Long, val joinReadings: MutableList<Long> = ArrayList()) : State
     }
@@ -327,6 +333,7 @@ class CrossfadeController(
     }
 
     private fun seekTail(aligning: State.Aligning) {
+        aligning.seeks++
         alignment.reset()
         tail?.seekTo(alignment.seekTarget(main.currentPosition))
         aligning.settleUntil = SystemClock.elapsedRealtime() + SETTLE_MS
@@ -338,13 +345,29 @@ class CrossfadeController(
         val fadeStart = joinAt(aligning.plan.transition)
         val position = main.currentPosition
         if (position >= fadeStart) {
-            if (aligning.aligned) startFade(aligning.plan) else cancel()
+            if (aligning.aligned) {
+                startFade(aligning.plan)
+            } else {
+                Log.i(
+                    TAG,
+                    "Couldn't line the tail up in ${SystemClock.elapsedRealtime() - aligning.armedAt} ms (${aligning.seeks} seeks, " +
+                        "tail ${if (tail.isPlaying) "playing" else "state ${tail.playbackState}"}, lead ${alignment.leadMs} ms), " +
+                        "so the song ends as it would without a transition: ${aligning.plan.currentKey}",
+                )
+                cancel()
+            }
             return
         }
         if (!aligning.aligned && tail.isPlaying && SystemClock.elapsedRealtime() >= aligning.settleUntil) {
             when (alignment.record(tail.currentPosition - main.currentPosition)) {
-                TailAlignment.Verdict.Aligned -> aligning.aligned = true
-                TailAlignment.Verdict.Reseek -> seekTail(aligning)
+                TailAlignment.Verdict.Aligned -> {
+                    aligning.aligned = true
+                    Log.i(TAG, "Tail lined up in ${SystemClock.elapsedRealtime() - aligning.armedAt} ms after ${aligning.seeks} seeks, lead ${alignment.leadMs} ms")
+                }
+                TailAlignment.Verdict.Reseek -> {
+                    Log.i(TAG, "Tail ${alignment.lastMedianMs} ms out, seeking it again with lead ${alignment.leadMs} ms")
+                    seekTail(aligning)
+                }
                 TailAlignment.Verdict.NeedMore -> Unit
             }
         }
