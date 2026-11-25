@@ -115,7 +115,7 @@ object MoodStates {
         val b = DesignStates.settings(style, dark)
         return SettingsState(
             themeMode = b.themeMode, uiStyle = b.uiStyle, autoplay = b.autoplay, volumeLevelling = b.volumeLevelling,
-            crossfadeSeconds = b.crossfadeSeconds, bulkLyrics = b.bulkLyrics, savedLyricsCount = b.savedLyricsCount,
+            transitions = b.transitions, crossfadeSeconds = b.crossfadeSeconds, bulkLyrics = b.bulkLyrics, savedLyricsCount = b.savedLyricsCount,
             songCount = b.songCount, analysis = b.analysis, backup = b.backup, equaliser = b.equaliser,
             interestsSummary = if (picked) "Chill, Focus, Romantic · 3 genres · Tamil, English" else "Nothing picked yet",
         )
