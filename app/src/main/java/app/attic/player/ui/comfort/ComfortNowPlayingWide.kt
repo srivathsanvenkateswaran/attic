@@ -97,9 +97,9 @@ private fun WidePlayer(state: NowPlayingState, actions: NowPlayingActions, track
     BoxWithConstraints(modifier) {
         val insets = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
             WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        // Header 60, the cover's 4 above it, title 74, then the deck 10 under the title (its own 16dp
-        // margin less 6 of space) and 16 over the gesture area.
-        val room = maxHeight - insets - 60.dp - 4.dp - 74.dp - 10.dp - WideDeckHeight - 16.dp
+        // Header 60, the cover's 4 under it, title 74, then the deck's own 16dp top margin, the deck,
+        // and 16 over the gesture area.
+        val room = maxHeight - insets - 60.dp - 4.dp - 74.dp - 16.dp - WideDeckHeight - 16.dp
         val cover = max(120.dp, min(min(440.dp, room), maxWidth - 120.dp))
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             NowPlayingHeader(

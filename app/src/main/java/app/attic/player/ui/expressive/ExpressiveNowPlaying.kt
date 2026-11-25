@@ -198,7 +198,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                 verticalArrangement = if (column == null) Arrangement.SpaceBetween else Arrangement.Top,
             ) {
                 Header(state, actions, track)
-                CoverPager(state, actions, cover, Modifier.padding(top = 4.dp))
+                // On a tablet the cover stops at 480dp, so the pager is as wide as one square page, its
+                // insets and the next cover's sliver (88dp), not the whole column.
+                CoverPager(state, actions, cover, Modifier.padding(top = 4.dp).then(if (column == null) Modifier else Modifier.width(cover + 88.dp)))
                 Column(Modifier.onPlaced { controlsTop = it.positionInParent().y.roundToInt() }) {
                     TitleBlock(
                         state,
