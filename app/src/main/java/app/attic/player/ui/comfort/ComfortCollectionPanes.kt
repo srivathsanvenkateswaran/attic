@@ -60,6 +60,8 @@ import app.attic.player.ui.model.FolderActions
 import app.attic.player.ui.model.FolderState
 import app.attic.player.ui.model.GenreActions
 import app.attic.player.ui.model.GenreState
+import app.attic.player.ui.model.MoodActions
+import app.attic.player.ui.model.MoodState
 import app.attic.player.ui.model.LikedActions
 import app.attic.player.ui.model.LikedState
 import app.attic.player.ui.model.PlaylistActions
@@ -350,6 +352,28 @@ internal fun ComfortGenrePanes(state: GenreState, actions: GenreActions) {
             albumGrid(genre.albums, width, actions.openAlbum) { it.artist }
             item(key = "songsLabel") { Label(stringResource(R.string.library_filter_songs)) }
         }
+        songColumns(tracks, rowColumns(width.value), state.currentKey, state.isPlaying, { actions.play(it) }, actions.showMenu, actions.queue)
+    }
+}
+
+/** A mood's page on a tablet: the genre page's panes, with radio and no add to playlist (the mix changes daily). */
+@Composable
+internal fun ComfortMoodPanes(state: MoodState, actions: MoodActions) {
+    val stacked = @Composable { ComfortMood(state, actions) }
+    val tile = state.tile ?: return CompositionLocalProvider(LocalStackedCollection provides true) { stacked() }
+    val tracks = tile.tracks
+    CollectionPanes(
+        header = HeaderParts(
+            title = tile.name,
+            art = { m -> Mosaic(tile.mosaicIds.map(Art::Song), m) },
+            meta = stringResource(R.string.mood_kind, songsAndLength(tracks)) + "\n" + stringResource(R.string.mood_note),
+        ),
+        onBack = actions.back,
+        stacked = stacked,
+        playRow = {
+            PlayRow(tile.name, state.controls, actions.controls, radio = actions.startRadio, radioLabel = stringResource(R.string.mood_radio), addToPlaylist = false, padding = it)
+        },
+    ) { width ->
         songColumns(tracks, rowColumns(width.value), state.currentKey, state.isPlaying, { actions.play(it) }, actions.showMenu, actions.queue)
     }
 }

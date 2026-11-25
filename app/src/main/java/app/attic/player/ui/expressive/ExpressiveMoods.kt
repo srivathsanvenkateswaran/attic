@@ -144,24 +144,19 @@ fun ExpressiveMood(state: MoodState, actions: MoodActions) {
         controls = state.controls,
         controlActions = actions.controls,
         onBack = actions.back,
-        header = { titleModifier ->
-            CollectionHeader(
-                HeaderParts(
-                    title = tile.name,
-                    meta = listOf(stringResource(R.string.mood_kind, songsAndDuration(tracks)), stringResource(R.string.mood_note)),
-                    art = { Mosaic(tile.mosaicIds.map(Art::Song), it) },
-                    name = tile.name,
-                    controls = state.controls,
-                    controlActions = actions.controls,
-                    radio = actions.startRadio,
-                    radioLabel = stringResource(R.string.mood_radio),
-                ),
-                titleModifier,
-            )
-        },
-    ) {
-        item(key = "gap") { Spacer(Modifier.height(12.dp)) }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+        header = HeaderParts(
+            title = tile.name,
+            meta = listOf(stringResource(R.string.mood_kind, songsAndDuration(tracks)), stringResource(R.string.mood_note)),
+            art = { Mosaic(tile.mosaicIds.map(Art::Song), it) },
+            name = tile.name,
+            controls = state.controls,
+            controlActions = actions.controls,
+            radio = actions.startRadio,
+            radioLabel = stringResource(R.string.mood_radio),
+        ),
+    ) { columns ->
+        item(key = "gap") { Spacer(Modifier.height(columns.gap)) }
+        songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 

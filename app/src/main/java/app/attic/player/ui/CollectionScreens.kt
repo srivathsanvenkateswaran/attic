@@ -34,6 +34,7 @@ fun DestinationScreen(library: Library, destination: Destination) {
         is Destination.Folder -> FolderScreen(library, destination.name)
         is Destination.Playlist -> PlaylistScreen(library, destination.id)
         is Destination.Genre -> GenreScreen(destination.key)
+        is Destination.Mood -> MoodScreen(library, destination.id)
         Destination.Liked -> LikedScreen(library)
     }
 }

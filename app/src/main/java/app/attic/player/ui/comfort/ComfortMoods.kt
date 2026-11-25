@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.WidthClass
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.model.InterestChoice
@@ -96,6 +98,7 @@ fun MoodPicksCard(onChoose: () -> Unit, onDismiss: () -> Unit, modifier: Modifie
  */
 @Composable
 fun ComfortMood(state: MoodState, actions: MoodActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortMoodPanes(state, actions)
     val tile = state.tile
     if (tile == null) {
         // While the mixes are first built there is nothing to say yet; after that, the mood has none today.
