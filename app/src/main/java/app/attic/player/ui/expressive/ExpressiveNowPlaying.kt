@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +68,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
@@ -80,6 +84,7 @@ import app.attic.player.R
 import app.attic.player.data.Artist
 import app.attic.player.data.LrcParser
 import app.attic.player.data.Track
+import app.attic.player.playback.eq.EqScope
 import app.attic.player.ui.formatDuration
 import app.attic.player.ui.rememberArtColor
 import app.attic.player.ui.rememberPosition
@@ -254,7 +259,52 @@ private fun Header(state: NowPlayingState, actions: NowPlayingActions, track: Tr
                 )
             }
         }
+        EqualiserIndicator(state.equaliser, actions.openEqualiser)
         ExpressiveIconButton(Symbol.MoreVert, stringResource(R.string.more_options_for_cd, track.title), actions.showMenu)
+    }
+}
+
+/**
+ * The pill in the header while the song plays with an equaliser setting of its own or its album's
+ * (sheet 11 G): the glyph in primary and "This song" or "This album", opening the equaliser sheet. It
+ * fades in and out without sliding, so the context name beside it gives up its width once and does not
+ * drift. With no such setting nothing is drawn or laid out.
+ */
+@Composable
+private fun EqualiserIndicator(scope: EqScope?, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    // On the way out [scope] is already null, so the label is still the one that was showing.
+    val last = remember { arrayOf(scope) }
+    if (scope != null) last[0] = scope
+    AnimatedVisibility(
+        visible = scope != null,
+        enter = fadeIn(ExpressiveMotion.defaultEffects()),
+        exit = fadeOut(ExpressiveMotion.defaultEffects()),
+    ) {
+        val album = last[0] == EqScope.Album
+        val description = stringResource(if (album) R.string.equaliser_indicator_album_cd else R.string.equaliser_indicator_song_cd)
+        Row(
+            Modifier
+                .minimumInteractiveComponentSize()
+                .height(32.dp)
+                .clip(ExpressiveShapes.Pill)
+                .background(colors.surfaceContainerHigh)
+                .clickable(role = Role.Button, onClick = onClick)
+                .semantics { contentDescription = description }
+                .padding(start = 10.dp, end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SymbolIcon(Symbol.Equalizer, size = 18.dp, tint = colors.primary)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                stringResource(if (album) R.string.equaliser_indicator_album else R.string.equaliser_indicator_song),
+                style = MaterialTheme.typography.labelMedium,
+                color = colors.onSurfaceVariant,
+                maxLines = 1,
+                // The description above says it in full.
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+        }
     }
 }
 

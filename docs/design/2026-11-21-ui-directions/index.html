@@ -251,7 +251,10 @@ const SHEETS = [
   ['08-settings-states', 'Settings and states',  'settings, permission, loading, empty, missing'],
   ['09-recap',           'Recap',                'page, story cards, save and share'],
   ['10-system',          'Widget and system',    'widget sizes, notification, lock screen, launcher icon'],
+  // Added 2026-11-25 for the two styles that shipped. The fourth entry lists the folders that have the sheet.
+  ['11-equaliser',       'Equaliser',            'menu entry, sheet states, Now Playing indicator, settings page', ['pixel', 'oneui']],
 ];
+const has = (sheet, style) => !sheet[3] || sheet[3].includes(style);
 const state = {view:'style', style:'pixel', screen:'01-home'};
 
 function readHash(){
@@ -296,10 +299,14 @@ function render(){
   seg(screenPick, SHEETS.map(s => [s[0], s[1]]), state.screen, id => { state.screen = id; render(); });
   const out = document.getElementById('sheets'); out.innerHTML = '';
   if (state.view === 'style'){
-    for (const [file, title, what] of SHEETS) out.appendChild(sheetBlock(state.style, file, file.slice(0,2) + ' · ' + title, what));
+    for (const sheet of SHEETS) {
+      const [file, title, what] = sheet;
+      if (has(sheet, state.style)) out.appendChild(sheetBlock(state.style, file, file.slice(0,2) + ' · ' + title, what));
+    }
   } else {
-    const [file, title, what] = SHEETS.find(s => s[0] === state.screen);
-    for (const s of STYLES) out.appendChild(sheetBlock(s.id, file, s.name + ' · ' + title, what));
+    const sheet = SHEETS.find(s => s[0] === state.screen);
+    const [file, title, what] = sheet;
+    for (const s of STYLES) if (has(sheet, s.id)) out.appendChild(sheetBlock(s.id, file, s.name + ' · ' + title, what));
   }
   writeHash();
 }

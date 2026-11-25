@@ -95,7 +95,34 @@ class AppSettings(context: Context) {
         _crossfadeSeconds.value = seconds
     }
 
+    private val _equaliserOn = MutableStateFlow(prefs.getBoolean(KEY_EQUALISER_ON, false))
+
+    /** The equaliser's own switch. Off, nothing it holds is applied, the default or any song's. */
+    val equaliserOn: StateFlow<Boolean> = _equaliserOn.asStateFlow()
+
+    fun setEqualiserOn(on: Boolean) {
+        if (on == _equaliserOn.value) return
+        prefs.edit().putBoolean(KEY_EQUALISER_ON, on).apply()
+        _equaliserOn.value = on
+    }
+
+    private val _equaliserDefault = MutableStateFlow(prefs.getString(KEY_EQUALISER_DEFAULT, null).orEmpty())
+
+    /**
+     * The curve songs without one of their own play with, as [app.attic.player.playback.eq.EqCurve.encode]
+     * writes it. Empty is flat.
+     */
+    val equaliserDefault: StateFlow<String> = _equaliserDefault.asStateFlow()
+
+    fun setEqualiserDefault(gains: String) {
+        if (gains == _equaliserDefault.value) return
+        prefs.edit().putString(KEY_EQUALISER_DEFAULT, gains).apply()
+        _equaliserDefault.value = gains
+    }
+
     private companion object {
+        const val KEY_EQUALISER_ON = "equaliser_on"
+        const val KEY_EQUALISER_DEFAULT = "equaliser_default"
         const val KEY_THEME = "theme"
         const val KEY_CROSSFADE_SECONDS = "crossfade_seconds"
         const val KEY_VOLUME_LEVELLING = "volume_levelling"

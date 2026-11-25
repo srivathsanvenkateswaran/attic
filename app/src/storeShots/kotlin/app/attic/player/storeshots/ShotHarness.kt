@@ -56,6 +56,7 @@ import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.LocalUiStyle
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.github.takahirom.roborazzi.captureScreenRoboImage
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.asImage
@@ -133,6 +134,7 @@ private fun install(activity: ComponentActivity) {
  * Draws [content] in the app's theme for [style] and [dark], full screen with a status bar and a
  * gesture bar, runs [settleMs] of frames on the rule's clock, runs [prepare] (a scroll, say), and writes `<name>.png` to [ShotsDir].
  * The clock only moves when told, so looping animations (a marquee, the playing bars) don't hold it up.
+ * With [allWindows], sheets and dialogs (windows of their own) are composited over the screen.
  */
 fun ComposeContentTestRule.shoot(
     activity: ComponentActivity,
@@ -141,6 +143,7 @@ fun ComposeContentTestRule.shoot(
     dark: Boolean,
     settleMs: Long = 3000,
     prepare: ComposeContentTestRule.() -> Unit = {},
+    allWindows: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     mainClock.autoAdvance = false
@@ -181,7 +184,16 @@ fun ComposeContentTestRule.shoot(
     mainClock.advanceTimeBy(1000)
     shadowOf(Looper.getMainLooper()).idle()
     ShotsDir.mkdirs()
-    activity.window.decorView.captureRoboImage(File(ShotsDir, "$name.png").path)
+    if (allWindows) {
+        // A sheet's window is laid out a frame after the screen's; let it settle.
+        repeat(8) {
+            mainClock.advanceTimeBy(400)
+            shadowOf(Looper.getMainLooper()).idle()
+        }
+        captureScreenRoboImage(File(ShotsDir, "$name.png").path)
+    } else {
+        activity.window.decorView.captureRoboImage(File(ShotsDir, "$name.png").path)
+    }
 }
 
 /** A phone's status bar (time, signal, wifi, battery) and gesture handle, in ink that suits the theme. */

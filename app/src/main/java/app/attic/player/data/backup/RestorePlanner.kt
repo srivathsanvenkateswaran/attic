@@ -1,5 +1,9 @@
 package app.attic.player.data.backup
 
+import app.attic.player.data.EQ_SCOPE_ALBUM
+import app.attic.player.data.EQ_SCOPE_SONG
+import app.attic.player.data.EqPresetEntity
+import app.attic.player.data.EqSettingEntity
 import app.attic.player.data.HistoryEntity
 import app.attic.player.data.LikedEntity
 import app.attic.player.data.ListeningEventEntity
@@ -21,6 +25,10 @@ class ExistingData(
     /** Song key to the language's source, "manual" or "imported". */
     val languageSources: Map<String, String> = emptyMap(),
     val hasSavedQueue: Boolean = false,
+    /** Songs and albums with an equaliser curve of their own, as (scope, key). */
+    val equaliserTargets: Set<Pair<String, String>> = emptySet(),
+    /** Names of the user's own equaliser presets. */
+    val equaliserPresetNames: Set<String> = emptySet(),
 )
 
 class ExistingPlaylist(val id: Long, val name: String, val keys: List<String>)
@@ -54,6 +62,9 @@ class RestorePlan(
     val lyrics: List<LyricsEntity>,
     val languages: List<SongLanguageEntity>,
     val queue: SavedQueueEntity?,
+    /** Curves for songs and albums that have none here. */
+    val equaliser: List<EqSettingEntity> = emptyList(),
+    val equaliserPresets: List<EqPresetEntity> = emptyList(),
     val report: RestoreReport,
 )
 
@@ -67,6 +78,8 @@ class RestorePlan(
  * - lyrics by song, filling only songs that have none
  * - a language by song, where a manual choice beats an imported one and otherwise this phone's stays
  * - the saved queue only when this phone has none
+ * - an equaliser curve by song or album, filling only those with none here
+ * - an equaliser preset by name, ignoring case and surrounding spaces
  */
 object RestorePlanner {
     fun plan(backup: Backup, existing: ExistingData, libraryKeys: Set<String>): RestorePlan {
@@ -160,6 +173,21 @@ object RestorePlanner {
             )
         }
 
+        val equaliser = LinkedHashMap<Pair<String, String>, EqSettingEntity>()
+        fun addCurve(scope: String, target: String, entry: BackupEqualiser) {
+            val id = scope to target
+            if (target.isEmpty() || id in existing.equaliserTargets || id in equaliser) return
+            equaliser[id] = EqSettingEntity(scope, target, entry.gains, entry.savedAt)
+        }
+        backup.equaliserSongs.forEach { addCurve(EQ_SCOPE_SONG, key(it.target), it) }
+        backup.equaliserAlbums.forEach { addCurve(EQ_SCOPE_ALBUM, it.target, it) }
+
+        val presetNames = existing.equaliserPresetNames.mapTo(HashSet(), ::normalise)
+        val presets = backup.equaliserPresets.mapNotNull { preset ->
+            val name = preset.name.trim()
+            if (name.isEmpty() || !presetNames.add(normalise(name))) null else EqPresetEntity(name = name, gains = preset.gains, createdAt = preset.createdAt)
+        }
+
         val matched = songs.count { keys[it] != null }
         return RestorePlan(
             likes = likes.values.toList(),
@@ -170,6 +198,8 @@ object RestorePlanner {
             lyrics = lyrics.values.toList(),
             languages = languages.values.toList(),
             queue = queue,
+            equaliser = equaliser.values.toList(),
+            equaliserPresets = presets,
             report = RestoreReport(
                 likesAdded = likes.size,
                 playlistsAdded = created.size,

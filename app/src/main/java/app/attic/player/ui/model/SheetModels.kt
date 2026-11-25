@@ -65,6 +65,10 @@ class TrackMenuState(
     val sleepTimer: SleepTimerMenuState? = null,
     /** "Sleep timer" was chosen, so its choices are showing. */
     val pickingSleepTimer: Boolean = false,
+    /** The equaliser row, offered only when the menu opens from Now Playing. Null elsewhere. */
+    val equaliser: EqualiserMenuState? = null,
+    /** "Equaliser" was chosen, so the equaliser sheet replaces the menu. */
+    val showingEqualiser: Boolean = false,
 )
 
 /**
@@ -97,6 +101,8 @@ class TrackMenuActions(
     val chooseSleepTimer: (SleepChoice) -> Unit = {},
     /** Closes the timer's choices and leaves the menu open, for a style that draws them over the menu. */
     val stopPickingSleepTimer: () -> Unit = {},
+    /** Replaces the menu with the equaliser sheet. */
+    val openEqualiser: () -> Unit = {},
 )
 
 @Composable
@@ -109,6 +115,8 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
     var pickingPlaylist by remember { mutableStateOf(false) }
     var pickingLanguage by remember { mutableStateOf(false) }
     var pickingSleepTimer by remember { mutableStateOf(false) }
+    var showingEqualiser by remember { mutableStateOf(request.equaliser) }
+    val equaliser = if (request.fromNowPlaying) rememberEqualiserMenuState(track, library) else null
     val player by app.player.state.collectAsStateWithLifecycle()
     val sleepRemaining by produceState<Long?>(null, player.sleepTimer) {
         while (true) {
@@ -140,6 +148,8 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         canShare = !track.isExternal && track.mediaId >= 0,
         sleepTimer = if (request.fromNowPlaying) SleepTimerMenuState(player.sleepTimer.choice, sleepRemaining) else null,
         pickingSleepTimer = pickingSleepTimer,
+        equaliser = equaliser,
+        showingEqualiser = showingEqualiser,
     )
     val actions = TrackMenuActions(
         startRadio = {
@@ -199,6 +209,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
             onDismiss()
         },
         stopPickingSleepTimer = { pickingSleepTimer = false },
+        openEqualiser = { showingEqualiser = true },
     )
     return UiModel(state, actions)
 }

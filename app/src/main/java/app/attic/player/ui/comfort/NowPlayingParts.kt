@@ -50,7 +50,8 @@ import app.attic.player.ui.expressive.Symbol
 
 /**
  * `.np-head`: close (`expand_more`), "Playing from" over the [context] name, more options. Pads for
- * the status bar ([insets]).
+ * the status bar ([insets]). [trailing] sits before the more button (the equaliser's capsule); the
+ * context name gives up its width to it.
  */
 @Composable
 fun NowPlayingHeader(
@@ -61,6 +62,7 @@ fun NowPlayingHeader(
     modifier: Modifier = Modifier,
     overline: String = stringResource(R.string.now_playing_playing_from),
     insets: WindowInsets = WindowInsets.statusBars,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier.fillMaxWidth().windowInsetsPadding(insets).height(60.dp).padding(horizontal = 8.dp),
@@ -73,6 +75,7 @@ fun NowPlayingHeader(
             overline = overline,
             titleStyle = onest(15.5f, 20f, 600),
         )
+        trailing?.invoke()
         ComfortIconButton(Symbol.MoreVert, moreDescription, onMore)
     }
 }

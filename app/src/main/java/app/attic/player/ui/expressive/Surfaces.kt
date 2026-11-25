@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,9 +48,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -203,14 +209,51 @@ fun DialogTextField(value: String, onValueChange: (String) -> Unit, label: Strin
 }
 
 /**
- * A menu (`.menu`): Material's dropdown on surface container with 16dp corners and the kit's shadow,
- * 8dp of padding round its items and at least 196dp wide.
+ * The same field over a [TextFieldValue], for a dialog that opens prefilled with the cursor at the end
+ * (renaming a preset). [error] is the line under the field saying why the name can't be used; while it
+ * is set the field draws in the error colour. [onDone] is the keyboard's done key.
  */
 @Composable
-fun ExpressiveMenu(expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun DialogTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    error: String? = null,
+    onDone: (() -> Unit)? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        singleLine = true,
+        isError = error != null,
+        supportingText = if (error != null) ({ Text(error) }) else null,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(ExpressiveShapes.ExtraSmall),
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outline),
+    )
+}
+
+/**
+ * A menu (`.menu`): Material's dropdown on surface container with 16dp corners and the kit's shadow,
+ * 8dp of padding round its items and at least 196dp wide. [offset] moves it from its anchor, which is
+ * the layout it is declared in: a chip in a 48dp touch target passes -4dp to sit 4dp under the chip.
+ */
+@Composable
+fun ExpressiveMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    content: @Composable ColumnScope.() -> Unit,
+) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
+        offset = offset,
         // Applies inside the surface. Material already pads 8dp above and below; this adds the sides.
         modifier = modifier.padding(horizontal = 8.dp).widthIn(min = 180.dp),
         shape = RoundedCornerShape(ExpressiveShapes.Large),

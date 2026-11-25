@@ -173,7 +173,8 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.ib.tonal` (`.lg`, `.on`, `.off`) | `TonalIconButton(symbol, contentDescription, onClick, modifier, checked, large, filled, stateDescription, enabled, container)` | superellipse; checked = accent; `container` replaces `--fill` at rest (`--fill-2` on a dark sheet, `--card` on light ground) |
 | `.ib.heart`, `.ib.tonal.lg.heart` | `HeartButton(favourite, onToggle, modifier, tonal, large)` | describes itself |
 | `.play` (`.md`, `.sm`) | `PlayButton(playing, onClick, modifier, size = Large/Medium/Small)` | 76 / 56 / 44; describes itself |
-| `.np-head` | `NowPlayingHeader(context, onClose, onMore, moreDescription, modifier, overline, insets)` | |
+| `.np-head` | `NowPlayingHeader(context, onClose, onMore, moreDescription, modifier, overline, insets, trailing)` | `trailing` sits before the more button and the context name gives up its width to it (the equaliser's capsule) |
+| `.eq-on` | `EqualiserIndicator(scope, onClick)` | Now Playing's header, while the song plays with its own or its album's equaliser setting; nothing with `scope = null`; fades over 200 ms |
 | `.np-cover`, `.paused` | `NowPlayingCover(art, paused, modifier)` | paused draws at 86%, animated |
 | `.np-title` | `NowPlayingTitle(title, artist, modifier, onArtistClick)` | |
 | `.np-lyric` | `NowPlayingLyric(line, modifier, onClick)` | |
@@ -187,7 +188,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.tabs`, `.tab.on` | `TabBar(items = listOf(TabItem(label, symbol)), selectedIndex, onSelect)` | |
 | `.sheet`, `.grab` | `ComfortSheet(onDismiss, modifier, sheetState) { … }`; `StaticSheet { … }` for previews | opens expanded |
 | `.sheet-head`, `.sheet-title` (`small`) | `SheetHeader(title, subtitle, art = { m -> Cover(art, m) })`, `SheetTitle(text, modifier, subtitle)` | |
-| `.sheet-row` (`.on`, `.danger`, `.val`, `.end.go`) | `Hairlined { item { SheetRow(symbol, label, onClick, modifier, value, selected, danger, end) } }` | `end`: a quiet trailing glyph (`chevron_right`, `unfold_more`) |
+| `.sheet-row` (`.on`, `.danger`, `.val`, `.end.go`, `.two`) | `Hairlined { item { SheetRow(symbol, label, onClick, modifier, value, selected, danger, end, summary) } }` | `end`: a quiet trailing glyph (`chevron_right`, `unfold_more`); `summary`: a second line saying what the row leads to, in a 64dp row ("Use default" / "Removes this song's setting") |
 | `.dialog`, `.dialog-btns`, `.above-kbd` | `ComfortDialog(title, onDismiss, confirmText, onConfirm, dismissText, modifier, body, confirmEnabled, danger) { DialogField(…) }`; `DialogCard(…)` for previews | rides above the keyboard by itself; `dismissText = null` draws the confirm button alone, for a result to acknowledge (the restore result) |
 | `.field` | `DialogField(value, onValueChange, label, modifier, placeholder, focusRequester, onDone)` | a prefilled value opens with the cursor at its end |
 | `.menu`, `.menu.on-sheet`, `.menu-cap`, `.menu-row` | `ComfortMenu(expanded, onDismiss, modifier, offset, onSheet) { MenuCaption(text); MenuRow(symbol, label, onClick, modifier, selected, danger, check) }`; `StaticMenu` for previews | anchor: a Box around the trigger; `onSheet` takes `--fill`; `check` ends the selected row in a tick; an on/off row (smart shuffle) is `selected = on, check = true` with `Modifier.semantics { toggleableState = … }` |
@@ -277,9 +278,47 @@ The first run in Comfort: add `--es screen onboarding` (extras in ui/expressive/
 | Queue | ComfortQueue.kt | `Tinted(wash = true)`; the current song as the mini player's filled row (`.q-now`); "Clear" as a raised pill over a fade (`.q-foot`) |
 | Full-screen lyrics | ComfortLyrics.kt | `Tinted(wash = true)`; lines on the ground, the current one on an accent-soft bed (`.ly`); the mini player's row alone at the foot (`.dock.solo`) |
 | Track menu, pickers, Add songs, dialogs | ComfortSheets.kt | quick actions as tonal toggles on `--fill-2` (`.quick .qa`); the language picker as a pop-over on its row; over the player the caller washes them with the playing cover |
+| Equaliser sheet and Settings > Playback > Equaliser | ComfortEqualiser.kt | sheet 11; see "The equaliser" below |
 | Recap page | ComfortRecap.kt | hero with the back arrow pulled into its foot (`.tools.lead`); sub-tabs pin under the bar when scrolled; `.playrow`, `.stats`, `.langs`, `.when` |
 | Recap cards | ComfortRecapCards.kt | 360 by 640, always `ComfortDark` (`RecapCardColors`); top song, top artist and summary washed by their cover; ranked rows on beds in each cover's `--mini-fill`; `ListeningClock`, `languageSteps` (accent minus .13 / .26 / .38 L in OKLCH, "No vocals" `--on-3`) |
 | Recap story | ComfortRecapStory.kt | full-screen window, dark, washed with the card; one deck: `ComfortProgress` with "4 of 10", Save (plain) and Share (filled); the app's messages as a `ToastHost` above the deck |
 
 Shared helpers there: `songCount`, `totalLength`, `songsAndLength` (copy), `SystemBarsFor` (a
 full-screen window's dim and bar icons), `rememberProgress` (how far a song has played).
+
+## The equaliser (sheet 11)
+
+ComfortEqualiser.kt draws the Equaliser section of `design/Attic Comfort.figcraft` (1.2.0) from
+`ui/model/EqualiserModel.kt`; oneui/11-equaliser.html is the earlier mock the class names come from. Its pieces are
+private to the file, since nothing else draws an equaliser; `EqualiserIndicator` is the one the kit
+table lists. Entry points: `ComfortEqualiserSheet(state, actions)` (from the track menu's "Equaliser"
+row and from the indicator; over the player the caller washes it with the cover) and
+`ComfortEqualiserPage(state, actions)` (Settings > Playback > Equaliser, a `RootPage`).
+
+| Mock class | Piece | Notes |
+|---|---|---|
+| `.eq-title`, `.eq-off` | `EqualiserTitleRow`, the off line | the whole row is the switch; the line under it folds in and out over 200 ms |
+| `.eq-scope` (`.own`) | `EqualiserScopeHead` | default: neutral 48dp icon box; a song's or album's own setting: its cover on an `--accent-soft` bed, second line in `--on-accent-soft`; one live region for TalkBack |
+| `.chips` here | `PresetChips`, `PresetChip` | single choice (`Role.RadioButton` in a `selectableGroup`), unlike `FilterChip`; "Custom" and "Save as preset" lead while no preset matches; a chosen preset of the listener's own ends in `more_vert` and opens Rename / Delete preset on a second tap or a long press; scrolls its selection into view; half strength while the equaliser is off |
+| `.eq-bands`, `.eq-freqs` | `BandSliders` | a `--fill` card (radius 18; 30dp in at the start for the dB labels, 10dp at the end) holding one drawing and one `pointerInput`. The drawing has the dashed rules at +12 and -12 dB, the 0 dB line and their labels, the tracks, the engine's real response to 14 dB either way with an `--accent` area down to 0 dB, then the knobs, all at the knobs' 6.5dp to a decibel, so the line runs through every knob; off, the line is flat in `--on-3`. The bands: relative vertical drag in a band's column snapping to 1 dB, double tap to 0 dB, a tap alone does nothing; knob 20dp (26 while dragged, with the value in a `--toast` bubble); a tick on reaching or passing 0 dB; ten `BandSemantics` sliders over the columns |
+| `.eq-rows`, `.sheet-row.two`, `.eq-note` | `EqualiserActionRows` | `SheetRow`s 4dp under the plot's card, with no hairline over the first; the removal row carries `summary` |
+| `.eq-card` | `DefaultCard` | the editor in a `Group` on the page: chips 12dp in, the plot's card 8dp in on three sides |
+| "with their own setting" rows | `OwnAlbumRow`, `OwnSongRow` | `CollectionRow` / `SongRow` that do nothing themselves; the preset and a dim close button in `trailing`; rows leave with `animateItem()` |
+| dialogs | `PresetDialog` | `ComfortDialog` + `DialogField`; "Another preset has this name" under the field in `--danger` |
+
+How it stays cheap, which is a rule for anything added to it:
+
+- The gains being drawn live in `BandsState.gains`, a `FloatArray` in a state that only the plot's draw
+  block reads. A drag redraws the plot and recomposes nothing in it. The response path is
+  rebuilt inside `drawWithCache`'s draw block, and only when the gains' version or the on/off fraction
+  changed.
+- The model hands over a new state for every band change. The sheet and the page pass state down as
+  `State` holders, values compared by content (`remember(list) { list }`) and lambdas that capture only
+  those holders, so the sheet itself, the chips, the scope head, the action rows and the lists are
+  skipped; what recomposes each frame of a drag is the editor's shell and one empty semantics box.
+- `setBand` goes to the model once a frame at most (`snapshotFlow` + `conflate`, then a frame's wait),
+  and once more when the finger lifts.
+- The knob's shadow is one radial-gradient disc built with the drawing's cache and drawn under each
+  knob. No blur, no layer.
+- Everything that moves is a 200 ms or 100 ms tween started by an event. Nothing loops, and nothing
+  runs once the sheet or the page has left the screen.

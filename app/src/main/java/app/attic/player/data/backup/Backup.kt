@@ -19,6 +19,11 @@ data class Backup(
     val lyrics: List<BackupLyrics> = emptyList(),
     val languages: List<BackupLanguage> = emptyList(),
     val queue: BackupQueue? = null,
+    /** Equaliser curves saved for single songs, by song. */
+    val equaliserSongs: List<BackupEqualiser> = emptyList(),
+    /** Equaliser curves saved for albums, by album key (the album's name and artist as the library files them). */
+    val equaliserAlbums: List<BackupEqualiser> = emptyList(),
+    val equaliserPresets: List<BackupEqualiserPreset> = emptyList(),
 ) {
     /** Every song the backup mentions, once each. */
     fun songs(): Set<String> = buildSet {
@@ -28,11 +33,25 @@ data class Backup(
         listens.forEach { add(it.song) }
         lyrics.forEach { add(it.song) }
         languages.forEach { add(it.song) }
+        equaliserSongs.forEach { add(it.target) }
     }
 }
 
 /** Names as [app.attic.player.data.ThemeMode] and [app.attic.player.data.UiStyle] spell them. Null when absent. */
-data class BackupSettings(val theme: String?, val uiStyle: String?, val autoplay: Boolean?)
+data class BackupSettings(
+    val theme: String?,
+    val uiStyle: String?,
+    val autoplay: Boolean?,
+    val equaliserOn: Boolean? = null,
+    /** The default equaliser curve, encoded as the app stores it. Empty is flat. */
+    val equaliserDefault: String? = null,
+)
+
+/** A curve saved for one song or album: [target] is the song or the album key, [gains] the curve encoded. */
+data class BackupEqualiser(val target: String, val gains: String, val savedAt: Long)
+
+/** A named curve of the user's own. */
+data class BackupEqualiserPreset(val name: String, val gains: String, val createdAt: Long)
 
 data class BackupLike(val song: String, val likedAt: Long)
 

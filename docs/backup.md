@@ -15,10 +15,11 @@ UTF-8 JSON. The reader also takes the gzipped form that Android's backup carries
 ```json
 {
   "format": "attic-backup",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "createdAt": 1795392000000,
   "appVersion": "1.0.0",
-  "settings": { "theme": "Dark", "uiStyle": "Comfort", "autoplay": true },
+  "settings": { "theme": "Dark", "uiStyle": "Comfort", "autoplay": true,
+                "equaliserOn": true, "equaliserDefault": "0,0,0,0,0,0,0,0,0,0" },
   "likes": [{ "song": "Music/Hindi/Kabira.mp3", "likedAt": 1790000000000 }],
   "playlists": [{ "name": "Late drive", "createdAt": 1780000000000, "songs": ["Music/Hindi/Kabira.mp3"] }],
   "plays": [{ "song": "Music/Hindi/Kabira.mp3", "lastPlayedAt": 1794000000000, "playCount": 214 }],
@@ -28,16 +29,23 @@ UTF-8 JSON. The reader also takes the gzipped form that Android's backup carries
                "instrumental": false, "fetchedAt": 1793000000000 }],
   "languages": [{ "song": "Music/Hindi/Kabira.mp3", "language": "hi", "source": "manual" }],
   "queue": { "songs": ["…"], "index": 0, "positionMs": 107000, "repeatMode": 0, "shuffle": false,
-             "baseOrder": null, "context": "Late drive", "radioSeed": null }
+             "baseOrder": null, "context": "Late drive", "radioSeed": null },
+  "equaliser": {
+    "songs": [{ "song": "Music/Hindi/Kabira.mp3", "gains": "-1.5,-3,-3,1.5,3.75,3.75,3,1.5,0,-1.5", "savedAt": 1794100000000 }],
+    "albums": [{ "album": "monsoon tapes|kavya", "gains": "5.5,4.25,3.5,2.5,1.25,0,0,0,0,0", "savedAt": 1794200000000 }],
+    "presets": [{ "name": "Car", "gains": "3,3,0,0,0,0,0,0,2,2", "createdAt": 1794300000000 }]
+  }
 }
 ```
 
 - A song is its library key: the file's path relative to its volume, `RELATIVE_PATH + DISPLAY_NAME`, which is what the database stores. MediaStore IDs are never written.
 - Times are milliseconds since the epoch.
+- An equaliser curve is ten gains in dB, comma separated, for the bands at 31 Hz to 16 kHz. An album is its library key, the album's name and artist as the library files them.
 
 **Versions.**
 - A reader accepts any `schemaVersion` up to its own and ignores fields it doesn't know. A missing list counts as empty, so a later version can add fields and sections without a new number.
 - A change an older reader would misread, such as a renamed field or a changed meaning, raises the number. An older Attic then refuses the file with "made by a newer version of Attic" instead of guessing.
+- Version 2 added the `equaliser` section and the two equaliser settings. A version 1 reader would have skipped them without a word and restored everything else, losing every song's curve, so the number went up and an older Attic refuses the file. Version 1 files still read.
 - The format has its own types (`Backup.kt`), separate from the Room entities, so a database migration doesn't change the file.
 
 **What a restore does.** Nothing is deleted. Duplicates are matched by key, so restoring the same file twice adds nothing the second time (`RestorePlanner`):
@@ -51,7 +59,9 @@ UTF-8 JSON. The reader also takes the gzipped form that Android's backup carries
 | Lyrics | Fill songs with no lyrics, and replace a checked miss. Lyrics already found stay. |
 | Languages | Added where there is none. A manual choice in the file replaces an imported one. |
 | Saved queue | Only if the phone has none. |
-| Settings | Theme, style and autoplay come from the file. The confirmation says so. A restore from Android's backup leaves them alone, because Android restores the settings file itself. |
+| Equaliser curves | Fill songs and albums that have none on the phone. A song is matched as below. |
+| Equaliser presets | Matched by name, ignoring case and spaces at the ends. A preset already on the phone stays as it is. |
+| Settings | Theme, style, autoplay, the equaliser switch and its default curve come from the file. The confirmation says so. A restore from Android's backup leaves them alone, because Android restores the settings file itself. |
 
 The whole merge is one database transaction, so a failure changes nothing.
 
@@ -118,7 +128,7 @@ These need a device. None has been run.
 3. Clear the app's storage, grant audio access, and restore. Favourites, playlists, Recap and lyrics should come back, along with the theme and style.
 4. Move a few files to another folder, then restore. They should match by file name.
 5. Delete a few files, restore, put them back. They should reattach to favourites and playlists.
-6. Pick an MP3, a truncated copy of a backup, and a backup with `"schemaVersion": 2`. Each should show its own message and change nothing.
+6. Pick an MP3, a truncated copy of a backup, and a backup with `"schemaVersion": 3`. Each should show its own message and change nothing.
 7. Run the cloud backup by hand and restore it:
    ```
    adb shell bmgr backupnow app.attic.player

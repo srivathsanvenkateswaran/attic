@@ -1,5 +1,7 @@
 package app.attic.player.data.backup
 
+import app.attic.player.data.EQ_SCOPE_ALBUM
+import app.attic.player.data.EQ_SCOPE_SONG
 import app.attic.player.data.HistoryEntity
 import app.attic.player.data.LikedEntity
 import app.attic.player.data.PlaylistOrder
@@ -179,5 +181,51 @@ class RestorePlannerTest {
     @Test
     fun reorderKeepsSongsTheScreenDidNotShow() {
         assertEquals(listOf(viva, kabira, gone), PlaylistOrder.reordered(listOf(kabira, gone, viva), listOf(viva, kabira)))
+    }
+
+    @Test
+    fun equaliserCurvesFillOnlySongsAndAlbumsWithoutOne() {
+        val backup = Backup(
+            createdAt = 1,
+            appVersion = null,
+            settings = null,
+            equaliserSongs = listOf(
+                BackupEqualiser("Music/Kabira.mp3", "1,1,1,1,1,1,1,1,1,1", 10),
+                BackupEqualiser(viva, "2,2,2,2,2,2,2,2,2,2", 11),
+            ),
+            equaliserAlbums = listOf(
+                BackupEqualiser("monsoon tapes|kavya", "3,3,3,3,3,3,3,3,3,3", 12),
+                BackupEqualiser("night bus|", "4,4,4,4,4,4,4,4,4,4", 13),
+            ),
+        )
+        val plan = RestorePlanner.plan(
+            backup,
+            ExistingData(equaliserTargets = setOf(EQ_SCOPE_SONG to viva, EQ_SCOPE_ALBUM to "night bus|")),
+            setOf(kabira, viva),
+        )
+        // The song moved folders and is found by its file name; the ones set here stay as they are.
+        assertEquals(
+            listOf(EQ_SCOPE_SONG to kabira, EQ_SCOPE_ALBUM to "monsoon tapes|kavya"),
+            plan.equaliser.map { it.scope to it.key },
+        )
+        assertEquals("1,1,1,1,1,1,1,1,1,1", plan.equaliser.first().gains)
+    }
+
+    @Test
+    fun equaliserPresetsMergeByName() {
+        val backup = Backup(
+            createdAt = 1,
+            appVersion = null,
+            settings = null,
+            equaliserPresets = listOf(
+                BackupEqualiserPreset(" car ", "1,1,1,1,1,1,1,1,1,1", 1),
+                BackupEqualiserPreset("Night", "2,2,2,2,2,2,2,2,2,2", 2),
+                BackupEqualiserPreset("night", "3,3,3,3,3,3,3,3,3,3", 3),
+                BackupEqualiserPreset("  ", "4,4,4,4,4,4,4,4,4,4", 4),
+            ),
+        )
+        val plan = RestorePlanner.plan(backup, ExistingData(equaliserPresetNames = setOf("Car")), emptySet())
+        assertEquals(listOf("Night"), plan.equaliserPresets.map { it.name })
+        assertEquals("2,2,2,2,2,2,2,2,2,2", plan.equaliserPresets.single().gains)
     }
 }

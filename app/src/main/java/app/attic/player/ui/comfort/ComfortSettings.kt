@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -34,6 +35,8 @@ import app.attic.player.ui.model.restoreConfirmBody
 import app.attic.player.ui.model.restoreProblemBody
 import app.attic.player.ui.model.restoreResultBody
 import app.attic.player.ui.model.SettingsState
+import app.attic.player.ui.model.equaliserOwnSummary
+import app.attic.player.ui.model.equaliserRowValue
 import java.text.NumberFormat
 
 /**
@@ -94,16 +97,7 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
                     )
                 }
                 item { CrossfadeRow(state, actions) }
-                if (state.equaliserAvailable) {
-                    item {
-                        SetRow(
-                            stringResource(R.string.settings_equaliser),
-                            summary = stringResource(R.string.settings_equaliser_body),
-                            onClick = actions.openEqualiser,
-                            trailing = { ComfortIcon(Symbol.OpenInNew, tint = Comfort.colors.on3) },
-                        )
-                    }
-                }
+                item { EqualiserRow(state, actions) }
             }
         }
 
@@ -282,6 +276,33 @@ private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
             }
         }
     }
+}
+
+/**
+ * "Equaliser", which opens its page. Its value is its state, as "Crossfade" shows its length: "Off" or
+ * the default's preset. The line under the title counts what has a setting of its own, or describes
+ * the feature while nothing has.
+ */
+@Composable
+private fun EqualiserRow(state: SettingsState, actions: SettingsActions) {
+    SetRow(
+        stringResource(R.string.equaliser),
+        summary = equaliserOwnSummary(state.equaliser) ?: stringResource(R.string.settings_equaliser_summary),
+        value = equaliserRowValue(state.equaliser),
+        onClick = actions.openEqualiserPage,
+        trailing = {
+            // `.set-row .val + .ms{margin-left:-6px}`: the chevron keeps its place and the value moves 6dp towards it.
+            ComfortIcon(
+                Symbol.ChevronRight,
+                Modifier.layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    val pull = 6.dp.roundToPx()
+                    layout(placeable.width - pull, placeable.height) { placeable.placeRelative(-pull, 0) }
+                },
+                tint = Comfort.colors.on3,
+            )
+        },
+    )
 }
 
 @Composable

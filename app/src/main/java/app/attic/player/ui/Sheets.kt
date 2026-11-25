@@ -67,6 +67,7 @@ fun TrackMenuSheet(request: TrackMenuRequest, library: Library, onDismiss: () ->
             inScheme { LanguagePickerSheet(current = state.language, title = state.track.title, onChoose = actions.chooseLanguage) }
         // Comfort opens the sleep timer's choices as a pop-over too.
         state.pickingSleepTimer && style != UiStyle.Comfort -> inScheme { ExpressiveSleepTimerPicker(state, actions) }
+        state.showingEqualiser -> inScheme { EqualiserSheet(state.track, library, onDismiss) }
         else -> when (style) {
             UiStyle.Expressive -> inScheme { ExpressiveTrackMenu(state, actions) }
             UiStyle.Comfort -> inScheme { ComfortTrackMenu(state, actions) }
