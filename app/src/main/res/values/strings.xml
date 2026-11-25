@@ -571,6 +571,7 @@
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
     <string name="message_smart_shuffle_nothing">Smart shuffle has nothing to add yet, so this is a plain shuffle</string>
     <string name="message_genre_radio_unanalysed">Radio can start from this genre once its songs are analysed</string>
+    <string name="message_mood_radio_unanalysed">Mood radio can start once songs have been analysed</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>
