@@ -15,6 +15,7 @@ import app.attic.player.R
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.analysis.LOUDNESS_VERSION
+import app.attic.player.analysis.TRANSITIONS_VERSION
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.attic
 import app.attic.player.data.BulkProgress
@@ -118,7 +119,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val savedCount = saved.count { it in library.trackByKey }
     // A song counts once the worker has nothing left to do for it: its sound and styles (or found unreadable),
     // and its loudness. Songs analysed before styles or loudness existed show as still to do.
-    val analyzed by remember { app.database.dao().completeKeys(SongAnalyzer.MODEL_VERSION, LOUDNESS_VERSION) }
+    val analyzed by remember { app.database.dao().completeKeys(SongAnalyzer.MODEL_VERSION, LOUDNESS_VERSION, TRANSITIONS_VERSION) }
         .collectAsStateWithLifecycle(emptyList())
     val analyzing by AnalysisWorker.running(app).collectAsStateWithLifecycle(false)
     val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)

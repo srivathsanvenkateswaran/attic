@@ -102,18 +102,42 @@ object PcmDecoder {
         }
     }
 
-    /** Loudness alone, for a song analysed before Attic measured it. Null when the file can't be decoded. */
-    fun measureLoudness(context: Context, uri: Uri): SongLoudness? {
-        var meter: LoudnessMeter? = null
+    /** What one decode measures besides the model's input. [transitionNanos] is the time [TransitionMeter] took. */
+    class Measured(val loudness: SongLoudness?, val transitions: SongTransitions?, val transitionNanos: Long)
+
+    /**
+     * Loudness at the file's own rate and channels, and the transition points from a 16 kHz mono copy,
+     * which [mono] also receives (the model's input). Null when the file can't be decoded. Without a
+     * [mono] consumer this is the quick decode for a song analysed before Attic measured these.
+     */
+    fun measure(context: Context, uri: Uri, mono: ((FloatArray) -> Unit)? = null): Measured? {
+        var loudness: LoudnessMeter? = null
+        var resampler: LinearResampler? = null
+        val transitions = TransitionMeter()
+        var channels = 1
+        var transitionNanos = 0L
         val decoded = decode(
             context,
             uri,
-            onFormat = { rate, channels -> meter = LoudnessMeter(rate, channels) },
+            onFormat = { rate, count ->
+                channels = count
+                loudness = LoudnessMeter(rate, count)
+                resampler = LinearResampler(rate, TransitionMeter.SAMPLE_RATE)
+            },
             onSamples = { samples ->
-                meter?.add(samples)
+                loudness?.add(samples)
+                val resampled = resampler!!.push(PcmBuffer.toMono(samples, channels))
+                val started = System.nanoTime()
+                transitions.add(resampled)
+                transitionNanos += System.nanoTime() - started
+                mono?.invoke(resampled)
                 true
             },
         )
-        return if (decoded) meter?.result() else null
+        if (!decoded) return null
+        val started = System.nanoTime()
+        val result = transitions.result()
+        transitionNanos += System.nanoTime() - started
+        return Measured(loudness?.result(), result, transitionNanos)
     }
 }
