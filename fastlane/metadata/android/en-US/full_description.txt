@@ -27,12 +27,12 @@ Radio, mixes, moods and genres come from analysing each song's sound on the phon
 PLAYBACK
 - A ten-band equaliser with eleven presets and your own. A song or an album can keep its own setting, which comes back whenever it plays
 - It runs inside Attic, so it sounds the same on every phone and switches exactly between songs. Boost presets play quieter rather than distort
-- Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
+- Smart transitions start the next song where this one winds down, skip silence and line up beats when tempos are close. Or a plain 2 to 12 s crossfade
 - Volume levelling, from ReplayGain tags or the loudness measured during analysis
 
 KEEPS PLAYING OUTSIDE THE APP
 - Background playback with notification and lock-screen controls, including shuffle and like
-- Bluetooth and headset media buttons, and it pauses when another app takes audio focus
+- Bluetooth and headset buttons, and a pause when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
 - Supports Android Auto: browse your library, search, and ask for music by voice
 
@@ -54,4 +54,4 @@ GOOD TO KNOW
 - It needs Android 13 or newer and a 64-bit ARM phone
 - The release build has been tested on one phone, with a library of 740 MP3 and M4A songs
 
-Attic is free software under the GNU General Public License v3.0 or later. The source code, issue tracker and build instructions are at github.com/srivathsanvenkateswaran/attic.
+Attic is free software under the GNU General Public License v3.0 or later. The source code and issue tracker are at github.com/srivathsanvenkateswaran/attic.
