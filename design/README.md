@@ -32,7 +32,7 @@ The pages are the same in both files:
   - **Icons:** the 90 Material Symbols Rounded glyphs the app ships, as components.
 - **Components** (Actions, Lists and cards, Navigation, Playback, Overlays, States, Recap, System): main components with variants and properties, auto layout and bound colours. Every page ends with a Dark preview.
 - **Screens**: every screen and state, 411 × 914, in Light and Dark, grouped in one section per area, with the prototype wired. [COVERAGE.md](COVERAGE.md) is the checklist.
-- **Tablet**: the medium and expanded layouts in [docs/design/2026-11-25-tablet/SPEC.md](../docs/design/2026-11-25-tablet/SPEC.md), at the Xiaomi Pad 6's 1152 × 720 dp (landscape) and 720 × 1152 dp (portrait) and at 1440 × 900 dp, in Light and Dark: the navigation rail or side dock, the player bar, list and detail, two-pane collections and Now Playing beside its queue or lyrics. `design/build/<style>/tablet.py` added it to the 1.2.0 files (`python3 -m figbuild.edit`); `scripts/store_shots/tablet_refs.sh` renders the code at the same sizes.
+- **Tablet**: the medium and expanded layouts in [docs/design/2026-11-25-tablet/SPEC.md](../docs/design/2026-11-25-tablet/SPEC.md), at the Xiaomi Pad 6's 1152 × 720 dp (landscape) and 720 × 1152 dp (portrait) and at 1440 × 900 dp, in Light and Dark: the navigation rail or side dock, the player bar, list and detail, two-pane collections and Now Playing beside its queue or lyrics, then mood mixes (Home's Moods shelf, the mood page, Browse, Moods and interests) and the equaliser (its sheet and its Settings page) on the Pad 6. `design/build/<style>/tablet.py` added it to the 1.3.0 files (`python3 -m figbuild.edit`); `scripts/store_shots/tablet_refs.sh` renders the code at the same sizes.
 - **Flow overview**: the user-flow diagram, with labelled arrows.
 - **System surfaces**: the widget sizes on a home screen, the notification shade, the lock screen, the splash and the launcher icon with its monochrome layer.
 
@@ -110,6 +110,8 @@ original before sharing it.
 | Tablet: shell, rail or side dock, player bar | `ExpressiveWideShell.kt`, `ExpressiveRail.kt`, `ExpressivePlayerBar.kt` | `ComfortShellWide.kt`, `SideDock.kt`, `ComfortPlayerBar.kt` |
 | Tablet: Library beside its detail, collections in panes | `ui/LibraryPanes.kt`, `ExpressiveCollectionPanes.kt` | `ui/LibraryPanes.kt`, `ComfortLibraryPanes.kt`, `ComfortCollectionPanes.kt` |
 | Tablet: Now Playing and lyrics side by side | `ExpressiveNowPlayingWide.kt`, `ExpressiveLyrics.kt` | `ComfortNowPlayingWide.kt`, `ComfortLyricsWide.kt` |
+| Tablet: mood page, Moods and interests | `ExpressiveMoods.kt` (`ExpressiveMood` through `CollectionFrame`, `ExpressiveInterests`) | `ComfortCollectionPanes.kt` (`ComfortMoodPanes`), `ComfortMoods.kt` (`ComfortInterests`) |
+| Tablet: equaliser sheet and Settings page | `ExpressiveEqualiser.kt` | `ComfortEqualiser.kt` |
 
 Each style's `KIT.md`, next to its code, explains the kit classes the components mirror.
 
@@ -159,6 +161,8 @@ score (0 means identical).
 - **Text ranges:** FigCraft can't bind a colour variable to part of a text. A few bold spans keep the paragraph's colour; the component descriptions say where.
 - **Comfort's Recap Summary card:** on ui-redesign at 4fe4dab it throws on render (`ComfortRecapCards.kt`, `FitText` inside a `Row` with `IntrinsicSize.Min`). The file draws it from the code, with a `Known issue` annotation.
 - **Tablet page, demo content:** the Home frames fill Mixes and the listening shelves, which are empty in the demo state the renders use. The Settings frames reuse the phone frames' list, which predates the Playback group. The line of the lyrics being sung sits a little higher or lower than in the renders.
+- **Tablet page, the equaliser sheet:** the frame is 20 dp taller than the render, which gives a sheet's window no navigation inset. The frame carries a `Reference render differs` annotation.
+- **Tablet page, Expressive's band graph:** `Equaliser/Band graph` is 379 dp wide and FigCraft can't move a layer inside an instance, so the two equaliser frames draw the graph themselves at 608 and 720 dp, from the same parts and maths. Comfort's `Band sliders` follows its width, and its frames use it.
 - **Tablet page, Comfort's Now Playing sideways at 720 dp tall:** the frame draws the deck 16 dp above the gesture area, as `ComfortNowPlayingWide.kt` intends. The render has it about 8 dp lower, because the column's parts add up to more than a 720 dp window gives them.
 
 ## How these files were made

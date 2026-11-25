@@ -8,11 +8,16 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
-each frame carries its Source annotation and is marked ready for development; where the code and a frame disagree,
-the code is right. It runs on the 1.2.0 file (the equaliser) and gives 1.3.0: the Cover's version, a Tablet row in
-its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
-the components below, that row and that entry, and draws them again. It changes no other page.
+Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes and the equaliser, which
+the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
+Source annotation and is marked ready for development; where the code and a frame disagree, the code is right. It
+runs on the 1.3.0 file (the equaliser and mood mixes) and gives 1.4.0: the Cover's version and counts, a Tablet row
+in its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
+the components below, that row and that entry, and draws them again.
+
+On the Screens page it does one thing: it deletes the Moods section's tablet frames marked In progress, which
+expressive/moods.py drew as layout before the components below existed (figbuild.tabletkit.retire_placeholders). Run
+expressive/moods.py with --no-tablet from now on, or it draws them again. It changes no other page.
 
 Components / Navigation
   Navigation rail        ExpressiveNavigationRail (ExpressiveRail.kt)  Selected=Home|Search|Library. The Headroom mark
@@ -23,20 +28,32 @@ Components / Playback
   Now playing/Side panel the Up next | Lyrics switch of ExpressiveNowPlayingWide (ExpressiveNowPlayingWide.kt)
                          Selected=Up next|Lyrics.  Cover mode.
 
-Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run.
+Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run,
+moods (Home scrolled to the Moods shelf, the mood page sideways and upright, Search's Browse with the Moods group,
+Moods and interests) and equaliser (the sheet over Now Playing, Settings > Equaliser). `components`, `retire` and
+`cover` are keys too: a run with --only that leaves them out keeps what the input file has.
+
+The equaliser frames draw the band graph themselves, at the width of their cell (band_graph): Equaliser/Band graph
+is 379dp wide and FigCraft can't move a layer inside an instance. If the component is made to follow its width,
+equaliser_sheet can become an instance of Sheet/Equaliser and editor_cell one of Equaliser/Editor.
 """
 from __future__ import annotations
+
+import re
 
 from figbuild.kit import Doc, V
 from figbuild import tabletkit as tk
 from figbuild.tabletkit import STATUS_H, GESTURE_H, adaptive_columns, cell_width
 from expressive.foundations import DocPage, bind_dim, COLOR_MODE
-from expressive.components_core import Spec, comp, frame, inst, txt, set_cover, spacer, cover_radius, set_progress, PROGRESS
+from expressive.components_core import (Spec, comp, frame, inst, txt, set_cover, spacer, cover_radius, set_progress, PROGRESS,
+                                        stroke_vec)
 from expressive.components_states import mark
 from expressive import screens_browse as sb
 from expressive import screens_playback as sp
 from expressive import screens_settings as ss
 from expressive.components_overlays import set_nested_text
+from expressive import equaliser as eq
+from expressive import moods as mm
 
 SRC = "ui/expressive/"
 RAIL_W = 96
@@ -304,6 +321,8 @@ class Builder:
                 d.link(src, layer, dst, transition="dissolve", duration=200)
             elif kind == "open":
                 d.link(src, layer, dst, transition="moveIn", direction="top", duration=400)
+            elif kind == "push":
+                d.link(src, layer, dst, transition="slideIn", direction="left", duration=400)
             else:
                 d.link(src, layer, None, action="back")
             n += 1
@@ -585,9 +604,10 @@ def header_texts(d: Doc, parent, spec: dict) -> int:
 
 
 def header_actions(d: Doc, parent, spec: dict, *, fill=True, menu=False) -> int:
-    """Play (squared and reading Pause while this collection plays), shuffle and add to playlist, in one row. `menu`:
-    the header has no bar over it (beside the Library's list), so a playlist's or Favourites' menu button sits at
-    the end of the row, after the buttons where Play fills the row and at the row's end edge where it doesn't."""
+    """Play (squared and reading Pause while this collection plays), shuffle and add to playlist, in one row; a mood
+    has radio where the others have add to playlist (spec["radio"]). `menu`: the header has no bar over it (beside the
+    Library's list), so a playlist's or Favourites' menu button sits at the end of the row, after the buttons where
+    Play fills the row and at the row's end edge where it doesn't."""
     row = d.frame(parent, name="Actions", layout="h", gap=8, cross="center", sizing=("fill", "hug"))
     playing = spec["playing"]
     p = inst(d, "Button", row, name="Play", Style="Filled", Size="Medium", Icon="Leading", State="Enabled",
@@ -597,8 +617,10 @@ def header_actions(d: Doc, parent, spec: dict, *, fill=True, menu=False) -> int:
     if fill:
         d.set(p, sizingH="fill")
     inst(d, "Toggle button", row, name="Shuffle", Checked="False", Size="Medium", Off_style="Tonal")
-    add = inst(d, "Icon button", row, name="Add to playlist", Style="Tonal", Size="Medium", Width="Default", State="Enabled")
-    swap_icon(d, add, "playlist_add")
+    radio = spec.get("radio")
+    add = inst(d, "Icon button", row, name="Radio" if radio else "Add to playlist", Style="Tonal", Size="Medium",
+               Width="Default", State="Enabled")
+    swap_icon(d, add, "sensors" if radio else "playlist_add")
     if menu:
         if not fill:
             spacer(d, row, "Space", w=1, h=1, fill_h=True)
@@ -1254,23 +1276,424 @@ def build_first_run(B: "Builder"):
     dark_theme(d, themes)
 
 
+# ───────────────────────────────────────────────────────────────── mood mixes
+# The demo state as the tablet renders show it (scripts/store_shots/tablet_refs.sh): each mood's line, the songs in
+# today's mix and the four covers of its mosaic. The first cover gives the tile and the page their hue.
+MOODS = [("Chill", "Slow and easy", 25, (1, 0, 8, 4)), ("Happy", "Bright and cheerful", 23, (6, 1, 0, 7)),
+         ("Energetic", "Fast and driving", 23, (10, 11, 7, 3)), ("Focus", "Mostly instrumental, steady", 14, (6, 8, 1, 5)),
+         ("Party", "Made for dancing", 23, (9, 0, 2, 10)), ("Melancholy", "Sad and reflective", 23, (7, 5, 8, 9)),
+         ("Romantic", "Tender and warm", 23, (8, 9, 5, 3))]
+# The taste mixes above the Moods shelf, which the demo state now has.
+MOOD_MIXES = [("Mix: Mira Okafor, Juniper Vale and more", 24, [0, 3, 11, 4]),
+              ("Mix: Kavya Raman, Tide & Tamarind and more", 21, [8, 7, 5, 2]),
+              ("Mix: Ruhaan Sethi, Paloma Ferrer and more", 23, [9, 2, 6, 3]),
+              ("Mix: Velvet Circuit, Small Hours Tape Club and more", 22, [10, 1, 4, 11])]
+# Today's Chill mix, in the page's order.
+CHILL = ["Rain on the Skylight", "Lights Over the Water", "Nila Paadhai", "Brushes", "Marea Lenta", "Low Tide Hymn",
+         "404 Heartbeat", "Aadhi Neend", "Afterglow Protocol", "Auto Rickshaw Waltz", "Azulejo", "Baadal Ka Khat"]
+# Moods and interests: each group's choices and the ones picked.
+INTERESTS = [("Moods you like", [m[0] for m in MOODS], ("Chill", "Focus", "Romantic")),
+             ("Genres", ["Pop", "Film", "Electronic", "Folk, World, & Country", "Jazz", "Latin", "Hip hop", "Funk / Soul",
+                         "Classical"], ("Pop", "Film", "Jazz")),
+             ("Languages", ["Tamil", "Hindi", "English", "No vocals"], ("Tamil", "English"))]
+# Where FlowRow breaks each group's chips in a 688dp row (the code's text is a little narrower than FigCraft's, so the
+# rows are set here and not left to wrap): {window width: {group: chips in each row}}.
+INTEREST_ROWS = {1152: {"Moods you like": (7,), "Genres": (6, 3), "Languages": (4,)}}
+MOODS_KT = SRC + "ExpressiveMoods.kt"
+
+
+def mood_spec(rows: int) -> dict:
+    name, _, count, covers = MOODS[0]
+    return dict(kind="Mood", title=name, metas=[f"Mood mix · {sb.songs(count)}, 1 hr 32 min",
+                                                "Picked from how your songs sound and what you play. New each day."],
+                cover=list(covers), seed=covers[0], playing=False, options=False, radio=True,
+                sections=[dict(rows=[dict(title=t) for t in CHILL[:rows]], name="Songs group")])
+
+
+def mood_tile(d: Doc, parent, mood) -> int:
+    """A Mood tile instance on its first cover's scheme, laid out as MoodTile is in the code: the name and the count
+    start at the top of the tile's 12dp padding beside the mosaic, and the mood's line sits on the bottom padding,
+    12dp, kept to the 116dp of the text column, so a long one ends in an ellipsis. The component centres the names
+    on the mosaic and runs the line across the tile, 17dp above the foot."""
+    name, line, count, covers = mood
+    t = d.instance("Mood tile", parent, name=f"Mood tile · {name}")
+    setp(d, t, Title=name, Count=sb.songs(count), Description=line)
+    set_cover(d, d.child(t, "Mosaic"), *covers)
+    sb.album_mode(d, t, covers[0])
+    d.set(t, mainAlign="spaceBetween", paddingBottom=12)
+    d.set(d.child(t, "Name row"), crossAlign="min")
+    d.set(d.child(t, "Text column"), gap=0)
+    d.set(d.child(t, "Description"), sizingH="fixed", width=116)
+    return t
+
+
+def scrolled_bar(B: "Builder", s: "Screen", title: str) -> int:
+    """The root bar once the page has scrolled under it: on surface container, over the content."""
+    d = B.d
+    bar = inst(d, "Top app bar/Root", s.f, name="Top app bar", Kind="Plain", Scrolled="True", x=s.x0, y=0)
+    setp(d, bar, Title=title, Show_search=False, Show_grid_toggle=False)
+    stretch(d, bar, s.cw, "Status bar inset", "Bar")
+    d.set(d.child(bar, "Status bar inset"), height=STATUS_H)
+    return bar
+
+
+def build_moods(B: "Builder"):
+    d, P = B.d, B.P
+    fr = tk.Frames(d, B.ctx, "Mood mixes", "moods",
+                   note="Mood mixes on a tablet. Home's Moods shelf scrolls sideways like the other shelves and runs on "
+                        "to the end edge. A mood's page is a collection: two panes from 760dp, the header card in the "
+                        "hue of the mix's first cover, with radio where an album has add to playlist; a narrower pane "
+                        "(the Pad upright) has the header as a row. Search's Browse puts the moods in the folders' "
+                        "tile, in cells at least 180dp wide. Moods and interests is full screen, a column at most 720dp "
+                        "wide with Save at its foot.")
+    # Home, scrolled to the Moods shelf.
+    s = Screen(B, fr, "moods_home_landscape", "Home, Moods shelf", "landscape", SRC + "ExpressiveHome.kt · ExpressiveHome")
+    W = s.inner
+    col = d.frame(s.f, name="Content", layout="v", x=s.x0, y=0, w=s.cw, pad=[0, 0, 0, EXTRA], sizing=("fixed", "hug"))
+    B.header(col, "Mixes", "Songs you play, grouped by sound", width=W)
+    mixes = B.shelf(col, "Mixes shelf")
+    for name, count, covers in MOOD_MIXES:
+        t = P.tile(mixes, "Folder", name, sb.songs(count), covers, name=f"Tile · {name}")
+        d.set(d.child(t, "Title"), maxLines=2, textAutoResize="height")
+    B.header(col, "Moods", "Your songs, sorted by how they feel", width=W)
+    shelf = B.shelf(col, "Moods shelf")
+    chill = None
+    for m in MOODS:
+        t = mood_tile(d, shelf, m)
+        chill = chill or t
+    B.song_shelf(col, "Recently played", sb.RECENT, W)
+    d.set(col, y=round(71 - d.get(mixes)["y"], 1))          # the Mixes' covers have gone 17dp under the bar
+    scrolled_bar(B, s, "Attic")
+    B.links.append((s.key, chill, "mood_page_landscape", "push"))
+    s.shell()
+    s.notes += ["The page has scrolled until the Mixes' covers pass under the bar, which is on surface container. Each "
+                f"tile is {MOODS_KT} · MoodTile, 200 x 108 on the secondary container of its first cover's scheme, 12dp "
+                "apart; the mood's line keeps to the 116dp beside the mosaic.",
+                "The shelf shows every mood that has a mix today, in the app's order: nothing is picked in the demo "
+                "state. The counts are the day's mixes."]
+    s.done()
+
+    # The mood's page: two panes sideways, a header row upright.
+    for size, rows in (("landscape", 9), ("portrait", 12)):
+        s = Screen(B, fr, f"mood_page_{size}", "Mood", size, MOODS_KT + " · ExpressiveMood")
+        collection(B, s, mood_spec(rows), pane_x=s.x0, pane_w=s.cw, lead=tk.MARGIN, own=True)
+        bar = d.child(s.f, "Collection bar")
+        B.links.append((s.key, d.child(bar, "Back"), None, "back"))
+        s.shell()
+        s.notes.append("ExpressiveMood hands its header and songs to CollectionFrame, which lays a wide window out "
+                       "with ExpressiveCollectionPanes.kt · CollectionPanes, as it does an album. The header runs "
+                       "FromArt with Tea at 2 AM's seed, the mix's first cover (Color mode Tea at 2 AM); the bar and "
+                       "the list stay on the app scheme.")
+        s.notes.append("Radio (the sensors glyph, \"Mood radio\") stands where an album has add to playlist: the mix is "
+                       "new each day, so there is nothing to add it to. The song that is playing is in the mix, so "
+                       "its row is the current one; Play still reads Play because the queue came from the album.")
+        s.done()
+
+    # Search: Browse, scrolled to the Moods group.
+    s = Screen(B, fr, "moods_browse_landscape", "Search, Browse", "landscape", SRC + "ExpressiveSearch.kt · ExpressiveSearch",
+               tab="Search")
+    W = s.inner
+    col = d.frame(s.f, name="Browse", layout="v", x=s.x0, y=0, w=s.cw, pad=[0, 0, 0, EXTRA], sizing=("fixed", "hug"))
+
+    def small_label(text):
+        lab = d.frame(col, name=f"{text} label", layout="h", w=W, pad=[20, 20, 8, 20], sizing=("fixed", "hug"))
+        txt(d, lab, text, "Kit/Button", "Color/on-surface-variant", "Label", fill=True)
+        return lab
+
+    small_label("Moods")
+    n = adaptive_columns(s.cw - 2 * tk.MARGIN, 180, 8)
+    cell = cell_width(W - 32, n, 8)
+    tiles, first = [], None
+    for r in range(0, len(MOODS), n):
+        row = d.frame(col, name=f"Moods row {r // n + 1}", layout="h", w=W, gap=8, pad=[0, 16, 8, 16], sizing=("fixed", "hug"))
+        first = first or row
+        for name, _, count, covers in MOODS[r:r + n]:
+            t = inst(d, "Browse tile", row, name=f"Browse tile · {name}", Size="Folder")
+            setp(d, t, Title=name, Subtitle=sb.songs(count))
+            d.set(t, width=cell)
+            sb.album_mode(d, t, covers[0])
+            set_cover(d, d.child(t, "Picture frame"), *covers)
+            tiles.append(t)
+    for t in tiles:
+        # NarrowingText: a name too long for its column narrows before it is cut.
+        mm.narrow(d, d.child(t, "Title"), "Kit/Browse title large", d.get(d.child(t, "Text column"))["width"])
+    small_label("Albums")
+    sh = B.shelf(col, "Albums shelf")
+    for a in sb.BIGGEST_ALBUMS[:9]:
+        P.tile(sh, "Album", a, sb.ALBUM_INFO[a][0], [sb.ALBUM_INFO[a][4]], width=120)
+    d.set(col, y=round(STATUS_H + 64 + 56 + 54 - d.get(first)["y"], 1))
+    fw = d.frame(s.f, name="Field row", layout="h", x=s.x0 + EXTRA, y=STATUS_H + 64, w=min(W, 720 + 32), pad=[0, 16, 0, 16],
+                 fill="Color/surface", sizing=("fixed", "hug"))
+    fld = inst(d, "Search field", fw, name="Search field", State="Empty")
+    d.set(fld, sizingH="fill")
+    scrolled_bar(B, s, "Search")
+    B.links.append((s.key, tiles[0], "mood_page_landscape", "push"))
+    s.shell()
+    s.notes += [f"Browse has scrolled past the folders to Moods. The field stays under the bar, at most 720dp wide. "
+                f"The tiles are the folders' (BrowseTile), {n} across in cells at least 180dp wide, 8dp apart, each on "
+                "the secondary container of its first cover's scheme. Albums follows as a shelf of 120dp tiles.",
+                "Every mood that has a mix is listed, picked or not. Genres would sit between Moods and Albums; the "
+                "demo library has none."]
+    s.done()
+
+    # Moods and interests: full screen.
+    s = Screen(B, fr, "moods_picker_landscape", "Moods and interests", "landscape", MOODS_KT + " · ExpressiveInterests")
+    bar = inst(d, "Top app bar/Detail", s.f, name="App bar", Surface="Plain", x=0, y=0)
+    setp(d, bar, Show_action=False)
+    d.set(d.child(bar, "Title"), visible=False)
+    stretch(d, bar, s.W, "Status bar inset", "Bar")
+    d.set(d.child(bar, "Status bar inset"), height=STATUS_H)
+    B.links.append((s.key, d.child(bar, "Back"), None, "back"))
+    cw = 720
+    x = round((s.W - cw) / 2)
+    col = d.frame(s.f, name="Picker list", layout="v", x=x, y=STATUS_H + 64, w=cw, sizing=("fixed", "hug"))
+    box = d.frame(col, name="Large title", layout="v", pad=[8, 16, 0, 16], sizing=("fill", "hug"))
+    txt(d, box, "Moods and interests", "Kit/Root title", "Color/on-surface", "Title", fill=True)
+    box = d.frame(col, name="Intro", layout="v", pad=[12, 16, 0, 16], sizing=("fill", "hug"))
+    txt(d, box, "The Moods shelf on Home follows what you pick here. It all stays on this phone.", "Body/Large",
+        "Color/on-surface-variant", "Intro text", fill=True)
+    for label, names, picked in INTERESTS:
+        # ChoiceGroup's label is Settings' section label at 16sp, 28dp above and 12 below.
+        sec = inst(d, "Settings section", col, name=f"Section {label}")
+        setp(d, sec, Label=label)
+        d.set(sec, sizingH="fill", paddingTop=28, paddingBottom=12)
+        d.set(d.child(sec, "Label"), fontSize=16)
+        # Each chip sits in a 48dp target and the rows have nothing between them: 8dp above and below, 16 between rows.
+        chips = d.frame(col, name=f"{label} chips", layout="v", gap=16, pad=[8, 16, 8, 16], sizing=("fill", "hug"))
+        at = 0
+        for r, count in enumerate(INTEREST_ROWS[s.W][label]):
+            row = d.frame(chips, name=f"Chip row {r + 1}", layout="h", gap=8, sizing=("hug", "hug"))
+            for nm in names[at:at + count]:
+                c = inst(d, "Filter chip", row, name=f"Chip · {nm}", Selected=str(nm in picked))
+                setp(d, c, Label=nm)
+            at += count
+    sv = d.frame(s.f, name="Save bar", layout="h", x=x, y=s.H - GESTURE_H - 16 - 56 - 8, w=cw, pad=[8, 16, 16, 16],
+                 fill="Color/surface", sizing=("fixed", "hug"))
+    b = inst(d, "Button", sv, name="Save", Style="Filled", Size="Medium", Icon="None", State="Enabled", Squared="False")
+    setp(d, b, Label="Save")
+    d.set(b, sizingH="fill")
+    B.links.append((s.key, b, None, "back"))
+    s.bars()
+    s.notes += ["Full screen, as the first-run pages are: no rail and no player, so Save stays at the foot. The bar "
+                "spans the window; the title, the groups and Save keep to a column at most 720dp wide in the middle, "
+                "as Settings does on a tablet.",
+                "Each group takes any number of chips. A chip is 32dp tall in a 48dp target, 8dp from the next, and "
+                "the rows wrap with nothing between the targets. Chill, Focus and Romantic, three genres and two "
+                "languages are picked."]
+    s.done()
+    fr.close()
+
+
+# ───────────────────────────────────────────────────────────────── equaliser
+def variable_name(d: Doc, vid: str) -> str:
+    """`Collection/name` of a variable id, for a fill that follows a component's."""
+    listing = d.cmd("variable.list")
+    cols = {c["id"]: c["name"] for c in listing["collections"]}
+    v = next(v for v in listing["variables"] if v["id"] == vid)
+    return f"{cols[v['collection']]}/{v['name']}"
+
+
+def band_graph(d: Doc, parent, width: float, curve: str = "Bass boost") -> int:
+    """Equaliser/Band graph at `width`. The component is 379 wide around a 339dp plot, and a layer inside an instance
+    can't be moved, so the graph is drawn here at the width its cell has, from the component's own parts and maths
+    (expressive/equaliser.py · band_graph): 30dp before the plot for the axis and 10 after it, the bands a tenth of
+    the plot apart, the engine's response stretched over the same ten octaves."""
+    gains = list(eq.CURVES[curve])
+    pw, ph, zero, px, n = width - eq.GUTTER - 10, eq.PLOT_H, eq.ZERO, eq.PX_DB, eq._n
+    g = d.frame(parent, name="Band graph", w=width, h=eq.GRAPH_H, clip=False)
+    plot = d.frame(g, name="Plot", w=pw, h=ph, x=eq.GUTTER, y=eq.HEAD, clip=False)
+    centre = [(i + 0.5) * pw / 10 for i in range(10)]
+    stroke_vec(d, plot, "Band tracks", " ".join(f"M{n(x)} 0 V{n(ph)}" for x in centre), "Color/outline-variant", 2)
+    d.rect(plot, name="Zero line", w=pw, h=1, x=0, y=zero - 0.5, fill="Color/outline")
+    db = eq.response(gains)
+    pts = [(pw * i / (len(db) - 1), zero - max(-14.5, min(14.5, v)) * px) for i, v in enumerate(db)]
+    line = "M" + " L".join(f"{n(x)} {n(y)}" for x, y in pts)
+    d.set(d.vector(plot, name="Response fill", path=f"{line} L{n(pw)} {n(zero)} L0 {n(zero)} Z", fill="Color/primary"),
+          opacity=0.16)
+    d.set(stroke_vec(d, plot, "Response curve", line, "Color/primary", 2), opacity=0.8)
+    bars = d.frame(plot, name="Bands", w=pw, h=ph, x=0, y=0, clip=False)
+    for i, gain in enumerate(gains):
+        length, cx = abs(gain) * px, centre[i]
+        if length < 3:
+            d.rect(bars, name=f"Band {eq.BANDS[i]}", w=16, h=6, x=cx - 8, y=zero - gain * px - 3, fill="Color/primary", radius=3)
+            continue
+        end, foot = min(7, length / 2), min(2, length / 2)
+        d.rect(bars, name=f"Band {eq.BANDS[i]}", w=14, h=length, x=cx - 7, y=zero - length if gain > 0 else zero,
+               fill="Color/primary", cornerRadius=[end, end, foot, foot] if gain > 0 else [foot, foot, end, end])
+    axis = d.frame(g, name="Axis labels", w=24, h=ph + 16, x=0, y=eq.HEAD - 8, clip=False)
+    for label, y in (("+12", 0), ("0", zero), ("−12", ph)):
+        box = d.frame(axis, name=f"Axis {label}", layout="h", w=24, h=16, x=0, y=y, main="max", cross="center", clip=False)
+        a = txt(d, box, label, "Label/Small", "Color/on-surface-variant", "Value")
+        d.cmd("text.setFeatures", ids=[a], features={"tnum": True})
+    freq = d.frame(g, name="Frequency labels", layout="h", w=pw, h=16, x=eq.GUTTER, y=eq.HEAD + ph + 8, cross="center")
+    for label in eq.BANDS:
+        txt(d, freq, label, "Label/Small", "Color/on-surface-variant", f"Band label {label}", fill=True, align="center")
+    return g
+
+
+def editor_cell(B: "Builder", group: int, surface: str, curve: str = "Bass boost") -> int:
+    """The equaliser group's second cell at the group's width: List group/Cell's last cell (its fill and corners are
+    read from the component) holding Equaliser/Editor's parts, the preset chips in a row that scrolls sideways and
+    the band graph. Equaliser/Editor itself can't be used: its graph is the 379dp one."""
+    d, ctx = B.d, B.ctx
+    like = d.get(ctx["components"]["List group/Cell"]["variants"][f"Position=Bottom, Surface={surface}"])
+    cell = d.frame(group, name="Editor cell", layout="v", pad=[12, 0, 12, 0], clip=True, sizing=("fill", "hug"),
+                   fill=variable_name(d, like["boundVariables"]["fill"]), cornerRadius=like["cornerRadius"])
+    strip = d.frame(cell, name="Preset chips", h=32, clip=True)
+    d.set(strip, sizingH="fill")
+    row = d.frame(strip, name="Chip row", layout="h", gap=8, pad=[0, 12, 0, 12], sizing=("hug", "hug"), x=0, y=0)
+    made, chosen = [], 0
+    for label in eq.SAVED + eq.BUILT_IN:
+        sel = label == curve
+        ch = inst(d, "Equaliser/Preset chip", row, name=f"Chip {label}", Selected=str(sel), Equaliser="On",
+                  Kind="Saved preset" if sel and label in eq.SAVED else "Preset")
+        setp(d, ch, Label=label)
+        made.append(ch)
+        chosen = len(made) - 1 if sel else chosen
+    # The row opens with the chip before the selected one first, 8dp in, as in Equaliser/Editor.
+    if chosen >= 2:
+        d.set(row, x=-round(min(d.get(made[chosen - 1])["x"] - 8, d.get(row)["width"] - d.get(strip)["width"])))
+    band_graph(d, cell, d.get(cell)["width"], curve)
+    return cell
+
+
+def equaliser_group(B: "Builder", parent, surface: str) -> int:
+    """The scope cell and the editor as one group, 16dp in: the default setting, Bass boost."""
+    d = B.d
+    g = d.frame(parent, name="Setting group", layout="v", gap=2, pad=[0, 16, 0, 16], sizing=("fill", "hug"))
+    eq.scope_row(d, B.ctx, g, surface, "Default")
+    editor_cell(B, g, surface)
+    return g
+
+
+def equaliser_sheet(B: "Builder", s: "Screen", width: float = 640) -> int:
+    """ExpressiveEqualiserSheet at a sheet's tablet width: Sheet with the parts of Sheet/Equaliser in its slot (the
+    title and switch, the scope cell and the editor, the actions), each at that width."""
+    d = B.d
+    sh = d.instance("Sheet", s.f, name="Equaliser sheet")
+    d.set(sh, width=width)
+    slot = d.child(sh, "Content")
+    hold = d.frame(s.f, name="Slot content", layout="v", w=width, x=0, y=0, sizing=("fixed", "hug"))
+    fill_w(d, inst(d, "Equaliser/Sheet title", hold, name="Title", Checked="True"))
+    equaliser_group(B, hold, "Sheet")
+    fill_w(d, inst(d, "Equaliser/Actions", hold, name="Actions", Playing_with="Default"))
+    kids = [k["id"] for k in d.get(hold, depth=1)["children"]]
+    old = [k["id"] for k in d.get(slot, depth=1).get("children", [])]
+    d.cmd("node.reparent", ids=kids, parent=slot)
+    if old:
+        d.cmd("edit.delete", ids=old)
+    d.set(kids, sizingH="fill")
+    d.cmd("edit.delete", ids=[hold])
+    d.set(d.child(sh, "Navigation bar inset"), height=GESTURE_H)
+    d.set(sh, x=round((s.W - width) / 2), y=round(s.H - d.get(sh)["height"], 1))
+    return sh
+
+
+def build_equaliser(B: "Builder"):
+    d, ctx = B.d, B.ctx
+    fr = tk.Frames(d, ctx, "Equaliser", "equaliser",
+                   note="The equaliser on a tablet. The sheet is a sheet like any other there: at most 640dp wide, in the "
+                        "middle of the window at its bottom edge, over both halves of Now Playing. Its cells take that "
+                        "width, so the plot is 568dp and the bands are 56.8dp apart. Settings > Equaliser keeps the rail "
+                        "and the player; its bar with back spans the content area and the page is a centred column at "
+                        "most 720dp wide, as Settings is, with a 680dp plot.")
+    EQ = SRC + "ExpressiveEqualiser.kt"
+    # The sheet over Now Playing.
+    s = Screen(B, fr, "sheet_equaliser_landscape", "Equaliser sheet over Now Playing", "landscape",
+               EQ + " · ExpressiveEqualiserSheet")
+    now_playing_wide(B, s, "Up next")
+    B.links = [l for l in B.links if l[0] != s.key]          # the player's close button is under the scrim
+    sc = inst(d, "Scrim", s.f, name="Scrim", Kind="Sheet", x=0, y=0)
+    d.set(sc, width=s.W, height=s.H)
+    d.set(d.child(sc, "Dim"), width=s.W, height=s.H)
+    equaliser_sheet(B, s)
+    g = d.instance("Gesture bar", s.f, name="Gesture bar over the sheet", x=0, y=s.H - GESTURE_H)
+    d.set(g, width=s.W, height=GESTURE_H)
+    s.notes += ["Opened from Equaliser in the track menu over Now Playing. The song plays with the default, Bass "
+                "boost, so the scope cell reads For all songs and the actions are Save for this song and Save for this "
+                "album. The sheet is on the cover's scheme, as the player under it is.",
+                "The parts are Sheet/Equaliser's (Equaliser/Sheet title, Equaliser/Scope cell, the editor's chips and "
+                "band graph, Equaliser/Actions) at 640dp. The band graph is drawn in this frame at 608dp: the "
+                "component is 379dp wide and its layers can't be moved inside an instance."]
+    d.annotate(d.screens[s.key]["light"],
+               "The reference render gives the sheet's window no insets, so there the sheet ends at the screen's foot. On "
+               "a tablet ModalBottomSheet pads its content by the navigation bar, as drawn here: the sheet is 20dp "
+               "taller and its rows sit 20dp higher than in the render.", "Reference render differs")
+    s.done()
+
+    # Settings > Equaliser.
+    s = Screen(B, fr, "settings_equaliser_landscape", "Equaliser page", "landscape", EQ + " · ExpressiveEqualiserPage")
+    col = s.content()
+    bar = inst(d, "Top app bar/Detail", col, name="App bar", Surface="Plain")
+    setp(d, bar, Show_action=False)
+    d.set(d.child(bar, "Title"), visible=False)
+    stretch(d, bar, None, "Status bar inset", "Bar")
+    d.set(d.child(bar, "Status bar inset"), height=STATUS_H)
+    B.links.append((s.key, d.child(bar, "Back"), "settings_landscape", "tab"))
+    holder = d.frame(col, name="Equaliser column", layout="h", main="center", sizing=("fill", "hug"))
+    lst = d.frame(holder, name="Equaliser list", layout="v", w=min(s.inner, 720 + 32), sizing=("fixed", "hug"))
+    box = d.frame(lst, name="Large title", layout="v", pad=[8, 16, 20, 16], sizing=("fill", "hug"))
+    txt(d, box, "Equaliser", "Kit/Root title", "Color/on-surface", "Title", fill=True)
+
+    def group(name):
+        return d.frame(lst, name=name, layout="v", gap=2, pad=[0, 16, 0, 16], sizing=("fill", "hug"))
+
+    def section(label):
+        sec = inst(d, "Settings section", lst, name=f"Section {label}")
+        setp(d, sec, Label=label)
+        fill_w(d, sec)
+
+    eq.setting_row(d, ctx, group("Use equaliser group"), "Single", "Use equaliser", title=eq.S["use"], icon="equalizer",
+                   trailing="Switch on")
+    section(eq.S["default"])
+    equaliser_group(B, lst, "Default")
+    for label, kind, rows in ((eq.S["own_albums"], "Album", eq.OWN_ALBUMS), (eq.S["own_songs"], "Song", eq.OWN_SONGS)):
+        section(label)
+        g = group(f"{kind}s group")
+        for i, (title, artist, cover, preset) in enumerate(rows):
+            pos = "Top" if i == 0 else "Bottom" if i == len(rows) - 1 else "Middle"
+            _, row = eq.cell(d, ctx, g, pos, "Default", eq.variant(ctx, "Equaliser/Own setting row", Kind=kind), title)
+            setp(d, row, Title=title, Subtitle=artist)
+            setp(d, d.child(row, "Preset"), Count=preset)
+            set_cover(d, row, cover)
+    s.shell()
+    s.notes += ["Settings > Playback > Equaliser. The page is Settings' kind: the bar with back across the content "
+                "area, then a column at most 720dp wide in its middle holding the title, Use equaliser, the default's "
+                "scope cell and editor, and under the player bar the albums and songs with their own setting.",
+                "The band graph is drawn in this frame at 720dp: Equaliser/Band graph is 379dp wide and its layers "
+                "can't be moved inside an instance. Its plot is 680dp, the bands 68dp apart."]
+    s.done()
+    fr.close()
+
+
 # ───────────────────────────────────────────────────────────────── Cover and Changelog
-# 1.3.0 is the Tablet page and its components on top of 1.2.0 (the equaliser). The Tablet page was first drawn on
-# 1.0.0 as 1.1.0 and 1.1.1, on feature/tablet-layouts before it was rebased; 1.1.0 is now the equaliser's number.
-VERSION, UPDATED = "1.3.0", "2026-11-25"
-CHANGES = ("The tablet layouts: a Tablet page and its components, added to 1.2.0. They match the code on "
-           "feature/tablet-layouts, and every frame is marked ready for development.\n"
+# 1.4.0 is the Tablet page and its components on top of 1.3.0 (the equaliser, then mood mixes), with frames for both.
+# The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0, on feature/tablet-layouts
+# before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers and 1.3.0 the mood mixes'.
+VERSION, UPDATED = "1.4.0", "2026-11-25"
+CHANGES = ("The tablet layouts: the Tablet page and its components, put back on 1.3.0, with frames for mood mixes and "
+           "the equaliser. Every frame on the page matches the code on feature/tablet-layouts and is marked ready for "
+           "development.\n"
            "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
            "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
            "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
            "lyrics, Settings, the track menu, the New playlist dialog and the first run's look step.\n"
+           "• Mood mixes on the Tablet page: Home scrolled to the Moods shelf, the mood page in two panes and, upright, "
+           "with its header as a row, Search's Browse with the Moods group, and Moods and interests as a column at most "
+           "720dp wide.\n"
+           "• The equaliser on the Tablet page: the sheet over Now Playing, 640dp wide, and Settings > Equaliser as a "
+           "column at most 720dp wide. Both draw the band graph at the width of its cell, because Equaliser/Band graph "
+           "is 379dp wide.\n"
            "• Each frame carries its Source annotation. Frames that show the rail and the player carry a second Source "
            "line for ExpressiveWideShell.\n"
            "• Components / Navigation: Navigation rail and Player bar.\n"
            "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
+           "• Screens page: the Moods section's 12 tablet frames marked In progress (Home, the mood page and the picker at "
+           "1440 × 900 and 700 × 900, drawn as layout before the rail and the player bar were components) are deleted. "
+           "The Tablet page has those screens, and the section's note says so.\n"
            "• Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
            "state, the Playback group in Settings, and which line of the lyrics is being sung.\n"
-           "The phone screens and the equaliser are unchanged from 1.2.0.")
+           "The phone screens, the equaliser's and the mood mixes' are unchanged from 1.3.0.")
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
 ENTRIES = [(VERSION, UPDATED, CHANGES)]
 README_ROW = ("Tablet", "the screens on medium and expanded windows (tablets), in Light and Dark.")
@@ -1297,9 +1720,9 @@ def readme_row(d: Doc):
 
 
 def build_cover_changelog(d: Doc, ctx: dict):
-    """The version on the Cover, the Tablet row in its Read me and the version's entry at the top of the Changelog.
-    The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, and 1.1.0 and 1.2.0 for
-    the equaliser) are left alone."""
+    """The version on the Cover, the Tablet row and the counts in its Read me and the version's entry at the top of
+    the Changelog. The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, 1.1.0 and
+    1.2.0 for the equaliser, 1.3.0 for mood mixes) are left alone."""
     d.page("Cover")
     for i in d.find(d.pages["Cover"], name="Chip · ", limit=20):
         nm = d.get(i).get("name", "")
@@ -1310,6 +1733,15 @@ def build_cover_changelog(d: Doc, ctx: dict):
             d.cmd("instance.setProperties", ids=[i], properties={"Label": f"Last updated {UPDATED}"})
             d.set(i, name=f"Chip · Last updated {UPDATED}")
     readme_row(d)
+    # The Read me counts components and the Screens page's states, as expressive/moods.py counted them.
+    have = mm.counts(d)
+    for t in d.find(d.pages["Cover"], type="TEXT", name="What", limit=40):
+        chars = d.get(t)["characters"]
+        new = re.sub(r"^\d+ components and sets", f"{have['components']} components and sets", chars)
+        new = re.sub(r"^\d+ screen states", f"{have['screens']} screen states", new)
+        if new != chars:
+            d.set(t, characters=new)
+    ctx["counts"] = have
     d.page("Changelog")
     col = [n["id"] for n in d.get(d.pages["Changelog"], depth=1).get("children", []) if n.get("name") == "Entries"][0]
     before = d.get(col)["height"]
@@ -1339,7 +1771,7 @@ def build_cover_changelog(d: Doc, ctx: dict):
 
 AREAS = {"home": build_home, "library": build_library, "search": build_search, "collections": build_collections,
          "now_playing": build_now_playing, "lyrics": build_lyrics, "settings": build_settings, "overlays": build_overlays,
-         "first_run": build_first_run}
+         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser}
 
 
 class _Identity(dict):
@@ -1357,6 +1789,8 @@ def build(d: Doc, ctx: dict):
     t = time.time()
     build_components(d, ctx)
     print(f"  components {time.time() - t:6.1f}s", flush=True)
+    if not only or "retire" in only:
+        print(f"  retired      {tk.retire_placeholders(d)} In progress frames of the Moods section", flush=True)
     tk.reset_page(d)
     B = Builder(d, ctx)
     for key, fn in AREAS.items():

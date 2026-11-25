@@ -8,11 +8,16 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
-each frame carries its Source annotation and is marked ready for development; where the code and a frame disagree,
-the code is right. It runs on the 1.2.0 file (the equaliser) and gives 1.3.0: the Cover's version, a Tablet row in
-its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
-the components below, that row and that entry, and draws them again. It changes no other page.
+Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes and the equaliser, which
+the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
+Source annotation and is marked ready for development; where the code and a frame disagree, the code is right. It
+runs on the 1.3.0 file (the equaliser and mood mixes) and gives 1.4.0: the Cover's version, a Tablet row in its Read
+me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page, the
+components below, that row and that entry, and draws them again.
+
+On the Screens page it does one thing: it deletes the Moods section's tablet frames marked In progress, which
+comfort/moods.py drew as layout before the components below existed (figbuild.tabletkit.retire_placeholders). Run
+comfort/moods.py with --no-tablet from now on, or it draws them again. It changes no other page.
 
 Components / Navigation
   Side dock/Tab          one tab of ComfortSideDock (SideDock.kt)  Selected=False|True.  props Label, Icon (swap).
@@ -26,8 +31,10 @@ Components / Playback
   Now playing/Side panel the Up next | Lyrics switch of ComfortNowPlayingWide (ComfortNowPlayingWide.kt)
                          Selected=Up next|Lyrics. Two Sub-tab instances.
 
-Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run.
-`components` and `cover` are also keys: a run with --only that leaves them out keeps what the input file has.
+Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run,
+moods (Home scrolled to the Moods shelf, the mood page sideways and upright, Search's Browse with the Moods group,
+Moods and interests) and equaliser (the sheet over Now Playing, Settings > Equaliser). `components`, `retire` and
+`cover` are also keys: a run with --only that leaves them out keeps what the input file has.
 
 Geometry (dp). The side dock is 80 wide, 12 from the start edge, 12 under the status bar and 12 over the gesture
 inset. A destination's column starts at 100 and stops 8 before the end edge; Comfort's components carry the phone's
@@ -43,14 +50,17 @@ from figbuild.tabletkit import STATUS_H, GESTURE_H, adaptive_columns
 from comfort import screens_browse as cb
 from comfort import screens_playback as cp
 from comfort import screens_settings as cs
+from comfort import equaliser as ceq
+from comfort import moods as cm
 from comfort.components_core import K, SetBuilder, Components, COVER, cover_image, glyph_drop, _set_text_prop, _swap_icon
 from comfort.components_states import setp, inst, group, row
 from comfort.foundations import _modes
 
 SRC = "ui/comfort/"
-# 1.3.0 is the Tablet page and its components on top of 1.2.0 (the equaliser). The Tablet page was first drawn on
-# 1.0.0 as 1.1.0 and 1.1.1, on feature/tablet-layouts before it was rebased; 1.1.0 is now the equaliser's number.
-VERSION, UPDATED = "1.3.0", "2026-11-25"
+# 1.4.0 is the Tablet page and its components on top of 1.3.0 (the equaliser, then mood mixes), with frames for both.
+# The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0, on feature/tablet-layouts
+# before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers and 1.3.0 the mood mixes'.
+VERSION, UPDATED = "1.4.0", "2026-11-25"
 DOCK_X, DOCK_W, DOCK_GAP = 12, 80, 12
 X0 = 100                         # a destination's column: 8 after the dock's end edge
 END = 8                          # and 8 before the window's end edge
@@ -607,7 +617,7 @@ def build_library(T: Tablet):
 
 
 # ───────────────────────────────────────────────────────────────── Collections
-COLL = {kind: SRC + f"ComfortCollectionPanes.kt · Comfort{kind.capitalize()}Panes" for kind in ("album", "artist", "playlist")}
+COLL = {kind: SRC + f"ComfortCollectionPanes.kt · Comfort{kind.capitalize()}Panes" for kind in ("album", "artist", "playlist", "mood")}
 TWO_PANE = 760
 
 
@@ -628,6 +638,11 @@ def collection_data(kind):
         kav = cb.artists()["Kavya Raman"]
         return dict(title="Kavya Raman", byline=None, meta=cb.songs_and_length(kav), covers=[kav[0].cover], person=True,
                     playing=False, art="artist")
+    if kind == "mood":
+        name, _, count, covers = MOODS[0]
+        return dict(title=name, byline=None, covers=list(covers), person=False, playing=False, art="album", radio=True,
+                    meta=f"Mood mix · {cb.songs(count)}, 1 hr 32 min\nPicked from how your songs sound and what you play. "
+                         "New each day.")
     ld = [cb.track(n) for n in cb.LONG_DRIVE]
     return dict(title="Long drive", byline=None, meta=cb.songs_and_length(ld), covers=cb.mosaic(ld), person=False,
                 playing=False, art="album")
@@ -655,6 +670,9 @@ def collection_body(T: Tablet, col, kind, width):
             t = b.nested(col, f"Album: {n}")
             d.set(b.nested(t, "Art", typ="FRAME"), width=side, height=side)
             d.set(b.nested(t, "Cover"), width=side, height=side)
+    elif kind == "mood":
+        T.cards(col, [lambda par, i, t=cb.track(n): b.song_row(par, t, i) for n in CHILL], song_columns(card), card,
+                name="Songs")
     else:
         ld = [cb.track(n) for n in cb.LONG_DRIVE]
         n_cols = song_columns(card)
@@ -673,6 +691,14 @@ def collection_body(T: Tablet, col, kind, width):
     T.gap(col, 24, name="Space at the end")
 
 
+def radio_action(T: Tablet, actions: int):
+    """PlayRow(radio = ..., addToPlaylist = false): a mood's Play row has radio where a folder's has add to playlist."""
+    d = T.d
+    r = d.child(actions, "Add to playlist")
+    d.cmd("instance.swap", ids=[d.child(r, "Icon")], component=d.comp["Icon/sensors"])
+    d.set(r, name="Radio")
+
+
 def header_stacked(T: Tablet, col, data, width, cover):
     d, b = T.d, T.b
     h = b.inst("Collection header", col, name="Header", props={"Kind": "Person" if data["person"] else "Album",
@@ -683,7 +709,9 @@ def header_stacked(T: Tablet, col, data, width, cover):
         b.props(h, **{"Show byline": False})
     d.set(h, width=width)
     b.art(b.nested(h, "Art"), list(data["covers"]), cover, data["art"])
-    T.wide(b.inst("Collection actions", col, name="Play row", props={"Playing": str(data["playing"])}), width)
+    act = T.wide(b.inst("Collection actions", col, name="Play row", props={"Playing": str(data["playing"])}), width)
+    if data.get("radio"):
+        radio_action(T, act)
 
 
 def header_row(T: Tablet, col, data, width):
@@ -704,6 +732,8 @@ def header_row(T: Tablet, col, data, width):
     k.text(txt, data["meta"], "Component/Header meta", "Color/on-2", "Meta text", fill=True)
     act = b.inst("Collection actions", side, name="Play row", props={"Playing": str(data["playing"])})
     d.set(act, sizingH="fill", paddingLeft=0, paddingRight=0, paddingBottom=0)
+    if data.get("radio"):
+        radio_action(T, act)
     return rw
 
 
@@ -1124,23 +1154,318 @@ def build_first_run(T: Tablet):
     ss.dark_theme(keys)
 
 
+# ───────────────────────────────────────────────────────────────── mood mixes
+# The demo state as the tablet renders show it (scripts/store_shots/tablet_refs.sh): each mood's line, the songs in
+# today's mix and the four covers of its mosaic.
+MOODS = [("Chill", "Slow and easy", 25, (1, 0, 8, 4)), ("Happy", "Bright and cheerful", 23, (6, 1, 0, 7)),
+         ("Energetic", "Fast and driving", 23, (10, 11, 7, 3)), ("Focus", "Mostly instrumental, steady", 14, (6, 8, 1, 5)),
+         ("Party", "Made for dancing", 23, (9, 0, 2, 10)), ("Melancholy", "Sad and reflective", 23, (7, 5, 8, 9)),
+         ("Romantic", "Tender and warm", 23, (8, 9, 5, 3))]
+# The taste mixes above the Moods shelf, which the demo state now has.
+MOOD_MIXES = [("Mix: Mira Okafor, Juniper Vale and more", 24, [0, 3, 11, 4]),
+              ("Mix: Kavya Raman, Tide & Tamarind and more", 21, [8, 7, 5, 2]),
+              ("Mix: Ruhaan Sethi, Paloma Ferrer and more", 23, [9, 2, 6, 3]),
+              ("Mix: Velvet Circuit, Small Hours Tape Club and more", 22, [10, 1, 4, 11])]
+# Today's Chill mix, in the page's order.
+CHILL = ["Rain on the Skylight", "Lights Over the Water", "Nila Paadhai", "Brushes", "Marea Lenta", "Low Tide Hymn",
+         "404 Heartbeat", "Aadhi Neend", "Afterglow Protocol", "Auto Rickshaw Waltz", "Azulejo", "Baadal Ka Khat"]
+# Moods and interests: each group's choices, the ones picked, and the chips in each row of a 660dp card (FlowRow's
+# breaks at 1152dp, set here because FigCraft's text is a little wider than Android's).
+INTERESTS = [("Moods you like", [m[0] for m in MOODS], ("Chill", "Focus", "Romantic"), (6, 1)),
+             ("Genres", ["Pop", "Film", "Electronic", "Folk, World, & Country", "Jazz", "Latin", "Hip hop", "Funk / Soul",
+                         "Classical"], ("Pop", "Film", "Jazz"), (6, 3)),
+             ("Languages", ["Tamil", "Hindi", "English", "No vocals"], ("Tamil", "English"), (4,))]
+MOODS_KT = SRC + "ComfortMoods.kt"
+
+
+def mood_tile(T: Tablet, parent, mood) -> int:
+    d = T.d
+    name, line, count, covers = mood
+    t = d.instance("Mood tile", parent, name=f"Mood tile: {name}")
+    cm.setp(d, t, Title=name, Count=cb.songs(count), Description=line)
+    cm.pictures(d, t, *covers)
+    return t
+
+
+def collapsed_bar(T: Tablet, s: Screen, title: str) -> int:
+    """A root page's bar once its hero has scrolled away: the title and settings on the ground, across the column."""
+    d, b = T.d, T.b
+    d.rect(s.f, name="Bar ground", w=s.cw + END, h=STATUS_H + 56, x=X0, y=0, fill="Color/ground")
+    bar = b.inst("Top bar", s.f, name="Bar", props={"Back": "None", "Lift": "False", "Count": "False", "Title": title,
+                                                     "Show action 1": True, "Show action 2": False})
+    b.swap_icon(b.nested(bar, "Action 1"), "Icon/settings")
+    d.set(bar, x=X0, y=STATUS_H, width=s.cw)
+    return bar
+
+
+def browse_cards(T: Tablet, col, prefix: str, tiles, columns: int, width: float, album=False) -> int:
+    """Browse's cards in `columns` equal cells 12dp apart: (title, second line, covers). An album's card shows its
+    cover where a mood's shows its mosaic."""
+    d = T.d
+    box = d.frame(col, name=f"{prefix} cards", layout="v", gap=12, w=width, sizing=("fixed", "hug"))
+    cell = round((width - 12 * (columns - 1)) / columns, 2)
+    for r in range(0, len(tiles), columns):
+        rw = d.frame(box, name=f"{prefix} row {r // columns + 1}", layout="h", gap=12, sizing=("fill", "hug"))
+        for title, sub, covers in tiles[r:r + columns]:
+            t = d.instance(cm.variant(T.ctx, "Browse tile", "Tinted=False"), rw, name=f"Browse: {title}")
+            d.set(t, width=cell)
+            cm.setp(d, t, Title=title, Subtitle=sub)
+            if album:
+                cm.swap(d, d.child(t, "Art"), cm.variant(T.ctx, "Cover/Album", "Shape=Squircle, Art=Image, Dimmed=False"))
+                d.set(d.child(t, "Art"), width=56, height=56)
+            cm.pictures(d, d.child(t, "Art"), *covers)
+    return box
+
+
+def build_moods(T: Tablet):
+    d, b = T.d, T.b
+    fr = tk.Frames(d, T.ctx, "Mood mixes", "moods",
+                   note="Mood mixes on a tablet. Home's Moods shelf scrolls sideways like the other shelves and stops "
+                        "where the page's column does. A mood's page has the genre page's panes: two from 760dp, the "
+                        "header (the mosaic up to 296, the name, the two lines, the Play row with radio where a folder "
+                        "has add to playlist) beside the songs; narrower, a tablet held upright, the header is a row. "
+                        "Search's Browse sets the moods in the browse card, in cells at least 180dp wide. Moods and "
+                        "interests is full screen, a column at most 720dp wide with Save at its foot.")
+    # Home, scrolled to the Moods shelf.
+    s = Screen(T, fr, "moods_home_landscape", "Home, Moods shelf", "landscape", SRC + "ComfortHome.kt · ComfortHome")
+    W, CARD = s.cw, s.card
+    col = s.column()
+    T.label(col, "Instant mixes", W)
+    T.cards(col, [lambda par, i, t=cb.track(n): b.song_row(par, t, i, trailing="Radio", current=False) for n in cb.MIXES],
+            3, CARD, name="Instant mixes")
+    T.label(col, "Mixes", W, small="Songs you play, grouped by sound")
+    T.shelf(col, [lambda par, name=name, count=count, covers=covers:
+                  b.tile(par, "Album", name, cb.songs(count), covers, name=f"Mix: {name[5:]}", lines={"Title": 2})
+                  for name, count, covers in MOOD_MIXES], W, name="Mixes shelf")
+    T.label(col, "Moods", W, small="Your songs, sorted by how they feel")
+    shelf = T.shelf(col, [lambda par, m=m: mood_tile(T, par, m) for m in MOODS], W, name="Moods shelf")
+    T.song_shelf(col, "Recently played", cb.RECENT, s)
+    d.set(col, y=round(475 - d.get(shelf)["y"], 1))          # scrolled until the Moods shelf clears the player bar
+    pin = d.frame(s.f, name="Pinned tabs", w=s.cw + END, h=48, x=X0, y=STATUS_H + 56, fill="Color/ground",
+                  stroke="Color/line", stroke_w=1, strokeAlign="inside", strokeSides=[False, False, True, False])
+    tl = b.inst("Tools", pin, name="Tools", props={"Leading": "Sub-tabs"})
+    d.set(tl, x=0, y=0, width=W)
+    for lab in ("All", "Albums", "Artists", "Folders"):
+        b.props(b.nested(tl, f"Sub-tab: {lab}"), Selected=str(lab == "All"))
+    d.set(b.nested(tl, "Settings"), visible=False)           # settings has gone up into the bar
+    collapsed_bar(T, s, "Home")
+    T.triggers.append((s.key, s.size, d.child(shelf, "Mood tile: Chill"), "open", "mood_page_landscape"))
+    s.shell()
+    s.notes += ["The page has scrolled past the hero: the bar holds the title, and the sub-tabs stay under it over a "
+                f"hairline. Each tile is {MOODS_KT} · MoodTile, Search's browse card at 200 x 133 with the count across "
+                "from the mosaic and the mood's line under its name, 14dp apart in a shelf that starts 24dp in.",
+                "The shelf shows every mood that has a mix today, in the app's order: nothing is picked in the demo "
+                "state. The counts are the day's mixes."]
+    s.done()
+
+    # The mood's page: two panes sideways, a header row upright.
+    for size in ("landscape", "portrait"):
+        s = Screen(T, fr, f"mood_page_{size}", "Mood", size, COLL["mood"])
+        collection(T, s, X0, s.cw, "mood")
+        s.shell()
+        s.notes.append(f"{MOODS_KT} · ComfortMood hands a medium or expanded window to ComfortMoodPanes. The Play row "
+                       "has radio (the sensors glyph, \"Mood radio\") and no add to playlist: the mix is new each day. "
+                       "The song that is playing is in the mix, so its row lies on the current song's bed; Play still "
+                       "reads Play because the queue came from the album.")
+        s.done()
+
+    # Search: Browse, scrolled to the Moods group.
+    s = Screen(T, fr, "moods_browse_landscape", "Search, Browse", "landscape", SRC + "ComfortSearch.kt · ComfortSearch",
+               tab="Search")
+    col = s.column()
+    n = adaptive_columns(s.card, 180, 12)
+    T.label(col, "Albums", s.cw)
+    browse_cards(T, col, "Album", [(a[0], a[1], [a[4]]) for a in cb.BIGGEST_ALBUMS[:8]], n, s.card, album=True)
+    T.gap(col, 14, name="Space under the albums")
+    T.label(col, "Moods", s.cw)
+    moods = browse_cards(T, col, "Mood", [(m[0], cb.songs(m[2]), m[3]) for m in MOODS], n, s.card)
+    d.set(col, y=round(306 - d.get(moods)["y"], 1))
+    fld = b.inst("Search field", s.f, name="Search field", props={"State": "Empty", "Container": "Ground"})
+    d.set(fld, x=X0 + 16, y=STATUS_H + 56, width=min(720, s.card))
+    collapsed_bar(T, s, "Search")
+    T.triggers.append((s.key, s.size, d.child(moods, "Browse: Chill"), "open", "mood_page_landscape"))
+    s.shell()
+    s.notes += [f"Browse has scrolled past the folders and most of the albums to Moods. The field stays under the bar, "
+                f"at most 720dp wide, over the list. The cards are Search's browse card, {n} across in cells at least "
+                "180dp wide, 12dp apart; a mood's shows its mosaic and its song count.",
+                "Every mood that has a mix is listed, picked or not. Genres would follow Moods; the demo library has "
+                "none."]
+    s.done()
+
+    # Moods and interests: full screen.
+    s = Screen(T, fr, "moods_picker_landscape", "Moods and interests", "landscape", MOODS_KT + " · ComfortInterests")
+    colw = 720
+    foot = GESTURE_H + 16 + 56 + 8                    # the gesture inset, Save's 16 below and 8 above, its 56
+    page = d.frame(s.f, name="Page", x=round((s.W - colw) / 2), y=0, w=colw, h=s.H - foot, clip=True)
+    col = s.column("Content", x=0, y=STATUS_H, w=colw, parent=page)
+    T.wide(b.inst("Hero", col, name="Hero", props={"Mark": "False", "Short": "False", "Title": "Moods and interests",
+                                                   "Show subtitle": False}), colw)
+    tools = d.frame(col, name="Tools", layout="h", w=colw, h=50, pad=[0, 0, 2, 8], cross="center", sizing=("fixed", "fixed"))
+    back = d.instance("Icon button", tools, name="Back")
+    setp(d, back, Icon="Icon/arrow_back")
+    intro = d.frame(col, name="Intro", layout="v", w=colw, pad=[4, 28, 0, 28], sizing=("fixed", "hug"))
+    T.k.text(intro, "The Moods shelf on Home follows what you pick here. It all stays on this phone.", "Component/Toast",
+             "Color/on-2", "Intro text", fill=True)                # onest(14.5f, 20f), the toast's type
+    for label, names, picked, rows in INTERESTS:
+        T.label(col, label, colw)
+        hold = d.frame(col, name=f"{label} chips", layout="v", gap=8, w=colw - 32, sizing=("fixed", "hug"))
+        at = 0
+        for r, count in enumerate(rows):
+            rw = d.frame(hold, name=f"Chip row {r + 1}", layout="h", gap=8, sizing=("hug", "hug"))
+            for nm in names[at:at + count]:
+                c = d.instance(cm.variant(T.ctx, "Chip", f"Selected={nm in picked}, Container=Card"), rw, name=f"Chip: {nm}")
+                cm.setp(d, c, Label=nm)
+            at += count
+        g = b.card(col, pad=True, width=colw - 32, name=label)
+        b.fill_slot(g, [hold])
+    sv = d.frame(s.f, name="Save bar", layout="v", x=round((s.W - colw) / 2), y=s.H - foot, w=colw, pad=[8, 24, 16, 24],
+                 fill="Color/ground", sizing=("fixed", "hug"))
+    bt = d.instance("Button", sv, name="Save")
+    setp(d, bt, Style="Filled", Size="Large", State="Default", Tone="Default", Label="Save", **{"Show leading icon": False})
+    d.set(bt, sizingH="fill")
+    T.triggers.append((s.key, s.size, bt, "open", "moods_home_landscape"))
+    s.bars()
+    s.notes += ["Full screen, as the first-run pages are: no dock and no player, so Save stays at the foot. The hero, "
+                "the back row, the groups and Save keep to a column at most 720dp wide in the middle, as Settings does "
+                "on a tablet; the hero is the tall one. The list ends where Save's 8dp of padding begins.",
+                "Each group's chips sit on a card under its label, 8dp apart in rows 8dp apart. Chill, Focus and "
+                "Romantic, three genres and two languages are picked."]
+    s.done()
+    fr.close()
+
+
+# ───────────────────────────────────────────────────────────────── equaliser
+def equaliser_sheet(T: Tablet, s: Screen, width: float = 640) -> int:
+    """ComfortEqualiserSheet at a tablet sheet's width, with the default (Bass boost): the title and switch, the scope
+    head, the chips and the bands' plot, the two save rows and their note. Returns the scope head's lead box."""
+    d, ps = T.d, T.ps
+    sh = ps.inst("Sheet", s.f, name="Equaliser sheet")
+    d.override(sh, "Foot", height=30 + GESTURE_H)
+    d.set(sh, width=width)
+    ps.slot(sh, "Equaliser title", first=True, name="Title", props={"On": True})
+    head = ps.slot(sh, "Scope head", name="Scope head", props={"Scope": "Default"})
+    content = d.child(sh, "Content")
+    ed = ceq._editor(d, s.f, width=width, selected="Bass boost", chip_side=16, plot_side=16)
+    space = d.frame(s.f, name="Space above the rows", w=width, h=ceq.ROWS_ABOVE)
+    d.cmd("node.reparent", ids=ed["pieces"] + [space], parent=content)
+    d.set(ed["pieces"] + [space], sizingH="fill")
+    for i, (label, icon) in enumerate((("Save for this song", "music_note"), ("Save for this album", "album"))):
+        ps.slot(sh, "Sheet row", name=f"Row: {label}",
+                props={"Kind": "Default", "End": "None", "Label": label, "Icon": f"Icon/{icon}", "Show icon": True,
+                       "Show hairline": i > 0, "Show value": False})
+    note = d.frame(s.f, name="Note", layout="v", w=width, pad=[4, 24, 0, 24], sizing=("fixed", "hug"))
+    t = d.text(note, "Saved settings come back whenever the song plays.", style="Component/Note", color="Color/on-2",
+               name="Note text")
+    d.set(t, sizingH="fill", textAutoResize="height")
+    d.cmd("node.reparent", ids=[note], parent=content)
+    d.set(note, sizingH="fill")
+    d.set(sh, x=(s.W - width) / 2, y=s.H - d.get(sh)["height"])
+    return d.child(head, "Lead")
+
+
+def build_equaliser(T: Tablet):
+    d, ps = T.d, T.ps
+    fr = tk.Frames(d, T.ctx, "Equaliser", "equaliser",
+                   note="The equaliser on a tablet. The sheet is a sheet like any other there: at most 640dp wide, in the "
+                        "middle of the window at its bottom edge, over both halves of Now Playing, on the cover's wash. "
+                        "The bands' plot takes the width: 568dp of plot, a band every 56.8dp. Settings > Equaliser "
+                        "keeps the dock and the player; it is the phone's page in a column at most 720dp wide in the "
+                        "middle of the content area, with a 664dp plot.")
+    EQ = SRC + "ComfortEqualiser.kt"
+    # The sheet over Now Playing.
+    key = "sheet_equaliser_landscape"
+    s = Screen(T, fr, key, "Equaliser sheet over Now Playing", "landscape", EQ + " · ComfortEqualiserSheet", wash=True)
+    half, pc = s.W / 2, 340
+    np_queue(T, s, half, half - END)
+    np_switch(T, s, half, "Up next")
+    np_player(T, s, round((half - pc) / 2, 1), pc, 280, header_x=0, header_w=half)
+    sbar = d.instance("Status bar", s.f, name="Status bar", x=0, y=0)
+    d.set(sbar, width=s.W, height=STATUS_H)
+    ps.inst("Scrim", s.f, name="Scrim", w=s.W, h=s.H)
+    lead = equaliser_sheet(T, s)
+    g = d.instance("Gesture bar", s.f, name="Gesture bar", x=0, y=s.H - GESTURE_H)
+    d.set(g, width=s.W, height=GESTURE_H)
+    s.notes.append("Opened from Equaliser in the track menu over Now Playing. The song plays with the default, Bass "
+                   "boost, so the scope head reads For all songs and the rows are Save for this song and Save for this "
+                   "album. Band sliders is the phone's component at 608dp: its tracks, response and knobs follow the "
+                   "width.")
+    d.annotate(d.screens[key]["light"],
+               "The reference render gives the sheet's window no insets, so there the sheet ends at the screen's foot. On "
+               "a tablet ComfortSheet's navigationBarsPadding() puts the 20dp navigation inset under the 30dp foot, as "
+               "drawn here: the sheet is 20dp taller and its rows sit 20dp higher than in the render.",
+               "Reference render differs")
+    s.done()
+
+    # Settings > Equaliser.
+    s = Screen(T, fr, "settings_equaliser_landscape", "Equaliser page", "landscape", EQ + " · ComfortEqualiserPage")
+    ss = cs.S(d, T.ctx)
+    colw = min(720 + 32, s.cw)
+    card = colw - 32
+    col = s.column(x=X0 + round((s.cw - colw) / 2, 1), w=colw)
+    ss.hero(col, "Equaliser", short=True)
+    ss.lead_tools(col)
+    g, _ = group(d, col, "Use equaliser")
+    row(d, g, "Settings row", "Use equaliser", Control="Switch on", Title="Use equaliser")
+    ss.label(col, "Default")
+    g, slot = group(d, col, "Default")
+    d.set(g, width=card)
+    editor = d.frame(s.f, name="Editor", layout="v", w=card, pad=[10, 0, 8, 0], sizing=("fixed", "hug"), clip=False)
+    ed = ceq._editor(d, editor, width=card, selected="Bass boost", chip_side=12, plot_side=8)
+    d.set(ed["pieces"], sizingH="fill")
+    for c in d.get(slot, depth=1).get("children", []):
+        d.cmd("edit.delete", ids=[c["id"]])
+    d.__dict__.setdefault("_slot_used", {})[g] = True
+    d.cmd("node.reparent", ids=[editor], parent=slot)
+    d.set(editor, sizingH="fill")
+    inst(d, "Note", col, "Note", Text="Every song without its own setting plays with this.")
+    ss.label(col, "Albums with their own setting")
+    ceq._own_rows(d, col)
+    ss.label(col, "Songs with their own setting")
+    ceq._own_songs(d, col)
+    for c in d.get(col, depth=1).get("children", []):
+        w = d.get(c["id"]).get("width", 0)
+        if abs(w - 379) < 1:
+            d.set(c["id"], width=card)
+        elif abs(w - 411) < 1:
+            d.set(c["id"], width=colw)
+    s.shell()
+    s.notes.append("Settings > Playback > Equaliser. The page is the phone's in a column at most 720dp wide: the short "
+                   "hero, the back row, Use equaliser, then the default's chips and plot on one card, and under the "
+                   "player bar the albums and songs with their own setting. The page has no scope head: it only ever "
+                   "edits the default.")
+    s.done()
+    fr.close()
+    # On a dark sheet a neutral box is one step up (fill-2), as on the phone's sheet.
+    dark = d.screens[key]["map"].get(lead)
+    if dark:
+        d.override(dark, "Container", fill="Color/fill-2")
+
+
 # ───────────────────────────────────────────────────────────────── cover, changelog, links, hygiene
 CHANGES = [
-    "The tablet layouts: a Tablet page and its components, added to 1.2.0. They match the code on "
-    "feature/tablet-layouts, and every Tablet frame, Light and Dark, is marked ready for development.",
+    "The tablet layouts: the Tablet page and its components, put back on 1.3.0, with frames for mood mixes and the "
+    "equaliser. Every Tablet frame, Light and Dark, matches the code on feature/tablet-layouts and is marked ready for "
+    "development.",
     "Tablet page, after Screens: Home, Library, Search, album, artist, playlist, Now Playing, lyrics, Settings, a sheet, "
     "a dialog and the first run's look step, at 1152 x 720 (a tablet sideways), 720 x 1152 (upright) and 1440 x 900, "
     "Light and Dark.",
+    "Mood mixes on the Tablet page: Home scrolled to the Moods shelf, the mood page in two panes and, upright, with its "
+    "header as a row, Search's Browse with the Moods group, and Moods and interests as a column at most 720dp wide.",
+    "The equaliser on the Tablet page: the sheet over Now Playing, 640dp wide, and Settings > Equaliser as a column at "
+    "most 720dp wide. Band sliders is the phone's component, resized.",
     "Components: Side dock and Side dock/Tab, Player bar (Components / Navigation); Now playing/Side panel "
     "(Components / Playback).",
-    "Each frame carries its Source annotation: ComfortAlbumPanes, ComfortArtistPanes and ComfortPlaylistPanes for the "
-    "collections, ComfortLyricsWide for full-screen lyrics. Frames that show the dock and the player carry a second "
-    "Source line for ComfortWideShell.",
+    "Each frame carries its Source annotation: ComfortAlbumPanes, ComfortArtistPanes, ComfortPlaylistPanes and "
+    "ComfortMoodPanes for the collections, ComfortLyricsWide for full-screen lyrics. Frames that show the dock and the "
+    "player carry a second Source line for ComfortWideShell.",
+    "Screens page: the Moods section's 12 tablet frames marked In progress (Home, the mood page and the picker at "
+    "1440 x 900 and 700 x 900, drawn as layout before the side dock and the player bar were components) are deleted. "
+    "The Tablet page has those screens, and the section's note says so.",
     "Notes record what no frame shows: in the Library's list pane the open tile of the grid view sits on a selection "
     "bed, and a collection's bar never shows its name.",
     "Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
     "state, the Playback group in Settings, and which line of the lyrics is being sung.",
-    "The phone screens and the equaliser are unchanged from 1.2.0.",
+    "The phone screens, the equaliser's and the mood mixes' are unchanged from 1.3.0.",
 ]
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
 ENTRIES = [(VERSION, UPDATED, CHANGES)]
@@ -1148,8 +1473,8 @@ ENTRIES = [(VERSION, UPDATED, CHANGES)]
 
 def build_cover(d: Doc, ctx: dict):
     """The version on the Cover, the Tablet row in its Read me and the version's entry at the top of the Changelog.
-    The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, and 1.1.0 and 1.2.0 for
-    the equaliser) are left alone."""
+    The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, 1.1.0 and 1.2.0 for the
+    equaliser, 1.3.0 for mood mixes) are left alone."""
     d.page("Cover")
     cover = next(c["id"] for c in top_children(d, "Cover") if c.get("name") == "Cover")
     for label, value in (("Version", VERSION), ("Last updated", UPDATED)):
@@ -1208,7 +1533,7 @@ def build_links(T: Tablet):
     for key, size, layer, what, target in T.triggers:
         if key not in d.screens or not d.screens[key].get("dark"):
             continue
-        dst = f"{roots[target]}_{size}" if what == "tab" else np.get(size)
+        dst = f"{roots[target]}_{size}" if what == "tab" else target if what == "open" else np.get(size)
         if not dst or dst not in d.screens or dst == key:
             continue
         try:
@@ -1220,7 +1545,8 @@ def build_links(T: Tablet):
 
 
 def hygiene(d: Doc, roots: dict) -> dict:
-    """tk.hygiene's check from one read of each tree: layers still carrying a default name (Frame, Rectangle 3...)."""
+    """tk.hygiene's check from one read of each tree: layers still carrying a default name (Frame, Rectangle 3...).
+    One read doesn't reach every layer of a page as large as Tablet, so build() checks that page with tk.hygiene."""
     def walk(n, bad):
         nm = n.get("name", "")
         for word in tk.DEFAULT_NAMES:
@@ -1232,9 +1558,14 @@ def hygiene(d: Doc, roots: dict) -> dict:
     return {label: walk(d.get(root, depth=40), []) for label, root in roots.items()}
 
 
+# Response curve (comfort/equaliser.py) names its stroke `Line`, which the check takes for a default name. A Band
+# sliders instance brings one with it: a frame's own layers never carry that name.
+COMPONENT_NAMED = {"Line": "Response curve's stroke, inside each Band sliders instance"}
+
+
 AREAS = {"home": build_home, "library": build_library, "search": build_search, "collections": build_collections,
          "now_playing": build_now_playing, "lyrics": build_lyrics, "settings": build_settings, "overlays": build_overlays,
-         "first_run": build_first_run}
+         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser}
 
 
 def build(d: Doc, ctx: dict):
@@ -1244,6 +1575,8 @@ def build(d: Doc, ctx: dict):
     t = time.time()
     build_components(d, ctx)
     print(f"  components {time.time() - t:6.1f}s", flush=True)
+    if not only or "retire" in only:
+        print(f"  retired      {tk.retire_placeholders(d)} In progress frames of the Moods section", flush=True)
     tk.reset_page(d)
     T = Tablet(d, ctx)
     for key, fn in AREAS.items():
@@ -1260,7 +1593,15 @@ def build(d: Doc, ctx: dict):
         for c in top_children(d, page):
             if c.get("name") in {f"Spec: {n}" for n in names}:
                 roots[c["name"]] = c["id"]
+    page = roots.pop("Tablet page")
     report = hygiene(d, roots)
+    d.page(tk.PAGE)
+    found = tk.hygiene(d, {"Tablet page": page})["Tablet page"]
+    report["Tablet page"] = [(i, n) for i, n in found if n not in COMPONENT_NAMED]
     ctx["hygiene"] = report
     for label, bad in report.items():
         print(f"  hygiene {label}: {len(bad)} default-named layers {bad[:8] if bad else ''}", flush=True)
+    for name, what in COMPONENT_NAMED.items():
+        n = sum(1 for _, nm in found if nm == name)
+        if n:
+            print(f"  hygiene Tablet page: {n} layers named {name}, each the {what}", flush=True)

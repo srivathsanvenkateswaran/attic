@@ -1,7 +1,7 @@
 """What the two styles' tablet modules share: the frame sizes of docs/design/2026-11-25-tablet/SPEC.md,
 the Tablet page, the Light-over-Dark sections, the annotations and the ready-for-development status every
 frame carries now that the layouts are in the code, removal of what an earlier run added (so a module can run
-twice), and the layer hygiene check.
+twice), the retirement of the mood mixes' placeholder tablet frames on the Screens page, and the layer hygiene check.
 
 Lengths are dp. A frame is one window: 1152 x 720 (Landscape, the Pad 6 sideways), 720 x 1152 (Portrait,
 the Pad 6 upright, a medium width) or 1440 x 900 (Large landscape).
@@ -56,6 +56,36 @@ def remove_components(d: Doc, ctx: dict, added: dict[str, list[tuple[str, str]]]
             card = tops.get(f"Card · {title}")
             if card is not None:
                 d.cmd("edit.delete", ids=[card])
+
+
+PLACEHOLDER_MARK = "· In progress ·"
+PLACEHOLDER_NOTE = ("The tablet frames at the end wait for the shell on feature/tablet-layouts.",
+                    "The tablet frames are on the Tablet page, in its Mood mixes section.")
+
+
+def retire_placeholders(d: Doc, page: str = "Screens", section: str = "Moods") -> int:
+    """Delete the tablet frames the moods modules drew before the tablet components existed (their names hold
+    "· In progress ·") from the Moods section of the Screens page: the Tablet page draws those screens now. The
+    section shrinks back to its phone rows and its note says where the tablet frames are. Nothing else on the page is
+    touched. Returns how many frames went: 0 on a file that has none, so a second run changes nothing."""
+    pid = d.page(page)
+    gone: list[int] = []
+    for sec in d.get(pid, depth=2).get("children", []):
+        if sec.get("type") != "SECTION" or sec.get("name") != section:
+            continue
+        kids = sec.get("children", [])
+        gone = [k["id"] for k in kids if k.get("type") == "FRAME" and PLACEHOLDER_MARK in k.get("name", "")]
+        if gone:
+            d.cmd("edit.delete", ids=gone)
+            keep = [k for k in kids if k.get("type") == "FRAME" and k["id"] not in gone]
+            d.set(sec["id"], width=max(k["x"] + k["width"] for k in keep) + Area.PAD,
+                  height=max(k["y"] + k["height"] for k in keep) + Area.PAD)
+        for k in kids:
+            if k.get("type") == "TEXT" and k.get("name") == "Note":
+                chars = d.get(k["id"]).get("characters", "")
+                if PLACEHOLDER_NOTE[0] in chars:
+                    d.set(k["id"], characters=chars.replace(*PLACEHOLDER_NOTE))
+    return len(gone)
 
 
 class Frames:
