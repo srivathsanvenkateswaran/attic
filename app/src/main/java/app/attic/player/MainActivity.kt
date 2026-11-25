@@ -75,13 +75,23 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Space plays and pauses from a keyboard. It only arrives here when nothing on screen took it: a
-     * search field types the space and a focused button clicks, as they should.
+     * Space plays and pauses from a keyboard, and Esc does what Back does (closes the player, the queue
+     * or lyrics, or leaves a screen) when there is something to close; on a tab's root it does nothing
+     * rather than leave the app. Keys only arrive here when nothing on screen took them: a search
+     * field types the space and a focused button clicks, as they should.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_SPACE && event.repeatCount == 0 && !event.isCtrlPressed && !event.isAltPressed) {
-            attic.player.togglePlayPause()
-            return true
+        if (event.repeatCount == 0 && !event.isCtrlPressed && !event.isAltPressed) {
+            when (keyCode) {
+                KeyEvent.KEYCODE_SPACE -> {
+                    attic.player.togglePlayPause()
+                    return true
+                }
+                KeyEvent.KEYCODE_ESCAPE -> if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    onBackPressedDispatcher.onBackPressed()
+                    return true
+                }
+            }
         }
         return super.onKeyDown(keyCode, event)
     }
