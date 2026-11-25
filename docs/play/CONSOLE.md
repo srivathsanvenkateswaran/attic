@@ -38,6 +38,8 @@ Anything in `<ANGLE BRACKETS>` is for the owner to fill in.
 | App icon | `images/icon.png`, 512×512, 32-bit PNG |
 | Feature graphic | `images/featureGraphic.png`, 1024×500, 24-bit PNG |
 | Phone screenshots | `images/phoneScreenshots/`, once captured: 2 to 8, and at least four 9:16 shots for recommendation placements |
+| 7-inch tablet screenshots | `images/sevenInchScreenshots/`: six 1920×1080 PNGs, uploaded in name order |
+| 10-inch tablet screenshots | `images/tenInchScreenshots/`: six 2560×1440 PNGs, uploaded in name order. The README there says how they are made |
 | Video | None |
 
 ## App content (Policy > App content)
