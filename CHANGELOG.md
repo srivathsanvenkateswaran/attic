@@ -21,6 +21,9 @@ All notable changes to Attic are listed here. Versions follow [Semantic Versioni
 - Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
 - An Equaliser row that opens the phone's equaliser on Attic's audio, shown when the phone has one
 
+### Tablets
+- Portrait is optional, so tablets can install Attic; its screens are laid out for phones
+
 ### Android Auto
 - Supports Android Auto: browse Home, Playlists, Albums and Artists with covers, search, and "play X on Attic" by voice. It hasn't been tried in a car or on a head unit yet ([details](https://github.com/srivathsanvenkateswaran/attic/blob/main/docs/play/ANDROID-AUTO.md))
 
@@ -45,7 +48,6 @@ The first public release.
 - Two styles, Expressive and Comfort, switchable in Settings > Appearance
 - Dark and light themes, or match the phone
 - The Headroom launcher icon
-- Portrait is optional, so tablets can install Attic; its screens are laid out for phones
 
 ### Radio and mixes
 - Start radio from any song: Attic keeps ten similar songs in the queue

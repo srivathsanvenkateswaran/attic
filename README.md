@@ -113,7 +113,7 @@ Install the release build for everyday use. Compose runs far slower in a debug b
 
 ## Install
 
-1. Download `attic-v1.1.0.apk` from [Releases](../../releases).
+1. Download the APK from the [latest release](../../releases/latest).
 2. Open it on your phone and allow the install.
 3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.

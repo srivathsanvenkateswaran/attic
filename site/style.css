@@ -227,7 +227,9 @@ code {
 
 .hero-note {
   margin: 1.25rem 0 0;
-  font-size: var(--step--1);
+  /* 19px bold counts as large text, which needs 3:1; cream on terracotta measures 3.8:1. */
+  font-size: 1.1875rem;
+  font-weight: 650;
 }
 
 /* Two phones, one per style, standing over the cut into the page below. */
