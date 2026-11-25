@@ -55,7 +55,10 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 **Plays it the way you set it**
 - Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
 - Volume levelling, on by default: songs play at a similar loudness, from their ReplayGain tags or the loudness measured during analysis
-- An Equaliser row in Settings > Playback that opens the phone's equaliser on Attic's audio, when the phone has one
+- A ten-band equaliser of Attic's own, off by default, with eleven presets and your own. Open it from the menu on Now Playing
+- A song or an album can keep its own equaliser setting, which comes back whenever it plays: a song uses its own, else its album's, else the default. A pill on Now Playing shows when one is in use
+- The equaliser runs inside Attic's audio path, so it sounds the same on every phone, changes on a song's first sample, gapless songs included, and keeps each song's own curve through a crossfade. Boost presets play quieter rather than distort
+- Settings > Playback > Equaliser holds the default curve, lists the songs and albums with their own setting, and opens the phone's own equaliser when it has one
 
 **Keeps playing outside the app**
 - Background playback with notification and lock-screen controls, including shuffle and like
@@ -109,6 +112,8 @@ The release APK is 58 MB because it carries the analysis model and its runtime, 
 
 Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging. Mixes, genres from analysis and measured loudness wait for it, so on a new library, or one analysed before 1.1.0, they fill in as it reaches each song.
 
+The equaliser costs about 1.4% of one core while a curve is on, and left cold start and scrolling unchanged on the same phone ([details](docs/equaliser.md)).
+
 Install the release build for everyday use. Compose runs far slower in a debug build.
 
 ## Install
@@ -143,7 +148,7 @@ The release build is signed with the debug key, which suits sideloading on your 
 | UI | Kotlin, Jetpack Compose, Material 3 |
 | Playback | Media3 ExoPlayer with `MediaLibraryService`, which also serves the Android Auto browse tree |
 | Library | MediaStore |
-| Your data | Room: likes, playlists, history, the saved queue and lyrics |
+| Your data | Room: likes, playlists, history, the saved queue, lyrics and equaliser settings |
 | Covers | Coil, loading embedded art through MediaStore thumbnails |
 | Widget | `RemoteViews`, with one layout for each size |
 
