@@ -61,6 +61,8 @@ class UiActions(
     fun openFolder(name: String) = go("folder/${Uri.encode(name)}")
     fun openPlaylist(id: Long) = go("playlist/$id")
     fun openGenre(key: String) = go("genre/${Uri.encode(key)}")
+    fun openMood(id: String) = go("mood/${Uri.encode(id)}")
+    fun openInterests() = go("interests")
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
     fun openWrapped() = go("wrapped")
