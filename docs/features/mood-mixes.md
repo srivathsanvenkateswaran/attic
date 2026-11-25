@@ -10,7 +10,9 @@ read the embedding analysis already stored. You can pick the moods, genres and l
 Each day Attic builds one mix per mood from those scores, your picks and your listening, by fixed
 arithmetic with a seeded daily rotation. Everything runs on the phone.
 
-Status: architecture, 2026-11-25. Branch `feature/mood-mixes`, on `ui-redesign` at 65ebfb8 (1.1.0, Room 5).
+Status: built, 2026-11-25. Branch `feature/mood-mixes`, on `ui-redesign` at c0efc6f (1.2.0, Room 7).
+Room version 8 and backup schema 3 are this feature's: Room 6 is smart transitions, 7 and backup
+schema 2 the equaliser.
 
 ## What exists today, and what this builds on
 
@@ -133,7 +135,7 @@ has no embedding and gets no mood row; it is simply never in a mood mix.
 Raising `VERSION` (new heads, another input scale, another order) makes every song be scored again
 from its stored embedding, in seconds, with no decode.
 
-### Storage: Room 5 → 6
+### Storage: Room version 8
 
 ```
 song_analysis  + embeddingNorm REAL (null: analysed before lengths were stored; 0: unknown, not retried)
@@ -147,16 +149,13 @@ Every head output is kept, not only the ones today's formulas use, so the formul
 without scoring again. When analysis saves a new embedding for a song, its mood row is deleted in
 the same transaction, and the next scoring pass writes it again.
 
-Migration 5 → 6 adds the column and creates the table, and changes nothing else
-(`DatabaseMigrations.SQL_5_TO_6`), with a test in `DatabaseMigrationTest` against the exported
-schema `app/schemas/.../6.json`.
+The migration to 8 adds the column and creates the table, and changes nothing else
+(`DatabaseMigrations.SQL_7_TO_8`), with a test in `DatabaseMigrationTest` against the exported
+schema `app/schemas/.../8.json`.
 
-**Collision with the equaliser branch.** `feature/per-song-equaliser` also takes 5 → 6 (for
-`eq_settings` and `eq_presets`). Whichever merges into `tier2-integration` second renumbers its
-migration to 6 → 7 and regenerates its schema JSON. The SQL of each is independent, so the rebase
-is mechanical. On a phone, a build at version 6 of one branch and version 6 of the other have
-different schemas, so Room refuses to open one's database with the other's build; install the
-merged build, never one branch's over the other's.
+**Version numbers.** Smart transitions took 6 (already on the owner's phone) and the equaliser 7, so
+mood mixes takes 8: `Migration(7, 8)`, tested from the real version 7 schema. Its SQL touches none
+of their tables.
 
 ## Your picks: moods, genres and languages
 
@@ -181,17 +180,17 @@ offered:
 lists and `updatedAt`), not Room: it is a handful of settings, and they need no migration.
 Genres are stored by `Genre.key` (the normalised name), languages by code, moods by their id.
 
-**In the backup** as a new section, and the schema goes from 1 to 2:
+**In the backup** as a new section, and the schema goes from 2 to 3:
 
 ```json
 "interests": { "moods": ["chill", "focus"], "genres": ["hip hop", "pop"], "languages": ["ta", "en"], "updatedAt": 1795392000000 }
 ```
 
-A version 1 reader would skip the section without a word and restore the rest, losing the picks,
-so version 2 makes older Attics refuse the file ("made by a newer version"). Version 1 files still
-read: they have no picks. A restore fills in the picks when the phone has none, and otherwise
+A version 2 reader would skip the section without a word and restore the rest, losing the picks,
+so version 3 makes older Attics refuse the file ("made by a newer version"). Version 1 and 2 files
+still read: they have no picks. A restore fills in the picks when the phone has none, and otherwise
 keeps the phone's (the merge rule for settings that aren't theme, style or autoplay: nothing on the
-phone is replaced). The equaliser branch also takes schema 2; whichever lands second takes 3.
+phone is replaced).
 
 ## The algorithm
 
@@ -368,7 +367,7 @@ the app's settings, and nothing is sent anywhere. `PRIVACY.md` gains a line in "
 - `MoodScorerTest`: the real heads on the JVM against reference outputs for fixed vectors, and the
   batch giving the same as single runs.
 - `MoodMixCacheTest`: round trip, a stale day, a changed fingerprint, an old version.
-- `DatabaseMigrationTest`: 5 → 6 keeps every row and adds `song_moods`.
+- `DatabaseMigrationTest`: the migration to 8 keeps every row and adds `song_moods`.
 - `BackupCodecTest`, `RestorePlannerTest`: the interests section round trip, a version 1 file, the
   merge rule.
 
