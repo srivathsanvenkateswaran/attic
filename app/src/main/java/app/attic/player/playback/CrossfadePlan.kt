@@ -12,11 +12,11 @@ import kotlin.math.sin
  */
 object CrossfadePlan {
     /**
-     * The tail player starts this long before the fade, to line up with the main one while silent. On the
-     * owner's phone a seek into an AAC file landed anywhere from 80 to 300 ms out, so lining up within
-     * 20 ms took up to four seeks and once ran past five seconds.
+     * The tail player starts this long before the fade, to line up with the main one while silent: a
+     * second for positions to settle after its seek, 750 ms of readings, a nudge of up to five seconds
+     * ([TailAlignment.Verdict.Nudge]), then a second at normal speed and another set of readings.
      */
-    const val ARM_LEAD_MS = 8_000L
+    const val ARM_LEAD_MS = 10_000L
 
     /** With less than this left before the fade there isn't time to line up, so the song just ends. */
     const val MIN_ARM_MS = 1_500L
@@ -77,9 +77,12 @@ object CrossfadePlan {
 
 /**
  * Lines the tail player up with the main one. Position readings from a player that has just started
- * jump about, so it takes the median of several, and corrects the seek it will use next time by
- * however far the last one landed out: a seek lands late by roughly the time the decoder and the
- * audio output take to start, and that varies by phone and file.
+ * jump about, so it takes the median of several. A seek can't do the fine work: on the owner's phone
+ * the same seek landed anywhere from 140 to 450 ms late, as the decoder and the audio output took more
+ * or less time to start. So the tail is seeked once, close, and then played slightly slow or fast,
+ * while it is still silent, until it is level with the main player ([Verdict.Nudge]). It is back at
+ * normal speed well before anyone hears it. Each first reading after a seek also corrects the lead
+ * the next seek uses.
  */
 class TailAlignment(
     private val toleranceMs: Long = 20,
@@ -99,20 +102,33 @@ class TailAlignment(
         private set
 
     private val readings = ArrayList<Long>()
+    private var afterSeek = true
 
     sealed interface Verdict {
         data object NeedMore : Verdict
 
         data object Aligned : Verdict
 
-        /** Seek the tail again, [leadMs] ahead of the main player. */
+        /** Too far out to nudge: seek the tail again, [leadMs] ahead of the main player. */
         data object Reseek : Verdict
+
+        /** Play the silent tail at [speed] for [forMs], then at normal speed, then measure again. */
+        data class Nudge(val speed: Float, val forMs: Long) : Verdict
     }
 
     fun seekTarget(mainPositionMs: Long): Long = mainPositionMs + leadMs
 
     /** Starts a new set of readings after a seek. */
-    fun reset() = readings.clear()
+    fun reset() {
+        readings.clear()
+        afterSeek = true
+    }
+
+    /** Starts a new set of readings after a nudge, with no seek in between. */
+    fun remeasure() {
+        readings.clear()
+        afterSeek = false
+    }
 
     /** [differenceMs] is the tail's position minus the main player's, read at the same moment. */
     fun record(differenceMs: Long): Verdict {
@@ -121,12 +137,27 @@ class TailAlignment(
         val median = readings.sorted()[readings.size / 2]
         lastMedianMs = median
         readings.clear()
-        if (abs(median) <= toleranceMs) return Verdict.Aligned
-        leadMs = (leadMs - median).coerceIn(-MAX_LEAD_MS, MAX_LEAD_MS)
-        return Verdict.Reseek
+        // Only a reading straight after a seek says how far a seek lands out.
+        if (afterSeek) leadMs = (leadMs - median).coerceIn(-MAX_LEAD_MS, MAX_LEAD_MS)
+        afterSeek = false
+        return when {
+            abs(median) <= toleranceMs -> Verdict.Aligned
+            abs(median) > MAX_NUDGE_MS -> Verdict.Reseek
+            // A tail ahead (positive) plays slow to let the main player catch up; one behind plays fast.
+            else -> Verdict.Nudge(
+                speed = if (median > 0) 1f - NUDGE_RATE else 1f + NUDGE_RATE,
+                forMs = (abs(median) / NUDGE_RATE).toLong(),
+            )
+        }
     }
 
-    private companion object {
-        const val MAX_LEAD_MS = 2_000L
+    companion object {
+        private const val MAX_LEAD_MS = 2_000L
+
+        /** How much faster or slower than normal the silent tail plays while it catches up. */
+        const val NUDGE_RATE = 0.08f
+
+        /** Further out than this a nudge would take more than five seconds, so the tail seeks instead. */
+        const val MAX_NUDGE_MS = 400L
     }
 }

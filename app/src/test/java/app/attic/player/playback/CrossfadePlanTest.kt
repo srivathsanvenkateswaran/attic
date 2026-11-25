@@ -55,14 +55,14 @@ class CrossfadePlanTest {
     fun unknownLengthMeansNoFade() = assertEquals(0L, fade(duration = 0))
 
     @Test
-    fun waitsUntilEightSecondsBeforeTheFade() {
-        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:46.
-        assertEquals(CrossfadePlan.Step.Wait(226_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
+    fun waitsUntilTenSecondsBeforeTheFade() {
+        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:44.
+        assertEquals(CrossfadePlan.Step.Wait(224_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
     }
 
     @Test
     fun armsInsideTheLead() {
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(227_000, 234_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(225_000, 234_000))
         assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 234_000))
     }
 
@@ -119,21 +119,41 @@ class TailAlignmentTest {
     }
 
     @Test
-    fun aLateTailSeeksFurtherAheadNextTime() {
+    fun aLateTailPlaysFastAndTheNextSeekGoesFurtherAhead() {
         val a = TailAlignment()
         val before = a.leadMs
         repeat(14) { a.record(-60) }
-        assertEquals(TailAlignment.Verdict.Reseek, a.record(-60))
+        val verdict = a.record(-60)
+        assertEquals(TailAlignment.Verdict.Nudge(1f + TailAlignment.NUDGE_RATE, 750), verdict)
         assertEquals(before + 60, a.leadMs)
         assertEquals(1_000 + before + 60, a.seekTarget(1_000))
     }
 
     @Test
-    fun anEarlyTailSeeksLessFarAhead() {
+    fun anEarlyTailPlaysSlowAndTheNextSeekGoesLessFarAhead() {
         val a = TailAlignment()
         val before = a.leadMs
-        repeat(15) { a.record(45) }
-        assertEquals(before - 45, a.leadMs)
+        repeat(14) { a.record(200) }
+        assertEquals(TailAlignment.Verdict.Nudge(1f - TailAlignment.NUDGE_RATE, 2_500), a.record(200))
+        assertEquals(before - 200, a.leadMs)
+    }
+
+    @Test
+    fun aReadingAfterANudgeDoesNotChangeTheLead() {
+        val a = TailAlignment()
+        repeat(15) { a.record(100) }
+        val lead = a.leadMs
+        a.remeasure()
+        repeat(14) { a.record(30) }
+        assertEquals(TailAlignment.Verdict.Nudge(1f - TailAlignment.NUDGE_RATE, 375), a.record(30))
+        assertEquals(lead, a.leadMs)
+    }
+
+    @Test
+    fun farOutSeeksAgain() {
+        val a = TailAlignment()
+        repeat(14) { a.record(-900) }
+        assertEquals(TailAlignment.Verdict.Reseek, a.record(-900))
     }
 
     @Test
