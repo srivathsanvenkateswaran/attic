@@ -1,5 +1,5 @@
-"""Smart transitions in Attic Comfort: a proposal, drawn before the code (version 1.1.0). Pages: Components /
-Playback, Screens, Cover, Changelog.
+"""Smart transitions in Attic Comfort, drawn as a proposal (version 1.3.0). Pages: Components / Playback, Screens,
+Cover, Changelog.
 
 Unlike the modules that built 1.0.0 this one works on a file that already exists: `attach()` reads the components,
 styles, variables and screens out of the opened document, and `build()` adds to them. Run it on a copy of the file,
@@ -9,12 +9,15 @@ look at the result, then copy it back:
     python3 -m comfort.transitions "../Attic Comfort.figcraft" /tmp/attic-design/comfort-transitions.figcraft \
         [--export /tmp/attic-dev/smart-transitions-design]
 
-It refuses a file that already has the Transitions section. It touches nothing the equaliser's module on
-feature/per-song-equaliser adds, so it runs on a file with or without the equaliser. In a build from scratch
-(`figbuild.run comfort`) it does nothing but say so: build 1.0.0 first, then run this module on the saved file.
+It runs on the 1.2.0 file, the one with the equaliser: Settings > Playback ends in the Equaliser row that file
+draws (Settings row, Control=Value and chevron), so it refuses a file without the equaliser. It also refuses a file
+that already has the Transitions section. In a build from scratch (`figbuild.run comfort`) it does nothing but say
+so: build 1.0.0, run `comfort.equaliser` on the saved file, then this module.
 
-The feature is docs/features/smart-transitions.md; section 4 is the brief. Nothing here is in the app yet, so every
-new frame carries a `Proposed` annotation and none is marked ready for development.
+The feature is docs/features/smart-transitions.md; section 4 is the brief. This module draws the proposal: every
+new frame carries a `Proposed` annotation and none is marked ready for development. `comfort.transitions_landed`
+then marks what the code built. The two steps are one version, 1.3.0: this module writes the Changelog entry and
+that one rewrites it.
 
 COMPONENTS / PLAYBACK
   Seek bar    gains the layer "Next song mark" (hidden) and the property Show next song mark: a notch rising 7dp
@@ -22,16 +25,16 @@ COMPONENTS / PLAYBACK
 
 SCREENS (section "Transitions", Light above Dark, keys in KEYS)
   Settings, off; Settings, Crossfade; Settings, Smart; Transitions pop-over; Crossfade length pop-over; Now Playing,
-  next song marked. The settings frames are Settings scrolled to Playback, which the 1.0.0 file doesn't draw: Volume
-  levelling, Transitions, Crossfade length and Equaliser, built from Settings row (Control=Switch on, Value, Chevron)
-  and the Menu, Menu caption and Menu row the file has.
+  next song marked. The settings frames are Settings scrolled to Playback, as Equaliser / Settings, Playback draws
+  it: Volume levelling, Transitions, Crossfade length and the Equaliser row of 1.2.0, built from Settings row
+  (Control=Switch on, Value, Value and chevron) and the Menu, Menu caption and Menu row the file has.
 
 PROTOTYPE
   The flow "Transitions" starts at Settings, off: the Transitions row opens its pop-over, Smart shows the length
   row, which opens its own.
 
 HANDOFF
-  A Source and a Proposed annotation on every new frame; Cover 1.1.0; the Changelog entry.
+  A Source and a Proposed annotation on every new frame; Cover 1.3.0; the Changelog entry.
 """
 from __future__ import annotations
 
@@ -47,35 +50,38 @@ from .components_core import K
 from .components_states import block, group, row, setp
 from .foundations import MODE_COLLECTIONS
 
-VERSION = "1.1.0"
+VERSION = "1.3.0"
 UPDATED = "2026-11-25"
 SECTION = "Transitions"
 DOC = "docs/features/smart-transitions.md"
 PROPOSED = "Proposed"
 SETTINGS_SRC = ("ui/comfort/ComfortSettings.kt · ComfortSettings (CrossfadeRow, which becomes a Transitions row and a "
                 "Crossfade length row)")
+ENTRY = f"Entry {VERSION}"                  # the Changelog entry's layer name; transitions_landed rewrites it
 NP_SRC = "ui/comfort/ComfortNowPlaying.kt · ComfortNowPlaying (Seek; the bar is NowPlayingParts.kt · SeekBar)"
 W, H = 411, 914
 
-# Every string the proposal shows. The ones marked (today) are in res/values/strings.xml already.
+# Every string the frames show, from res/values/strings.xml.
 S = {
-    "playback": "Playback",                                                     # settings_playback (today)
-    "volume": "Volume levelling",                                               # settings_volume_levelling (today)
+    "playback": "Playback",                                                     # settings_playback
+    "volume": "Volume levelling",                                               # settings_volume_levelling
     "volume_body": "Plays songs at a similar loudness, from their ReplayGain tags or the level measured during "
-                   "analysis. Songs not measured yet play as they are.",        # settings_volume_levelling_body (today)
-    "transitions": "Transitions",
-    "off": "Off",                                                               # settings_crossfade_off (today)
-    "crossfade": "Crossfade",                                                   # settings_crossfade (today)
-    "smart": "Smart",
-    "off_body": "The next song starts when this one ends.",
-    "crossfade_body": "Fades each song into the next over the crossfade length.",
+                   "analysis. Songs not measured yet play as they are.",        # settings_volume_levelling_body
+    "transitions": "Transitions",                                               # settings_transitions
+    "off": "Off",                                                               # settings_crossfade_off
+    "crossfade": "Crossfade",                                                   # settings_crossfade
+    "smart": "Smart",                                                           # settings_transitions_smart
+    "off_body": "The next song starts when this one ends.",                     # settings_transitions_off_body
+    "crossfade_body": "Fades each song into the next over the crossfade length.",   # settings_transitions_crossfade_body
     "smart_body": "Starts the next song as this one winds down, skips silence and lines up the beats when the "
-                  "tempos are close.",
-    "albums": "Songs from one album played in order still run straight into each other.",   # settings_crossfade_body (today)
-    "length": "Crossfade length",
-    "length_smart_body": "Smart uses this for songs that aren't analysed yet.",
-    "equaliser": "Equaliser",                                                   # settings_equaliser (today)
-    "equaliser_body": "Opens the equaliser on this phone.",                     # settings_equaliser_body (today)
+                  "tempos are close.",                                          # settings_transitions_smart_body
+    "albums": "Songs from one album played in order still run straight into each other.",   # settings_crossfade_body
+    "length": "Crossfade length",                                               # settings_crossfade_length
+    "length_smart_body": "Smart uses this for songs that aren't analysed yet.", # settings_crossfade_length_smart_body
+    # The Equaliser row, as comfort/equaliser.py's _playback_settings draws it in 1.2.0.
+    "equaliser": "Equaliser",                                                   # equaliser
+    "equaliser_value": "Bass boost",                                            # the default's preset (equaliserRowValue)
+    "equaliser_own": "With their own setting: 4 songs, 2 albums",               # settings_equaliser_own
 }
 MODES = [S["off"], S["crossfade"], S["smart"]]
 LENGTHS = [2, 4, 6, 8, 10, 12]
@@ -181,6 +187,24 @@ def _descriptions(d: Doc) -> dict[int, str]:
 
 
 # ============================================================================== the seek bar's mark
+SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.3.0). This frame draws the "
+               "same as before.")
+
+
+def changed_frames(d: Doc) -> set[int]:
+    """The ready-for-development frames FigCraft shows as changed since they were marked."""
+    return {i["id"] for i in d.cmd("inspect.readyForDev", status="changed")["items"]}
+
+
+def settle(d: Doc, before: set[int]) -> list[int]:
+    """A layer added to Seek bar counts as a change to every ready frame that holds a seek bar, though the layer is
+    hidden and the frames draw the same. The ones this run flagged go back to Ready for dev, with the reason."""
+    flagged = sorted(changed_frames(d) - before)
+    if flagged:
+        d.cmd("dev.resolveChange", ids=flagged, reason=SAME_PIXELS)
+    return flagged
+
+
 SEEK_NOTE = ("Proposed, not in the code yet: Show next song mark draws a notch 3dp wide that rises 7dp from the "
              "track's lower edge (top corners 1.5), under the place the fill's tick has when the next song starts "
              "coming in: its left edge at 64 + (351 - 64) x fraction - 12. On the track it is on-3; once the fill "
@@ -218,10 +242,14 @@ def _seek_bar(d: Doc, ctx: dict):
     kids = d.get(preview, depth=1)["children"]
     last = max(i for i, k in enumerate(kids) if k["name"] == "Preview: Seek bar")
     for n, variant in enumerate(("Playing", "End")):
-        pv = d.instance("Seek bar", preview, name="Preview: Seek bar")
+        # A cell with its caption, as Components.dark_preview makes them.
+        cell = d.frame(preview, name="Preview: Seek bar", layout="v", gap=10, sizing=("hug", "hug"))
+        pv = d.instance("Seek bar", cell, name="Seek bar")
         setp(d, pv, Progress=variant, Elapsed={"Playing": "1:18", "End": "3:40"}[variant], Total="3:52",
              **{"Show next song mark": True})
-        d.cmd("node.reorder", id=pv, index=last + 1 + n)
+        d.text(cell, f"Seek bar · Progress={variant}, Show next song mark=True", style="Doc/Caption", color="Color/on-2",
+               name="Caption")
+        d.cmd("node.reorder", id=cell, index=last + 1 + n)
     d.ann_category(PROPOSED, "#7C3AED")
     for n in (sid, spec):
         d.annotate(n, "Next song mark and Show next song mark are a proposal for smart transitions "
@@ -247,8 +275,8 @@ ROWS_NOTE = ("Proposed, not in the code yet. Today this card has a Crossfade row
              "row's value and what it does as its summary.")
 NOTES = {
     "transitions_settings_off": [
-        ROWS_NOTE + " Off is the default, as now, and hides the length row. Equaliser is the row the code has "
-        "today, shown when the phone has an equaliser."],
+        ROWS_NOTE + " Off is the default, as now, and hides the length row. Equaliser is the row the Equaliser "
+        "section draws, unchanged."],
     "transitions_settings_crossfade": [
         ROWS_NOTE + " Crossfade is today's fixed fade. Crossfade length takes over today's pop-over without Off: "
         "2 to 12 seconds, 6 to start with. The row is there only while the choice is Crossfade or Smart."],
@@ -298,8 +326,8 @@ def _copy(d: Doc, a: Area, ctx: dict, key: str, name: str, source: str, of: str)
 
 
 def _settings(d: Doc, ss, a: Area, key: str, name: str, mode: str) -> dict:
-    """Settings scrolled to Playback (ComfortSettings.kt): Volume levelling, the proposed rows and the Equaliser row,
-    then Lyrics and Song radio as the Settings frames have them."""
+    """Settings scrolled to Playback (ComfortSettings.kt): Volume levelling, the proposed rows and the Equaliser row
+    as 1.2.0 draws it, then Lyrics and Song radio as the Settings frames have them."""
     f, col = ss.phone(a, key, name, SETTINGS_SRC)
     d.screens[key]["status"] = "proposed"
     out = {"frame": f}
@@ -314,13 +342,8 @@ def _settings(d: Doc, ss, a: Area, key: str, name: str, mode: str) -> dict:
         out["length"] = row(d, g, "Settings row", "Crossfade length", Control="Value", Title=S["length"],
                             Value=seconds(LENGTH), **{"Show summary": smart, "Show hairline": True},
                             **({"Summary": S["length_smart_body"]} if smart else {}))
-    eq = row(d, g, "Settings row", "Equaliser", Control="Chevron", Title=S["equaliser"], Summary=S["equaliser_body"],
-             **{"Show summary": True, "Show hairline": True})
-    # SetRow's trailing slot: the code puts open_in_new there for this row, in the chevron's on-3.
-    chev = d.child(eq, "Chevron")
-    d.cmd("instance.swap", ids=[chev], component=d.comp["Icon/open_in_new"])
-    d.set(chev, name="Opens outside Attic")
-    d.set(d.child(chev, "Glyph"), fill={"$var": "Color/on-3"})
+    row(d, g, "Settings row", "Equaliser", Control="Value and chevron", Title=S["equaliser"], Value=S["equaliser_value"],
+        Summary=S["equaliser_own"], **{"Show summary": True, "Show hairline": True})
     ss.label(col, "Lyrics")
     g, _ = group(d, col, "Lyrics")
     block(d, g, "Lyrics: saved", text="51 of 69 songs have lyrics saved on this phone. Saved lyrics work offline.",
@@ -429,13 +452,14 @@ def _prototype(d: Doc, t: dict) -> list:
 
 # ============================================================================== cover and changelog
 CHANGES = [
-    "A proposal for smart transitions, drawn before the code (docs/features/smart-transitions.md). Nothing in it is "
-    "in the app yet: its frames carry a Proposed annotation and aren't marked ready for development.",
+    "A proposal for smart transitions (docs/features/smart-transitions.md). Its frames carry a Proposed annotation "
+    "and aren't marked ready for development.",
     "Screens: the section Transitions, 6 screens in Light and Dark: Settings at Playback with transitions off, on "
     "Crossfade and on Smart, the Transitions pop-over, the Crossfade length pop-over, and Now Playing with the next "
     "song marked on the seek bar.",
-    "Settings > Playback, which 1.0.0 didn't draw: the Crossfade row becomes Transitions (Off, Crossfade, Smart). "
-    "Crossfade length (2 to 12 seconds, 6 to start with) is a row under it while the choice is Crossfade or Smart.",
+    "Settings > Playback: the Crossfade row becomes Transitions (Off, Crossfade, Smart). Crossfade length (2 to 12 "
+    "seconds, 6 to start with) is a row under it while the choice is Crossfade or Smart. The Equaliser row under "
+    "them is unchanged.",
     "Changed component: Seek bar gains Show next song mark, a notch on the track's lower edge under the place the "
     "fill's tick has when the next song starts coming in.",
     "Prototype: the flow Transitions, from Settings at Playback.",
@@ -450,7 +474,7 @@ def _cover(d: Doc):
     pid = d.page("Changelog")
     tops = {c["name"]: c for c in d.get(pid, depth=1)["children"]}
     entries, howto = tops["Entries"], tops["How to add an entry"]
-    i = d.instance("Doc/Changelog entry", entries["id"], name=f"Entry {VERSION}")
+    i = d.instance("Doc/Changelog entry", entries["id"], name=ENTRY)
     d.cmd("node.reorder", id=i, index=0)
     d.cmd("instance.setProperties", ids=[i], properties={"Version": VERSION, "Date": UPDATED, "Author": "Attic maintainers",
                                                          "Changes": "\n".join(CHANGES)})
@@ -463,17 +487,21 @@ def _cover(d: Doc):
 # ============================================================================== build
 def build(d: Doc, ctx: dict):
     if not ctx.get("opened"):
-        print("    transitions: skipped in a build from scratch. Run `python3 -m comfort.transitions OUT.figcraft "
-              "OUT-1.1.0.figcraft` on the saved file to add it.", flush=True)
+        print("    transitions: skipped in a build from scratch. Run `comfort.equaliser`, then `python3 -m "
+              "comfort.transitions OUT.figcraft OUT-1.3.0.figcraft`, on the saved file to add it.", flush=True)
         return
     frames = attach(d, ctx)
     if "Transitions / Settings, off · Light" in frames:
         raise SystemExit("this file already has the Transitions section; nothing to add")
+    if "Equaliser / Settings, Playback · Light" not in frames:
+        raise SystemExit("transitions: this file has no equaliser (1.2.0); run comfort.equaliser on it first")
     ctx["descriptions"] = _descriptions(d)
+    before = changed_frames(d)
     _seek_bar(d, ctx)
     t = _screens(d, ctx)
     ctx["transitions_links"] = _prototype(d, t)
     _cover(d)
+    ctx["transitions_settled"] = settle(d, before)
     d.page("Cover")
 
 
@@ -502,7 +530,7 @@ def main(argv=None):
         a.dst.parent.mkdir(parents=True, exist_ok=True)
         d.save(a.dst.resolve())
         print(f"saved {a.dst} ({a.dst.stat().st_size // 1024} KB): {len(ctx['transitions_screens'])} screens, "
-              f"{len(ctx['transitions_links'])} links")
+              f"{len(ctx['transitions_links'])} links, {len(ctx['transitions_settled'])} ready frames settled")
         if a.export:
             export(d, ctx, a.export)
             print(f"exported {len(KEYS) * 2} frames to {a.export}")

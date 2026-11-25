@@ -1,4 +1,4 @@
-"""Smart transitions in Attic Expressive: a proposal, drawn before the code (version 1.1.0).
+"""Smart transitions in Attic Expressive, drawn as a proposal (version 1.3.0).
 
 Unlike the modules that built 1.0.0 this one adds to a file that already exists. `Attic Expressive.figcraft` is
 the source now, so nothing here rebuilds what the file holds: `attach` reads the opened file's pages, styles,
@@ -8,41 +8,39 @@ tokens and components into the Doc, and `build` adds to them.
     python3 -m expressive.transitions "../Attic Expressive.figcraft" /tmp/attic-design/expressive-transitions.figcraft \
         [--export /tmp/attic-dev/smart-transitions-design]
 
-Look at the result, then copy it over the file in design/. It refuses a file that already has the Transitions
-section. What it shares with the equaliser's module on feature/per-song-equaliser (the two glyphs, List row/Setting's
-Status line=Plain and Trailing=Icon) it adds only when the file lacks it, so it runs on a file with or without
-the equaliser.
+Look at the result, then copy it over the file in design/. It runs on the 1.2.0 file, the one with the equaliser:
+Settings > Playback uses what `expressive.equaliser` added (Icon/transition_fade, Icon/equalizer and List
+row/Setting's Status line=Plain) and ends in the Equaliser row that file draws, so it refuses a file without the
+equaliser. It also refuses a file that already has the Transitions section.
 
-The feature is docs/features/smart-transitions.md; section 4 is the brief. Nothing here is in the app yet, so
-every new frame carries a `Proposed` annotation and none is marked ready for development.
-
-Icons (page Icons)
-------------------
-Icon/transition_fade, Icon/equalizer: glyphs Symbols.kt has that the file lacked. Settings > Playback uses both.
+The feature is docs/features/smart-transitions.md; section 4 is the brief. This module draws the proposal: every
+new frame carries a `Proposed` annotation and none is marked ready for development. `expressive.transitions_landed`
+then marks what the code built. The two steps are one version, 1.3.0: this module writes the Changelog entry and
+that one rewrites it.
 
 Changed components
 ------------------
-List row/Setting   gains Status line=Plain (Status() in ExpressiveSettings.kt: a third line in body small
-                   on-surface-variant, straight under the summary) and Trailing=Icon (a row that leaves the app).
 Seek bar           gains the layer "Next song mark" (hidden) and the boolean "Show next song mark": a 4dp dot in
                    on-surface-variant on the rest of the track, where the next song starts coming in.
 
 Screens (section "Transitions" on the Screens page, Light and Dark)
 ------------------------------------------------------------------
 transitions_settings_off, transitions_settings_crossfade, transitions_settings_smart, transitions_picker,
-transitions_length_picker, transitions_now_playing.
+transitions_length_picker, transitions_now_playing. The settings frames are copies of Settings / Top with the
+Playback group added as Equaliser / Settings, Playback has it: Volume levelling, Transitions, Crossfade length
+and the Equaliser row of 1.2.0.
 
 Prototype
 ---------
-Flow "12 Transitions" starts at Settings with transitions off: the Transitions row opens its menu, Smart shows
+Flow "13 Transitions" starts at Settings with transitions off: the Transitions row opens its menu, Smart shows
 the length row, which opens its own menu.
 
 Handoff
 -------
-A Source and a Proposed annotation on every new frame; Cover 1.1.0; a Changelog entry dated 2026-11-25.
+A Source and a Proposed annotation on every new frame; Cover 1.3.0; a Changelog entry dated 2026-11-25.
 
 In a build from scratch (`figbuild.run expressive`) this module does nothing but say so: it copies frames that
-only a finished file has. Build 1.0.0 first, then run this module on the saved file.
+only a finished file has. Build 1.0.0, run `expressive.equaliser` on the saved file, then this module.
 """
 from __future__ import annotations
 
@@ -51,41 +49,43 @@ import re
 import sys
 from pathlib import Path
 
-from figbuild.kit import Doc, V, Area, DENSITY, _round, _enum
-from figbuild import icons as _icons
+from figbuild.kit import Doc, V, Area, DENSITY
 from expressive import foundations
-from expressive.foundations import DocPage, bind_dim
+from expressive.foundations import DocPage
 from expressive.components_core import frame, inst, vname
 
 REFS: dict[str, str] = {}
 
-VERSION = "1.1.0"
+VERSION = "1.3.0"
 UPDATED = "2026-11-25"
 AUTHOR = "Attic maintainers"
 SECTION = "Transitions"
 SCREENS = "Screens"
 DOC = "docs/features/smart-transitions.md"
 PROPOSED = "Proposed"
+ENTRY = f"Entry · {VERSION}"                # the Changelog entry's layer name; transitions_landed rewrites it
 
-# Every string the proposal shows. The ones marked (today) are in res/values/strings.xml already.
+# Every string the frames show, from res/values/strings.xml.
 S = {
-    "playback": "Playback",                                                     # settings_playback (today)
-    "volume": "Volume levelling",                                               # settings_volume_levelling (today)
+    "playback": "Playback",                                                     # settings_playback
+    "volume": "Volume levelling",                                               # settings_volume_levelling
     "volume_body": "Plays songs at a similar loudness, from their ReplayGain tags or the level measured during "
-                   "analysis. Songs not measured yet play as they are.",        # settings_volume_levelling_body (today)
-    "transitions": "Transitions",
-    "off": "Off",                                                               # settings_crossfade_off (today)
-    "crossfade": "Crossfade",                                                   # settings_crossfade (today)
-    "smart": "Smart",
-    "off_body": "The next song starts when this one ends.",
-    "crossfade_body": "Fades each song into the next over the crossfade length.",
+                   "analysis. Songs not measured yet play as they are.",        # settings_volume_levelling_body
+    "transitions": "Transitions",                                               # settings_transitions
+    "off": "Off",                                                               # settings_crossfade_off
+    "crossfade": "Crossfade",                                                   # settings_crossfade
+    "smart": "Smart",                                                           # settings_transitions_smart
+    "off_body": "The next song starts when this one ends.",                     # settings_transitions_off_body
+    "crossfade_body": "Fades each song into the next over the crossfade length.",   # settings_transitions_crossfade_body
     "smart_body": "Starts the next song as this one winds down, skips silence and lines up the beats when the "
-                  "tempos are close.",
-    "albums": "Songs from one album played in order still run straight into each other.",   # settings_crossfade_body (today)
-    "length": "Crossfade length",
-    "length_smart_body": "Smart uses this for songs that aren't analysed yet.",
-    "equaliser": "Equaliser",                                                   # settings_equaliser (today)
-    "equaliser_body": "Opens the equaliser on this phone.",                     # settings_equaliser_body (today)
+                  "tempos are close.",                                          # settings_transitions_smart_body
+    "albums": "Songs from one album played in order still run straight into each other.",   # settings_crossfade_body
+    "length": "Crossfade length",                                               # settings_crossfade_length
+    "length_smart_body": "Smart uses this for songs that aren't analysed yet.", # settings_crossfade_length_smart_body
+    # The Equaliser row, as expressive/equaliser.py's settings_playback draws it in 1.2.0.
+    "equaliser": "Equaliser",                                                   # equaliser
+    "equaliser_value": "Bass boost",                                            # the default's preset (equaliserRowValue)
+    "equaliser_own": "With their own setting: 4 songs, 2 albums",               # settings_equaliser_own
 }
 MODES = [S["off"], S["crossfade"], S["smart"]]
 LENGTHS = [2, 4, 6, 8, 10, 12]
@@ -229,103 +229,38 @@ def _described(d: Doc, set_name: str, page: str, ctx: dict, more: str):
     d.set(d.child(top_named(d, card_of(d, page, info["id"]), "Heading"), "Description"), characters=body + more)
 
 
-# ───────────────────────────────────────────────────────────────── icons
-NEW_ICONS = ["transition_fade", "equalizer"]
-
-
-def build_icons(d: Doc, ctx: dict):
-    """The glyphs the file lacks, made as foundations.build_icons_page makes them and added to its grid."""
-    page = d.page("Icons")
-    points = {lig: cp for _, lig, cp in _icons.symbols()}
-    made = []
-    for lig in NEW_ICONS:
-        nm = f"Icon/{lig}"
-        if nm in d.comp:
-            continue
-        cp = points[lig]
-        grid = d.child(top_named(d, page, "Card · Outlined"), "Icon grid")
-        c = d.component(None, name=nm, w=24, h=24, x=-2000, y=0,
-                        description=f"Material Symbols Rounded `{lig}` (U+{cp:04X}), FILL 0, wght 400, opsz 24. "
-                                    f"Compose: Symbol.{_enum(lig)}. Drawn 0.1em below the font box, where SymbolIcon's "
-                                    f"text layout puts it.")
-        g = d.vector(c, name="Glyph", path=_round(_icons.path(cp, fill=0)), fill="Color/on-surface",
-                     constraints={"horizontal": "scale", "vertical": "scale"})
-        d.set(g, y=round(d.get(g)["y"] + 2.4, 3))
-        cell = d.frame(grid, name=f"Icon cell · {lig}", layout="v", gap=10, cross="center",
-                       pad=[20, 8, 16, 8], fill="Color/surface", radius=16, sizing=("hug", "hug"))
-        d.set(cell, sizingH="fixed", width=132)
-        d.cmd("node.reparent", ids=[c], parent=cell)
-        d.text(cell, lig, style="Doc/Caption", color="Canvas/label", name="Ligature", textAlign="center")
-        d.register(nm, c)
-        d.icon_names.add(nm)
-        made.append(nm)
-    if made:
-        # The page's intro counts the glyphs.
-        intro = top_named(d, page, "Intro")
-        text = d.get(intro)["characters"]
-        count = len([n for n in d.icon_names if not n.endswith("(filled)")])
-        new = re.sub(r"only the \d+ glyphs", f"only the {count} glyphs", text)
-        if new != text:
-            d.set(intro, characters=new)
-        restack(d, "Icons")
-    ctx["transitions_icons"] = made
-
-
 # ───────────────────────────────────────────────────────────────── changes to components the file had
-SETTING_NOTE = (" Status line Plain is Status(): a third line in body small on-surface-variant, straight under the "
-                "summary (what the chosen transition does). Trailing Icon is a row that leaves the app: a 20dp glyph "
-                "in on-surface-variant, 10dp down (Equaliser).")
 SEEK_NOTE = (" Proposed, not in the code yet: Show next song mark draws a 4dp dot in on-surface-variant on the rest "
              "of the track where the next song starts coming in, at the x the handle's centre has at that moment. It "
              "shows only while Smart has a plan for the song and the handle hasn't reached it, as StoryProgress draws "
              "a stop. Shown at 3:41 of 3:52.")
 
+# What Settings > Playback takes from the equaliser's 1.2.0 file.
+NEEDS_ICONS = ["Icon/transition_fade", "Icon/equalizer"]
+NEEDS_ROW = {"Leading": "Icon", "Lines": "Two", "Trailing": "None", "Status line": "Plain"}
 
-def update_setting_row(d: Doc, ctx: dict):
-    """List row/Setting gains Status line=Plain (the code's Status()) and Trailing=Icon (a row that leaves the app),
-    whichever the file lacks."""
-    C = ctx["components"]
-    d.page("Components / Lists and cards")
-    info, P = C["List row/Setting"], C["List row/Setting"]["props"]
-    preview = top_named(d, card_of(d, "Components / Lists and cards", info["id"]), "Dark preview")
-    added = []
 
-    def add(base: dict, prop: str, value: str) -> int:
-        before = {k["id"] for k in d.get(info["id"], depth=1)["children"]}
-        d.cmd("component.addVariant", id=variant(ctx, "List row/Setting", **base), property=prop, value=value)
-        new = [k["id"] for k in d.get(info["id"], depth=1)["children"] if k["id"] not in before][0]
-        name = vname({**{k.replace("_", " "): v for k, v in base.items()}, prop: value})
-        d.set(new, name=name)
-        info["variants"][name] = new
-        added.append(name)
-        return new
+def has_equaliser(d: Doc, ctx: dict) -> bool:
+    return (all(n in d.comp for n in NEEDS_ICONS)
+            and vname(NEEDS_ROW) in ctx["components"]["List row/Setting"]["variants"])
 
-    base = dict(Leading="Icon", Lines="Two", Trailing="None", Status_line="False")
-    if vname({"Leading": "Icon", "Lines": "Two", "Trailing": "None", "Status line": "Plain"}) not in info["variants"]:
-        plain = add({**base, "Status_line": "True"}, "Status line", "Plain")
-        box = d.child(plain, "Status box")
-        d.bind(box, "paddingTop", None)
-        d.set(box, padding=[0, 0, 0, 0])
-        d.set(d.child(box, "Status"), fill=V("Color/on-surface-variant"), characters=status(S["smart"]))
-        d.set(d.child(plain, "Title"), characters=S["transitions"])
-        d.set(d.child(plain, "Summary"), characters=S["smart"])
-        pv = d.instance(plain, preview)
-        d.cmd("instance.setProperties", ids=[pv], properties={
-            P["Title"]: S["transitions"], P["Summary"]: S["smart"], P["Status text"]: status(S["smart"]),
-            P["Icon"]: d.comp["Icon/transition_fade"]})
-    if vname({"Leading": "Icon", "Lines": "Two", "Trailing": "Icon", "Status line": "False"}) not in info["variants"]:
-        icon = add(base, "Trailing", "Icon")
-        box = frame(d, icon, "Trailing", layout="v", pad=[10, 0, 0, 0], sizing=("hug", "hug"))
-        d.icon(box, "open_in_new", size=20, color="Color/on-surface-variant", name="Trailing icon")
-        bind_dim(d, box, "paddingTop", "space/10")
-        d.set(d.child(icon, "Title"), characters=S["equaliser"])
-        d.set(d.child(icon, "Summary"), characters=S["equaliser_body"])
-        pv = d.instance(icon, preview)
-        d.cmd("instance.setProperties", ids=[pv], properties={P["Title"]: S["equaliser"], P["Summary"]: S["equaliser_body"],
-                                                              P["Icon"]: d.comp["Icon/equalizer"]})
-    if added:
-        _described(d, "List row/Setting", "Components / Lists and cards", ctx, SETTING_NOTE)
-    ctx["transitions_setting_variants"] = added
+
+SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.3.0). This frame draws the "
+               "same as before.")
+
+
+def changed_frames(d: Doc) -> set[int]:
+    """The ready-for-development frames FigCraft shows as changed since they were marked."""
+    return {i["id"] for i in d.cmd("inspect.readyForDev", status="changed")["items"]}
+
+
+def settle(d: Doc, before: set[int]) -> list[int]:
+    """A layer added to Seek bar counts as a change to every ready frame that holds a seek bar, though the layer is
+    hidden and the frames draw the same. The ones this run flagged go back to Ready for dev, with the reason."""
+    flagged = sorted(changed_frames(d) - before)
+    if flagged:
+        d.cmd("dev.resolveChange", ids=flagged, reason=SAME_PIXELS)
+    return flagged
 
 
 def update_seek_bar(d: Doc, ctx: dict):
@@ -370,8 +305,8 @@ ROWS_NOTE = ("Proposed, not in the code yet. Today this group has a Crossfade ro
              "line and what it does as the third.")
 NOTES = {
     "transitions_settings_off": [
-        ROWS_NOTE + " Off is the default, as now, and hides the length row. Equaliser is the row the code has "
-        "today, shown when the phone has an equaliser."],
+        ROWS_NOTE + " Off is the default, as now, and hides the length row. Equaliser is the row the Equaliser "
+        "section draws, unchanged."],
     "transitions_settings_crossfade": [
         ROWS_NOTE + " Crossfade is today's fixed fade. Crossfade length takes over today's menu without Off: "
         "2 to 12 seconds, 6 to start with. The row is there only while the choice is Crossfade or Smart."],
@@ -463,7 +398,8 @@ class Screens:
         return c, row
 
     def settings(self, key: str, name: str, mode: str) -> dict:
-        """Settings scrolled until Playback is under the bar, the group in one of the three transition modes."""
+        """Settings scrolled until Playback is under the bar, the group in one of the three transition modes and
+        ending in the Equaliser row as 1.2.0 draws it."""
         d = self.d
         f = self.copy(key, name, SRC_SETTINGS, screen_frame(d, "Settings / Top"))
         lst = top_named(d, f, "Settings list")
@@ -483,8 +419,8 @@ class Screens:
             out["length"], _ = self.row(g, "Middle", "Crossfade length", title=S["length"], icon="schedule",
                                         summary=seconds(LENGTH),
                                         status=S["length_smart_body"] if mode == S["smart"] else None)
-        self.row(g, "Bottom", "Equaliser", title=S["equaliser"], icon="equalizer", summary=S["equaliser_body"],
-                 trailing="Icon")
+        self.row(g, "Bottom", "Equaliser", title=S["equaliser"], icon="equalizer", summary=S["equaliser_value"],
+                 status=S["equaliser_own"])
         # Scrolled until Playback is under the bar, which has taken the title.
         d.set(lst, y=104 - d.get(sec)["y"])
         bar = top_named(d, f, "App bar")
@@ -555,7 +491,7 @@ class Screens:
 
 
 # ───────────────────────────────────────────────────────────────── prototype
-FLOW = ("transitions_settings_off", "12 Transitions",
+FLOW = ("transitions_settings_off", "13 Transitions",
         "Settings > Playback with transitions off. The Transitions row opens its menu; Smart shows Crossfade "
         "length, whose row opens the lengths. A proposal: none of this is in the app yet.")
 
@@ -625,18 +561,17 @@ def update_cover(d: Doc, ctx: dict):
 
 
 CHANGES = (
-    "A proposal for smart transitions, drawn before the code (docs/features/smart-transitions.md). Nothing in it "
-    "is in the app yet: its frames carry a Proposed annotation and aren't marked ready for development.\n"
+    "A proposal for smart transitions (docs/features/smart-transitions.md). Its frames carry a Proposed annotation "
+    "and aren't marked ready for development.\n"
     "• Screens: a new Transitions section of 6 states in Light and Dark. Settings > Playback with transitions off, "
     "on Crossfade and on Smart; the Transitions menu; the Crossfade length menu; Now Playing with the next song "
     "marked on the seek bar.\n"
-    "• Settings > Playback, which 1.0.0 didn't draw: the Crossfade row becomes Transitions (Off, Crossfade, Smart). "
-    "Crossfade length (2 to 12 seconds, 6 to start with) is a row under it while the choice is Crossfade or Smart.\n"
-    "• Changed components: Seek bar gains Show next song mark, a 4dp dot on the rest of the track where the next "
-    "song starts coming in. List row/Setting gains Status line=Plain and Trailing=Icon, which the code's Playback "
-    "rows already use.\n"
-    "• Icons: transition_fade and equalizer, which Symbols.kt has.\n"
-    "• Prototype: flow 12 Transitions, from Settings > Playback.")
+    "• Settings > Playback: the Crossfade row becomes Transitions (Off, Crossfade, Smart). Crossfade length (2 to 12 "
+    "seconds, 6 to start with) is a row under it while the choice is Crossfade or Smart. The Equaliser row under "
+    "them is unchanged.\n"
+    "• Changed component: Seek bar gains Show next song mark, a 4dp dot on the rest of the track where the next "
+    "song starts coming in.\n"
+    "• Prototype: flow 13 Transitions, from Settings > Playback.")
 
 
 def update_changelog(d: Doc, ctx: dict):
@@ -644,7 +579,7 @@ def update_changelog(d: Doc, ctx: dict):
     entries = top_named(d, page, "Entries")
     before = d.get(entries)["height"]
     P = ctx["components"]["Changelog entry"]["props"]
-    e = d.instance("Changelog entry", entries, name=f"Entry · {VERSION}")
+    e = d.instance("Changelog entry", entries, name=ENTRY)
     d.cmd("instance.setProperties", ids=[e], properties={P["Version"]: VERSION, P["Date"]: UPDATED, P["Author"]: AUTHOR,
                                                          P["Changes"]: CHANGES})
     d.set(e, sizingH="fixed", width=1400)
@@ -657,8 +592,8 @@ def update_changelog(d: Doc, ctx: dict):
 # ───────────────────────────────────────────────────────────────── build
 def build(d: Doc, ctx: dict):
     if not ctx.get("attached"):
-        print("    transitions: skipped in a build from scratch. Run `python3 -m expressive.transitions "
-              "OUT.figcraft OUT-1.1.0.figcraft` on the saved file to add it.", flush=True)
+        print("    transitions: skipped in a build from scratch. Run `expressive.equaliser`, then `python3 -m "
+              "expressive.transitions OUT.figcraft OUT-1.3.0.figcraft`, on the saved file to add it.", flush=True)
         return
     try:
         screen_frame(d, "Transitions / Settings, off")
@@ -666,28 +601,27 @@ def build(d: Doc, ctx: dict):
         pass
     else:
         raise SystemExit("transitions: this file already has the Transitions section")
-    build_icons(d, ctx)
-    update_setting_row(d, ctx)
+    if not has_equaliser(d, ctx):
+        raise SystemExit("transitions: this file has no equaliser (1.2.0); run expressive.equaliser on it first")
+    before = changed_frames(d)
     update_seek_bar(d, ctx)
-    for page in ("Components / Lists and cards", "Components / Playback"):
-        restack(d, page)
+    restack(d, "Components / Playback")
     t = Screens(d, ctx).build()
     wire(d, ctx, t)
     update_cover(d, ctx)
     update_changelog(d, ctx)
+    ctx["transitions_settled"] = settle(d, before)
     d.page("Cover")
 
 
 def export(d: Doc, ctx: dict, out: Path, style: str = "expressive"):
-    """Every new frame at the renders' density, named <style>-<light|dark>-<frame>.png, and the changed spec cards."""
+    """Every new frame at the renders' density, named <style>-<light|dark>-<frame>.png, and the changed spec card."""
     for key in ctx["transitions_screens"]:
         for theme in ("light", "dark"):
             d.export_png(d.screens[key][theme], out / f"{style}-{theme}-{EXPORT_NAMES[key]}.png", scale=DENSITY)
-    C = ctx["components"]
-    for page, set_name, name in (("Components / Playback", "Seek bar", "seek-bar"),
-                                 ("Components / Lists and cards", "List row/Setting", "setting-row")):
-        d.page(page)
-        d.export_png(card_of(d, page, C[set_name]["id"]), out / f"{style}-component-{name}.png", scale=1)
+    page = "Components / Playback"
+    d.page(page)
+    d.export_png(card_of(d, page, ctx["components"]["Seek bar"]["id"]), out / f"{style}-component-seek-bar.png", scale=1)
 
 
 def run(src: Path, out: Path, export_dir: Path | None = None, log=None) -> dict:
@@ -715,8 +649,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     ctx = run(a.src, a.out, a.export)
     print(f"saved {a.out} ({a.out.stat().st_size // 1024} KB): {len(ctx['transitions_screens'])} screens, "
-          f"{len(ctx['transitions_links'])} links, icons {ctx['transitions_icons']}, "
-          f"setting row variants {ctx['transitions_setting_variants']}, counts {ctx['transitions_counts']}")
+          f"{len(ctx['transitions_links'])} links, {len(ctx['transitions_settled'])} ready frames settled, "
+          f"counts {ctx['transitions_counts']}")
 
 
 if __name__ == "__main__":

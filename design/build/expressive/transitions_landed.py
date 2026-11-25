@@ -1,10 +1,12 @@
-"""Smart transitions are in the code: Attic Expressive's Transitions frames stop being a proposal (version 1.1.1).
+"""Smart transitions are in the code: Attic Expressive's Transitions frames stop being a proposal (version 1.3.0).
 
-Like `transitions.py` this edits the saved file and rebuilds nothing. It draws nothing either: the code landed as
-1.1.0 drew it, so every frame exports the same pixels before and after. What changes is the handoff.
+Like `transitions.py` this edits the saved file and rebuilds nothing. The code landed as `transitions.py` drew it,
+so the Transitions frames export the same pixels before and after. What changes is the handoff, and one frame of
+the Equaliser section.
 
     cd design/build
-    python3 -m expressive.transitions_landed "../Attic Expressive.figcraft" /tmp/attic-design/expressive-landed.figcraft \
+    python3 -m expressive.transitions_landed /tmp/attic-design/expressive-transitions.figcraft \
+        /tmp/attic-design/expressive-landed.figcraft \
         [--export /tmp/attic-dev/smart-transitions-design/landed] [--check /tmp/attic-design/expressive-landed-check]
 
 Look at the result, then copy it over the file in design/. It refuses a file without the Transitions section and
@@ -16,20 +18,29 @@ The `Proposed` annotations go. Each frame is marked ready for development and ga
 does that the drawing can't show. The Settings frames' `Source` names the composables that draw the rows now:
 TransitionsRow and CrossfadeLengthRow. The section's note and the flow's description stop calling it a proposal.
 
+Screens (section "Equaliser")
+-----------------------------
+Settings, Playback: 1.2.0 drew the whole Playback group, with the Crossfade row the code had then (Off). The code
+has Transitions there now, so the row becomes Transitions in the same state: Off, with what Off does as its third
+line. The Equaliser row, its link to the Settings page and every other frame of the section are untouched.
+
 Components
 ----------
 Seek bar           the description says what SeekBar's `mark` draws; the `Proposed` annotations on the set and its
                    card go.
-List row/Setting   untouched. Its description never called Status line=Plain or Trailing=Icon a proposal, and
-                   FigCraft re-creates the layers inside every instance of a set whose variants' description
-                   changes (398 layers on the Settings screens), so a change of wording isn't worth it.
+List row/Setting   untouched. Its description still gives "Crossfade's note" as the example of Status line=Plain,
+                   which is the Transitions row's third line now. FigCraft re-creates the layers inside every
+                   instance of a set whose variants' description changes (the rows of every Settings screen), so a
+                   change of wording isn't worth it.
 
 Handoff
 -------
-Cover 1.1.1, without the sentence that called the section a proposal; a Changelog entry dated 2026-11-25.
+Cover 1.3.0, without the sentence that called the section a proposal; the 1.3.0 Changelog entry `transitions.py`
+wrote is rewritten to say what landed, so the version has one entry, dated 2026-11-25.
 
---export writes the 12 frames, Seek bar's spec card, the Cover and the new Changelog entry as PNG. --check exports
-frames this module doesn't touch from the source and from the result, and fails unless each pair is pixel-identical.
+--export writes the 12 frames, the redrawn Equaliser frame, Seek bar's spec card, the Cover and the Changelog entry
+as PNG. --check exports frames this module doesn't redraw from the source and from the result, and fails unless
+each pair is pixel-identical.
 """
 from __future__ import annotations
 
@@ -38,13 +49,13 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageChops
+from PIL import Image
 
 from figbuild.kit import Doc, DENSITY
 from expressive import transitions as T
 from expressive.transitions import attach, card_of, restack, screen_frame, top_named
 
-VERSION = "1.1.1"
+VERSION = "1.3.0"
 UPDATED = "2026-11-25"
 AUTHOR = "Attic maintainers"
 NOTE = "Note"
@@ -61,12 +72,13 @@ NAMES = {
 SRC_SETTINGS = "ui/expressive/ExpressiveSettings.kt · ExpressiveSettings (TransitionsRow, CrossfadeLengthRow)"
 SOURCES = {key: SRC_SETTINGS for key in NAMES}
 SOURCES["transitions_now_playing"] = T.SRC_NP
+EQ_FRAME = "Equaliser / Settings, Playback"
 
 # What the code does that a frame can't show, in place of each frame's Proposed annotation.
 NOTES = {
     "transitions_settings_off": [
-        "Off is the default and hides Crossfade length (SettingsState.showsCrossfadeLength). Equaliser is there "
-        "only when the phone has an equaliser."],
+        "Off is the default and hides Crossfade length (SettingsState.showsCrossfadeLength). The Equaliser row under "
+        "it is EqualiserRow, as the Equaliser section draws it."],
     "transitions_settings_crossfade": [
         "Crossfade length is there only while the choice is Crossfade or Smart. Its menu lists 2 to 12 seconds, "
         "6 to start with."],
@@ -102,17 +114,28 @@ SEEK_NOTE = (" Show next song mark is SeekBar's mark: a 4dp dot in on-surface-va
              "3:41 of 3:52.")
 
 CHANGES = (
-    "The Transitions section now matches the code. Smart transitions landed as 1.1.0 drew them "
-    "(docs/features/smart-transitions.md), so nothing is redrawn.\n"
-    "• Screens: the 6 Transitions states, Light and Dark, lose their Proposed annotation and are marked ready for "
-    "development. The Settings frames' Source names TransitionsRow and CrossfadeLengthRow in ExpressiveSettings.kt, "
-    "and a Note on each frame says what the code does that the drawing can't show.\n"
-    "• Seek bar: Show next song mark is SeekBar's mark parameter in PlayControls.kt. The description says what the "
-    "code draws, and the Proposed annotation is gone.\n"
+    "Smart transitions, drawn and matching the code (docs/features/smart-transitions.md). Settings > Playback's "
+    "Crossfade row is now Transitions: Off, Crossfade (a fixed fade) or Smart, which starts the next song where this "
+    "one winds down. Crossfade length (2 to 12 seconds, 6 to start with) is a row under it while the choice is "
+    "Crossfade or Smart.\n"
+    "• Screens: a new Transitions section of 6 states in Light and Dark, marked ready for development. Settings > "
+    "Playback with transitions off, on Crossfade and on Smart; the Transitions menu; the Crossfade length menu; Now "
+    "Playing with the next song marked on the seek bar. The Settings frames' Source names TransitionsRow and "
+    "CrossfadeLengthRow in ExpressiveSettings.kt, and a Note on each frame says what the code does that the drawing "
+    "can't show.\n"
+    "• Changed component: Seek bar gains Show next song mark, SeekBar's mark parameter in PlayControls.kt: a 4dp dot "
+    "on the rest of the track where the next song starts coming in.\n"
+    "• Equaliser / Settings, Playback: the Crossfade row is redrawn as Transitions, in the same state (Off). The "
+    "Equaliser row is as 1.2.0 drew it.\n"
+    "• Prototype: flow 13 Transitions, from Settings > Playback.\n"
     "• The Comfort style's mark for the same point was reviewed and not built. Attic Comfort's Changelog says why.")
 
-# Frames this module leaves alone, for --check.
-UNTOUCHED = ["Settings / Top", "Now Playing / Playing", "Home / All", "Queue / Up next", "Search / Results"]
+# Frames this module doesn't redraw, for --check: the Transitions frames, and these.
+UNTOUCHED = ["Settings / Top", "Settings / Whole list (full length)", "Settings / Backup",
+             "Now Playing / Playing", "Home / All", "Queue / Up next", "Search / Results", "Equaliser / Settings page",
+             "Equaliser / Settings page, nothing saved", "Equaliser / Sheet, default",
+             "Equaliser / Sheet, song's own setting", "Equaliser / Now Playing, indicator",
+             "Equaliser / Track menu, song's own setting"]
 
 
 # ───────────────────────────────────────────────────────────────── screens
@@ -156,6 +179,33 @@ def land_screens(d: Doc, ctx: dict):
     d.cmd("proto.flow.rename", start=start, name=T.FLOW[1], description=FLOW_DESCRIPTION)
 
 
+# ───────────────────────────────────────────────────────────────── the equaliser's Settings frame
+def land_equaliser_frame(d: Doc, ctx: dict):
+    """Equaliser / Settings, Playback draws the whole Playback group. Its Crossfade row (Off) becomes the row the
+    code has now, in the same state: Transitions, Off, and what Off does as the third line."""
+    d.page(T.SCREENS)
+    P = ctx["components"]["List row/Setting"]["props"]
+    mode = T.S["off"]
+    frames = {}
+    for theme in ("Light", "Dark"):
+        f = screen_frame(d, EQ_FRAME, theme)
+        group = top_named(d, top_named(d, f, "Settings list"), "Playback group")
+        try:
+            cell = top_named(d, group, "Crossfade cell")
+            row = top_named(d, cell, "Crossfade")
+        except KeyError:
+            raise SystemExit(f"transitions_landed: {EQ_FRAME} · {theme} has no Crossfade row")
+        if d.get(d.child(row, "Summary"))["characters"] != mode:
+            raise SystemExit(f"transitions_landed: {EQ_FRAME} · {theme}'s Crossfade row isn't {mode}")
+        d.cmd("instance.setProperties", ids=[row], properties={P["Title"]: T.S["transitions"], P["Summary"]: mode,
+                                                               P["Status text"]: T.status(mode)})
+        d.set(row, name="Transitions")
+        d.set(cell, name="Transitions cell")
+        d.ready_for_dev(f)          # marked again, so the frame doesn't show as edited since it was marked
+        frames[theme.lower()] = f
+    ctx["landed_equaliser_frames"] = frames
+
+
 # ───────────────────────────────────────────────────────────────── components
 def _redescribe(d: Doc, ctx: dict, set_name: str, page: str, was: str, now: str):
     """Swap one passage of a component's description, on its variants and on its spec card's copy."""
@@ -163,12 +213,12 @@ def _redescribe(d: Doc, ctx: dict, set_name: str, page: str, was: str, now: str)
     holders = list(info["variants"].values()) or [info["id"]]
     text = d.get(holders[0], fields=["description"])["description"]
     if was not in text:
-        raise SystemExit(f"transitions_landed: {set_name}'s description isn't the one 1.1.0 wrote")
+        raise SystemExit(f"transitions_landed: {set_name}'s description isn't the one transitions.py wrote")
     d.set(holders, description=text.replace(was, now))
     copy = d.child(top_named(d, card_of(d, page, info["id"]), "Heading"), "Description")
     shown = d.get(copy)["characters"]
     if was.strip() not in shown:
-        raise SystemExit(f"transitions_landed: {set_name}'s card doesn't show the description 1.1.0 wrote")
+        raise SystemExit(f"transitions_landed: {set_name}'s card doesn't show the description transitions.py wrote")
     d.set(copy, characters=shown.replace(was.strip(), now.strip()))
 
 
@@ -202,15 +252,18 @@ def update_cover(d: Doc, ctx: dict):
 
 
 def update_changelog(d: Doc, ctx: dict):
+    """The version's entry, rewritten to say what landed. `transitions.py` wrote it as a proposal; the two steps are
+    one version."""
     page = d.page("Changelog")
     entries = top_named(d, page, "Entries")
     before = d.get(entries)["height"]
     P = ctx["components"]["Changelog entry"]["props"]
-    e = d.instance("Changelog entry", entries, name=f"Entry · {VERSION}")
+    top = d.get(entries, depth=1)["children"][0]
+    if top["name"] != T.ENTRY:
+        raise SystemExit(f"transitions_landed: the top Changelog entry is {top['name']!r}, not {T.ENTRY!r}")
+    e = top["id"]
     d.cmd("instance.setProperties", ids=[e], properties={P["Version"]: VERSION, P["Date"]: UPDATED, P["Author"]: AUTHOR,
                                                          P["Changes"]: CHANGES})
-    d.set(e, sizingH="fixed", width=1400)
-    d.cmd("node.reorder", id=e, index=0)
     grew = d.get(entries)["height"] - before
     how = top_named(d, page, "Card · Adding a version")
     d.set(how, y=d.get(how)["y"] + grew)
@@ -226,6 +279,7 @@ def build(d: Doc, ctx: dict):
     if d.get(first).get("devStatus"):
         raise SystemExit("transitions_landed: the Transitions frames are already marked ready")
     land_screens(d, ctx)
+    land_equaliser_frame(d, ctx)
     land_components(d, ctx)
     update_cover(d, ctx)
     update_changelog(d, ctx)
@@ -233,10 +287,13 @@ def build(d: Doc, ctx: dict):
 
 
 def export(d: Doc, ctx: dict, out: Path, style: str = "expressive"):
-    """The 12 frames at the renders' density, named as 1.1.0 named them, then the spec card, Cover and entry."""
+    """The 12 frames at the renders' density, named as `transitions.py` names them, the redrawn Equaliser frame, then
+    the spec card, Cover and entry."""
+    d.page(T.SCREENS)
     for (key, theme), f in ctx["landed_frames"].items():
-        d.page(T.SCREENS)
         d.export_png(f, out / f"{style}-{theme}-{T.EXPORT_NAMES[key]}.png", scale=DENSITY)
+    for theme, f in ctx["landed_equaliser_frames"].items():
+        d.export_png(f, out / f"{style}-{theme}-equaliser-settings-playback.png", scale=DENSITY)
     d.page("Components / Playback")
     seek = ctx["components"]["Seek bar"]["id"]
     d.export_png(card_of(d, "Components / Playback", seek), out / f"{style}-component-seek-bar.png", scale=1)
@@ -275,7 +332,8 @@ def check(src: Path, out: Path, work: Path, names: list[str] | None = None) -> l
     differ = []
     for name, b in before.items():
         x, y = Image.open(b).convert("RGBA"), Image.open(after[name]).convert("RGBA")
-        if x.size != y.size or ImageChops.difference(x, y).getbbox():
+        # Bytes, not ImageChops.difference(x, y).getbbox(): on an RGBA image Pillow 10 looks at alpha alone there.
+        if x.size != y.size or x.tobytes() != y.tobytes():
             differ.append(name)
     return differ
 
