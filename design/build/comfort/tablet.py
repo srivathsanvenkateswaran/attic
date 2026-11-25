@@ -9,9 +9,10 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
 Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
-each frame carries its Source annotation and is marked ready for development; where the code and the first drawing
-disagreed, the frames follow the code (the 1.1.1 changelog entry lists what moved). Running it again deletes the
-Tablet page, the components below and the current version's changelog entry, and draws them again.
+each frame carries its Source annotation and is marked ready for development; where the code and a frame disagree,
+the code is right. It runs on the 1.2.0 file (the equaliser) and gives 1.3.0: the Cover's version, a Tablet row in
+its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
+the components below, that row and that entry, and draws them again. It changes no other page.
 
 Components / Navigation
   Side dock/Tab          one tab of ComfortSideDock (SideDock.kt)  Selected=False|True.  props Label, Icon (swap).
@@ -47,7 +48,9 @@ from comfort.components_states import setp, inst, group, row
 from comfort.foundations import _modes
 
 SRC = "ui/comfort/"
-VERSION, UPDATED = "1.1.1", "2026-11-25"
+# 1.3.0 is the Tablet page and its components on top of 1.2.0 (the equaliser). The Tablet page was first drawn on
+# 1.0.0 as 1.1.0 and 1.1.1, on feature/tablet-layouts before it was rebased; 1.1.0 is now the equaliser's number.
+VERSION, UPDATED = "1.3.0", "2026-11-25"
 DOCK_X, DOCK_W, DOCK_GAP = 12, 80, 12
 X0 = 100                         # a destination's column: 8 after the dock's end edge
 END = 8                          # and 8 before the window's end edge
@@ -1122,41 +1125,31 @@ def build_first_run(T: Tablet):
 
 
 # ───────────────────────────────────────────────────────────────── cover, changelog, links, hygiene
-CHANGES_1_1_0 = [
-    "Tablet page: Home, Library, Search, album, artist, playlist, Now Playing, lyrics, Settings, a sheet, a dialog and "
-    "the first run's look step, at 1152 x 720 (a tablet sideways), 720 x 1152 (upright) and 1440 x 900, Light and Dark.",
+CHANGES = [
+    "The tablet layouts: a Tablet page and its components, added to 1.2.0. They match the code on "
+    "feature/tablet-layouts, and every Tablet frame, Light and Dark, is marked ready for development.",
+    "Tablet page, after Screens: Home, Library, Search, album, artist, playlist, Now Playing, lyrics, Settings, a sheet, "
+    "a dialog and the first run's look step, at 1152 x 720 (a tablet sideways), 720 x 1152 (upright) and 1440 x 900, "
+    "Light and Dark.",
     "Components: Side dock and Side dock/Tab, Player bar (Components / Navigation); Now playing/Side panel "
     "(Components / Playback).",
-    "All of it is proposed from docs/design/2026-11-25-tablet/SPEC.md and is not in the code yet: the frames carry a "
-    "Proposed annotation and are not marked ready for development.",
-]
-CHANGES = [
-    "The tablet layouts are in the code on feature/tablet-layouts, and the Tablet page now matches it. Every Tablet "
-    "frame, Light and Dark, loses its Proposed annotation and is marked ready for development. Frames that show the "
-    "dock and the player carry a second Source line for ComfortWideShell.",
-    "Source annotations name the composables the code has: ComfortAlbumPanes, ComfortArtistPanes and "
-    "ComfortPlaylistPanes for the collections, ComfortLyricsWide for full-screen lyrics.",
-    "Portrait frames (a medium width): the floating mini player is 576dp wide, not 560.",
-    "Home and Search: shelves stop where the page's column does, 8dp before the window's end edge. They used to run "
-    "on to the edge.",
-    "Now Playing: upright, the cover and title sit 9dp higher, halfway between the header and the deck's margin. "
-    "Sideways, the Up next and Lyrics switch starts 8dp into the end half and sits 3dp higher, and the full-screen "
-    "button ends 16dp before the end edge.",
-    "New playlist over the Library: Create is disabled until there is a name.",
-    "Notes now record what no frame shows: in the Library's list pane the open tile of the grid view sits on a "
-    "selection bed, and a collection's bar never shows its name. Instant mixes fill their cards top to bottom, as "
-    "they were drawn.",
-    "Side dock, Side dock/Tab, Player bar and Now playing/Side panel: the descriptions no longer say Proposed.",
-    "Left as drawn because the difference is demo data: Home's shelves that are empty in the demo state, the Playback "
-    "group in Settings, and which line of the lyrics is being sung.",
+    "Each frame carries its Source annotation: ComfortAlbumPanes, ComfortArtistPanes and ComfortPlaylistPanes for the "
+    "collections, ComfortLyricsWide for full-screen lyrics. Frames that show the dock and the player carry a second "
+    "Source line for ComfortWideShell.",
+    "Notes record what no frame shows: in the Library's list pane the open tile of the grid view sits on a selection "
+    "bed, and a collection's bar never shows its name.",
+    "Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
+    "state, the Playback group in Settings, and which line of the lyrics is being sung.",
+    "The phone screens and the equaliser are unchanged from 1.2.0.",
 ]
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
-ENTRIES = [("1.1.0", "2026-11-25", CHANGES_1_1_0), (VERSION, UPDATED, CHANGES)]
+ENTRIES = [(VERSION, UPDATED, CHANGES)]
 
 
 def build_cover(d: Doc, ctx: dict):
-    """The version on the Cover and its entry at the top of the Changelog. The current version's entry is replaced if
-    an earlier run added it; an older entry is added only where the file lacks it."""
+    """The version on the Cover, the Tablet row in its Read me and the version's entry at the top of the Changelog.
+    The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, and 1.1.0 and 1.2.0 for
+    the equaliser) are left alone."""
     d.page("Cover")
     cover = next(c["id"] for c in top_children(d, "Cover") if c.get("name") == "Cover")
     for label, value in (("Version", VERSION), ("Last updated", UPDATED)):
@@ -1248,7 +1241,6 @@ def build(d: Doc, ctx: dict):
     import time
     only = ctx.get("only")
     ctx["tokens"] = tokens(d)
-    d.ann_category("Proposed", color="#9747FF")
     t = time.time()
     build_components(d, ctx)
     print(f"  components {time.time() - t:6.1f}s", flush=True)

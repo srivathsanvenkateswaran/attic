@@ -9,9 +9,10 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
 Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
-each frame carries its Source annotation and is marked ready for development; where the code and the first drawing
-disagreed, the frames follow the code (the 1.1.1 changelog entry lists what moved). Running it again deletes the
-Tablet page and the components below and draws them again.
+each frame carries its Source annotation and is marked ready for development; where the code and a frame disagree,
+the code is right. It runs on the 1.2.0 file (the equaliser) and gives 1.3.0: the Cover's version, a Tablet row in
+its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
+the components below, that row and that entry, and draws them again. It changes no other page.
 
 Components / Navigation
   Navigation rail        ExpressiveNavigationRail (ExpressiveRail.kt)  Selected=Home|Search|Library. The Headroom mark
@@ -1254,41 +1255,51 @@ def build_first_run(B: "Builder"):
 
 
 # ───────────────────────────────────────────────────────────────── Cover and Changelog
-VERSION, UPDATED = "1.1.1", "2026-11-25"
-CHANGES_1_1_0 = ("Tablet layouts, proposed. Nothing in this entry is in the code yet; the frames are the drawing the "
-                 "layouts will be built to (docs/design/2026-11-25-tablet/SPEC.md).\n"
-                 "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
-                 "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
-                 "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
-                 "lyrics, Settings, the track menu, the New playlist dialog and the first run's look step. Each frame carries "
-                 "a Proposed annotation and no ready-for-development status.\n"
-                 "• Components / Navigation: Navigation rail and Player bar.\n"
-                 "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
-                 "The phone screens are unchanged and still match ui-redesign at 4fe4dab.")
-CHANGES = ("The tablet layouts are in the code on feature/tablet-layouts, and the Tablet page now matches it. Where the "
-           "code and the 1.1.0 drawing disagreed, the frames follow the code.\n"
-           "• Every Tablet frame, Light and Dark: the Proposed annotation is gone and the frame is marked ready for "
-           "development. Frames that show the rail and the player carry a second Source line for ExpressiveWideShell.\n"
-           "• Portrait frames (a medium width): the floating mini player is 576dp wide, not 560.\n"
-           "• Now Playing / Portrait: the column is 576dp wide, not 608. The title, seek bar and tools are 528dp; the "
-           "cover's page is 488 by 480 with 40dp of the next cover after it.\n"
-           "• New playlist over the Library: the playlist's menu button sits at the end of its header's buttons, since "
-           "the detail beside the list has no bar. The same holds for Favourites.\n"
-           "• Navigation rail: the items are 63dp apart, not 64, so a label and the next pill are 12dp apart as in the "
-           "code.\n"
-           "• Home: the carousel's items take the widths the code gives them (three of 253dp, then 130 and 40, on the "
-           "Pad sideways).\n"
-           "• Settings and First run, Dark: the theme group selects Dark, as the Dark phone frames do.\n"
-           "• Navigation rail, Player bar and Now playing/Side panel: the descriptions no longer say Proposed.\n"
-           "Left as drawn because the difference is demo data: Home's shelves that are empty in the demo state, the "
-           "Playback group in Settings, and which line of the lyrics is being sung.")
+# 1.3.0 is the Tablet page and its components on top of 1.2.0 (the equaliser). The Tablet page was first drawn on
+# 1.0.0 as 1.1.0 and 1.1.1, on feature/tablet-layouts before it was rebased; 1.1.0 is now the equaliser's number.
+VERSION, UPDATED = "1.3.0", "2026-11-25"
+CHANGES = ("The tablet layouts: a Tablet page and its components, added to 1.2.0. They match the code on "
+           "feature/tablet-layouts, and every frame is marked ready for development.\n"
+           "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
+           "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
+           "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
+           "lyrics, Settings, the track menu, the New playlist dialog and the first run's look step.\n"
+           "• Each frame carries its Source annotation. Frames that show the rail and the player carry a second Source "
+           "line for ExpressiveWideShell.\n"
+           "• Components / Navigation: Navigation rail and Player bar.\n"
+           "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
+           "• Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
+           "state, the Playback group in Settings, and which line of the lyrics is being sung.\n"
+           "The phone screens and the equaliser are unchanged from 1.2.0.")
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
-ENTRIES = [("1.1.0", "2026-11-25", CHANGES_1_1_0), (VERSION, UPDATED, CHANGES)]
+ENTRIES = [(VERSION, UPDATED, CHANGES)]
+README_ROW = ("Tablet", "the screens on medium and expanded windows (tablets), in Light and Dark.")
+
+
+def readme_row(d: Doc):
+    """The Tablet page in the Cover's list of pages, after Screens. A row an earlier run added is made again."""
+    block = d.find(d.pages["Cover"], name="Block · Pages", limit=2)
+    if not block:
+        return
+    rows = d.get(block[0], depth=1).get("children", [])
+    old = [c["id"] for c in rows if c.get("name") == f"Page · {README_ROW[0]}"]
+    if old:
+        d.cmd("edit.delete", ids=old)
+        rows = [c for c in rows if c["id"] not in old]
+    names = [c.get("name") for c in rows]
+    if "Page · Screens" not in names:
+        return
+    rid = d.cmd("edit.duplicate", ids=[rows[names.index("Page · Screens")]["id"]], dx=0, dy=0)["ids"][0]
+    d.set(rid, name=f"Page · {README_ROW[0]}")
+    d.set(d.child(rid, "Page"), characters=README_ROW[0])
+    d.set(d.child(rid, "What"), characters=README_ROW[1])
+    d.cmd("node.reorder", id=rid, index=names.index("Page · Screens") + 1)
 
 
 def build_cover_changelog(d: Doc, ctx: dict):
-    """The version on the Cover and its entry at the top of the Changelog. The current version's entry is replaced if
-    an earlier run added it; an older entry is added only where the file lacks it."""
+    """The version on the Cover, the Tablet row in its Read me and the version's entry at the top of the Changelog.
+    The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, and 1.1.0 and 1.2.0 for
+    the equaliser) are left alone."""
     d.page("Cover")
     for i in d.find(d.pages["Cover"], name="Chip · ", limit=20):
         nm = d.get(i).get("name", "")
@@ -1298,6 +1309,7 @@ def build_cover_changelog(d: Doc, ctx: dict):
         elif nm.startswith("Chip · Last updated"):
             d.cmd("instance.setProperties", ids=[i], properties={"Label": f"Last updated {UPDATED}"})
             d.set(i, name=f"Chip · Last updated {UPDATED}")
+    readme_row(d)
     d.page("Changelog")
     col = [n["id"] for n in d.get(d.pages["Changelog"], depth=1).get("children", []) if n.get("name") == "Entries"][0]
     before = d.get(col)["height"]
