@@ -24,6 +24,15 @@ enum class TabletSize(val key: String, val qualifiers: String, val widthPx: Int,
     /** The Pad upright, a medium width. */
     Portrait("portrait", "w720dp-h1152dp-port-400dpi", 1800, 2880),
     Large("large", "w1440dp-h900dp-land-xhdpi", 2880, 1800),
+
+    /** Half the Pad sideways in split screen: a compact width, so the phone layouts. */
+    Split("split", "w570dp-h720dp-port-400dpi", 1425, 1800),
+
+    /** A floating window: a medium width held sideways. */
+    Floating("floating", "w800dp-h600dp-land-400dpi", 2000, 1500),
+
+    /** A bigger tablet upright: an expanded width taller than it is wide. */
+    LargePortrait("large-portrait", "w900dp-h1440dp-port-xhdpi", 1800, 2880),
 }
 
 /**
@@ -72,10 +81,19 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
         val Portrait = listOf("home", "library_list", "search_results", "album", "now_playing", "settings", "onboarding_look") + Moods + Equaliser
         val Large = listOf("home", "library_albums", "album", "now_playing")
 
+        /** Every size class and orientation beyond the Pad's own: the main screens, moods and the equaliser. */
+        val OtherSizes = listOf(
+            "home", "library_albums", "search_results", "album", "now_playing", "settings",
+            "moods_home", "mood_page", "sheet_equaliser", "settings_equaliser",
+        )
+
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}-{3}")
         fun shots(): List<Array<Any>> = buildList {
-            for ((size, keys) in listOf(TabletSize.Landscape to Landscape, TabletSize.Portrait to Portrait, TabletSize.Large to Large)) {
+            for ((size, keys) in listOf(
+                TabletSize.Landscape to Landscape, TabletSize.Portrait to Portrait, TabletSize.Large to Large,
+                TabletSize.Split to OtherSizes, TabletSize.Floating to OtherSizes, TabletSize.LargePortrait to OtherSizes,
+            )) {
                 for (style in UiStyle.entries) for (dark in listOf(true, false)) for (key in keys) add(arrayOf(size, style, dark, key))
             }
         }
