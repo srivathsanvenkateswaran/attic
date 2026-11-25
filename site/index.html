@@ -396,7 +396,7 @@
           <div>
             <h3>Backup and first run</h3>
             <ul>
-              <li>Back up favourites, playlists, listening history, saved lyrics and settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
+              <li>Back up favourites, playlists, listening history, saved lyrics, equaliser settings and presets, and app settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
               <li>Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch</li>
               <li>On first run, pick a style and theme, allow access to your music, and Attic shows the songs it found</li>
             </ul>
@@ -407,10 +407,42 @@
 
     <section class="playback" id="playback" aria-labelledby="playback-title">
       <div class="wrap">
-        <div class="feature flip">
+        <h2 id="playback-title" class="visually-hidden">Playback</h2>
+
+        <article class="feature flip" id="equaliser">
+          <div class="feature-copy">
+            <p class="new">New in 1.2</p>
+            <h3>A ten-band equaliser, with a setting for any song or album</h3>
+            <p>Open Equaliser from the menu on Now Playing and move the bands while the song plays. There are ten, from 31 Hz to 16 kHz, each from &minus;12 to +12 dB, drawn with the frequency response they produce.</p>
+            <p>"Save for this song" or "Save for this album" keeps the curve, and it comes back whenever that song or album plays, until you choose "Use default". A song plays with its own setting if it has one, otherwise its album's, otherwise the default.</p>
+            <ul>
+              <li>Eleven presets, from Bass boost to Spoken word, and any curve you save under a name</li>
+              <li>A pill in Now Playing's header says "This song" or "This album" when one of those settings is in use</li>
+              <li>Runs inside Attic's own audio path, so it sounds the same on every phone and changes exactly where one song ends and the next begins, gapless albums included. During a crossfade each song keeps its own curve</li>
+              <li>A boost preset plays 3 to 5 dB quieter rather than distorting: Attic lowers the level by as much as the curve boosts, and a limiter at &minus;1&nbsp;dBFS catches what is left</li>
+            </ul>
+            <p class="note">The equaliser is off until you choose a preset or move a band.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-equaliser-360.webp 360w, img/screens/expressive-dark-equaliser-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-equaliser-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-equaliser-360.webp 360w, img/screens/expressive-light-equaliser-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-equaliser-360.png" width="360" height="800" alt="The equaliser sheet over Now Playing in the Expressive style: switched on, marked &quot;For this song only&quot; with the song's title, a row of preset chips, ten bands from 31 Hz to 16 kHz drawn over their response, and a Use default button" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-equaliser-360.webp 360w, img/screens/comfort-dark-equaliser-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-equaliser-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-equaliser-360.webp 360w, img/screens/comfort-light-equaliser-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-equaliser-360.png" width="360" height="800" alt="The equaliser sheet over Now Playing in the Comfort style: switched on, marked &quot;For this song only&quot; with the song's title, a row of preset chips, ten band sliders from 31 Hz to 16 kHz with their response behind them, and a Use default row" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature">
           <div class="feature-copy">
             <p class="new">New in 1.1</p>
-            <h2 id="playback-title">Level volume, and a crossfade when you want one</h2>
+            <h3>Level volume, and a crossfade when you want one</h3>
             <p>Settings has a Playback section with three rows.</p>
             <dl class="ledger">
               <div>
@@ -422,8 +454,8 @@
                 <dd>Fades each song into the next. Songs from one album played in order still run straight into each other.</dd>
               </div>
               <div>
-                <dt>Equaliser <span class="value">The phone's own</span></dt>
-                <dd>Opens the equaliser already on your phone, applied to Attic's sound. The row shows only when the phone has one.</dd>
+                <dt>Equaliser <span class="value">Off by default</span></dt>
+                <dd>Opens a page with the default curve, which every song without its own setting plays with, and the songs and albums that have one. A Phone equaliser row there opens the phone's own equaliser, and shows only when the phone has one.</dd>
               </div>
             </dl>
             <p class="note">Loudness is measured during song analysis, which runs while the phone charges. A song that hasn't been measured plays as it is, so after an update from 1.0, levelling reaches more of the library as analysis goes on.</p>
@@ -433,16 +465,16 @@
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-settings-playback-360.webp 360w, img/screens/expressive-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-settings-playback-360.webp 360w, img/screens/expressive-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser" loading="lazy" decoding="async">
+              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
             <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-settings-playback-360.webp 360w, img/screens/comfort-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-settings-playback-360.webp 360w, img/screens/comfort-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser" loading="lazy" decoding="async">
+              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
           </div>
-        </div>
+        </article>
       </div>
     </section>
 
@@ -460,7 +492,7 @@
           </div>
           <div>
             <dt>Copied by Android's backup, if you turn it on</dt>
-            <dd>Favourites, playlists, the listening log, downloaded lyrics and settings, encrypted end to end so neither Google nor the developer can read them</dd>
+            <dd>Favourites, playlists, the listening log, downloaded lyrics, equaliser settings and presets, and app settings, encrypted end to end so neither Google nor the developer can read them</dd>
           </div>
           <div>
             <dt>Shown on a car's screen, if you use Android Auto</dt>
@@ -484,6 +516,7 @@
           <h2 id="performance-title">Measured on one phone</h2>
           <p>A POCO M4 Pro 4G running Android 16, with release builds and a library of 740 songs. Each figure is a median: 20 cold starts and 6 scrolls of the full song list per style.</p>
           <p>Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.</p>
+          <p>The equaliser uses about 1.4% of one processor core while a curve is on, and left cold start and scrolling unchanged.</p>
         </div>
         <table class="perf">
           <caption class="visually-hidden">Performance of each style</caption>
@@ -550,7 +583,7 @@
           </details>
           <details>
             <summary>Is there an equaliser?</summary>
-            <p>Attic opens your phone's equaliser. Settings &gt; Playback &gt; Equaliser hands Attic's audio to the phone's sound settings or an equaliser app you have installed. The row only appears when the phone has one.</p>
+            <p>Yes, Attic has its own, with ten bands from 31 Hz to 16 kHz and eleven presets. Open Equaliser from the menu on Now Playing. A song or an album can keep its own setting, which comes back whenever it plays, and Settings &gt; Playback &gt; Equaliser sets the default for everything else. It is off until you choose a preset or move a band. The same Settings page has a Phone equaliser row that opens the phone's own equaliser, when the phone has one.</p>
           </details>
           <details>
             <summary>Does it work with Android Auto?</summary>
