@@ -41,6 +41,10 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
 import app.attic.player.data.Track
+import app.attic.player.ui.adaptive.LocalListDetailSelection
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
+import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.model.LibraryActions
@@ -62,6 +66,12 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ComfortLibrary(state: LibraryState, actions: LibraryActions) {
+    // Beside the item it opened (a tablet sideways), the list takes a pane of its own.
+    LocalListDetailSelection.current?.let { return ComfortLibraryListPane(state, actions, it.itemId) }
+    val window = LocalWindowLayout.current
+    val wide = window.widthClass != WidthClass.Compact
+    val columns = if (wide) rowColumns(window.contentWidthDp()) else 1
+    val gridColumns = if (wide) adaptiveColumns(window.contentWidthDp() - 48f, 160f, 14f) else 3
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val songsMode = state.filter == LibraryFilter.Downloaded
@@ -93,9 +103,11 @@ fun ComfortLibrary(state: LibraryState, actions: LibraryActions) {
     val density = LocalDensity.current
     val statusTop = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
 
+    val short = shortHeroOnTablet()
     RootPage(
         title = stringResource(R.string.library_title),
         listState = listState,
+        heroHeight = if (short) ShortHeroHeight else HeroHeight,
         pinIndex = CHIPS_INDEX,
         pinned = {
             Box(Modifier.liftedUnderBar(Comfort.colors.ground, Comfort.colors.line).padding(bottom = 10.dp)) { chips() }
@@ -124,13 +136,13 @@ fun ComfortLibrary(state: LibraryState, actions: LibraryActions) {
             }
         },
     ) {
-        item(key = "hero") { Hero(stringResource(R.string.library_title)) }
+        item(key = "hero") { Hero(stringResource(R.string.library_title), short = short) }
         item(key = "tools") { Tools { tools() } }
         item(key = "chips") { chips() }
         when {
             songsMode -> songs(state, actions, indexSpace)
-            state.grid -> grids(state, actions)
-            else -> lists(state, actions)
+            state.grid -> grids(state, actions, gridColumns)
+            else -> lists(state, actions, columns)
         }
     }
 }
@@ -161,7 +173,7 @@ private fun firstIndexByLetter(songs: List<Track>): Map<String, Int> {
 }
 
 @Composable
-private fun LibraryFilter.title(): String = stringResource(
+internal fun LibraryFilter.title(): String = stringResource(
     when (this) {
         LibraryFilter.Playlists -> R.string.library_filter_playlists
         LibraryFilter.Albums -> R.string.library_filter_albums
@@ -198,10 +210,27 @@ private fun sections(state: LibraryState): List<Section> {
     )
 }
 
-private fun LazyListScope.lists(state: LibraryState, actions: LibraryActions) {
+/**
+ * The sections as labelled cards of rows. On a tablet a section's rows sit in [columns] cards side by
+ * side, filled top to bottom; [selectedId] is the row open beside the list, on the bed a playing song's
+ * row has.
+ */
+internal fun LazyListScope.lists(state: LibraryState, actions: LibraryActions, columns: Int = 1, selectedId: String? = null) {
     sections(state).forEachIndexed { index, section ->
         item(key = "label:${section.label}") {
             SectionLabel(section.label, toggle = if (index == 0) ({ ViewToggle(state.grid, actions.toggleGrid) }) else null)
+        }
+        if (columns > 1 || selectedId != null) {
+            columnGroupItems(section.items, columns, "rows:${section.label}", key = { it.id }) { _, item ->
+                CollectionRow(
+                    title = item.displayTitle(),
+                    subtitle = item.subtitle(),
+                    lead = { m -> ItemArt(item, m) },
+                    onClick = { actions.open(item) },
+                    modifier = if (item.id == selectedId) Modifier.selectedBed() else Modifier,
+                )
+            }
+            return@forEachIndexed
         }
         groupItems(section.items, key = { it.id }) { _, item ->
             CollectionRow(
@@ -214,19 +243,20 @@ private fun LazyListScope.lists(state: LibraryState, actions: LibraryActions) {
     }
 }
 
-private fun LazyListScope.grids(state: LibraryState, actions: LibraryActions) {
+internal fun LazyListScope.grids(state: LibraryState, actions: LibraryActions, columns: Int = 3, selectedId: String? = null) {
     sections(state).forEachIndexed { index, section ->
         item(key = "label:${section.label}") {
             SectionLabel(section.label, toggle = if (index == 0) ({ ViewToggle(state.grid, actions.toggleGrid) }) else null)
         }
         // A grid in rows of three, so a long library stays lazy (`.grid3`: 14 across, 20 down, 24 in).
-        val rows = section.items.chunked(3)
+        // A tablet takes as many columns at least 160dp wide as fit.
+        val rows = section.items.chunked(columns)
         itemsIndexed(rows, key = { _, row -> "grid:${row.first().id}" }) { rowIndex, row ->
             Row(
                 Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = if (rowIndex < rows.size - 1) 20.dp else 0.dp),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                for (column in 0 until 3) {
+                for (column in 0 until columns) {
                     Box(Modifier.weight(1f), contentAlignment = Alignment.TopCenter) {
                         row.getOrNull(column)?.let { item ->
                             val artist = item.kind == LibraryKind.Artist
@@ -235,6 +265,7 @@ private fun LazyListScope.grids(state: LibraryState, actions: LibraryActions) {
                                 onClick = { actions.open(item) },
                                 art = { m -> ItemArt(item, m) },
                                 subtitle = item.subtitle(),
+                                modifier = if (item.id == selectedId) Modifier.selectedTileBed() else Modifier,
                                 width = null,
                                 centered = artist,
                                 twoLines = artist,
@@ -251,7 +282,7 @@ private fun LazyListScope.grids(state: LibraryState, actions: LibraryActions) {
  * "Songs": the count as the label with the sort at its right, then one card that starts with
  * "Shuffle all songs" and holds every song. [indexSpace] makes room for the index.
  */
-private fun LazyListScope.songs(state: LibraryState, actions: LibraryActions, indexSpace: androidx.compose.ui.unit.Dp) {
+internal fun LazyListScope.songs(state: LibraryState, actions: LibraryActions, indexSpace: androidx.compose.ui.unit.Dp) {
     item(key = "songsLabel") {
         val count = state.songs.size
         Label(
@@ -306,7 +337,7 @@ private fun LabelControl(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun ViewToggle(grid: Boolean, onToggle: () -> Unit) {
+internal fun ViewToggle(grid: Boolean, onToggle: () -> Unit) {
     ComfortIconButton(
         if (grid) Symbol.ViewList else Symbol.GridView,
         stringResource(if (grid) R.string.library_show_list_cd else R.string.library_show_grid_cd),

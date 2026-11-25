@@ -89,7 +89,12 @@ fun ComfortRecap(state: WrappedPageState, actions: WrappedPageActions) {
         )
     }
     Box(Modifier.fillMaxSize().background(colors.ground)) {
-        LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 16.dp)) {
+        val inset = readableColumnInset()
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            state = list,
+            contentPadding = PaddingValues(start = inset, end = inset, bottom = LocalBottomPadding.current + 16.dp),
+        ) {
             item(key = "hero") {
                 Box {
                     Hero(stringResource(R.string.recap_title), subtitle = periodHeadline(state.period, state.data?.today ?: LocalDate.now()))

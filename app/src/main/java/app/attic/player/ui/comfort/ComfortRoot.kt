@@ -40,6 +40,9 @@ internal val BarHeight = 56.dp
 /** The expanded title area's height under the status bar (`.hero`), and the short one (`.hero.short`). */
 internal val HeroHeight = 228.dp
 
+/** The short hero (`.hero.short`): a tablet window under 840dp tall. */
+internal val ShortHeroHeight = 150.dp
+
 /**
  * True once the hero (the list's first item, [heroHeight] tall under the status bar) has scrolled up
  * far enough that its bottom meets the bottom of the collapsed bar: the moment the bar takes over.
@@ -87,6 +90,8 @@ internal fun RootPage(
     modifier: Modifier = Modifier,
     heroHeight: Dp = HeroHeight,
     onBack: (() -> Unit)? = null,
+    /** On a tablet, the side insets that centre the list in a readable column. */
+    inset: Dp = 0.dp,
     pinIndex: Int = -1,
     pinned: (@Composable () -> Unit)? = null,
     barActions: @Composable RowScope.() -> Unit = {},
@@ -100,7 +105,7 @@ internal fun RootPage(
         LazyColumn(
             Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 8.dp),
+            contentPadding = PaddingValues(start = inset, end = inset, bottom = LocalBottomPadding.current + 8.dp),
             content = content,
         )
         overlay()

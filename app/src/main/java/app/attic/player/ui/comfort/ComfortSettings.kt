@@ -56,8 +56,15 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
     val listState = rememberLazyListState()
     val format = NumberFormat.getIntegerInstance()
     val title = stringResource(R.string.settings_title)
-    RootPage(title = title, listState = listState, onBack = actions.back) {
-        item(key = "hero") { Hero(title) }
+    val short = shortHeroOnTablet()
+    RootPage(
+        title = title,
+        listState = listState,
+        onBack = actions.back,
+        heroHeight = if (short) ShortHeroHeight else HeroHeight,
+        inset = readableColumnInset(),
+    ) {
+        item(key = "hero") { Hero(title, short = short) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), actions.back) }
         }

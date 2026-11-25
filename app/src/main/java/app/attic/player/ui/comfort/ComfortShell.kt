@@ -40,6 +40,8 @@ import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.NavTransitions
 import app.attic.player.ui.ShellSlots
 import app.attic.player.ui.Tab
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.NavPlacement
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.isTabRoute
@@ -75,7 +77,7 @@ val ComfortNavTransitions = NavTransitions(
 )
 
 /** Full-screen overlays rise without overshooting, so no gap opens under them. */
-private fun <T> overlaySpring(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 380f)
+internal fun <T> overlaySpring(): FiniteAnimationSpec<T> = spring(dampingRatio = 1f, stiffness = 380f)
 
 /**
  * The Comfort shell (the dock on every sheet): destinations fill the screen and scroll under the
@@ -90,6 +92,8 @@ private fun <T> overlaySpring(): FiniteAnimationSpec<T> = spring(dampingRatio = 
  */
 @Composable
 fun ComfortShell(state: ShellState, actions: ShellActions, slots: ShellSlots) {
+    // Medium and expanded windows: the side dock, and the player bar or the floating mini player.
+    if (LocalWindowLayout.current.nav == NavPlacement.Rail) return ComfortWideShell(state, actions, slots)
     val colors = Comfort.colors
     val density = LocalDensity.current
     val systemNav = WindowInsets.navigationBars
@@ -181,14 +185,14 @@ fun ComfortShell(state: ShellState, actions: ShellActions, slots: ShellSlots) {
     }
 }
 
-private val Tab.labelRes: Int
+internal val Tab.labelRes: Int
     get() = when (this) {
         Tab.Home -> R.string.tab_home
         Tab.Search -> R.string.tab_search
         Tab.Library -> R.string.tab_library
     }
 
-private val Tab.symbol: Symbol
+internal val Tab.symbol: Symbol
     get() = when (this) {
         Tab.Home -> Symbol.Home
         Tab.Search -> Symbol.Search
@@ -202,6 +206,7 @@ private val Tab.symbol: Symbol
  */
 @Composable
 fun ComfortMiniPlayer(state: MiniPlayerState, actions: MiniPlayerActions) {
+    LocalPlayerBar.current?.let { return ComfortPlayerBar(state, actions, it) }
     val track = state.track ?: return
     val seed = rememberArtColor(track.mediaId, fallback = Color.Unspecified, deepen = false)
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 500)

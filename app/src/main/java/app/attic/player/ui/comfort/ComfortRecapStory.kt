@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +43,8 @@ import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.expressive.recapHeadline
 import app.attic.player.ui.model.WrappedStoryActions
@@ -72,12 +76,27 @@ fun ComfortRecapStory(state: WrappedStoryState, actions: WrappedStoryActions, me
         }
     }
 
+    // On a tablet the story keeps a phone screen's proportions (411 by 914), as tall as the window
+    // allows, centred on the scrim (docs/design/2026-11-25-tablet/SPEC.md, Recap).
+    val tablet = LocalWindowLayout.current.widthClass != WidthClass.Compact
     Dialog(onDismissRequest = actions.close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         SystemBarsFor(dark = true)
         RecapCardColors(card, state.data) {
             val colors = Comfort.colors
-            Box(Modifier.fillMaxSize().background(colors.ground)) {
-                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+            Box(Modifier.fillMaxSize().background(if (tablet) colors.scrim else colors.ground)) {
+                Column(
+                    if (tablet) {
+                        Modifier
+                            .align(Alignment.Center)
+                            .statusBarsPadding()
+                            .navigationBarsPadding()
+                            .fillMaxHeight()
+                            .aspectRatio(411f / 914f, matchHeightConstraintsFirst = true)
+                            .background(colors.ground)
+                    } else {
+                        Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                    },
+                ) {
                     StoryHead(state, actions.close)
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                         val cardWidth = min(maxWidth - 58.dp, maxHeight * 9f / 16f)

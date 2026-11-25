@@ -40,6 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
 import app.attic.player.data.Track
@@ -48,6 +49,8 @@ import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.expressive.contextLabel
 import app.attic.player.ui.expressive.contextSymbol
 import app.attic.player.ui.model.PlaybackClock
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.ui.model.QueueActions
 import app.attic.player.ui.model.QueueState
 import app.attic.player.ui.model.UpNextRow
@@ -65,13 +68,20 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
  */
 @Composable
 fun ComfortQueue(state: QueueState, actions: QueueActions) {
+    // On a tablet the rows keep to a centred column at most 720dp wide; the bar spans the window.
+    val window = LocalWindowLayout.current
+    val inset = if (window.widthClass == WidthClass.Compact) 0.dp else readableInset(window.widthDp)
     TintedCover(state.current?.mediaId, wash = true) {
-        QueuePage(state, actions)
+        QueuePage(state, actions, inset = inset)
     }
 }
 
+/**
+ * The queue's list. [top] replaces the room for the bar where something else heads it (Now Playing's
+ * side panel, with [showBar] false); [inset] narrows the rows to a centred column.
+ */
 @Composable
-private fun QueuePage(state: QueueState, actions: QueueActions) {
+internal fun QueuePage(state: QueueState, actions: QueueActions, top: Dp? = null, showBar: Boolean = true, inset: Dp = 0.dp) {
     val haptics = rememberHaptics()
     val colors = Comfort.colors
     val current = state.current
@@ -93,7 +103,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
         if (fromIndex >= 0 && toIndex >= 0) rows.add(toIndex, rows.removeAt(fromIndex))
     }
     val navigation = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 56.dp
+    val listTop = top ?: (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 56.dp)
 
     Box(
         Modifier
@@ -105,7 +115,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
         LazyColumn(
             Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(top = top, bottom = navigation + if (rows.isEmpty()) 24.dp else 118.dp),
+            contentPadding = PaddingValues(start = inset, end = inset, top = listTop, bottom = navigation + if (rows.isEmpty()) 24.dp else 118.dp),
         ) {
             if (current != null) {
                 item(key = "nowLabel") {
@@ -171,7 +181,7 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                 }
             }
         }
-        Box(Modifier.fillMaxWidth().background(colors.ground)) {
+        if (showBar) Box(Modifier.fillMaxWidth().background(colors.ground)) {
             Bar(
                 stringResource(R.string.queue_title),
                 onBack = actions.close,

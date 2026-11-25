@@ -128,11 +128,13 @@ fun TileGrid(
     columns: Int,
     modifier: Modifier = Modifier,
     tray: Boolean = false,
+    /** A tablet's six-across tray keeps the three-across tray's gaps. */
+    trayGaps: Boolean = tray && columns == 3,
     item: @Composable (index: Int) -> Unit,
 ) {
     val inGroup = LocalComfortContainer.current != ComfortContainer.Ground
     val (rowGap, columnGap) = when {
-        tray && columns == 3 -> 14.dp to 6.dp
+        trayGaps -> 14.dp to 6.dp
         columns == 2 -> 12.dp to 12.dp
         columns == 3 -> 20.dp to 14.dp
         else -> 16.dp to 10.dp

@@ -3,6 +3,7 @@ package app.attic.player.ui.comfort
 import androidx.annotation.StringRes
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,10 @@ import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Track
+import app.attic.player.ui.adaptive.WindowLayout
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
+import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.model.HomeActions
@@ -52,6 +57,9 @@ import java.text.NumberFormat
  */
 @Composable
 fun ComfortHome(state: HomeState, actions: HomeActions) {
+    val window = LocalWindowLayout.current
+    // On a tablet the side dock carries the mark, and a window under 840dp tall takes the short hero.
+    val wide = if (window.widthClass == WidthClass.Compact) null else HomeColumns.of(window)
     val listState = rememberLazyListState()
     val title = stringResource(R.string.tab_home)
     val settings = @Composable {
@@ -66,13 +74,14 @@ fun ComfortHome(state: HomeState, actions: HomeActions) {
     RootPage(
         title = title,
         listState = listState,
+        heroHeight = if (wide?.shortHero == true) ShortHeroHeight else HeroHeight,
         pinIndex = if (state.isEmpty) -1 else 1,
         pinned = {
             SubTabs(filters, state.filter.ordinal, { actions.setFilter(HomeFilter.entries[it]) }, lift = true)
         },
         barActions = { settings() },
     ) {
-        item(key = "hero") { Hero(title, mark = true) }
+        item(key = "hero") { Hero(title, mark = wide == null, short = wide?.shortHero == true) }
         if (state.isEmpty) {
             // Settings stays (it is on every tab root); there is nothing to filter.
             item(key = "tools") { Tools { settings() } }
@@ -91,28 +100,54 @@ fun ComfortHome(state: HomeState, actions: HomeActions) {
             }
         }
         when (state.filter) {
-            HomeFilter.All -> allSections(state, actions)
+            HomeFilter.All -> allSections(state, actions, wide)
             HomeFilter.Albums -> item(key = "albumGrid") {
-                FilterGrid(state.biggestAlbums.size) { AlbumTile(state.biggestAlbums[it], actions, width = null) }
+                FilterGrid(state.biggestAlbums.size, wide?.grid ?: 3) { AlbumTile(state.biggestAlbums[it], actions, width = null) }
             }
             HomeFilter.Artists -> item(key = "artistGrid") {
-                FilterGrid(state.biggestArtists.size) { ArtistTile(state.biggestArtists[it], actions, width = null) }
+                FilterGrid(state.biggestArtists.size, wide?.grid ?: 3) { ArtistTile(state.biggestArtists[it], actions, width = null) }
             }
             HomeFilter.Folders -> item(key = "folderGrid") {
-                FilterGrid(state.folders.size) { FolderTile(state.folders[it], actions, width = null) }
+                FilterGrid(state.folders.size, wide?.grid ?: 3) { FolderTile(state.folders[it], actions, width = null) }
             }
         }
     }
 }
 
-private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
+/**
+ * How Home fills a tablet's column (docs/design/2026-11-25-tablet/SPEC.md, Home): the shortcut and
+ * folder trays six across (art 112dp on an expanded window, 72 on a medium one), Instant mixes' pages
+ * side by side (three on expanded, two on medium), Start listening in two cards on expanded, and the
+ * filter grids in columns at least 160dp wide.
+ */
+private class HomeColumns(val trayArt: Dp, val mixes: Int, val start: Int, val grid: Int, val shortHero: Boolean) {
+    companion object {
+        fun of(window: WindowLayout): HomeColumns {
+            val expanded = window.widthClass == WidthClass.Expanded
+            return HomeColumns(
+                trayArt = if (expanded) 112.dp else 72.dp,
+                mixes = if (expanded) 3 else 2,
+                start = if (expanded) 2 else 1,
+                grid = adaptiveColumns(window.contentWidthDp() - 48f, 160f, 14f),
+                shortHero = window.heightDp < 840f,
+            )
+        }
+    }
+}
+
+/** The tray's columns on a tablet. Four would leave a second row of two shortcuts. */
+private const val WideTrayColumns = 6
+
+private fun LazyListScope.allSections(state: HomeState, actions: HomeActions, wide: HomeColumns? = null) {
     if (state.shortcuts.isNotEmpty()) {
-        item(key = "shortcuts") { Shortcuts(state.shortcuts, actions) }
+        item(key = "shortcuts") { Shortcuts(state.shortcuts, actions, wide) }
     }
     state.wrapped?.let { teaser ->
         item(key = "recap") { RecapEntry(teaser, actions.openWrapped, Modifier.padding(top = GroupSpacing)) }
     }
-    if (state.speedDial.isNotEmpty()) {
+    if (state.speedDial.isNotEmpty() && wide != null) {
+        item(key = "mixes") { InstantMixColumns(state, actions, wide.mixes) }
+    } else if (state.speedDial.isNotEmpty()) {
         item(key = "mixes") {
             Column {
                 Label(stringResource(R.string.home_instant_mixes))
@@ -176,13 +211,19 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
         item(key = "startLabel") {
             Label(stringResource(R.string.home_start_listening), small = stringResource(R.string.home_start_listening_overline))
         }
-        groupItems(state.startListening, key = { "start:${it.key}" }) { _, track ->
-            StartListeningRow(track, state, actions)
+        if (wide != null) {
+            columnGroupItems(state.startListening, wide.start, "start", key = { it.key }) { _, track ->
+                StartListeningRow(track, state, actions)
+            }
+        } else {
+            groupItems(state.startListening, key = { "start:${it.key}" }) { _, track ->
+                StartListeningRow(track, state, actions)
+            }
         }
     }
     if (state.folders.isNotEmpty()) {
         item(key = "foldersLabel") { Label(stringResource(R.string.home_your_folders)) }
-        item(key = "folders") { FolderTray(state.folders, actions) }
+        item(key = "folders") { if (wide != null) WideFolderTray(state.folders, actions, wide.trayArt) else FolderTray(state.folders, actions) }
     }
     if (state.biggestAlbums.isNotEmpty()) {
         item(key = "albumsLabel") { Label(stringResource(R.string.home_albums)) }
@@ -239,10 +280,10 @@ private fun StartListeningRow(track: Track, state: HomeState, actions: HomeActio
 
 /** The shortcuts as a 3 × 2 tray in one card (`.group.pad > .grid3.tray`): Favourites first. */
 @Composable
-private fun Shortcuts(shortcuts: List<Shortcut>, actions: HomeActions) {
+private fun Shortcuts(shortcuts: List<Shortcut>, actions: HomeActions, wide: HomeColumns? = null) {
     Group(pad = true) {
         item {
-            TileGrid(shortcuts.size, columns = 3, tray = true) { index ->
+            TileGrid(shortcuts.size, columns = if (wide != null) WideTrayColumns else 3, tray = true, trayGaps = true) { index ->
                 val shortcut = shortcuts[index]
                 Tile(
                     title = when (shortcut) {
@@ -261,7 +302,62 @@ private fun Shortcuts(shortcuts: List<Shortcut>, actions: HomeActions) {
                     width = null,
                     centered = true,
                     twoLines = true,
-                    artSize = trayArt(3),
+                    artSize = wide?.trayArt ?: trayArt(3),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Instant mixes on a tablet: where the phone pages sideways, the songs sit in [columns] equal cards
+ * side by side, filled top to bottom.
+ */
+@Composable
+private fun InstantMixColumns(state: HomeState, actions: HomeActions, columns: Int) {
+    Column {
+        Label(stringResource(R.string.home_instant_mixes))
+        val per = ((state.speedDial.size + columns - 1) / columns).coerceAtLeast(1)
+        val parts = state.speedDial.chunked(per)
+        Row(Modifier.padding(horizontal = GroupMargin), horizontalArrangement = Arrangement.spacedBy(ColumnGap)) {
+            for (part in parts) {
+                Box(Modifier.weight(1f)) {
+                    Group(margin = 0.dp) {
+                        items(part) { track ->
+                            SongRow(
+                                title = track.title,
+                                subtitle = track.artist,
+                                lead = SongLead.Cover(Art.of(track.mediaId)),
+                                current = track.key == state.currentKey,
+                                playing = state.isPlaying,
+                                onClick = { actions.startRadio(track) },
+                                onLongClick = { actions.showMenu(track) },
+                                trailing = { SongRadioMark() },
+                            )
+                        }
+                    }
+                }
+            }
+            // Fewer songs than columns leave the last cells empty, so the cards keep their width.
+            repeat(columns - parts.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+}
+
+/** "Your folders" on a tablet: the six-across tray, in rows. */
+@Composable
+private fun WideFolderTray(folders: List<FolderPlaylist>, actions: HomeActions, art: Dp) {
+    Group(pad = true) {
+        item {
+            TileGrid(folders.size, columns = WideTrayColumns, tray = true, trayGaps = true) { index ->
+                Tile(
+                    title = folders[index].name,
+                    onClick = { actions.openFolder(folders[index]) },
+                    art = { m -> Mosaic(mosaicIds(folders[index].tracks).map(Art::Song), m) },
+                    subtitle = songCount(folders[index].tracks.size),
+                    width = null,
+                    centered = true,
+                    artSize = art,
                 )
             }
         }
@@ -414,9 +510,9 @@ private fun ArtistTile(artist: Artist, actions: HomeActions, width: Dp? = 92.dp)
 
 /** A sub-tab's one section (frame C): a three-column grid where "All" has a shelf. */
 @Composable
-private fun FilterGrid(count: Int, tile: @Composable (Int) -> Unit) {
+private fun FilterGrid(count: Int, columns: Int = 3, tile: @Composable (Int) -> Unit) {
     Column(Modifier.padding(top = 8.dp)) {
-        TileGrid(count, columns = 3) { tile(it) }
+        TileGrid(count, columns = columns) { tile(it) }
         Spacer(Modifier.height(8.dp))
     }
 }

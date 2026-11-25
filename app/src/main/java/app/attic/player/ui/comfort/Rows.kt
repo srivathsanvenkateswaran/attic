@@ -51,6 +51,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
+import app.attic.player.ui.adaptive.onSecondaryClick
 import app.attic.player.R
 import app.attic.player.ui.SwipeToQueue
 import app.attic.player.ui.expressive.Art
@@ -201,10 +204,16 @@ fun SongRow(
     onSwipeToQueue: (() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    if (onSwipeToQueue == null || lifted) {
-        SongRowBody(title, subtitle, modifier, lead, onClick, onLongClick, current, playing, rank, meta, lifted, trailing)
+    // A right click opens the menu a long press opens, where a mouse is likely: tablet windows only.
+    val rowModifier = if (onLongClick != null && LocalWindowLayout.current.widthClass != WidthClass.Compact) {
+        modifier.onSecondaryClick(true, onLongClick)
     } else {
-        SwipeToQueueCell(onSwipeToQueue, modifier) {
+        modifier
+    }
+    if (onSwipeToQueue == null || lifted) {
+        SongRowBody(title, subtitle, rowModifier, lead, onClick, onLongClick, current, playing, rank, meta, lifted, trailing)
+    } else {
+        SwipeToQueueCell(onSwipeToQueue, rowModifier) {
             SongRowBody(title, subtitle, Modifier, lead, onClick, onLongClick, current, playing, rank, meta, false, trailing)
         }
     }

@@ -82,6 +82,8 @@ import app.attic.player.ui.model.PlayControlsState
 import app.attic.player.ui.model.PlaylistActions
 import app.attic.player.ui.model.PlaylistState
 import app.attic.player.ui.mosaicIds
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 import java.text.NumberFormat
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -102,6 +104,7 @@ internal val HeaderArt = 176.dp
 /** An album (frames A, F, G): track numbers and lengths in one card, bars on the playing track, the count under it. */
 @Composable
 fun ComfortAlbum(state: AlbumState, actions: AlbumActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortAlbumPanes(state, actions)
     val album = state.album ?: return GoneState(R.string.collection_album_gone, Symbol.Album, actions.back)
     val tracks = album.tracks
     CollectionFrame(title = album.name, onBack = actions.back, titleTop = HeaderArt) {
@@ -138,12 +141,12 @@ fun ComfortAlbum(state: AlbumState, actions: AlbumActions) {
 }
 
 /** The tag's track number, without a disc prefix (1003 is disc 1, track 3), else the position. */
-private fun trackNumber(track: Track, index: Int): Int =
+internal fun trackNumber(track: Track, index: Int): Int =
     track.trackNumber?.let { it % 1000 }?.takeIf { it > 0 } ?: (index + 1)
 
 /** "Album • 2026", "Single • 2026", or the kind alone when the year isn't known. */
 @Composable
-private fun albumKindAndYear(album: Album): String {
+internal fun albumKindAndYear(album: Album): String {
     val kind = stringResource(if (album.tracks.size == 1) R.string.album_kind_single else R.string.album_kind_album)
     return album.year?.let { stringResource(R.string.album_kind_year, kind, it.toString()) } ?: kind
 }
@@ -156,6 +159,7 @@ private fun albumKindAndYear(album: Album): String {
  */
 @Composable
 fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortArtistPanes(state, actions)
     val artist = state.artist ?: return GoneState(R.string.collection_artist_gone, Symbol.Person, actions.back)
     val first = artist.tracks.firstOrNull()?.mediaId
     CollectionFrame(title = artist.name, onBack = actions.back, titleTop = 148.dp) {
@@ -228,6 +232,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
 /** A folder playlist (frame I): a playlist that cannot be edited, so no more button and no tools. */
 @Composable
 fun ComfortFolder(state: FolderState, actions: FolderActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortFolderPanes(state, actions)
     val folder = state.folder ?: return GoneState(R.string.collection_playlist_gone, Symbol.QueueMusic, actions.back)
     val tracks = folder.tracks
     CollectionFrame(title = folder.name, onBack = actions.back, titleTop = HeaderArt) {
@@ -252,6 +257,7 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
  */
 @Composable
 fun ComfortGenre(state: GenreState, actions: GenreActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortGenrePanes(state, actions)
     val genre = state.genre
     if (genre == null) {
         // While the list is first built there is nothing to say yet; after that, the genre has gone.
@@ -299,6 +305,7 @@ fun ComfortGenre(state: GenreState, actions: GenreActions) {
  */
 @Composable
 fun ComfortFavourites(state: LikedState, actions: LikedActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortFavouritesPanes(state, actions)
     val title = stringResource(R.string.favourites)
     val tracks = state.tracks
     CollectionFrame(
@@ -343,7 +350,7 @@ fun ComfortFavourites(state: LikedState, actions: LikedActions) {
 
 /** "Smart shuffle" in a collection's menu: selected, with the tick, while on for this collection. */
 @Composable
-private fun SmartShuffleRow(controls: PlayControlsState, onToggle: () -> Unit) {
+internal fun SmartShuffleRow(controls: PlayControlsState, onToggle: () -> Unit) {
     val on = controls.smartShuffle == true
     MenuRow(
         Symbol.ShuffleOn,
@@ -389,6 +396,7 @@ internal fun LazyListScope.songRows(
  */
 @Composable
 fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
+    if (LocalWindowLayout.current.widthClass != WidthClass.Compact && !LocalStackedCollection.current) return ComfortPlaylistPanes(state, actions)
     val playlist = state.playlist ?: return GoneState(R.string.collection_playlist_gone, Symbol.QueueMusic, actions.back)
     val tracks = state.tracks
     CollectionFrame(
@@ -461,7 +469,7 @@ fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
  * divider, with a hairline under them. Reorder is off with fewer than two songs.
  */
 @Composable
-private fun PlaylistTools(onAdd: () -> Unit, onReorder: () -> Unit, canReorder: Boolean) {
+internal fun PlaylistTools(onAdd: () -> Unit, onReorder: () -> Unit, canReorder: Boolean) {
     val colors = Comfort.colors
     Row(
         Modifier
@@ -502,7 +510,7 @@ private fun RowScope.ToolHalf(symbol: Symbol, label: String, onClick: () -> Unit
  * reordering". Back leaves the mode. Tapping a row does nothing here; a long press still opens the menu.
  */
 @Composable
-private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
+internal fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
     val haptics = rememberHaptics()
     val tracks = state.tracks
     // The rows follow the playlist, except mid-drag, when they hold the order being dragged.
@@ -635,10 +643,11 @@ internal fun PlayRow(
     radioLabel: String? = null,
     /** False on a mood's page, whose mix changes daily. */
     addToPlaylist: Boolean = true,
+    padding: PaddingValues = CollectionActionsPadding,
 ) {
     val colors = Comfort.colors
     val container = if (colors.dark) colors.fill else colors.card
-    CollectionActions {
+    CollectionActions(padding = padding) {
         CollectionPlayButton(state.isPlaying, actions.playOrPause, Modifier.weight(1f), enabled = state.enabled)
         TonalIconButton(
             Symbol.Shuffle,

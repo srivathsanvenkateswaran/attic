@@ -690,4 +690,7 @@
     <string name="analysis_notification_title">Analysing your songs</string>
     <string name="analysis_notification_progress">%1$s of %2$s</string>
     <string name="analysis_notification_stop">Stop</string>
+
+    <!-- Tablet, Comfort -->
+    <string name="lyrics_open_full_screen_cd">Open lyrics full screen</string>
 </resources>

@@ -54,6 +54,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.data.LrcParser
 import app.attic.player.data.Track
 import app.attic.player.ui.expressive.Art
@@ -74,16 +76,25 @@ import kotlin.math.roundToInt
 @Composable
 fun ComfortLyrics(state: LyricsScreenState, actions: LyricsScreenActions) {
     val track = state.track ?: return
+    val window = LocalWindowLayout.current
     TintedCover(track.mediaId, wash = true) {
-        LyricsPage(state, actions, track)
+        when {
+            window.playerSideBySide -> ComfortLyricsWide(state, actions, track)
+            // A tablet upright: the lines in a centred column at most 640dp wide.
+            window.widthClass != WidthClass.Compact -> LyricsPage(state, actions, track, ((window.widthDp - LyricsColumnMax) / 2f - 16f).coerceAtLeast(0f).dp)
+            else -> LyricsPage(state, actions, track)
+        }
     }
 }
+
+/** The lyrics' column on a tablet, at most this wide. */
+internal const val LyricsColumnMax = 640f
 
 /** The deck at the foot: the 64dp row, its card's 22dp (or the gesture area) under it, and 84dp of fade over it. */
 private val DeckRoom = 64.dp + 22.dp
 
 @Composable
-private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, track: Track) {
+private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, inset: Dp = 0.dp) {
     val colors = Comfort.colors
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 56.dp
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + DeckRoom
@@ -96,8 +107,8 @@ private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, t
             .pointerInput(Unit) { detectTapGestures { } },
     ) {
         when {
-            lyrics.hasLyrics && lyrics.lines.isNotEmpty() -> SyncedLyrics(state, actions, track, top, bottom)
-            lyrics.hasLyrics -> PlainLyrics(lyrics.plain.orEmpty(), top, bottom)
+            lyrics.hasLyrics && lyrics.lines.isNotEmpty() -> SyncedLyrics(state, actions, track, top, bottom, inset)
+            lyrics.hasLyrics -> PlainLyrics(lyrics.plain.orEmpty(), top, bottom, inset)
             else -> NoLyrics(state, actions, top, bottom)
         }
         Box(Modifier.fillMaxWidth().background(colors.ground)) {
@@ -151,7 +162,7 @@ private fun LyricsDeck(state: LyricsScreenState, actions: LyricsScreenActions, t
  * and the line grows onto its bed while the old one settles back.
  */
 @Composable
-private fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, top: Dp, bottom: Dp) {
+internal fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, top: Dp, bottom: Dp, inset: Dp = 0.dp) {
     val lines = state.lyrics.lines
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 200)
     val current = LrcParser.lineAt(lines, position)
@@ -175,7 +186,7 @@ private fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions,
             Modifier.fillMaxSize(),
             state = listState,
             // Room at the end so the last lines can still reach the anchor.
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = top + 4.dp, bottom = bottom + maxHeight / 2),
+            contentPadding = PaddingValues(start = 16.dp + inset, end = 16.dp + inset, top = top + 4.dp, bottom = bottom + maxHeight / 2),
         ) {
             itemsIndexed(lines) { index, line ->
                 val lineState = when {
@@ -256,13 +267,13 @@ private fun SyncedLine(text: String, state: LineState, onClick: () -> Unit) {
 
 /** Lyrics saved without timing (frame H): the paragraphs in ink, nothing highlighted, no auto-scroll. */
 @Composable
-private fun PlainLyrics(text: String, top: Dp, bottom: Dp) {
+internal fun PlainLyrics(text: String, top: Dp, bottom: Dp, inset: Dp = 0.dp) {
     val paragraphs = remember(text) { text.trim().split(Regex("\\n\\s*\\n")).map { it.trim() }.filter { it.isNotEmpty() } }
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 30.dp, end = 30.dp, top = top + 6.dp, bottom = bottom + 24.dp),
+            .padding(start = 30.dp + inset, end = 30.dp + inset, top = top + 6.dp, bottom = bottom + 24.dp),
     ) {
         for (paragraph in paragraphs) {
             Text(
@@ -280,7 +291,7 @@ private fun PlainLyrics(text: String, top: Dp, bottom: Dp) {
  * "Download lyrics", or the spinner in its place while it runs.
  */
 @Composable
-private fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top: Dp, bottom: Dp) {
+internal fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top: Dp, bottom: Dp) {
     val colors = Comfort.colors
     val lyrics = state.lyrics
     val note = when {
