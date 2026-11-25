@@ -30,6 +30,7 @@ import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UiStyle
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.ui.comfort.ComfortLoading
 import app.attic.player.ui.comfort.ComfortOnboarding
 import app.attic.player.ui.comfort.ComfortPermission
@@ -211,9 +212,12 @@ private fun MainShell(library: Library) {
         }
 
         // While an overlay is up, back closes it instead of popping the NavHost. The last callback registered
-        // wins, and moving the NavHost into another style's shell registers its callback again, so this one is
-        // registered again on every style change to stay on top.
-        key(style) {
+        // wins, and moving the NavHost into another shell registers its callback again: a style change does
+        // that, and so does a tablet turning or resizing between the phone shell, the rail with a floating
+        // mini player and the rail with a player bar. So this one is registered again on each of those, and
+        // whenever an overlay opens, to stay on top.
+        val window = LocalWindowLayout.current
+        key(style, window.nav, window.player, state.covered) {
             BackHandler(enabled = state.covered) { actions.closeTopOverlay() }
         }
 
