@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -71,6 +72,18 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         handleWidgetIntent(intent)
         OpenWith.handle(attic, intent) || PlayFromSearch.handle(attic, intent)
+    }
+
+    /**
+     * Space plays and pauses from a keyboard. It only arrives here when nothing on screen took it: a
+     * search field types the space and a focused button clicks, as they should.
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_SPACE && event.repeatCount == 0 && !event.isCtrlPressed && !event.isAltPressed) {
+            attic.player.togglePlayPause()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
