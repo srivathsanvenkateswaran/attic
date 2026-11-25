@@ -6,6 +6,7 @@ PLAYS YOUR LIBRARY
 - Home, Search and Library tabs, with album, artist and playlist screens
 - A mini player and a full Now Playing screen, tinted from the cover art
 - Shuffle, repeat, and a queue you can drag to reorder and swipe to remove from
+- Swipe any song row to add it to the queue
 - Favourites and your own playlists, stored on the device
 - Dark and light themes, or match the phone
 - Two styles to pick from in Settings: Expressive and Comfort
@@ -13,16 +14,26 @@ PLAYS YOUR LIBRARY
 FINDS WHAT TO PLAY NEXT, OFFLINE
 - Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
 - Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
+- Mixes on Home: the songs you play and like, grouped by how they sound, with new mixes each day
+- On repeat, Haven't heard in a while and Newly added shelves on Home
+- Smart shuffle for playlists and Favourites, which adds similar songs from the rest of your library
+- Genres from your files' tags or from analysis, and radio from any genre
 - Stays in the language you're listening to, with about one song in ten from another language when the match is strong
 - Plays one version of a song when it exists in more than one language
 - Learns from skips, finishes and likes in a listening log kept on the phone
 
-Radio works by analysing each song's sound on the phone. Nothing is uploaded. Analysis runs in the background while the phone is charging.
+Radio, mixes and genres work by analysing each song's sound on the phone. Nothing is uploaded. Analysis runs in the background while the phone is charging.
+
+PLAYBACK
+- Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
+- Volume levelling, from ReplayGain tags or the loudness measured during analysis
+- An Equaliser setting that opens the phone's own equaliser, when it has one
 
 KEEPS PLAYING OUTSIDE THE APP
 - Background playback with notification and lock-screen controls, including shuffle and like
 - Bluetooth and headset media buttons, and it pauses when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
+- Supports Android Auto: browse your library, search, and ask for music by voice
 
 SHOWS LYRICS, THEN KEEPS THEM
 - Synced lyrics highlight the current line, and tapping a line jumps to it

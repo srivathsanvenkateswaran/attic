@@ -34,7 +34,7 @@ From [Car app quality](https://developer.android.com/docs/quality-guidelines/car
 | ID | Requirement | Attic |
 |---|---|---|
 | PC-1 | No features outside the app types meant for cars | Meets. The car gets music browsing and playback only. |
-| EP-1 | Works as expected or as described in the Play listing | Meets in code. **Owner:** the store listing doesn't mention Android Auto yet. |
+| EP-1 | Works as expected or as described in the Play listing | Meets in code. The store listing says "Supports Android Auto" from 1.1.0, with what the car can do, and makes no claim about how it looks in a car. |
 | EP-2 | Relaunching restores state as closely as possible | Meets. The service puts the saved queue back, paused, when it starts. Check on DHU. |
 | SA-1 | No animated elements | Meets. The car draws every screen. |
 | AD-1 | No text ads beyond advertiser or product name | Meets. No ads. |

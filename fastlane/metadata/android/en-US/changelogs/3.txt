@@ -1,0 +1,8 @@
+- Mixes on Home, grouped by sound, plus On repeat, Haven't heard in a while and Newly added
+- Smart shuffle on playlists and Favourites
+- Genres in Search, and genre radio
+- Swipe a song row to add it to the queue
+- Settings > Playback: volume levelling, crossfade (2 to 12 s) and a link to the phone's equaliser
+- Android Auto support
+
+Genres and volume levelling fill in after the phone has charged with Attic analysing. Until then, Settings shows analysis as part done.
