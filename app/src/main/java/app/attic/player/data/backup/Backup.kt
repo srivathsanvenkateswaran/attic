@@ -24,6 +24,8 @@ data class Backup(
     /** Equaliser curves saved for albums, by album key (the album's name and artist as the library files them). */
     val equaliserAlbums: List<BackupEqualiser> = emptyList(),
     val equaliserPresets: List<BackupEqualiserPreset> = emptyList(),
+    /** The moods, genres and languages picked for mood mixes. Null in a file from before schema 3, or with none picked. */
+    val interests: BackupInterests? = null,
 ) {
     /** Every song the backup mentions, once each. */
     fun songs(): Set<String> = buildSet {
@@ -81,6 +83,9 @@ data class BackupLyrics(
 )
 
 data class BackupLanguage(val song: String, val language: String, val source: String)
+
+/** Mood ids, genre keys and language codes, as [app.attic.player.data.Interests] holds them. */
+data class BackupInterests(val moods: List<String>, val genres: List<String>, val languages: List<String>, val updatedAt: Long)
 
 data class BackupQueue(
     val songs: List<String>,

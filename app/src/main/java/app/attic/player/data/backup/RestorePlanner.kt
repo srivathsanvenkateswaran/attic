@@ -5,6 +5,7 @@ import app.attic.player.data.EQ_SCOPE_SONG
 import app.attic.player.data.EqPresetEntity
 import app.attic.player.data.EqSettingEntity
 import app.attic.player.data.HistoryEntity
+import app.attic.player.data.Interests
 import app.attic.player.data.LikedEntity
 import app.attic.player.data.ListeningEventEntity
 import app.attic.player.data.LyricsEntity
@@ -48,6 +49,8 @@ data class RestoreReport(
     val songsMatched: Int,
     /** Songs the backup mentions that aren't here. Their rows are kept and come back with the files. */
     val songsMissing: Int,
+    /** The backup's mood-mix picks were taken, because this phone had none. */
+    val interestsAdded: Boolean = false,
 )
 
 /** Every row a restore writes. Nothing here deletes. */
@@ -210,6 +213,17 @@ object RestorePlanner {
                 songsMissing = songs.size - matched,
             ),
         )
+    }
+
+    /**
+     * The mood-mix picks to take from a backup: the backup's, when this phone has never had any and
+     * the backup has some; otherwise null, and the phone keeps its own. Nothing here is replaced,
+     * as with everything else a restore does.
+     */
+    fun interests(backup: BackupInterests?, here: Interests): Interests? {
+        if (backup == null || !here.isUnset) return null
+        if (backup.moods.isEmpty() && backup.genres.isEmpty() && backup.languages.isEmpty()) return null
+        return Interests(backup.moods.distinct(), backup.genres.distinct(), backup.languages.distinct(), backup.updatedAt.coerceAtLeast(1))
     }
 
     /** How a listen is told apart from another: the same song started at the same millisecond is the same listen. */
