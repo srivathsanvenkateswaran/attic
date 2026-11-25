@@ -265,14 +265,31 @@ changes:
 - The fade finishes at the end of the overlap, which may be before the outgoing song's end; the
   tail is at volume 0 by then and is stopped.
 
-**Alignment at the join.** The tail is aligned to the main player to 20 ms before the fade (as
-today). At the fade the main player jumps into another file, and its first audio may land a little
-late. For the first 600 ms of the fade the controller reads both positions on each tick and works
-out the beat-phase error, `(tail − fadeStartMs) − (main − incomingStartMs)`, as the median of five
-readings. It is logged with the plan. The controller keeps an `entryLeadMs`, learned like
-`TailAlignment.leadMs`, and seeks the next fade's incoming song that much ahead, so the error
-settles after the first fade or two. No correction seek happens mid-fade: it would be a second
-audible jump.
+**Reading positions.** Read from the app, a player's `currentPosition` only changes when its own
+thread reports. On the owner's phone it held still for 230 to 250 ms and then jumped, so two players
+read at one moment could differ by a quarter of a second of staleness. `SmoothedPosition` keeps each
+reading as position minus clock, takes the highest of the last 600 ms as the newest report, and adds
+the time since. Lining up, the fade's timing and volume ramp, and the join error all use it. Before
+this the fade's volume moved in quarter-second steps, and lining up was luck.
+
+**Lining the tail up.** Ten seconds before the join the tail seeks once, to the main player's position
+plus a learned lead. A second later (positions are unreliable straight after a seek) it takes nine
+smoothed readings. Within 20 ms it is lined up. Otherwise it plays a little slow or fast (8 %) while
+still silent, for 85 % of the time the gap needs, since a nudge overshoots slightly as the speed change
+works through the buffered audio, then goes back to normal speed and measures again. Over 400 ms out
+it seeks again instead. A fade starts only if the tail has been at normal speed for a full second, so
+nothing anyone hears is off speed; if it isn't lined up in time the song ends as it would with
+transitions off. Re-seeking alone could not do this: the same seek landed 140 to 450 ms late on the
+phone, depending on how long the decoder and audio output took to start. On the phone the tail lined
+up within 20 ms in every transition after this change, in 1.5 to 6.7 s.
+
+**Alignment at the join.** At the fade the main player moves into another file, and its first audio
+lands late: 109 to 281 ms on the phone. The volume ramp follows the main player's smoothed position,
+so the outgoing song simply stays up until the incoming one plays: there is no dip. From 700 ms into
+the fade the controller works out the beat-phase error, `(tail − fadeStartMs) − (main −
+incomingStartMs)`, as the median of five readings, and logs it. The controller keeps an
+`entryLeadMs`, learned from it, and moves the next beat-aligned join that much earlier, so the error
+settles after a fade or two. No correction seek happens mid-fade: it would be a second audible jump.
 
 **Logging.** Tag `AtticTransition`, info level: the plan (kind, fade start, length, entry point,
 the two BPMs and confidences, aligned or not, expected drift, planning time in µs) when it is made,
