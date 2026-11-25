@@ -83,7 +83,12 @@ object CrossfadePlan {
  */
 class TailAlignment(
     private val toleranceMs: Long = 20,
-    private val readingsNeeded: Int = 5,
+    /**
+     * On the owner's phone, readings taken 50 ms apart flipped between the true offset and outliers
+     * about 270 ms to one side, and up to a third of them were outliers. A median of fifteen (750 ms of
+     * readings) follows the true offset; a median of five often landed on the outliers.
+     */
+    private val readingsNeeded: Int = 15,
 ) {
     /** How far ahead of the main player's position to seek the tail. Learned as it goes. */
     var leadMs: Long = 80

@@ -95,9 +95,9 @@ class CrossfadePlanTest {
 
 class TailAlignmentTest {
     @Test
-    fun waitsForFiveReadings() {
+    fun waitsForFifteenReadings() {
         val a = TailAlignment()
-        repeat(4) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(5)) }
+        repeat(14) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(5)) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(5))
     }
 
@@ -105,14 +105,24 @@ class TailAlignmentTest {
     fun oneWildReadingDoesNotDecide() {
         val a = TailAlignment()
         listOf(3L, -4L, 250L, 6L).forEach { a.record(it) }
+        repeat(10) { a.record(1) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(2))
+    }
+
+    /** Readings from the owner's phone, seek 4 of a failed line-up: the true offset near 25 ms with a third of them about 270 ms out. */
+    @Test
+    fun aThirdOfTheReadingsBeingOutliersDoesNotDecide() {
+        val a = TailAlignment(toleranceMs = 30)
+        val readings = listOf(73L, 14, 9, 9, 240, 318, 35, 25, 25, 25, 329, 61, 26, 26, 26)
+        readings.dropLast(1).forEach { assertEquals(TailAlignment.Verdict.NeedMore, a.record(it)) }
+        assertEquals(TailAlignment.Verdict.Aligned, a.record(readings.last()))
     }
 
     @Test
     fun aLateTailSeeksFurtherAheadNextTime() {
         val a = TailAlignment()
         val before = a.leadMs
-        repeat(4) { a.record(-60) }
+        repeat(14) { a.record(-60) }
         assertEquals(TailAlignment.Verdict.Reseek, a.record(-60))
         assertEquals(before + 60, a.leadMs)
         assertEquals(1_000 + before + 60, a.seekTarget(1_000))
@@ -122,7 +132,7 @@ class TailAlignmentTest {
     fun anEarlyTailSeeksLessFarAhead() {
         val a = TailAlignment()
         val before = a.leadMs
-        repeat(5) { a.record(45) }
+        repeat(15) { a.record(45) }
         assertEquals(before - 45, a.leadMs)
     }
 
@@ -131,7 +141,7 @@ class TailAlignmentTest {
         val a = TailAlignment()
         repeat(3) { a.record(500) }
         a.reset()
-        repeat(4) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(0)) }
+        repeat(14) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(0)) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(0))
     }
 }
