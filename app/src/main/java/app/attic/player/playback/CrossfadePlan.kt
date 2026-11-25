@@ -11,8 +11,12 @@ import kotlin.math.sin
  * analysis; [CrossfadeController] asks [step] what to do at the current position.
  */
 object CrossfadePlan {
-    /** The tail player starts this long before the fade, to line up with the main one while silent. */
-    const val ARM_LEAD_MS = 5_000L
+    /**
+     * The tail player starts this long before the fade, to line up with the main one while silent. On the
+     * owner's phone a seek into an AAC file landed anywhere from 80 to 300 ms out, so lining up within
+     * 20 ms took up to four seeks and once ran past five seconds.
+     */
+    const val ARM_LEAD_MS = 8_000L
 
     /** With less than this left before the fade there isn't time to line up, so the song just ends. */
     const val MIN_ARM_MS = 1_500L

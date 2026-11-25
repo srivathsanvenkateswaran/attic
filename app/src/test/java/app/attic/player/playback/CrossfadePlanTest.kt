@@ -55,14 +55,14 @@ class CrossfadePlanTest {
     fun unknownLengthMeansNoFade() = assertEquals(0L, fade(duration = 0))
 
     @Test
-    fun waitsUntilFiveSecondsBeforeTheFade() {
-        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:49.
-        assertEquals(CrossfadePlan.Step.Wait(229_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
+    fun waitsUntilEightSecondsBeforeTheFade() {
+        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:46.
+        assertEquals(CrossfadePlan.Step.Wait(226_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
     }
 
     @Test
     fun armsInsideTheLead() {
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(230_000, 234_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(227_000, 234_000))
         assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 234_000))
     }
 

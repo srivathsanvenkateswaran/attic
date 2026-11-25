@@ -25,7 +25,7 @@ import app.attic.player.playback.eq.EqualiserAudioProcessor
  * overlap's middle. Media3 can't overlap two items in one player, so a second,
  * bare ExoPlayer, the tail, plays the end of the outgoing song while the main player moves on:
  *
- * 1. Five seconds before the fade, the tail opens the song the main player is on, silent, and lines
+ * 1. Eight seconds before the fade, the tail opens the song the main player is on, silent, and lines
  *    its position up with the main player's to within 20 ms ([TailAlignment]).
  * 2. When the fade is due, the tail is turned up and the main player moves to the next item, at the
  *    planned entry point, at volume 0, so the outgoing song carries on from the tail without a break.
