@@ -51,7 +51,7 @@ import re
 import sys
 from pathlib import Path
 
-from figbuild.kit import Doc, V, Area, DENSITY
+from figbuild.kit import Doc, V, Area
 
 SECTION = "Moods"
 SCREENS = "Screens"
@@ -141,7 +141,14 @@ MIXES = [("Mix: Mira Okafor and more", 18, (0, 3, 11, 4)),
          ("Mix: Kavya Raman and more", 14, (8, 9, 6, 5)),
          ("Mix: Velvet Circuit and more", 12, (10, 1, 3, 7))]
 RECENT = [("Lights Over the Water", "Mira Okafor", 0), ("Iravu Rail", "Kavya Raman", 8),
-          ("Chai Ka Doosra Cup", "Ruhaan Sethi", 9), ("Neon Peaches", "Juniper Vale", 3)]
+          ("Chai Ka Doosra Cup", "Ruhaan Sethi", 9), ("Neon Peaches", "Juniper Vale", 3),
+          ("Marea Lenta", "Paloma Ferrer", 2), ("Night Drive Firmware", "Velvet Circuit", 10),
+          ("Kettle On", "Small Hours Tape Club", 1), ("Filter Coffee Funk", "Tide & Tamarind", 7),
+          ("Brushes", "Odile Marchetti", 4), ("Vaasal Kolam", "Kavya Raman", 5), ("Bheegi Sadak", "Ruhaan Sethi", 6),
+          ("Pressure Front", "Mira Okafor", 11)]
+# The tablet sizes this module draws (docs/design/2026-11-25-tablet/SPEC.md): key suffix, label, width, height.
+TABLET = [("expanded", "expanded landscape 1440 x 900", 1440, 900), ("medium", "medium 700 x 900", 700, 900)]
+RAIL = 96
 
 SRC_HOME = f"ui/expressive/ExpressiveHome.kt · ExpressiveHome (the Moods shelf; MoodTile and MoodPicksCard are in {MOODS_KT})"
 SRC_PAGE = f"{MOODS_KT} · ExpressiveMood"
@@ -492,12 +499,16 @@ class Screens:
     def register(self, key, fid, name, source, w, h, notes=(), status="proposed"):
         d, a = self.d, self.area
         d.screens[key] = {"light": fid, "dark": None, "map": {}, "name": name, "source": source, "page": SCREENS,
-                          "note": None, "status": status, "h": h, "notes": list(notes)}
+                          "note": None, "status": status, "h": h, "w": w, "notes": list(notes)}
+        self.triggers[key] = {}
+        if status == "in-progress":
+            # Tablet frames get their own rows under the phone rows when the section closes.
+            self.tablet_keys.append(key)
+            return
         a.cursor += w + a.GAP_X
         a.keys.append(key)
         a.row_h = max(a.row_h, h)
-        (self.tablet_keys if status == "in-progress" else self.keys).append(key)
-        self.triggers[key] = {}
+        self.keys.append(key)
 
     def unlink(self, root: int):
         """Drop the prototype links a copy brought with it: they lead into the copied frame's own flow."""
@@ -514,6 +525,27 @@ class Screens:
 
     def trig(self, key: str, name: str, layer: int):
         self.triggers[key][name] = layer
+
+    def tablet_rows(self, sec: int):
+        """Put the tablet frames in their own Light and Dark rows under the phone rows, inside the section."""
+        d, a = self.d, self.area
+        if not self.tablet_keys:
+            return
+        g = d.get(sec)
+        row_h = max(d.screens[k]["h"] for k in self.tablet_keys)
+        light_y = g["y"] + g["height"] - a.PAD + a.GAP_Y
+        x = g["x"] + a.PAD
+        for k in self.tablet_keys:
+            s = d.screens[k]
+            d.set(s["light"], x=x, y=light_y)
+            x += s["w"] + a.GAP_X
+        for k in self.tablet_keys:
+            d.dark_copy(k, dy=row_h + a.GAP_Y)
+        d.set(sec, width=max(g["width"], x - a.GAP_X + a.PAD - g["x"]),
+              height=g["height"] + 2 * (row_h + a.GAP_Y))
+        frames = [d.screens[k][t] for k in self.tablet_keys for t in ("light", "dark")]
+        d.cmd("node.reparent", ids=frames, parent=sec)
+        Area._next_y[(id(d), SCREENS)] = g["y"] + g["height"] + 2 * (row_h + a.GAP_Y) + 200
 
     # ---- shared parts
     def cell(self, parent, position: str, row_variant: int, name: str) -> tuple[int, int]:
@@ -579,11 +611,11 @@ class Screens:
             if n == "Chill":
                 self.trig(key, "chill", t)
 
-    def recent_shelf(self, parent):
+    def recent_shelf(self, parent, count: int = 4):
         d = self.d
         self.header(parent, S["recent"])
         shelf = self.shelf(parent, "Recently played shelf")
-        for i, (title, artist, cover) in enumerate(RECENT):
+        for i, (title, artist, cover) in enumerate(RECENT[:count]):
             v = "Kind=Recent, Now playing=True" if i == 0 else "Kind=Recent, Now playing=False"
             t = d.instance(variant(self.ctx, "Tile", v), shelf, name=f"Tile · {title}")
             setp(d, t, Title=title, Subtitle=artist)
@@ -894,7 +926,8 @@ class Screens:
     def close(self):
         d = self.d
         sec = self.area.close()
-        proposed = d.ann_category("Proposed", "#7C3AED")
+        self.tablet_rows(sec)
+        d.ann_category("Proposed", "#7C3AED")
         d.ann_category("In progress", "#F59E0B")
         for key in self.keys + self.tablet_keys:
             s = d.screens[key]
@@ -916,6 +949,248 @@ class Screens:
 
 
 MOODS_ORDER = [m[0] for m in MOODS]
+
+
+# ───────────────────────────────────────────────────────────────── tablet frames
+class Tablet:
+    """The tablet frames: Home with the Moods shelf, the mood page and the picker, at each size in TABLET. The shell
+    (rail, player bar, floating mini player) is on feature/tablet-layouts; it is drawn here from SPEC.md out of the
+    file's own parts, as screen layout, until that branch's components can take its place."""
+
+    def __init__(self, s: Screens):
+        self.s, self.d, self.ctx = s, s.d, s.ctx
+        self.n = 0
+
+    def v(self, set_name: str, name: str = "") -> int:
+        return variant(self.ctx, set_name, name)
+
+    def frame(self, key: str, name: str, source: str, w: float, h: float, notes=()) -> int:
+        d = self.d
+        d.page(SCREENS)
+        fid = d.frame(None, name=f"{name} · In progress · Light", x=-9000 - 1600 * self.n, y=-9000, w=w, h=h,
+                      fill="Color/surface", clip=True)
+        self.n += 1
+        self.s.register(key, fid, f"{name} · In progress", source, w, h, notes, status="in-progress")
+        return fid
+
+    def system_bars(self, fid: int, w: float, h: float):
+        d = self.d
+        sb = d.instance(self.v("Status bar"), fid, name="Status bar", x=0, y=0)
+        d.set(sb, width=w, height=24)
+        gb = d.instance(self.v("Gesture bar"), fid, name="Gesture bar", x=(w - 411) / 2, y=h - 24)
+        return sb, gb
+
+    def rail(self, fid: int, h: float, selected: str = "Home") -> int:
+        d = self.d
+        rail = d.frame(fid, name="Navigation rail", x=0, y=24, w=RAIL, h=h - 24, layout="v", gap=12, pad=[20, 0, 0, 0],
+                       cross="center", fill="Color/surface")
+        d.set(rail, sizingH="fixed", sizingV="fixed")
+        home_bar = self.v("Top app bar/Root", "Kind=Home, Scrolled=False")
+        mark = d.cmd("edit.duplicate", ids=[d.child(home_bar, "Mark")], dx=0, dy=0)["ids"][0]
+        d.cmd("node.reparent", ids=[mark], parent=rail)
+        d.frame(rail, name="Gap under the mark", w=1, h=20)
+        for dest in ("Home", "Search", "Library"):
+            item = d.instance(self.v("Navigation item", f"Destination={dest}, Selected={dest == selected}"), rail,
+                              name=f"Rail item · {dest}")
+            d.set(item, width=RAIL)
+        return rail
+
+    def player_bar(self, fid: int, w: float, h: float) -> int:
+        """ExpressivePlayerBar: 80dp on the cover's surface container, across the content area, above the gesture inset."""
+        d = self.d
+        bar = d.frame(fid, name="Player bar", x=RAIL, y=h - 100, w=w - RAIL, h=100, layout="h",
+                      pad=[4, 24, 24, 20], main="spaceBetween", cross="center", fill="Color/surface-container-high",
+                      radius=[28, 0, 0, 0])
+        d.set(bar, sizingH="fixed", sizingV="fixed")
+        side = min(320, (w - RAIL - 44 - 480) / 2)
+        left = d.frame(bar, name="Now playing", layout="h", gap=12, cross="center", w=side, h=56)
+        d.set(left, sizingH="fixed", sizingV="hug")
+        cover = d.instance(self.v("Cover", "Kind=Album, Size=56"), left, name="Cover")
+        pictures(d, cover, 0)
+        col = d.frame(left, name="Text column", layout="v", gap=0, sizing=("fill", "hug"))
+        d.text(col, "Lights Over the Water", style="Kit/Button", color="Color/on-surface", name="Title")
+        d.text(col, "Mira Okafor", style="Body/Small", color="Color/on-surface-variant", name="Artist")
+        mid = d.frame(bar, name="Transport", layout="v", gap=0, cross="center", w=480, h=72)
+        d.set(mid, sizingH="fixed", sizingV="hug")
+        row = d.frame(mid, name="Buttons", layout="h", gap=8, cross="center", sizing=("hug", "hug"))
+        prev = d.instance(self.v("Skip button", "Direction=Previous"), row, name="Previous")
+        d.set(prev, width=48, height=48)
+        d.instance(self.v("Play button", "Size=Small, Playing=True, Ring=True, Tonal=False"), row, name="Play")
+        nxt = d.instance(self.v("Skip button", "Direction=Next"), row, name="Next")
+        d.set(nxt, width=48, height=48)
+        seek = d.frame(mid, name="Seek", layout="h", gap=12, cross="center", sizing=("fill", "hug"))
+        d.text(seek, "1:18", style="Kit/Figures", color="Color/on-surface-variant", name="Elapsed")
+        wave = d.instance(self.v("Progress/Wavy", "Running=True"), seek, name="Seek bar")
+        d.set(wave, sizingH="fill")
+        d.text(seek, "3:52", style="Kit/Figures", color="Color/on-surface-variant", name="Total")
+        right = d.frame(bar, name="Tools", layout="h", gap=0, cross="center", main="max", w=side, h=48)
+        d.set(right, sizingH="fixed", sizingV="hug")
+        d.instance(self.v("Heart button", "Favourite=True"), right, name="Heart")
+        for glyph in ("queue_music", "lyrics"):
+            b = d.instance(self.v("Icon button", "Style=Standard, Size=Default, Width=Default, State=Enabled"), right,
+                           name=f"Open {glyph}")
+            swap(d, d.child(b, "Icon"), d.comp[f"Icon/{glyph}"])
+        color_mode(d, bar, 0)
+        return bar
+
+    def mini(self, fid: int, w: float, h: float) -> int:
+        """Medium widths: the mini player floats over the content, at most 560dp wide and centred."""
+        d = self.d
+        width = min(560, w - RAIL - 32)
+        m = d.instance(self.v("Mini player", "State=Playing, Title length=Default"), fid, name="Mini player",
+                       x=RAIL + (w - RAIL - width) / 2, y=h - 24 - 8 - 64)
+        d.set(m, width=width)
+        return m
+
+    def shell(self, fid: int, size: str, w: float, h: float):
+        self.rail(fid, h)
+        if size == "expanded":
+            self.player_bar(fid, w, h)
+        else:
+            self.mini(fid, w, h)
+        self.system_bars(fid, w, h)
+
+    SHELL_NOTE = ("Note", "Rail 96dp at the start edge, status bar 24dp, gesture handle 20dp. Expanded widths have the "
+                  "player bar along the bottom of the content area; medium widths float the mini player, at most 560dp "
+                  "wide. Both come from the tablet spec and are drawn here as layout, not components.")
+
+    # ---- Home
+    def home(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_home_{size}"
+        cols = 4 if size == "expanded" else 3
+        notes = [("Content", f"Mixes sit in a grid, {cols} across at this width, as the spec has every full-width block. "
+                  "The Moods shelf stays a shelf that scrolls sideways and shows more tiles, here every mood that has a "
+                  "mix (nothing is picked and the card was dismissed)."), self.SHELL_NOTE]
+        fid = self.frame(key, f"Home / Moods shelf, {label}", SRC_HOME, w, h, notes)
+        cw = w - RAIL
+        content = d.frame(fid, name="Content", x=RAIL, y=88, w=cw, layout="v", gap=0)
+        d.set(content, sizingH="fixed", sizingV="hug")
+        s.header(content, S["mixes"], S["mixes_overline"])
+        grid = d.frame(content, name="Mixes grid", layout="h", gap=12, pad=[0, 16, 0, 16], sizing=("fill", "hug"),
+                       cross="min")
+        cell = (cw - 32 - 12 * (cols - 1)) / cols
+        for title, count, covers in MIXES:
+            t = d.instance(self.v("Tile", "Kind=Folder, Now playing=False"), grid, name=f"Tile · {title}")
+            setp(d, t, Title=title, Subtitle=songs(count))
+            d.set(t, width=cell)
+            d.set(d.child(t, "Art"), width=cell, height=cell)
+            pictures(d, t, *covers)
+            tt = d.child(t, "Title")
+            d.set(d.child(t, "Title row"), sizingH="fill", sizingV="hug")
+            d.set(tt, sizingH="fill", textAutoResize="height")
+            d.cmd("text.maxLines", ids=[tt], lines=2)
+        s.moods_shelf(content, key, MOODS_ORDER, picks=False)
+        s.recent_shelf(content, 12)
+        # The mark is in the rail, so the bar is the plain root bar with the app's name.
+        bar = d.instance(self.v("Top app bar/Root", "Kind=Plain, Scrolled=True"), fid, name="Top app bar", x=RAIL, y=-16)
+        setp(d, bar, Title="Attic", Show_search=False, Show_grid_toggle=False)
+        d.set(bar, width=cw)
+        for layer in ("Status bar inset", "Bar", "Title group"):
+            d.set(d.child(bar, layer), sizingH="fill")
+        self.shell(fid, size, w, h)
+        return fid
+
+    # ---- the mood page
+    def header_parts(self, parent, cover: float, playing: bool = True):
+        """The header's cover, title, lines and buttons, into a layout frame."""
+        d = self.d
+        art = d.instance(self.v("Cover", "Kind=Mosaic, Size=208"), parent, name="Cover")
+        d.set(art, width=cover, height=cover)
+        pictures(d, art, *MOOD["Chill"][3])
+        col = d.frame(parent, name="Details", layout="v", gap=0, sizing=("fill", "hug"))
+        d.text(col, "Chill", style="Kit/Collection title", color="Color/on-surface", name="Title")
+        d.frame(col, name="Gap 6", w=1, h=6)
+        text(d, col, S["kind"], "Body/Medium", "Color/on-surface-variant", "Meta text", w="fill")
+        d.frame(col, name="Gap 6 below", w=1, h=6)
+        text(d, col, S["note"], "Body/Medium", "Color/on-surface-variant", "Second meta text", w="fill")
+        d.frame(col, name="Gap 16", w=1, h=16)
+        row = d.frame(col, name="Play cluster", layout="h", gap=8, cross="center", sizing=("hug", "hug"))
+        play = d.instance(self.v("Button", f"Style=Filled, Size=Medium, Icon=Leading, State=Enabled, Squared={playing}"),
+                          row, name="Play")
+        setp(d, play, Label="Pause" if playing else S["play"])
+        swap(d, d.child(play, "Leading icon"), d.comp["Icon/pause (filled)" if playing else "Icon/play_arrow (filled)"])
+        shuffle = d.instance(self.v("Toggle button", "Checked=False, Size=Medium, Off style=Tonal"), row, name="Shuffle")
+        radio = d.instance(self.v("Icon button", "Style=Tonal, Size=Medium, Width=Default, State=Enabled"), row,
+                           name="Radio")
+        swap(d, d.child(radio, "Icon"), d.comp["Icon/sensors"])
+        return radio
+
+    def page(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_page_{size}"
+        two = size == "expanded"
+        notes = [("Content", ("The pane is 760dp or wider, so it splits: the header in a 360dp start pane (cover up to "
+                              "296dp, the title, the two lines, then Play, shuffle and radio in a row) and the songs in "
+                              "the end pane, in columns at least 360dp wide, under the back button.") if two else
+                  ("The pane is narrower than 760dp, so the header is a row (the cover 200dp at the start, the title, "
+                   "lines and buttons beside it) over the songs in one column.")),
+                 ("Interaction", f"The sensors button is radio: its content description is \"{S['radio']}\"."),
+                 self.SHELL_NOTE]
+        fid = self.frame(key, f"Mood / Chill, {label}", SRC_PAGE, w, h, notes)
+        back = d.instance(self.v("Icon button", "Style=Standard, Size=Default, Width=Default, State=Enabled"), fid,
+                          name="Back", x=(RAIL + 360 + 4) if two else RAIL + 4, y=32)
+        swap(d, d.child(back, "Icon"), d.comp["Icon/arrow_back"])
+        if two:
+            pane = d.frame(fid, name="Header pane", x=RAIL + 24, y=32, w=320, layout="v", gap=16, pad=16,
+                           fill="Color/surface-container", radius=32)
+            d.set(pane, sizingH="fixed", sizingV="hug")
+            self.header_parts(pane, 288)
+            lists_x, lists_w = RAIL + 360, w - RAIL - 360 - 16
+            columns = 2
+            top = 88
+        else:
+            pane = d.frame(fid, name="Header row", x=RAIL + 16, y=88, w=w - RAIL - 32, layout="h", gap=16, pad=16,
+                           fill="Color/surface-container", radius=32, cross="min")
+            d.set(pane, sizingH="fixed", sizingV="hug")
+            self.header_parts(pane, 200)
+            lists_x, lists_w = RAIL + 16, w - RAIL - 32
+            columns = 1
+            top = 88 + d.get(pane)["height"] + 12
+        color_mode(d, pane, MOOD["Chill"][3][0])
+        per = (len(CHILL) + columns - 1) // columns
+        col_w = (lists_w - 12 * (columns - 1)) / columns
+        for c in range(columns):
+            col = d.frame(fid, name=f"Songs column {c + 1}", x=lists_x + c * (col_w + 12), y=top, w=col_w, layout="v",
+                          gap=2)
+            d.set(col, sizingH="fixed", sizingV="hug")
+            rows = CHILL[c * per:(c + 1) * per]
+            s.song_rows(col, rows, current=PLAYING - c * per if 0 <= PLAYING - c * per < len(rows) else None)
+        self.shell(fid, size, w, h)
+        return fid
+
+    # ---- the picker
+    def picker(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_picker_{size}"
+        notes = [("Content", "The page is a centred column at most 560dp wide, as the first-run pages are on a tablet, "
+                  "with Save pinned at the bottom of the column. It is full screen: no rail and no player."),
+                 ("Note", "Status bar 24dp and gesture handle 20dp, from the tablet spec.")]
+        fid = self.frame(key, f"Moods and interests / Picked, {label}", SRC_PICKER, w, h, notes)
+        column = 560
+        lst = d.frame(fid, name="Picker list", x=(w - column) / 2, y=88, w=column, layout="v", gap=0)
+        d.set(lst, sizingH="fixed", sizingV="hug")
+        big = d.frame(lst, name="Large title", layout="v", pad=[8, 16, 12, 16], sizing=("fill", "hug"))
+        d.text(big, S["picker"], style="Kit/Root title", color="Color/on-surface", name="Title")
+        s.picker_content(key, lst, moods=PICKED_MOODS, genres=PICKED_GENRES, languages=PICKED_LANGUAGES)
+        bar = d.instance(self.v("Top app bar/Detail", "Surface=Plain"), fid, name="App bar", x=0, y=-16)
+        setp(d, bar, Title=S["picker"], Show_action=False)
+        d.set(d.child(bar, "Title box"), visible=False)
+        d.set(bar, width=w)
+        s.trig(key, "back", d.child(bar, "Back"))
+        box = s.bottom_button(key, fid, y=h - 112, width=w)
+        d.set(box, mainAlign="center")
+        d.set(d.child(box, "Save"), sizingH="fixed", width=column - 32)
+        self.system_bars(fid, w, h)
+        return fid
+
+    def build(self):
+        for size, label, w, h in TABLET:
+            self.home(size, label, w, h)
+        for size, label, w, h in TABLET:
+            self.page(size, label, w, h)
+        for size, label, w, h in TABLET:
+            self.picker(size, label, w, h)
 
 
 # ───────────────────────────────────────────────────────────────── prototype
@@ -1071,7 +1346,7 @@ def build(d: Doc, ctx: dict, tablet: bool = True):
 
 
 def build_tablet(s: "Screens"):
-    pass
+    Tablet(s).build()
 
 
 def export(d: Doc, ctx: dict, out: Path):

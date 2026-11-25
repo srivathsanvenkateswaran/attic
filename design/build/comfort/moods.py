@@ -47,7 +47,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from figbuild.kit import Doc, V, Area, DENSITY
+from figbuild.kit import Doc, V, Area
 
 SECTION = "Moods"
 SCREENS = "Screens"
@@ -133,6 +133,15 @@ PLAYING = 1     # Lights Over the Water, the song every player surface in the fi
 MIXES = [("Mix: Mira Okafor and more", 18, (0, 3, 11, 4)),
          ("Mix: Kavya Raman and more", 14, (8, 9, 6, 5)),
          ("Mix: Velvet Circuit and more", 12, (10, 1, 3, 7))]
+RECENT = [("Lights Over the Water", "Mira Okafor", 0), ("Iravu Rail", "Kavya Raman", 8),
+          ("Chai Ka Doosra Cup", "Ruhaan Sethi", 9), ("Neon Peaches", "Juniper Vale", 3),
+          ("Marea Lenta", "Paloma Ferrer", 2), ("Night Drive Firmware", "Velvet Circuit", 10),
+          ("Kettle On", "Small Hours Tape Club", 1), ("Filter Coffee Funk", "Tide & Tamarind", 7),
+          ("Brushes", "Odile Marchetti", 4), ("Vaasal Kolam", "Kavya Raman", 5), ("Bheegi Sadak", "Ruhaan Sethi", 6),
+          ("Pressure Front", "Mira Okafor", 11)]
+# The tablet sizes this module draws (docs/design/2026-11-25-tablet/SPEC.md): key suffix, label, width, height.
+TABLET = [("expanded", "expanded landscape 1440 x 900", 1440, 900), ("medium", "medium 700 x 900", 700, 900)]
+SIDE = 104      # the side dock: 12dp in from the edge, 80dp wide, 12dp before the content
 # The last of Browse's album cards, which show above the Moods group once the page has scrolled.
 LAST_ALBUMS = [("Room Tone", "Odile Marchetti", 4), ("Kadalkarai Sessions", "Tide & Tamarind", 7)]
 
@@ -424,12 +433,16 @@ class Screens:
     def register(self, key, fid, name, source, w, h, notes=(), status="proposed"):
         d, a = self.d, self.area
         d.screens[key] = {"light": fid, "dark": None, "map": {}, "name": name, "source": source, "page": SCREENS,
-                          "note": None, "status": status, "h": h, "notes": list(notes)}
+                          "note": None, "status": status, "h": h, "w": w, "notes": list(notes)}
+        self.triggers[key] = {}
+        if status == "in-progress":
+            # Tablet frames get their own rows under the phone rows when the section closes.
+            self.tablet_keys.append(key)
+            return
         a.cursor += w + a.GAP_X
         a.keys.append(key)
         a.row_h = max(a.row_h, h)
-        (self.tablet_keys if status == "in-progress" else self.keys).append(key)
-        self.triggers[key] = {}
+        self.keys.append(key)
 
     def unlink(self, root: int):
         """Drop the prototype links a copy brought with it: they lead into the copied frame's own flow."""
@@ -446,6 +459,27 @@ class Screens:
 
     def trig(self, key: str, name: str, layer: int):
         self.triggers[key][name] = layer
+
+    def tablet_rows(self, sec: int):
+        """Put the tablet frames in their own Light and Dark rows under the phone rows, inside the section."""
+        d, a = self.d, self.area
+        if not self.tablet_keys:
+            return
+        g = d.get(sec)
+        row_h = max(d.screens[k]["h"] for k in self.tablet_keys)
+        light_y = g["y"] + g["height"] - a.PAD + a.GAP_Y
+        x = g["x"] + a.PAD
+        for k in self.tablet_keys:
+            s = d.screens[k]
+            d.set(s["light"], x=x, y=light_y)
+            x += s["w"] + a.GAP_X
+        for k in self.tablet_keys:
+            d.dark_copy(k, dy=row_h + a.GAP_Y)
+        d.set(sec, width=max(g["width"], x - a.GAP_X + a.PAD - g["x"]),
+              height=g["height"] + 2 * (row_h + a.GAP_Y))
+        frames = [d.screens[k][t] for k in self.tablet_keys for t in ("light", "dark")]
+        d.cmd("node.reparent", ids=frames, parent=sec)
+        Area._next_y[(id(d), SCREENS)] = g["y"] + g["height"] + 2 * (row_h + a.GAP_Y) + 200
 
     # ---- shared parts
     def label(self, parent, label: str, small: str | None = None) -> int:
@@ -484,6 +518,19 @@ class Screens:
                 d.cmd("node.reorder", id=top_named(d, fid, name), index=len(kids(d, fid)) - 1)
             except KeyError:
                 pass
+
+    def songs_card(self, parent, rows, current: int | None = None, name: str = "Songs") -> int:
+        """A group card of song rows: (title, artist, cover)."""
+        d = self.d
+        card, content = self.group(parent, name, False)
+        for i, (title, artist, cover) in enumerate(rows):
+            r = d.instance(variant(self.ctx, "Song row", f"Lead=Cover, Current={i == current}"), content,
+                           name=f"Row: {title}")
+            d.set(r, sizingH="fill")
+            setp(d, r, Title=title, Subtitle=artist, Show_subtitle=True, Show_hairline=i > 0, Show_meta=False,
+                 Show_trailing=True)
+            pictures(d, d.child(r, "Lead"), cover)
+        return card
 
     def mixes_shelf(self, parent):
         d = self.d
@@ -833,6 +880,7 @@ class Screens:
     def close(self):
         d = self.d
         sec = self.area.close()
+        self.tablet_rows(sec)
         d.ann_category("Proposed", "#7C3AED")
         d.ann_category("In progress", "#F59E0B")
         for key in self.keys + self.tablet_keys:
@@ -852,6 +900,256 @@ class Screens:
         ctx["moods_tablet_screens"] = self.tablet_keys
         ctx["moods_triggers"] = self.triggers
         return sec
+
+
+# ───────────────────────────────────────────────────────────────── tablet frames
+class Tablet:
+    """The tablet frames: Home with the Moods shelf, the mood page and the picker, at each size in TABLET. The shell
+    (side dock, player bar, floating mini player) is on feature/tablet-layouts; it is drawn here from SPEC.md out of
+    the file's own parts, as screen layout, until that branch's components can take its place."""
+
+    def __init__(self, s: Screens):
+        self.s, self.d, self.ctx = s, s.d, s.ctx
+        self.n = 0
+
+    def v(self, set_name: str, name: str = "") -> int:
+        return variant(self.ctx, set_name, name)
+
+    def frame(self, key: str, name: str, source: str, w: float, h: float, notes=()) -> int:
+        d = self.d
+        d.page(SCREENS)
+        fid = d.frame(None, name=f"{name} · In progress · Light", x=-9000 - 1600 * self.n, y=-9000, w=w, h=h,
+                      fill="Color/ground", clip=True)
+        self.n += 1
+        self.s.register(key, fid, f"{name} · In progress", source, w, h, notes, status="in-progress")
+        return fid
+
+    def system_bars(self, fid: int, w: float, h: float):
+        d = self.d
+        sb = d.instance(self.v("Status bar"), fid, name="Status bar", x=0, y=0)
+        d.set(sb, width=w, height=24)
+        d.instance(self.v("Gesture bar"), fid, name="Gesture bar", x=(w - 411) / 2, y=h - 24)
+
+    def floating(self, layer: int):
+        """The dock's surface: raised, edged, the float radius and its shadow."""
+        d = self.d
+        d.set(layer, fill=V("Color/raised"), stroke=V("Color/edge"), strokeWeight=1)
+        d.bind(layer, "cornerRadius", "Dimension/radius/float")
+        d.cmd("style.apply", ids=[layer], style=d.effect_styles["Shadow/Floating"])
+
+    def side_dock(self, fid: int, h: float, selected: str = "Home") -> int:
+        """ComfortSideDock: the dock's card on its side, 80dp wide, the mark over the tabs."""
+        d = self.d
+        dock = d.frame(fid, name="Side dock", x=12, y=36, w=80, h=h - 36 - 32, layout="v", gap=6, pad=[20, 8, 0, 8],
+                       cross="center")
+        d.set(dock, sizingH="fixed", sizingV="fixed")
+        self.floating(dock)
+        d.instance(self.v("Mark"), dock, name="Mark")
+        d.frame(dock, name="Gap under the mark", w=1, h=10)
+        for label, glyph in (("Home", "home"), ("Search", "search"), ("Library", "library_music")):
+            on = label == selected
+            cell = d.frame(dock, name=f"Tab: {label}", w=64, h=56, layout="v", gap=2, main="center", cross="center",
+                           fill="Color/accent-soft" if on else None, radius=18)
+            d.set(cell, sizingH="fixed", sizingV="fixed")
+            d.icon(cell, glyph, color="Color/on-accent-soft" if on else "Color/on-2", filled=on)
+            d.text(cell, label, style="Component/Label small", color="Color/on-accent-soft" if on else "Color/on-2",
+                   name="Label")
+        return dock
+
+    def player_bar(self, fid: int, w: float, h: float) -> int:
+        """ComfortPlayerBar: a floating card 76dp tall with the mini player's colours and its played-so-far fill."""
+        d = self.d
+        bw = w - SIDE - 12
+        bar = d.frame(fid, name="Player bar", x=SIDE, y=h - 32 - 76, w=bw, h=76, fill="Color/mini-base", clip=True)
+        d.bind(bar, "cornerRadius", "Dimension/radius/float")
+        d.rect(bar, name="Played", x=0, y=0, w=round(bw * 78.5 / 232), h=76, fill="Color/mini-fill", radius=[0, 22, 22, 0])
+        left = d.frame(bar, name="Now playing", x=14, y=12, layout="h", gap=12, cross="center", sizing=("hug", "hug"))
+        cover = d.instance(self.v("Cover/Album", "Shape=Squircle, Art=Image, Dimmed=False"), left, name="Cover")
+        d.set(cover, width=52, height=52)
+        pictures(d, cover, 0)
+        col = d.frame(left, name="Labels", layout="v", gap=0, sizing=("hug", "hug"))
+        d.text(col, "Lights Over the Water", style="Component/Mini title", color="Color/on", name="Title")
+        d.text(col, "Mira Okafor", style="Component/Mini artist", color="Color/mini-ink-2", name="Artist")
+        mid = d.frame(bar, name="Transport", x=(bw - 320) / 2, y=6, w=320, h=64, layout="h", gap=4, main="center",
+                      cross="center")
+        d.set(mid, sizingH="fixed", sizingV="fixed")
+        d.text(mid, "1:18", style="Component/Seek time", color="Color/mini-ink-2", name="Elapsed")
+        d.instance(self.v("Skip button", "Direction=Previous"), mid, name="Previous")
+        d.instance(self.v("Play button", "Size=Small, Playing=True"), mid, name="Play")
+        d.instance(self.v("Skip button", "Direction=Next"), mid, name="Next")
+        d.text(mid, "3:52", style="Component/Seek time", color="Color/mini-ink-2", name="Total")
+        right = d.frame(bar, name="Tools", x=bw - 12 - 144, y=14, w=144, h=48, layout="h", gap=0, main="max",
+                        cross="center")
+        d.set(right, sizingH="fixed", sizingV="fixed")
+        d.instance(self.v("Heart button", "Tonal=False, Favourite=True"), right, name="Heart")
+        for glyph in ("queue_music", "lyrics"):
+            b = d.instance(self.v("Icon button", "Tone=Default, State=Default"), right, name=f"Open {glyph}")
+            swap(d, d.child(b, "Icon"), d.comp[f"Icon/{glyph}"])
+        d.set_mode([bar] + d.find(bar, type="INSTANCE", limit=200), "Color", "Tinted")
+        return bar
+
+    def mini(self, fid: int, w: float, h: float) -> int:
+        """Medium widths: the mini player floats over the content, at most 560dp wide and centred."""
+        d = self.d
+        width = min(560, w - SIDE - 24)
+        m = d.instance(self.v("Mini player", "Placement=Alone, Playing=True, Favourite=False, Art=Image"), fid,
+                       name="Mini player", x=SIDE + (w - SIDE - 12 - width) / 2, y=h - 32 - 64)
+        d.set(m, width=width)
+        # On its own the mini player keeps the cover's colours, as it does in the dock.
+        d.set_mode([m] + d.find(m, type="INSTANCE", limit=50), "Color", "Tinted")
+        return m
+
+    def shell(self, fid: int, size: str, w: float, h: float):
+        self.side_dock(fid, h)
+        if size == "expanded":
+            self.player_bar(fid, w, h)
+        else:
+            self.mini(fid, w, h)
+        self.system_bars(fid, w, h)
+
+    SHELL_NOTE = ("Note", "Side dock 80dp wide, 12dp in from the start edge; status bar 24dp, gesture handle 20dp. "
+                  "Expanded widths have the player bar, a floating card 76dp tall; medium widths float the mini player, "
+                  "at most 560dp wide. Both come from the tablet spec and are drawn here as layout, not components.")
+
+    def bar(self, fid: int, x: float, w: float, title: str, *, back: bool, lift: bool, action: bool = False) -> int:
+        d = self.d
+        bar = d.instance(self.v("Top bar", f"Back={'Arrow' if back else 'None'}, Lift={lift}, Count=False"), fid,
+                         name="Bar", x=x, y=24)
+        setp(d, bar, Title=title, Show_action_1=action, Show_action_2=False)
+        d.set(bar, width=w)
+        d.set(d.child(bar, "Title"), sizingH="fill")
+        if action:
+            swap(d, d.child(d.child(bar, "Action 1"), "Icon"), d.comp["Icon/settings"])
+        return bar
+
+    # ---- Home
+    def home(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_home_{size}"
+        cols = 4 if size == "expanded" else 3
+        notes = [("Content", f"Mixes sit in a grid, {cols} across at this width, as the spec has every full-width block. "
+                  "The Moods shelf stays a row that scrolls sideways and shows more tiles, here every mood that has a "
+                  "mix (nothing is picked and the card was dismissed)."), self.SHELL_NOTE]
+        fid = self.frame(key, f"Home / Moods shelf, {label}", SRC_HOME, w, h, notes)
+        cw = w - SIDE
+        content = d.frame(fid, name="Content", x=SIDE, y=129, w=cw, layout="v", gap=0)
+        d.set(content, sizingH="fixed", sizingV="hug")
+        s.label(content, S["mixes"], S["mixes_overline"])
+        grid = d.frame(content, name="Mixes grid", layout="h", gap=14, pad=[0, 24, 0, 24], sizing=("fill", "hug"),
+                       cross="min")
+        cell = (cw - 48 - 14 * (cols - 1)) / cols
+        for title, count, covers in MIXES:
+            t = d.instance(self.v("Tile", "Kind=Album, Current=False"), grid, name=f"Mix: {title}")
+            setp(d, t, Title=title, Subtitle=songs(count))
+            d.set(t, width=cell)
+            d.set(d.child(t, "Art"), width=cell, height=cell)
+            mosaic(d, self.ctx, d.child(t, "Cover"), covers, cell, large=True)
+            tt = d.child(t, "Title")
+            d.set(tt, sizingH="fill", textAutoResize="height")
+            d.cmd("text.maxLines", ids=[tt], lines=2)
+        s.moods_shelf(content, key, MOODS_ORDER, picks=False)
+        s.label(content, "Recently played")
+        shelf = d.frame(content, name="Recently played shelf", layout="h", gap=14, pad=[0, 24, 0, 24],
+                        sizing=("fill", "hug"), cross="min")
+        for i, (title, artist, cover) in enumerate(RECENT):
+            t = d.instance(self.v("Tile", f"Kind=Recent, Current={i == 0}"), shelf, name=f"Tile: {title}")
+            setp(d, t, Title=title, Subtitle=artist)
+            pictures(d, t, cover)
+        self.bar(fid, SIDE, cw, "Home", back=False, lift=True, action=True)
+        tabs = d.instance(self.v("Sub-tab row", "Lift=True"), fid, name="Pinned filters", x=SIDE, y=80)
+        d.set(tabs, width=cw)
+        self.shell(fid, size, w, h)
+        return fid
+
+    # ---- the mood page
+    def actions(self, parent, playing: bool = True) -> int:
+        d = self.d
+        row = d.instance(self.v("Collection actions", f"Playing={playing}"), parent, name="Play row")
+        radio = d.child(row, "Add to playlist")
+        swap(d, d.child(radio, "Icon"), d.comp["Icon/sensors"])
+        d.set(radio, name="Radio")
+        return row
+
+    def page(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_page_{size}"
+        two = size == "expanded"
+        notes = [("Content", ("The pane is 760dp or wider, so it splits: the header in a 360dp start pane (the mosaic, the "
+                              "name, the two lines, then Play, shuffle and radio) and the songs in the end pane, in "
+                              "cards at least 360dp wide, under the bar with back.") if two else
+                  ("The pane is narrower than 760dp, so the header is a row (the mosaic 200dp at the start, the name, "
+                   "lines and buttons beside it) over the songs in one card.")),
+                 ("Interaction", f"The sensors button is radio: its content description is \"{S['radio']}\"."),
+                 self.SHELL_NOTE]
+        fid = self.frame(key, f"Mood / Chill, {label}", SRC_PAGE, w, h, notes)
+        cw = w - SIDE
+        if two:
+            pane = d.frame(fid, name="Header pane", x=SIDE, y=48, w=360, layout="v", gap=0, cross="center")
+            d.set(pane, sizingH="fixed", sizingV="hug")
+            head = d.instance(self.v("Collection header", "Kind=Album"), pane, name="Header")
+            d.set(head, sizingH="fill")
+            setp(d, head, Title="Chill", Meta=S["kind"] + "\n" + S["note"], Show_byline=False)
+            mosaic(d, self.ctx, d.child(head, "Art"), MOOD["Chill"][3], 264, large=True)
+            d.set(self.actions(pane), sizingH="fill")
+            self.bar(fid, SIDE + 360, cw - 360, "", back=True, lift=False)
+            lists_x, lists_w, columns, top = SIDE + 360, cw - 360 - 16, 2, 88
+        else:
+            self.bar(fid, SIDE, cw, "", back=True, lift=False)
+            pane = d.frame(fid, name="Header row", x=SIDE + 16, y=88, w=cw - 32, layout="h", gap=4, cross="center")
+            d.set(pane, sizingH="fixed", sizingV="hug")
+            art = d.instance(self.v("Cover/Mosaic", "Shape=Squircle large"), pane, name="Art")
+            d.set(art, width=200, height=200)
+            pictures(d, art, *MOOD["Chill"][3])
+            col = d.frame(pane, name="Details", layout="v", gap=0, sizing=("fill", "hug"))
+            titles = d.frame(col, name="Title block", layout="v", gap=4, pad=[0, 16, 0, 16], sizing=("fill", "hug"))
+            d.text(titles, "Chill", style="Scale/Title", color="Color/on", name="Title")
+            text(d, titles, S["kind"] + "\n" + S["note"], "Component/Header meta", "Color/on-2", "Meta text", w="fill")
+            d.set(self.actions(col), sizingH="fill")
+            lists_x, lists_w, columns = SIDE + 16, cw - 32, 1
+            top = 88 + d.get(pane)["height"] + 16
+        per = (len(CHILL) + columns - 1) // columns
+        col_w = (lists_w - 12 * (columns - 1)) / columns
+        for c in range(columns):
+            rows = CHILL[c * per:(c + 1) * per]
+            card = s.songs_card(fid, rows, PLAYING - c * per if 0 <= PLAYING - c * per < len(rows) else None,
+                                f"Songs {c + 1}")
+            d.set(card, x=lists_x + c * (col_w + 12), y=top, width=col_w)
+        self.shell(fid, size, w, h)
+        return fid
+
+    # ---- the picker
+    def picker(self, size: str, label: str, w: float, h: float):
+        d, s = self.d, self.s
+        key = f"moods_picker_{size}"
+        notes = [("Content", "The page is a centred column at most 560dp wide, as the first-run pages are on a tablet, "
+                  "with Save pinned at the bottom of the column. It is full screen: no side dock and no player."),
+                 ("Note", "Status bar 24dp and gesture handle 20dp, from the tablet spec.")]
+        fid = self.frame(key, f"Moods and interests / Picked, {label}", SRC_PICKER, w, h, notes)
+        column = 560
+        lst = d.frame(fid, name="Content", x=(w - column) / 2, y=24, w=column, layout="v", gap=0, cross="center")
+        d.set(lst, sizingH="fixed", sizingV="hug")
+        hero = d.instance(self.v("Hero", "Mark=False, Short=True"), lst, name="Hero")
+        setp(d, hero, Title=S["picker"], Show_subtitle=False)
+        d.set(hero, sizingH="fill")
+        tools = d.frame(lst, name="Tools", layout="h", pad=[0, 0, 2, 8], sizing=("fill", "hug"), cross="center")
+        back = d.instance(self.v("Icon button", "Tone=Default, State=Default"), tools, name="Back")
+        swap(d, d.child(back, "Icon"), d.comp["Icon/arrow_back"])
+        s.picker_content(key, lst, moods=PICKED_MOODS, genres=PICKED_GENRES, languages=PICKED_LANGUAGES,
+                         width=column - 32)
+        s.trig(key, "back", back)
+        box = s.bottom_button(key, fid, y=h - 120, width=w)
+        d.set(box, crossAlign="center")
+        d.set(d.child(box, "Save"), sizingH="fixed", width=column - 32)
+        self.system_bars(fid, w, h)
+        return fid
+
+    def build(self):
+        for size, label, w, h in TABLET:
+            self.home(size, label, w, h)
+        for size, label, w, h in TABLET:
+            self.page(size, label, w, h)
+        for size, label, w, h in TABLET:
+            self.picker(size, label, w, h)
 
 
 # ───────────────────────────────────────────────────────────────── prototype
@@ -974,7 +1272,7 @@ def build(d: Doc, ctx: dict, tablet: bool = True):
 
 
 def build_tablet(s: "Screens"):
-    pass
+    Tablet(s).build()
 
 
 def export(d: Doc, ctx: dict, out: Path):
