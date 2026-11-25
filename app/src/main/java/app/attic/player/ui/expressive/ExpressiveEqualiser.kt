@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -279,8 +280,11 @@ private val RadioChip = Modifier.semantics { role = Role.RadioButton }
 /**
  * The presets, single choice: "Custom" and "Save as preset" while the bands match none, then the saved
  * ones, then the built-in ones. It opens with the selected chip in view, one chip of context before it,
- * and scrolls to keep it in view when the selection changes. Off, the row draws at half strength but
- * every chip still works, and choosing one turns the equaliser on.
+ * and scrolls to keep it in view when the selection changes. The selected chip is filled with primary,
+ * the look a connected button group gives its one choice: the kit's tonal fill is too close to a tonal
+ * cell's under some schemes to be seen. Off, it goes back to tonal and the row draws at half strength,
+ * so nothing in the editor keeps the accent while nothing is applied; every chip still works, and
+ * choosing one turns the equaliser on.
  */
 @Composable
 private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on: Boolean, actions: EqualiserEditorActions) {
@@ -295,6 +299,9 @@ private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on
         }
     }
     val strength by animateFloatAsState(if (on) 1f else 0.5f, ExpressiveMotion.defaultEffects(), label = "chipsStrength")
+    val colors = MaterialTheme.colorScheme
+    val chosenFill by animateColorAsState(if (on) colors.primary else colors.secondaryContainer, ExpressiveMotion.defaultEffects(), label = "chipFill")
+    val chosenInk by animateColorAsState(if (on) colors.onPrimary else colors.onSecondaryContainer, ExpressiveMotion.defaultEffects(), label = "chipInk")
     var menuFor by remember { mutableStateOf<String?>(null) }
     LazyRow(
         Modifier.fillMaxWidth().selectableGroup().graphicsLayer { alpha = strength },
@@ -305,7 +312,14 @@ private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on
     ) {
         if (selected == null) {
             item(key = CustomKey, contentType = "chip") {
-                ExpressiveFilterChip(stringResource(R.string.equaliser_preset_custom), true, { if (!on) actions.setOn(true) }, RadioChip)
+                ExpressiveFilterChip(
+                    stringResource(R.string.equaliser_preset_custom),
+                    true,
+                    { if (!on) actions.setOn(true) },
+                    RadioChip,
+                    selectedContainerColor = chosenFill,
+                    selectedContentColor = chosenInk,
+                )
             }
             item(key = SaveKey, contentType = "save") {
                 PresetChip(stringResource(R.string.equaliser_save_preset), selected = false, onClick = actions.askSavePreset, action = true)
@@ -315,7 +329,14 @@ private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on
             val current = chip.key == selected?.key
             if (!chip.isUser) {
                 // Choosing the chip that is already selected only matters while off, when it turns the equaliser on.
-                ExpressiveFilterChip(chip.name, current, { if (!current || !on) actions.choosePreset(chip) }, RadioChip)
+                ExpressiveFilterChip(
+                    chip.name,
+                    current,
+                    { if (!current || !on) actions.choosePreset(chip) },
+                    RadioChip,
+                    selectedContainerColor = chosenFill,
+                    selectedContentColor = chosenInk,
+                )
             } else {
                 val rename = stringResource(R.string.rename)
                 val delete = stringResource(R.string.equaliser_delete_preset)
@@ -327,6 +348,8 @@ private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on
                         onClick = { if (current && on) menuFor = chip.key else actions.choosePreset(chip) },
                         onLongClick = { menuFor = chip.key },
                         more = current,
+                        selectedFill = chosenFill,
+                        selectedInk = chosenInk,
                         menuActions = listOf(
                             CustomAccessibilityAction(rename) { actions.askRenamePreset(chip); true },
                             CustomAccessibilityAction(delete) { actions.askDeletePreset(chip); true },
@@ -370,6 +393,7 @@ private suspend fun LazyListState.reveal(index: Int) {
  * A chip the kit's [ExpressiveFilterChip] can't draw, to the same measure (32dp in a 48dp target, 8dp
  * corners, 18dp glyphs): a saved preset, which takes a long press and ends in the "more" glyph while it
  * is selected ([more]); and the "Save as preset" action ([action]), outlined with a plus and in primary.
+ * Selected, it fills with [selectedFill] and draws in [selectedInk], as the row's other chips do.
  * [menuActions] offers a saved preset's menu to a screen reader.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -382,13 +406,15 @@ private fun PresetChip(
     onLongClick: (() -> Unit)? = null,
     more: Boolean = false,
     action: Boolean = false,
+    selectedFill: Color = MaterialTheme.colorScheme.secondaryContainer,
+    selectedInk: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     menuActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val colors = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(ExpressiveShapes.Small)
     val ink = when {
         action -> colors.primary
-        selected -> colors.onSecondaryContainer
+        selected -> selectedInk
         else -> colors.onSurfaceVariant
     }
     val leading = if (action) Symbol.Add else if (selected) Symbol.Check else null
@@ -397,7 +423,7 @@ private fun PresetChip(
             .minimumInteractiveComponentSize()
             .height(32.dp)
             .clip(shape)
-            .then(if (selected) Modifier.background(colors.secondaryContainer) else Modifier.border(1.dp, colors.outlineVariant, shape))
+            .then(if (selected) Modifier.background(selectedFill) else Modifier.border(1.dp, colors.outlineVariant, shape))
             .combinedClickable(role = if (action) Role.Button else Role.RadioButton, onClick = onClick, onLongClick = onLongClick)
             .semantics {
                 if (!action) this.selected = selected
@@ -413,7 +439,7 @@ private fun PresetChip(
         Text(label, style = MaterialTheme.typography.labelLarge, color = ink, maxLines = 1)
         if (more) {
             Spacer(Modifier.width(6.dp))
-            SymbolIcon(Symbol.MoreVert, size = 18.dp, tint = colors.onSecondaryContainer)
+            SymbolIcon(Symbol.MoreVert, size = 18.dp, tint = selectedInk)
         }
     }
 }

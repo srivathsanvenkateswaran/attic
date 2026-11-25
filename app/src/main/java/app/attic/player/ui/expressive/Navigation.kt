@@ -270,9 +270,18 @@ fun SearchField(
 /**
  * A filter chip (`.chip`): 32dp, 8dp corners, an outline while off; tonal with a tick while on.
  * Filters that can be cleared are chips; a one-of-N switch is a [ConnectedButtonGroup].
+ * [selectedContainerColor] and [selectedContentColor] are for a row whose one choice has to stand out
+ * on a tonal cell, as the equaliser's presets do; everywhere else keeps the tonal default.
  */
 @Composable
-fun ExpressiveFilterChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ExpressiveFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectedContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    selectedContentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+) {
     val colors = MaterialTheme.colorScheme
     FilterChip(
         selected = selected,
@@ -283,9 +292,9 @@ fun ExpressiveFilterChip(label: String, selected: Boolean, onClick: () -> Unit, 
         shape = RoundedCornerShape(ExpressiveShapes.Small),
         colors = FilterChipDefaults.filterChipColors(
             labelColor = colors.onSurfaceVariant,
-            selectedContainerColor = colors.secondaryContainer,
-            selectedLabelColor = colors.onSecondaryContainer,
-            selectedLeadingIconColor = colors.onSecondaryContainer,
+            selectedContainerColor = selectedContainerColor,
+            selectedLabelColor = selectedContentColor,
+            selectedLeadingIconColor = selectedContentColor,
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
