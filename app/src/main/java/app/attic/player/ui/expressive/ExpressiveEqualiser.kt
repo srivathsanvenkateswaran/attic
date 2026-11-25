@@ -55,6 +55,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -288,7 +289,11 @@ private val RadioChip = Modifier.semantics { role = Role.RadioButton }
  */
 @Composable
 private fun PresetChips(presets: List<EqPresetChip>, selected: EqPresetChip?, on: Boolean, actions: EqualiserEditorActions) {
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = (presets.indexOfFirst { it.key == selected?.key } - 1).coerceAtLeast(0))
+    val first = (presets.indexOfFirst { it.key == selected?.key } - 1).coerceAtLeast(0)
+    // Past the start, the row opens 4dp further on, so the chip before the one of context is wholly out
+    // of the cell rather than a sliver at its edge.
+    val firstOffset = if (first > 0) with(LocalDensity.current) { 4.dp.roundToPx() } else 0
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = first, initialFirstVisibleItemScrollOffset = firstOffset)
     val selectedKey by rememberUpdatedState(selected?.key)
     val shown by rememberUpdatedState(presets)
     LaunchedEffect(listState) {
