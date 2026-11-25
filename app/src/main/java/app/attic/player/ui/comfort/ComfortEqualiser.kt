@@ -355,8 +355,6 @@ fun ComfortEqualiserPage(state: EqualiserPageState, actions: EqualiserPageAction
     state.editor.dialog?.let { PresetDialog(it, state.editor, actions.editor) }
 }
 
-/** The short hero's height under the status bar (`.hero.short`), for the bar to take over at the right moment. */
-private val ShortHeroHeight = 150.dp
 
 @Composable
 private fun UseEqualiserCard(editor: State<EqualiserEditorState>, calls: State<EqualiserEditorActions>) {
