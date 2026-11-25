@@ -57,6 +57,10 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
     }
 
     companion object {
+        /** Mood mixes and the equaliser, merged after the Tablet page was drawn. */
+        val Moods = listOf("moods_home", "mood_page", "moods_browse", "moods_picker", "moods_settings")
+        val Equaliser = listOf("sheet_equaliser", "settings_equaliser", "now_playing_equaliser", "dialog_equaliser_save_preset")
+
         // The design file's Tablet frames, by key: tablet_compare.py pairs them.
         val Landscape = listOf(
             "home", "library_albums", "search_results", "album", "artist", "playlist",
@@ -64,8 +68,8 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
             "dialog_new_playlist_library", "onboarding_look",
             // Not drawn on the Tablet page, rendered to check they hold up.
             "library_grid", "search_browse", "queue", "recap", "recap_story_intro",
-        )
-        val Portrait = listOf("home", "library_list", "search_results", "album", "now_playing", "settings", "onboarding_look")
+        ) + Moods + Equaliser
+        val Portrait = listOf("home", "library_list", "search_results", "album", "now_playing", "settings", "onboarding_look") + Moods + Equaliser
         val Large = listOf("home", "library_albums", "album", "now_playing")
 
         @JvmStatic
