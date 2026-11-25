@@ -116,7 +116,7 @@ fun ComfortOnboarding(state: OnboardingState, actions: OnboardingActions) {
                         Column(if (step == OnboardingStep.Look) block else column) {
                             when (step) {
                                 OnboardingStep.Welcome -> WelcomeStep()
-                                OnboardingStep.Look -> if (sideways) LookStepSideways(state, actions) else LookStep(state, actions)
+                                OnboardingStep.Look -> if (sideways) LookStepSideways(state, actions) else LookStep(state, actions, TabletLookScale)
                                 OnboardingStep.Access -> AccessStep(state, actions)
                                 OnboardingStep.Library -> LibraryStep(state, actions)
                             }
@@ -139,6 +139,14 @@ fun ComfortOnboarding(state: OnboardingState, actions: OnboardingActions) {
 /** The steps' column on a tablet, and the look step's block on one held sideways. */
 private val OnboardingColumn = 560.dp
 private val OnboardingBlock = 840.dp
+
+/**
+ * The look card's preview draws a phone's Home (the phone card's picture is 167dp at 0.42, so about
+ * 398dp wide) scaled to the card: two cards in the 560dp column, or in half the 840dp block.
+ */
+private const val PreviewPhoneWidth = 398f
+private const val TabletLookScale = ((560f - 32f - 12f) / 2f - 16f) / PreviewPhoneWidth
+private const val SidewaysLookScale = (((840f - 32f - 24f) / 2f - 12f) / 2f - 16f) / PreviewPhoneWidth
 
 @Composable
 private fun BottomButton(state: OnboardingState, actions: OnboardingActions) {
@@ -199,7 +207,7 @@ private fun ColumnScope.WelcomeStep() {
 }
 
 @Composable
-private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActions) {
+private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActions, scale: Float = 0.42f) {
     Title(stringResource(R.string.onboarding_look_title), Modifier.padding(top = 16.dp))
     Body(stringResource(R.string.onboarding_look_body))
     Row(
@@ -207,7 +215,7 @@ private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActi
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         UiStyle.choices.forEach { style ->
-            LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f))
+            LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f), scale)
         }
     }
     Label(stringResource(R.string.onboarding_theme))
@@ -236,7 +244,7 @@ private fun ColumnScope.LookStepSideways(state: OnboardingState, actions: Onboar
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             UiStyle.choices.forEach { style ->
-                LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f))
+                LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f), SidewaysLookScale)
             }
         }
         Column(Modifier.weight(1f)) {
@@ -256,7 +264,7 @@ private fun ColumnScope.LookStepSideways(state: OnboardingState, actions: Onboar
 
 /** A look as a selectable card: the live picture, then the kit's radio and the name. Selected is ringed in amber. */
 @Composable
-private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
+private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier, scale: Float = 0.42f) {
     val colors = Comfort.colors
     val edge by animateColorAsState(if (selected) colors.accent else Color.Transparent, tween(160), label = "lookEdge")
     Column(
@@ -267,7 +275,7 @@ private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelec
             .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
             .padding(8.dp),
     ) {
-        LookPreview(style, mode, Modifier.fillMaxWidth().clip(ComfortShapes.Control), scale = 0.42f)
+        LookPreview(style, mode, Modifier.fillMaxWidth().clip(ComfortShapes.Control), scale = scale)
         Row(
             Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(start = 8.dp, top = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -3,6 +3,7 @@ package app.attic.player.ui.comfort
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,6 +87,8 @@ internal fun ComfortLyricsWide(state: LyricsScreenState, actions: LyricsScreenAc
                 lyrics.hasLyrics -> PlainLyrics(lyrics.plain.orEmpty(), top, bottom, inset)
                 else -> NoLyrics(state, actions, top, bottom)
             }
+            // The ground over the lines that have scrolled up past the fade, as the phone's bar is.
+            Box(Modifier.fillMaxWidth().height(top).background(colors.ground))
         }
     }
 }
