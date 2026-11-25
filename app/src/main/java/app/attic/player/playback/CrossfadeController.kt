@@ -358,6 +358,11 @@ class CrossfadeController(
             }
             return
         }
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
+            // Every raw reading, for working out how long readings take to settle after a seek on a phone.
+            val sinceSeek = SystemClock.elapsedRealtime() - (aligning.settleUntil - SETTLE_MS)
+            Log.d(TAG, "Reading ${sinceSeek} ms after seek ${aligning.seeks}: tail − main = ${tail.currentPosition - main.currentPosition} ms (tail playing ${tail.isPlaying})")
+        }
         if (!aligning.aligned && tail.isPlaying && SystemClock.elapsedRealtime() >= aligning.settleUntil) {
             when (alignment.record(tail.currentPosition - main.currentPosition)) {
                 TailAlignment.Verdict.Aligned -> {
@@ -508,13 +513,19 @@ class CrossfadeController(
         }
 
     private companion object {
-        /** A seek's first position readings are unreliable; wait this long before trusting them. */
-        const val SETTLE_MS = 400L
+        /**
+         * A seek's first position readings are unreliable; wait this long before trusting them. On the
+         * owner's phone the tail's position minus the main player's jumped by up to 440 ms for the first
+         * 500 to 1000 ms after a seek, then held within about 15 ms. At 400 ms the tail was re-seeked
+         * twelve times chasing that noise and never lined up.
+         */
+        const val SETTLE_MS = 1_000L
         const val ALIGN_TICK_MS = 50L
         const val FADE_TICK_MS = 30L
         const val TAG = "AtticTransition"
-        const val JOIN_FROM_MS = 250L
-        const val JOIN_UNTIL_MS = 1_200L
+        /** Join readings start once positions have settled after the main player's move (see [SETTLE_MS]). */
+        const val JOIN_FROM_MS = 700L
+        const val JOIN_UNTIL_MS = 1_500L
         const val JOIN_READINGS = 5
         const val MAX_ENTRY_LEAD_MS = 300L
 
