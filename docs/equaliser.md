@@ -84,9 +84,23 @@ column as a lower bound; even ten times it is about 2% of one core.
   screen first asks for it, and it reads only settings already loaded and Room flows.
 - Lists don't change. Now Playing reads one more `StateFlow` for its indicator.
 
-Not yet measured on the phone (it was off the network when this was written): the processor's
-CPU under ART, and cold start and list scrolling against the build before the equaliser, with
-`/tmp/attic-dev/perf/session.sh`.
+On the phone (Xiaomi "miel", Android 16, the owner's 740-song library), 2026-11-25. The release
+builds ran as a separate test install (`app.attic.player.eqtest`), so the owner's Attic data was
+never touched: first the base (`ui-redesign` at f2dfff7), then this branch installed over it. The
+measurements use `/tmp/attic-dev/perf/session.sh`, Dark theme, speed-profile compiled, with medians
+over 10 cold starts and 3 full scrolls of the song list.
+
+| | Cold start, base → equaliser | Janky frames scrolling Songs, base → equaliser |
+|---|--:|--:|
+| Expressive | 256.5 → 244.5 ms | 2.33% → 2.31% |
+| Comfort | 257.5 → 243.5 ms | 2.00% → 2.01% |
+
+- **Playback thread** (`ExoPlayer:Playb`), from its `/proc` CPU ticks over 20 s:
+  - with Bass boost on a song: 4.55% of one core
+  - on the next song, flat: 3.15%
+
+  So the equaliser costs about 1.4% of one core. That is an upper bound: the `AtticEq` debug meters were on for the test, and they filter the signal again.
+- **Migration:** opening the test install's data with this branch ran the 5→6 migration without a crash.
 
 ## Checking it on a phone
 
