@@ -5,6 +5,9 @@ reports. The checklist follows the screen map and states in
 [CURRENT-UI.md](../docs/design/2026-11-21-ui-directions/CURRENT-UI.md) sections 1 and 2, at
 ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file unless the Notes say otherwise.
 
+Versions 1.1.0 and 1.2.0 (2026-11-25) add the Equaliser area and its components by hand, from the
+equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generated.
+
 | Area | Screen or state | Expressive | Comfort |
 |---|---|:-:|:-:|
 | Launch and first run | First run: Welcome | ✓ | ✓ |
@@ -93,6 +96,20 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 | Settings | Message: backup saved | ✓ | ✓ |
 | Settings | Open-source licences | ✓ | ✓ |
 | Settings | Licence text | ✓ | ✓ |
+| Equaliser | Track menu from Now Playing, with the Equaliser row | ✓ | ✓ |
+| Equaliser | Sheet, default (Bass boost) | ✓ | ✓ |
+| Equaliser | Sheet, the song's own setting (Custom) | ✓ | ✓ |
+| Equaliser | Sheet, the album's setting (Vocal) | ✓ | ✓ |
+| Equaliser | Sheet, switched off | ✓ | ✓ |
+| Equaliser | Sheet, a band being dragged | ✓ | ✓ |
+| Equaliser | Save as preset dialog | ✓ | ✓ |
+| Equaliser | Rename and Delete preset menu | ✓ | ✓ |
+| Equaliser | Now Playing with the indicator | ✓ | ✓ |
+| Equaliser | Settings, Playback with the Equaliser row | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page, full length | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page, nothing with its own setting | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page, switched off |  | ✓ |
 | Recap | Recap page | ✓ | ✓ |
 | Recap | Recap page, full length | ✓ | ✓ |
 | Recap | Recap, nothing played | ✓ | ✓ |
@@ -131,6 +148,10 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 
 - **Expressive:** none.
 - **Comfort:** none.
+
+The track-menu frames over Now Playing (from Now Playing, opened with Attic, and the sleep timer ones)
+gained the Equaliser row in 1.1.0, so they no longer match the 1.0.0 reference renders. The Settings
+frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback` draws it from the code.
 
 ## Screens beyond the checklist
 
@@ -256,6 +277,15 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 | Splash | System | 1 |  |  |
 | System/Media notification | System | 1 |  |  |
 | Widget | System | 6 | Size, State |  |
+| Equaliser/Preset chip | Actions | 5 | Kind, Selected, Equaliser |  |
+| Equaliser/Scope cell | Lists and cards | 3 | Scope |  |
+| Equaliser/Own setting row | Lists and cards | 2 | Kind |  |
+| Equaliser/Band graph | Playback | 6 | Curve, State |  |
+| Now playing/Equaliser indicator | Playback | 2 | Scope |  |
+| Equaliser/Sheet title | Overlays | 2 | Checked |  |
+| Equaliser/Editor | Overlays | 6 | Curve, State |  |
+| Equaliser/Actions | Overlays | 5 | Playing with |  |
+| Sheet/Equaliser | Overlays | 6 | Scope, State |  |
 
 ### Comfort
 
@@ -326,4 +356,11 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 | Prompt | States | 2 | Kind | Title, Body |
 | Launcher icon | System | 2 | Layer |  |
 | Widget | System | 4 | Size, State |  |
+| Preset chip | Actions | 5 | Kind, Selected |  |
+| Response curve | Actions | 13 | Curve |  |
+| Band slider | Actions | 9 | State, Gain |  |
+| Band sliders | Actions | 3 | State |  |
+| Equaliser indicator | Playback | 2 | Scope |  |
+| Equaliser title | Overlays | 2 | On |  |
+| Scope head | Overlays | 3 | Scope |  |
 

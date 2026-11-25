@@ -22,6 +22,8 @@ import app.attic.player.data.UserPlaylist
 import app.attic.player.playback.SleepChoice
 import app.attic.player.storeshots.DemoLibrary
 import app.attic.player.storeshots.DemoStates
+import app.attic.player.storeshots.EqualiserDemo
+import app.attic.player.playback.eq.EqScope
 import app.attic.player.ui.mosaicIds
 import app.attic.player.ui.model.AddSongsActions
 import app.attic.player.ui.model.AddSongsState
@@ -189,6 +191,7 @@ object DesignStates {
             canShare = !external && track.mediaId >= 0,
             sleepTimer = if (fromNowPlaying) (timer ?: SleepTimerMenuState(SleepChoice.Off, null)) else null,
             pickingSleepTimer = pickingSleepTimer,
+            equaliser = if (fromNowPlaying) EqualiserDemo.menu else null,
         )
     }
 
@@ -248,6 +251,21 @@ object DesignStates {
     ).map(DemoLibrary::track)
 
     val radioContext = "Radio · ${now.title}"
+
+    /** Now Playing for a song with its own equaliser setting: the header shows the indicator. */
+    val nowPlayingWithEqualiser: NowPlayingState get() = nowPlayingWithEqualiser(EqScope.Song)
+
+    /** Now Playing for a song that plays with its album's setting: the indicator reads "This album". */
+    val nowPlayingWithAlbumEqualiser: NowPlayingState get() = nowPlayingWithEqualiser(EqScope.Album)
+
+    private fun nowPlayingWithEqualiser(scope: EqScope): NowPlayingState {
+        val n = nowPlaying
+        return NowPlayingState(
+            track = n.track, contextName = n.contextName, contextKind = n.contextKind, isPlaying = n.isPlaying, shuffle = n.shuffle,
+            repeatMode = n.repeatMode, queue = n.queue, currentIndex = n.currentIndex, liked = n.liked, artist = n.artist,
+            lyrics = n.lyrics, clock = n.clock, equaliser = scope,
+        )
+    }
 
     val nowPlayingPausedRadio: NowPlayingState get() {
         val n = s.nowPlaying
@@ -330,7 +348,7 @@ object DesignStates {
             backup = backup,
             volumeLevelling = base.volumeLevelling,
             crossfadeSeconds = base.crossfadeSeconds,
-            equaliserAvailable = base.equaliserAvailable,
+            equaliser = base.equaliser,
         )
     }
 

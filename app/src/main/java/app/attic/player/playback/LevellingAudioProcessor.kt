@@ -136,15 +136,23 @@ class LevellingAudioSink(sink: AudioSink, private val levelling: LevellingAudioP
     }
 }
 
-/** ExoPlayer's renderers with [levelling] at the end of the audio chain. */
+/**
+ * ExoPlayer's renderers with [levelling] and then [equaliser] at the end of the audio chain. Levelling
+ * goes first so the equaliser's limiter is the last thing to touch the samples: a song levelled up
+ * and then boosted by the equaliser is still kept from clipping.
+ */
 @OptIn(UnstableApi::class)
-class LevellingRenderersFactory(context: Context, private val levelling: LevellingAudioProcessor) : DefaultRenderersFactory(context) {
+class LevellingRenderersFactory(
+    context: Context,
+    private val levelling: LevellingAudioProcessor,
+    private val equaliser: AudioProcessor,
+) : DefaultRenderersFactory(context) {
     override fun buildAudioSink(context: Context, enableFloatOutput: Boolean, enableAudioOutputPlaybackParams: Boolean): AudioSink =
         LevellingAudioSink(
             DefaultAudioSink.Builder(context)
                 .setEnableFloatOutput(enableFloatOutput)
                 .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
-                .setAudioProcessors(arrayOf(levelling))
+                .setAudioProcessors(arrayOf(levelling, equaliser))
                 .build(),
             levelling,
         )

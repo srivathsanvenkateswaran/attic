@@ -17,7 +17,12 @@ import androidx.compose.ui.semantics.ScrollAxisRange
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.performSemanticsAction
@@ -27,6 +32,13 @@ import app.attic.player.R
 import app.attic.player.data.UiStyle
 import app.attic.player.storeshots.DemoLibrary
 import app.attic.player.storeshots.DemoStates
+import app.attic.player.storeshots.EqualiserDemo
+import app.attic.player.ui.comfort.ComfortEqualiserPage
+import app.attic.player.ui.comfort.ComfortEqualiserSheet
+import app.attic.player.ui.expressive.ExpressiveEqualiserPage
+import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
+import app.attic.player.ui.model.EqualiserBands
+import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.ShellSlots
 import app.attic.player.ui.Tab
@@ -191,7 +203,10 @@ class Ref(
             "queue", "queue_radio", "queue_empty",
             "lyrics_synced", "lyrics_plain", "lyrics_none", "lyrics_not_downloaded", "lyrics_instrumental", "lyrics_downloading",
             "sheet_track_menu", "sheet_track_menu_playlist", "sheet_track_menu_now_playing", "sheet_track_menu_open_with",
-            "sheet_sleep_timer", "sleep_timer_active", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
+            "sheet_sleep_timer", "sleep_timer_active",
+            "sheet_equaliser", "sheet_equaliser_song", "sheet_equaliser_album", "sheet_equaliser_off", "dialog_equaliser_save_preset",
+            "sheet_equaliser_band_dragged", "menu_equaliser_preset", "settings_equaliser_off",
+            "now_playing_equaliser", "settings_equaliser", "settings_equaliser_empty", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
             "dialog_new_playlist", "dialog_name_playlist", "dialog_rename_playlist", "dialog_delete_playlist", "menu_playlist_overflow",
             "snackbar", "snackbar_over_player",
             "settings", "settings_analysis", "settings_lyrics_download", "settings_backup",
@@ -205,7 +220,7 @@ class Ref(
         )
 
         /** Whole pages, drawn on a phone as tall as [FULL_HEIGHT] (see DesignRefs.tallDisplay). */
-        val TallKeys: List<String> = listOf("home_full", "settings_full", "recap_full")
+        val TallKeys: List<String> = listOf("home_full", "settings_full", "recap_full", "settings_equaliser_full")
 
         private val s = DemoStates
         private val d = DesignStates
@@ -412,6 +427,41 @@ class Ref(
                     Capture.Screen,
                     sheet = menu(d.trackMenu(DemoLibrary.nowPlaying, fromNowPlaying = true, timer = d.timerRunning), overPlayer = true),
                 )
+                "sheet_equaliser" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetDefault) })
+                // A song with its own or its album's setting shows the header's indicator behind the sheet, as the app does.
+                "sheet_equaliser_song" -> overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetSong) })
+                "sheet_equaliser_album" ->
+                    overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithAlbumEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetAlbum) })
+                "sheet_equaliser_off" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetOff) })
+                "dialog_equaliser_save_preset" ->
+                    overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetSavePreset) })
+                // The 4 kHz band held where it is, so the knob is grown and its value rides above it.
+                "sheet_equaliser_band_dragged" -> Ref(
+                    overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetSong) }).content,
+                    capture = Capture.Screen,
+                    prepare = { holdBand(7) },
+                )
+                // A chosen preset of the listener's own opens Rename and Delete when it is tapped again.
+                "menu_equaliser_preset" -> Ref(
+                    overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetSavedPreset) }).content,
+                    capture = Capture.Screen,
+                    prepare = { onNode(hasText(EqualiserDemo.SAVED_PRESET)).performClick() },
+                )
+                "now_playing_equaliser" -> overlayRef(nowPlaying = d.nowPlayingWithEqualiser)
+                "settings_equaliser" -> shell(Tab.Home) {
+                    val page = EqualiserDemo.page()
+                    if (e) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+                }
+                "settings_equaliser_off" -> shell(Tab.Home) {
+                    val page = EqualiserDemo.page(on = false)
+                    if (e) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+                }
+                // The whole page, down to the lists and the phone's own equaliser.
+                "settings_equaliser_full" -> Ref(of(style, "settings_equaliser")!!.content, height = FULL_HEIGHT)
+                "settings_equaliser_empty" -> shell(Tab.Home) {
+                    val page = EqualiserDemo.page(empty = true)
+                    if (e) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+                }
                 "sheet_playlist_picker" -> overHome {
                     if (e) ExpressivePlaylistPicker(d.playlistPicker, d.playlistPickerActions) else ComfortPlaylistPicker(d.playlistPicker, d.playlistPickerActions)
                 }
@@ -525,6 +575,21 @@ fun ComposeContentTestRule.scrollMain(dy: Float) {
     onAllNodes(Scrollable)[index].performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, dy) }
 }
 
+/**
+ * Puts a finger on equaliser band [index], drags it past the touch slop and back, and keeps it down, so
+ * the band is held at the value it had. The band is found by its TalkBack name, since Now Playing's
+ * seek bar under the sheet is a slider too.
+ */
+fun ComposeContentTestRule.holdBand(index: Int) {
+    val name = EqualiserBands.describe(RuntimeEnvironment.getApplication(), index)
+    onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress) and hasContentDescription(name)).performTouchInput {
+        val past = 30f
+        down(center)
+        moveBy(Offset(0f, -(viewConfiguration.touchSlop + past)))
+        moveBy(Offset(0f, past))
+    }
+}
+
 /** Where the page is scrolled to and how far it can go, in pixels for a scrolling column. */
 fun ComposeContentTestRule.mainScrollRange(): ScrollAxisRange? {
     val index = mainScrollIndex() ?: return null
@@ -581,6 +646,16 @@ private fun InShell(
         },
     )
     if (e) ExpressiveShell(state, s.shellActions, slots) else ComfortShell(state, s.shellActions, slots)
+}
+
+/** The equaliser sheet over Now Playing, in the scheme the track menu takes there. */
+@Composable
+private fun EqSheet(style: UiStyle, state: EqualiserSheetState) {
+    if (style == UiStyle.Expressive) {
+        FromCover(DemoLibrary.nowPlaying.mediaId) { ExpressiveEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    } else {
+        TintedCover(DemoLibrary.nowPlaying.mediaId, wash = true) { ComfortEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    }
 }
 
 /**

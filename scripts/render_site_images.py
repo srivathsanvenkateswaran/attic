@@ -35,7 +35,7 @@ THEMES = ("light", "dark")
 STYLES = ("expressive", "comfort")
 SCREENS = (
     "home", "now-playing", "album", "artist",
-    "library", "queue", "home-mixes", "lyrics", "recap", "settings-playback",
+    "library", "queue", "home-mixes", "lyrics", "recap", "settings-playback", "equaliser",
 )
 WIDTHS = (360, 720)
 

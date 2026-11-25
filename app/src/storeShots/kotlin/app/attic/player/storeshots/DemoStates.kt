@@ -323,12 +323,12 @@ object DemoStates {
         autoplay = true,
         volumeLevelling = true,
         crossfadeSeconds = 6,
-        equaliserAvailable = true,
         bulkLyrics = BulkProgress(done = 0, total = 0, found = 0, running = false),
         savedLyricsCount = 51,
         songCount = lib.tracks.size,
         analysis = AnalysisProgress(lib.tracks.size, lib.tracks.size, running = false),
         backup = BackupUiState(saving = false, restoring = false, confirm = null, restored = null, problem = null),
+        equaliser = EqualiserDemo.settingsRow,
     )
 
     val settingsActions = SettingsActions(
@@ -338,7 +338,7 @@ object DemoStates {
         setAutoplay = {},
         setVolumeLevelling = {},
         setCrossfadeSeconds = {},
-        openEqualiser = noop,
+        openEqualiserPage = noop,
         downloadAllLyrics = noop,
         startAnalysis = noop,
         openLicences = noop,

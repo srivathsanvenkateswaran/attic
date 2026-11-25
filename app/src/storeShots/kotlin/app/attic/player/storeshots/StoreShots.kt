@@ -1,5 +1,11 @@
 package app.attic.player.storeshots
 
+import app.attic.player.ui.comfort.ComfortEqualiserPage
+import app.attic.player.ui.comfort.ComfortEqualiserSheet
+import app.attic.player.ui.comfort.TintedCover
+import app.attic.player.ui.expressive.ExpressiveEqualiserPage
+import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
+import app.attic.player.ui.expressive.FromCover
 import android.app.Application
 import androidx.compose.runtime.Composable
 import app.attic.player.data.UiStyle
@@ -92,7 +98,7 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
         val prepare: ComposeContentTestRule.() -> Unit = {
             if (heading != null) bringToTop(context.getString(heading.first), heading.second)
         }
-        compose.shoot(compose.activity, name, style, dark, prepare = prepare) { Screen(style, screen) }
+        compose.shoot(compose.activity, name, style, dark, prepare = prepare, allWindows = screen in SheetScreens) { Screen(style, screen) }
     }
 
     private val context get() = ApplicationProvider.getApplicationContext<Application>()
@@ -100,8 +106,11 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
     companion object {
         val Screens = listOf(
             "home", "home-mixes", "album", "artist", "now-playing", "lyrics", "queue", "library", "search", "search-browse", "settings",
-            "settings-playback", "recap",
+            "settings-playback", "recap", "equaliser", "equaliser-settings",
         )
+
+        /** Screens with a sheet over them, captured with every window. */
+        val SheetScreens = setOf("equaliser")
 
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}")
@@ -144,6 +153,19 @@ private fun Screen(style: UiStyle, screen: String) {
         }
         "recap" ->
             InShell(style, Tab.Home) { if (expressive) ExpressiveRecap(s.wrappedPage, s.wrappedActions) else ComfortRecap(s.wrappedPage, s.wrappedActions) }
+        // A song saved with its own curve, the sheet over Now Playing in the scheme the track menu takes there.
+        "equaliser" -> {
+            if (expressive) ExpressiveNowPlaying(s.nowPlaying, s.nowPlayingActions) else ComfortNowPlaying(s.nowPlaying, s.nowPlayingActions)
+            if (expressive) {
+                FromCover(DemoLibrary.nowPlaying.mediaId) { ExpressiveEqualiserSheet(EqualiserDemo.sheetSong, EqualiserDemo.sheetActions) }
+            } else {
+                TintedCover(DemoLibrary.nowPlaying.mediaId, wash = true) { ComfortEqualiserSheet(EqualiserDemo.sheetSong, EqualiserDemo.sheetActions) }
+            }
+        }
+        "equaliser-settings" -> InShell(style, Tab.Home) {
+            val page = EqualiserDemo.page()
+            if (expressive) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+        }
         else -> error("Unknown screen $screen")
     }
 }

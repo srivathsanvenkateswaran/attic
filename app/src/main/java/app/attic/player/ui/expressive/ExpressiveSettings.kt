@@ -44,6 +44,9 @@ import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.model.BackupUiState
+import app.attic.player.ui.model.EqualiserSettingsRow
+import app.attic.player.ui.model.equaliserOwnSummary
+import app.attic.player.ui.model.equaliserRowValue
 import app.attic.player.ui.model.SettingsActions
 import app.attic.player.ui.model.restoreConfirmBody
 import app.attic.player.ui.model.restoreProblemBody
@@ -89,11 +92,11 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
             }
             item(key = "playback") {
                 SettingsSection(stringResource(R.string.settings_playback))
-                ListGroup(if (state.equaliserAvailable) 3 else 2) { index ->
+                ListGroup(3) { index ->
                     when (index) {
                         0 -> VolumeLevellingRow(state.volumeLevelling, actions)
                         1 -> CrossfadeRow(state, actions)
-                        else -> EqualiserRow(actions)
+                        else -> EqualiserRow(state.equaliser, actions)
                     }
                 }
             }
@@ -354,16 +357,17 @@ private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
 private fun crossfadeLabel(seconds: Int): String =
     if (seconds <= 0) stringResource(R.string.settings_crossfade_off) else pluralStringResource(R.plurals.settings_crossfade_seconds, seconds, seconds)
 
-/** Shown only when something on the phone opens an equaliser; it opens there, on Attic's audio session. */
+/**
+ * Opens Settings > Playback > Equaliser. Its second line is the state, as "Crossfade" shows its length:
+ * "Off" or the default's preset. The small line counts the songs and albums with their own setting and
+ * is absent when none has one.
+ */
 @Composable
-private fun EqualiserRow(actions: SettingsActions) {
-    SetIconRow(
-        Symbol.Equalizer,
-        modifier = Modifier.clickable(role = Role.Button, onClick = actions.openEqualiser),
-        trailing = { SymbolIcon(Symbol.OpenInNew, size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp)) },
-    ) {
-        RowTitle(stringResource(R.string.settings_equaliser))
-        SupportingText(stringResource(R.string.settings_equaliser_body))
+private fun EqualiserRow(row: EqualiserSettingsRow, actions: SettingsActions) {
+    SetIconRow(Symbol.Equalizer, modifier = Modifier.clickable(role = Role.Button, onClick = actions.openEqualiserPage)) {
+        RowTitle(stringResource(R.string.equaliser))
+        SupportingText(equaliserRowValue(row))
+        equaliserOwnSummary(row)?.let { Status(it) }
     }
 }
 
@@ -404,7 +408,7 @@ private fun AnalysisRow(analysis: AnalysisProgress, actions: SettingsActions) {
  * one-line row.
  */
 @Composable
-private fun SetIconRow(
+internal fun SetIconRow(
     symbol: Symbol,
     modifier: Modifier = Modifier,
     center: Boolean = false,
@@ -419,7 +423,7 @@ private fun SetIconRow(
 )
 
 @Composable
-private fun SetIconRow(
+internal fun SetIconRow(
     icon: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     center: Boolean = false,
@@ -441,16 +445,16 @@ private fun SetIconRow(
 }
 
 @Composable
-private fun RowTitle(text: String) {
+internal fun RowTitle(text: String) {
     Text(text, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
 }
 
 @Composable
-private fun SupportingText(text: String) {
+internal fun SupportingText(text: String) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
-private fun Status(text: String) {
+internal fun Status(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

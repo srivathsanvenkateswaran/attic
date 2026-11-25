@@ -348,6 +348,8 @@ fun RowCount(text: String) {
         text,
         style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(end = 12.dp),
     )
 }
@@ -380,7 +382,8 @@ fun RowDragHandle(title: String, modifier: Modifier = Modifier) {
 
 /**
  * A collection row (`.row.coll`): a 56dp lead whose shape says what it is (cover, mosaic, cookie,
- * Favourites heart), then title and subtitle. 72dp minimum.
+ * Favourites heart), then title and subtitle. 72dp minimum. A null [onClick] leaves the row itself
+ * inert, for a list whose only action is a button in [trailing] (the equaliser's albums).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -388,7 +391,7 @@ fun CollectionRow(
     title: String,
     subtitle: String,
     lead: @Composable () -> Unit,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -396,7 +399,13 @@ fun CollectionRow(
     Row(
         modifier
             .fillMaxWidth()
-            .combinedClickable(interactionSource = null, indication = ripple(), onClick = onClick, onLongClick = onLongClick)
+            .then(
+                if (onClick != null || onLongClick != null) {
+                    Modifier.combinedClickable(interactionSource = null, indication = ripple(), onClick = onClick ?: {}, onLongClick = onLongClick)
+                } else {
+                    Modifier
+                },
+            )
             .heightIn(min = 72.dp)
             .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

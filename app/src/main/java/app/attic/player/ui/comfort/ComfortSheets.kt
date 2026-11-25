@@ -63,6 +63,7 @@ import app.attic.player.ui.model.PlaylistPickerActions
 import app.attic.player.ui.model.PlaylistPickerState
 import app.attic.player.ui.model.TrackMenuActions
 import app.attic.player.ui.model.TrackMenuState
+import app.attic.player.ui.model.equaliserSummary
 import kotlin.math.roundToInt
 
 /*
@@ -80,7 +81,8 @@ import kotlin.math.roundToInt
  * a row of the deck's superellipse toggles with their labels (the heart lights while the song is a
  * favourite), then only the rows that go somewhere or open something, "Share" among them. "Remove
  * from this playlist" comes last, in red. The language row opens the picker as a pop-over over the
- * menu. Opened from Now Playing, "Sleep timer" leads the rows and opens its choices the same way.
+ * menu. Opened from Now Playing, "Sleep timer" leads the rows and opens its choices the same way, and
+ * "Equaliser" follows it, replacing the menu with its sheet.
  */
 @Composable
 fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
@@ -91,7 +93,10 @@ fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
             SheetHeader(track.title, track.artist, art = { m -> Cover(Art.of(track.mediaId), m) })
             // A song opened from another app isn't in the library: only the sleep timer applies to it.
             if (state.external) {
-                Hairlined { if (state.sleepTimer != null) item { SleepTimerRow(state, actions) } }
+                Hairlined {
+                    if (state.sleepTimer != null) item { SleepTimerRow(state, actions) }
+                    if (state.equaliser != null) item { EqualiserRow(state, actions) }
+                }
                 return@Column
             }
             Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 2.dp, bottom = 8.dp)) {
@@ -109,6 +114,7 @@ fun ComfortTrackMenu(state: TrackMenuState, actions: TrackMenuActions) {
             Box(Modifier.padding(horizontal = 24.dp).fillMaxWidth().height(1.dp).background(colors.line))
             Hairlined {
                 if (state.sleepTimer != null) item { SleepTimerRow(state, actions) }
+                if (state.equaliser != null) item { EqualiserRow(state, actions) }
                 item { SheetRow(Symbol.PlaylistAdd, stringResource(R.string.menu_add_to_playlist), actions.pickPlaylist, end = Symbol.ChevronRight) }
                 item { LanguageRow(state, actions) }
                 if (state.canGoToAlbum) item { SheetRow(Symbol.Album, stringResource(R.string.menu_go_to_album), actions.goToAlbum) }
@@ -236,6 +242,23 @@ private fun SleepTimerRow(state: TrackMenuState, actions: TrackMenuActions) {
             }
         }
     }
+}
+
+/**
+ * "Equaliser", under the sleep timer when the menu opens from Now Playing, with its state where the
+ * timer shows its minutes: "Off", the default's preset, or "This song · Vocal". It ends in the chevron,
+ * not `unfold_more`, because it opens a sheet and not a pop-over.
+ */
+@Composable
+private fun EqualiserRow(state: TrackMenuState, actions: TrackMenuActions) {
+    val equaliser = state.equaliser ?: return
+    SheetRow(
+        Symbol.Equalizer,
+        stringResource(R.string.equaliser),
+        actions.openEqualiser,
+        value = equaliserSummary(equaliser),
+        end = Symbol.ChevronRight,
+    )
 }
 
 /**

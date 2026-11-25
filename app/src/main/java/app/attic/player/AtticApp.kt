@@ -14,6 +14,7 @@ import app.attic.player.data.UserData
 import app.attic.player.home.HomeFeed
 import app.attic.player.data.backup.BackupRepository
 import app.attic.player.playback.PlayerClient
+import app.attic.player.playback.eq.EqualiserStore
 import app.attic.player.radio.LanguageImport
 import app.attic.player.radio.RadioController
 import app.attic.player.ui.ArtFetcher
@@ -63,6 +64,8 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
             save = settings::setOnboardingDone,
         ).also { it.start(scope) }
     }
+    /** The equaliser's settings, read by the playback thread and changed from Now Playing and Settings. */
+    val equaliser by lazy { EqualiserStore(database.dao(), settings, library.library, scope) }
     val player by lazy { PlayerClient(this, library, scope) { messages.tryEmit(it) } }
     val radio by lazy { RadioController(this) }
     val homeFeed by lazy { HomeFeed(this) }

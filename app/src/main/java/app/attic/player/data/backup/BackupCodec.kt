@@ -33,7 +33,7 @@ class BackupReadException(val reason: Reason, cause: Throwable? = null) : Except
  * ```
  * { "format": "attic-backup", "schemaVersion": 1, "createdAt": 1795000000000, "appVersion": "1.0.0",
  *   "settings": {…}, "likes": […], "playlists": […], "plays": […], "listens": […], "lyrics": […],
- *   "languages": […], "queue": {…} }
+ *   "languages": […], "queue": {…}, "equaliser": { "songs": […], "albums": […], "presets": […] } }
  * ```
  *
  * A reader accepts any schema up to [SCHEMA_VERSION] and ignores fields it doesn't know, so a later
@@ -42,7 +42,12 @@ class BackupReadException(val reason: Reason, cause: Throwable? = null) : Except
  */
 object BackupCodec {
     const val FORMAT = "attic-backup"
-    const val SCHEMA_VERSION = 1
+    /**
+     * 2 added the equaliser. An older reader would skip it without a word and restore the rest, losing
+     * every song's curve, so version 1 readers are made to refuse the file instead. Version 1 files
+     * still read: they simply have no equaliser section.
+     */
+    const val SCHEMA_VERSION = 2
 
     /** Refused above this. Real backups are a few megabytes. */
     const val MAX_BYTES = 64 * 1024 * 1024
@@ -59,6 +64,8 @@ object BackupCodec {
                     putOpt("theme", s.theme)
                     putOpt("uiStyle", s.uiStyle)
                     s.autoplay?.let { put("autoplay", it) }
+                    s.equaliserOn?.let { put("equaliserOn", it) }
+                    putOpt("equaliserDefault", s.equaliserDefault)
                 },
             )
         }
@@ -119,6 +126,16 @@ object BackupCodec {
                     .putOpt("radioSeed", q.radioSeed),
             )
         }
+        put(
+            "equaliser",
+            JSONObject()
+                .put("songs", array(backup.equaliserSongs) { JSONObject().put("song", it.target).put("gains", it.gains).put("savedAt", it.savedAt) })
+                .put("albums", array(backup.equaliserAlbums) { JSONObject().put("album", it.target).put("gains", it.gains).put("savedAt", it.savedAt) })
+                .put(
+                    "presets",
+                    array(backup.equaliserPresets) { JSONObject().put("name", it.name).put("gains", it.gains).put("createdAt", it.createdAt) },
+                ),
+        )
     }.toString()
 
     fun gzip(text: String): ByteArray {
@@ -163,11 +180,19 @@ object BackupCodec {
         }
     }
 
-    private fun read(root: JSONObject): Backup = Backup(
+    private fun read(root: JSONObject): Backup {
+        val equaliser = root.objectOrNull("equaliser")
+        return Backup(
         createdAt = root.long("createdAt"),
         appVersion = root.stringOrNull("appVersion"),
         settings = root.objectOrNull("settings")?.let {
-            BackupSettings(it.stringOrNull("theme"), it.stringOrNull("uiStyle"), it.booleanOrNull("autoplay"))
+            BackupSettings(
+                theme = it.stringOrNull("theme"),
+                uiStyle = it.stringOrNull("uiStyle"),
+                autoplay = it.booleanOrNull("autoplay"),
+                equaliserOn = it.booleanOrNull("equaliserOn"),
+                equaliserDefault = it.stringOrNull("equaliserDefault"),
+            )
         },
         likes = root.objects("likes") { BackupLike(it.string("song"), it.long("likedAt")) },
         playlists = root.objects("playlists") {
@@ -207,7 +232,11 @@ object BackupCodec {
                 radioSeed = it.stringOrNull("radioSeed"),
             )
         },
-    )
+        equaliserSongs = equaliser?.objects("songs") { BackupEqualiser(it.string("song"), it.string("gains"), it.long("savedAt")) }.orEmpty(),
+        equaliserAlbums = equaliser?.objects("albums") { BackupEqualiser(it.string("album"), it.string("gains"), it.long("savedAt")) }.orEmpty(),
+        equaliserPresets = equaliser?.objects("presets") { BackupEqualiserPreset(it.string("name"), it.string("gains"), it.long("createdAt")) }.orEmpty(),
+        )
+    }
 
     private fun gunzip(bytes: ByteArray): String {
         val out = ByteArrayOutputStream()

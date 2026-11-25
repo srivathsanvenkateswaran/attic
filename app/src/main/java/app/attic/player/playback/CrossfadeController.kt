@@ -13,6 +13,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import app.attic.player.playback.eq.EqSource
+import app.attic.player.playback.eq.EqualiserAudioProcessor
 
 /**
  * Crossfades from one song into the next. Media3 can't overlap two items in one player, so a second,
@@ -26,7 +28,8 @@ import androidx.media3.exoplayer.ExoPlayer
  *    following the main player's position in the new song. Then the tail stops.
  *
  * The main player is the only one the media session, notification, widget and queue ever see; to
- * them a crossfade is an early move to the next item. If the tail can't line up in time, the song
+ * them a crossfade is an early move to the next item. Each player has its own equaliser reading the
+ * same settings, and each resolves the song it is playing, so both songs keep their own curves. If the tail can't line up in time, the song
  * just plays to its end, gapless, as it would with crossfade off.
  *
  * A fade is cut (the tail stops, the main player goes to full volume) by a pause from anywhere, a
@@ -39,6 +42,11 @@ class CrossfadeController(
     private val context: Context,
     private val main: ExoPlayer,
     private val mainLevelling: LevellingAudioProcessor,
+    /**
+     * The equaliser's settings. The tail gets its own equaliser reading them, so the outgoing song
+     * keeps its own curve while the incoming one plays with its own.
+     */
+    private val equaliser: EqSource,
     private val settingSeconds: () -> Int,
     /** True while the sleep timer is set to stop at the end of the song, which a fade would skip past. */
     private val stopsAfterThisSong: () -> Boolean,
@@ -58,6 +66,7 @@ class CrossfadeController(
 
     private val handler = Handler(Looper.getMainLooper())
     private val tailLevelling = LevellingAudioProcessor { _, _, _ -> null }
+    private val tailEqualiser = EqualiserAudioProcessor(equaliser)
     private var tail: ExoPlayer? = null
     private val alignment = TailAlignment()
     private var state: State = State.Idle
@@ -286,7 +295,7 @@ class CrossfadeController(
      * main player holds it) and shares the main player's audio session, so an equaliser attached to
      * Attic shapes both.
      */
-    private fun tailPlayer(): ExoPlayer = tail ?: ExoPlayer.Builder(context, LevellingRenderersFactory(context, tailLevelling))
+    private fun tailPlayer(): ExoPlayer = tail ?: ExoPlayer.Builder(context, LevellingRenderersFactory(context, tailLevelling, tailEqualiser))
         .setAudioAttributes(
             AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(),
             /* handleAudioFocus = */ false,

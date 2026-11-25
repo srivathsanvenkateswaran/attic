@@ -12,6 +12,7 @@ import app.attic.player.data.Artist
 import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.playback.eq.EqScope
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
 
@@ -78,6 +79,11 @@ class NowPlayingState(
     val artist: Artist?,
     val lyrics: LyricsState,
     val clock: PlaybackClock,
+    /**
+     * Song or Album when the song plays with an equaliser setting of its own or its album's (and the
+     * equaliser is on), for the indicator in the header. Null otherwise.
+     */
+    val equaliser: EqScope? = null,
 )
 
 class NowPlayingActions(
@@ -100,6 +106,8 @@ class NowPlayingActions(
     val cycleRepeat: () -> Unit,
     val seekTo: (Long) -> Unit,
     val lyrics: LyricsActions,
+    /** Opens the equaliser sheet for the song that is playing, as the indicator does. */
+    val openEqualiser: () -> Unit = {},
 )
 
 @Composable
@@ -136,6 +144,7 @@ fun rememberNowPlayingModel(
         artist = artist,
         lyrics = lyrics.state,
         clock = clock,
+        equaliser = rememberEqualiserIndicator(track),
     )
     val actions = NowPlayingActions(
         close = onClose,
@@ -161,6 +170,7 @@ fun rememberNowPlayingModel(
         cycleRepeat = { app.player.cycleRepeat() },
         seekTo = { app.player.seekTo(it) },
         lyrics = lyrics.actions,
+        openEqualiser = { track?.let { ui.showMenu(TrackMenuRequest(it, fromNowPlaying = true, equaliser = true)) } },
     )
     return UiModel(state, actions)
 }

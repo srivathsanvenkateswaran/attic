@@ -296,9 +296,79 @@
         <item quantity="one">%1$d second</item>
         <item quantity="other">%1$d seconds</item>
     </plurals>
-    <string name="settings_equaliser">Equaliser</string>
     <string name="settings_equaliser_body">Opens the equaliser on this phone.</string>
     <string name="settings_equaliser_failed">Couldn\'t open the equaliser</string>
+    <!-- Settings > Playback > Equaliser, when no song or album has a setting of its own -->
+    <string name="settings_equaliser_summary">Ten bands and presets. A song or album can keep its own setting.</string>
+    <!-- %1$s is the counts, from settings_equaliser_own_both or song_count / album_count: "4 songs, 2 albums" -->
+    <string name="settings_equaliser_own">With their own setting: %1$s</string>
+    <string name="settings_equaliser_own_both">%1$s, %2$s</string>
+    <plurals name="album_count">
+        <item quantity="one">%1$s album</item>
+        <item quantity="other">%1$s albums</item>
+    </plurals>
+
+    <!-- The equaliser: the sheet from Now Playing and the page in Settings > Playback -->
+    <string name="equaliser">Equaliser</string>
+    <string name="equaliser_use">Use equaliser</string>
+    <string name="equaliser_off">Off</string>
+    <string name="equaliser_off_note">Off. Choose a preset or move a band to turn it on.</string>
+    <!-- The track menu row's state; %1$s is the preset name: "This song · Vocal" -->
+    <string name="equaliser_state_song">This song · %1$s</string>
+    <string name="equaliser_state_album">This album · %1$s</string>
+    <!-- Which setting the sheet is changing -->
+    <string name="equaliser_scope_default">For all songs</string>
+    <string name="equaliser_scope_default_body">Every song without its own setting</string>
+    <string name="equaliser_scope_album">For this album</string>
+    <string name="equaliser_scope_song">For this song only</string>
+    <string name="equaliser_save_song">Save for this song</string>
+    <string name="equaliser_save_album">Save for this album</string>
+    <string name="equaliser_saved_note">Saved settings come back whenever the song plays.</string>
+    <string name="equaliser_use_default">Use default</string>
+    <!-- Shown instead of "Use default" when the song's own setting sits over its album's -->
+    <string name="equaliser_use_album">Use album setting</string>
+    <string name="equaliser_removes_song">Removes this song\'s setting</string>
+    <string name="equaliser_removes_album">Removes this album\'s setting</string>
+    <string name="equaliser_preset_custom">Custom</string>
+    <string name="equaliser_preset_flat">Flat</string>
+    <string name="equaliser_preset_bass_boost">Bass boost</string>
+    <string name="equaliser_preset_bass_reducer">Bass reducer</string>
+    <string name="equaliser_preset_treble_boost">Treble boost</string>
+    <string name="equaliser_preset_vocal">Vocal</string>
+    <string name="equaliser_preset_loudness">Loudness</string>
+    <string name="equaliser_preset_acoustic">Acoustic</string>
+    <string name="equaliser_preset_electronic">Electronic</string>
+    <string name="equaliser_preset_hip_hop">Hip-hop</string>
+    <string name="equaliser_preset_classical">Classical</string>
+    <string name="equaliser_preset_spoken_word">Spoken word</string>
+    <string name="equaliser_save_preset">Save as preset</string>
+    <string name="equaliser_preset_name_label">Preset name</string>
+    <string name="equaliser_preset_name_taken">Another preset has this name</string>
+    <string name="save">Save</string>
+    <string name="equaliser_rename_preset_title">Rename preset</string>
+    <string name="equaliser_delete_preset">Delete preset</string>
+    <string name="equaliser_delete_preset_title">Delete %1$s?</string>
+    <string name="equaliser_delete_preset_body">Songs and albums saved with it keep their sound and show as Custom.</string>
+    <!-- A band's name for TalkBack: "31 Hz", "16 kHz" -->
+    <string name="equaliser_hz">%1$s Hz</string>
+    <string name="equaliser_khz">%1$s kHz</string>
+    <!-- A band's value: "+4 dB", "−2.5 dB", "0 dB". The sign is in %1$s. -->
+    <string name="equaliser_db">%1$s dB</string>
+    <string name="equaliser_band_reset">Set to 0 dB</string>
+    <!-- Now Playing's indicator for a song that plays with a setting of its own or its album's -->
+    <string name="equaliser_indicator_song">This song</string>
+    <string name="equaliser_indicator_album">This album</string>
+    <string name="equaliser_indicator_song_cd">Equaliser. This song has its own setting.</string>
+    <string name="equaliser_indicator_album_cd">Equaliser. This song plays with its album\'s setting.</string>
+    <string name="equaliser_default">Default</string>
+    <string name="equaliser_default_note">Every song without its own setting plays with this.</string>
+    <string name="equaliser_own_albums">Albums with their own setting</string>
+    <string name="equaliser_own_songs">Songs with their own setting</string>
+    <string name="equaliser_own_none_title">Songs and albums with their own setting</string>
+    <string name="equaliser_own_none">None yet. Open Equaliser from the menu on Now Playing and choose “Save for this song”.</string>
+    <string name="equaliser_own_remove_cd">Remove the setting for %1$s</string>
+    <string name="equaliser_phone_section">On this phone</string>
+    <string name="equaliser_phone">Phone equaliser</string>
     <string name="settings_lyrics">Lyrics</string>
     <string name="settings_lyrics_saved">%1$s of %2$s songs have lyrics saved on this phone. Saved lyrics work offline.</string>
     <string name="settings_lyrics_privacy">Downloading sends each song\'s title, artist, album and length to lrclib.net. Your music files are never sent.</string>
@@ -347,7 +417,7 @@
     </plurals>
     <string name="restore_confirm_title">Restore this backup?</string>
     <!-- %1$s is the date the backup was made; %2$s to %5$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics. -->
-    <string name="restore_confirm_body">Made %1$s, with %2$s, %3$s, %4$s and %5$s. They are added to what is on this phone, and nothing here is deleted. Theme, style and autoplay change to the backup\'s.</string>
+    <string name="restore_confirm_body">Made %1$s, with %2$s, %3$s, %4$s and %5$s. They are added to what is on this phone, and nothing here is deleted. Theme, style, autoplay and the equaliser change to the backup\'s.</string>
     <string name="restore_confirm">Restore</string>
     <string name="restore_done_title">Backup restored</string>
     <!-- %1$s to %4$s come from backup_favourites, backup_playlists, backup_plays and backup_lyrics, counting only what was new. -->

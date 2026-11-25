@@ -2,6 +2,22 @@
 
 All notable changes to Attic are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-25
+
+### Equaliser
+- A ten-band equaliser of Attic's own, from 31 Hz to 16 kHz, each band −12 to +12 dB. It is off until you turn it on
+- "Equaliser" in the menu on Now Playing opens a sheet with the switch, presets, the ten bands over the curve they make, "Save for this song", "Save for this album" and "Use default"
+- A song plays with its own setting, else its album's, else the default. A pill on Now Playing says "This song" or "This album" when one of them is in use
+- Eleven built-in presets, from Flat and Bass boost to Spoken word, and presets of your own that you can rename and delete
+- Settings > Playback > Equaliser holds the default curve and lists the songs and albums with their own setting. Its "Phone equaliser" row still opens the phone's own equaliser, when the phone has one
+- It runs inside Attic's own audio path, so it sounds the same on every phone, changes on a song's first sample (gapless songs too), and during a crossfade each song keeps its own curve
+- Boost presets play 3 to 5 dB quieter instead of distorting: Attic takes back the curve's boost and a limiter keeps peaks under −1 dBFS
+- About 1.4% of one core while a curve is on, measured on the test phone, with no change to cold start or scrolling
+
+### Backup
+- Backups carry the equaliser: its switch, the default curve, every song's and album's setting, and your presets
+- A backup file made by 1.2.0 can't be restored by an older Attic. Files from 1.0 and 1.1 still restore
+
 ## [1.1.0] - 2026-11-25
 
 ### Home
@@ -74,5 +90,6 @@ The first public release.
 - Back up favourites, playlists, listening history, saved lyrics and settings to a file, and restore it on any phone; a restore adds to what is there and deletes nothing
 - Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch
 
+[1.2.0]: https://github.com/srivathsanvenkateswaran/attic/releases/tag/v1.2.0
 [1.1.0]: https://github.com/srivathsanvenkateswaran/attic/releases/tag/v1.1.0
 [1.0.0]: https://github.com/srivathsanvenkateswaran/attic/releases/tag/v1.0.0

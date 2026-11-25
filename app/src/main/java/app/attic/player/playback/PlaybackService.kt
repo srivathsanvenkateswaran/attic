@@ -17,6 +17,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import app.attic.player.playback.eq.EqualiserAudioProcessor
 import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.session.CommandButton
 import androidx.media3.session.LibraryResult
@@ -87,7 +88,7 @@ class PlaybackService : MediaLibraryService() {
     override fun onCreate() {
         super.onCreate()
         levelling = LevellingAudioProcessor(LevelStore(attic.database.dao(), attic.library.library, scope))
-        player = ExoPlayer.Builder(this, LevellingRenderersFactory(this, levelling))
+        player = ExoPlayer.Builder(this, LevellingRenderersFactory(this, levelling, EqualiserAudioProcessor(attic.equaliser)))
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -109,6 +110,7 @@ class PlaybackService : MediaLibraryService() {
             context = this,
             main = player,
             mainLevelling = levelling,
+            equaliser = attic.equaliser,
             settingSeconds = { attic.settings.crossfadeSeconds.value },
             stopsAfterThisSong = { sleep.choice == SleepChoice.EndOfSong },
             trackFor = { key -> attic.library.library.value?.trackByKey?.get(key)?.let { LevelTrack(it.key, it.albumKey, it.trackNumber) } },

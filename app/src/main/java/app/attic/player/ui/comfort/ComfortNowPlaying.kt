@@ -162,6 +162,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
         val hasLine = state.lyrics.hasLyrics && state.lyrics.lines.isNotEmpty()
         val fixed = insets + HeaderHeight + 4.dp + TitleHeight + (if (hasLine) 30.dp else 0.dp) + DeckHeight + 16.dp
         val side = min(maxWidth - 60.dp, pageHeight - fixed).coerceAtLeast(120.dp)
+        // Taken out of the state here so the header's slot changes only when the indicator does.
+        val equaliser = state.equaliser
+        val openEqualiser = actions.openEqualiser
         Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
             Column(Modifier.fillMaxWidth().height(pageHeight)) {
                 NowPlayingHeader(
@@ -169,6 +172,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                     onClose = actions.close,
                     onMore = actions.showMenu,
                     moreDescription = stringResource(R.string.more_options_for_cd, track.title),
+                    trailing = { EqualiserIndicator(equaliser, openEqualiser) },
                 )
                 CoverPager(state, actions, side)
                 NowPlayingTitle(track.title, track.artist, onArtistClick = actions.openTrackArtist)
