@@ -570,7 +570,8 @@ fun ExpressiveEqualiserPage(state: EqualiserPageState, actions: EqualiserPageAct
     val title = stringResource(R.string.equaliser)
     val editor = state.editor
     LargeTitlePage(title, listState, actions.back) {
-        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current)) {
+        // On a tablet, a centred column at most 720dp wide, as Settings is (SPEC.md).
+        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = readablePadding(LocalBottomPadding.current)) {
             item(key = "title") { LargeTitle(title, bottom = 20.dp) }
             item(key = "switch") { ListGroup(1) { UseEqualiserRow(editor.on, actions.editor.setOn) } }
             item(key = "default") {

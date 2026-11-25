@@ -108,7 +108,7 @@ internal fun LargeTitle(text: String, bottom: Dp = 24.dp) {
 
 /** The list's padding: [bottom], and on a tablet the inset that centres it at most 720dp wide (SPEC.md). */
 @Composable
-private fun readablePadding(bottom: Dp): PaddingValues {
+internal fun readablePadding(bottom: Dp): PaddingValues {
     val window = LocalWindowLayout.current
     val inset = if (window.wide) window.readableInset() else 0.dp
     return PaddingValues(start = inset, end = inset, bottom = bottom)

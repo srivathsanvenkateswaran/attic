@@ -311,7 +311,8 @@ fun ComfortEqualiserPage(state: EqualiserPageState, actions: EqualiserPageAction
     val songs = remember(state.songs) { state.songs }
     val phone = state.phoneEqualiserAvailable
     val title = stringResource(R.string.equaliser)
-    RootPage(title = title, listState = rememberLazyListState(), heroHeight = ShortHeroHeight, onBack = { calls.value.back() }) {
+    // On a tablet, a centred column, as Settings is (SPEC.md).
+    RootPage(title = title, listState = rememberLazyListState(), heroHeight = ShortHeroHeight, onBack = { calls.value.back() }, inset = readableColumnInset()) {
         item(key = "hero") { Hero(title, short = true) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), { calls.value.back() }) }
