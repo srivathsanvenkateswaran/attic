@@ -1,13 +1,30 @@
 # Attic website
 
 The landing page and privacy policy, served by GitHub Pages from this folder by
-`.github/workflows/pages.yml`. Plain HTML and CSS: no scripts, no cookies, no requests to other
-servers. The one font, Onest, is self-hosted under the SIL Open Font License (`fonts/OFL-onest.txt`).
+`.github/workflows/pages.yml`. Plain HTML and CSS, and one small script, `theme.js`. No cookies,
+no requests to other servers. The one font, Onest, is self-hosted under the SIL Open Font License
+(`fonts/OFL-onest.txt`).
 
-The style viewer under "Two styles, one app" runs on radio buttons and the CSS `:has()` selector.
-Its Style choice also sets the style of every other screenshot on the page; Screen changes the
-viewer's phone only, and Theme changes the viewer's phone and the tablet screenshot. Browsers without `:has()` hide the controls and show Expressive throughout,
-with Home in the visitor's theme in the viewer.
+The style viewer under "Two styles, one app" runs on radio buttons. Style runs on the CSS `:has()`
+selector and sets the style of every screenshot on the page. Screen changes the viewer's phone only.
+Theme (Match device, Light or Dark) sets the theme of every screenshot and of the page's own
+colours.
+
+Every screenshot is one `<picture>` per style, whose dark sources carry
+`media="(prefers-color-scheme: dark)"`, so the page follows the device's theme by itself.
+`theme.js` rewrites that query on every element that has it when Light or Dark is picked, and sets
+`data-theme` on `<html>`, which `style.css` reads for the page's colours. The browser then picks
+the other file from the same `srcset`, so only one theme's files load. A new screenshot needs the
+same markup as the others: dark sources first, with exactly that `media` value.
+
+Without the script, the Theme buttons stay hidden and everything follows the device's theme.
+Browsers without `:has()` hide all the controls and show Expressive throughout, with Home in the
+viewer.
+
+Remembering the visitor's Style and Theme across visits is off. To turn it on, set
+`REMEMBER_CHOICES` at the top of `theme.js` to `true`: the choices are then kept in the browser's
+localStorage, under `attic-site-choices`. That is not a cookie, but it is stored on the visitor's
+device, so check the footer line and the privacy policy still read right.
 
 ## Turning it on
 
