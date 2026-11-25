@@ -48,6 +48,7 @@ import app.attic.player.ui.model.EqualiserBands
 import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.LibraryListDetail
+import app.attic.player.ui.libraryShowsListDetail
 import app.attic.player.ui.ShellSlots
 import app.attic.player.ui.adaptive.LocalInitialPlayerPanel
 import app.attic.player.ui.adaptive.LocalWindowLayout
@@ -770,7 +771,7 @@ private fun LibraryRef(style: UiStyle, state: app.attic.player.ui.model.LibraryS
     val list: @Composable (app.attic.player.ui.model.LibraryState, app.attic.player.ui.model.LibraryActions) -> Unit = { st, a ->
         if (e) ExpressiveLibrary(st, a) else ComfortLibrary(st, a)
     }
-    if (!LocalWindowLayout.current.libraryListDetail) {
+    if (!libraryShowsListDetail()) {
         list(state, s.libraryActions)
         return
     }

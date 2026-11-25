@@ -30,7 +30,7 @@ import app.attic.player.ui.model.LibraryState
  * opened in the pane beside it, drawn by [detail]. The first item is open on arrival. Opening an item
  * from the list selects it here instead of navigating; anything opened from the detail (an artist
  * from an album, say) navigates as usual. The Songs filter has nothing to open, so it keeps the
- * whole width.
+ * whole width. [libraryShowsListDetail] decides whether the Library is drawn this way at all.
  *
  * The list knows which row is open through [LocalListDetailSelection]; the detail knows it is beside
  * a list through [LocalDetailPane], and leaves out its back button.

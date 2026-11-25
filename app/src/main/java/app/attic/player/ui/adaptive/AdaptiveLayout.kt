@@ -58,7 +58,11 @@ data class WindowLayout(
     /** Now Playing and full-screen lyrics put the player beside the queue or the lyrics. */
     val playerSideBySide: Boolean = widthClass == WidthClass.Expanded && landscape
 
-    /** The Library shows the item it opened beside its list: the Pad 6 sideways (1152 dp) and wider. */
+    /**
+     * The Library may show the item it opened beside its list: the Pad 6 sideways (1152 dp) and wider.
+     * The pane the Library is given decides it in the end ([libraryDetailFits]), since the rail's width
+     * depends on the style.
+     */
     val libraryListDetail: Boolean = wideShell && widthClass == WidthClass.Expanded && landscape
 
     companion object {
@@ -90,6 +94,17 @@ fun collectionLayout(paneWidthDp: Float): CollectionLayout = when {
     paneWidthDp >= WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND -> CollectionLayout.HeaderRow
     else -> CollectionLayout.Stacked
 }
+
+/**
+ * True when a Library [contentWidthDp] wide leaves the detail at least [LibraryDetailMinDp] beside its
+ * [LibraryListPaneDp] list, so the collection takes its header-row or two-pane layout there. Narrower
+ * (a 7-inch tablet sideways, about 960 dp) the detail would get the phone's screen, back button and
+ * all, so the Library opens items as their own screens instead, as on a medium window.
+ */
+fun libraryDetailFits(contentWidthDp: Float): Boolean = contentWidthDp - LibraryListPaneDp >= LibraryDetailMinDp
+
+/** The narrowest detail beside the Library's list: the width where a collection stops using the phone layout. */
+const val LibraryDetailMinDp = WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND.toFloat()
 
 /** The width of a collection's header pane in [CollectionLayout.TwoPane]. */
 fun collectionHeaderPaneDp(paneWidthDp: Float): Float = if (paneWidthDp >= 1000f) 360f else 320f

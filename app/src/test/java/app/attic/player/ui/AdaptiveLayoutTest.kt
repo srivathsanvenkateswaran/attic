@@ -9,6 +9,7 @@ import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.adaptive.centredInsetDp
 import app.attic.player.ui.adaptive.collectionHeaderPaneDp
 import app.attic.player.ui.adaptive.collectionLayout
+import app.attic.player.ui.adaptive.libraryDetailFits
 import app.attic.player.ui.adaptive.locksToPortrait
 import app.attic.player.ui.adaptive.widthClassOf
 import org.junit.Assert.assertEquals
@@ -74,6 +75,18 @@ class AdaptiveLayoutTest {
         assertEquals(PlayerPlacement.Bar, largePortrait.player)
         assertFalse(largePortrait.libraryListDetail)
         assertFalse(largePortrait.playerSideBySide)
+    }
+
+    @Test
+    fun libraryDetailNeedsRoomForItsOwnLayout() {
+        // The Pad sideways: 1152 less Expressive's 96 dp rail, or Comfort's dock and margins.
+        assertTrue(libraryDetailFits(1056f))
+        assertTrue(libraryDetailFits(1036f))
+        assertTrue(libraryDetailFits(1000f))
+        // A 7-inch tablet sideways: the detail would be under 600 dp, the phone's screen with its back button.
+        assertFalse(libraryDetailFits(999f))
+        assertFalse(libraryDetailFits(864f))
+        assertFalse(libraryDetailFits(928f))
     }
 
     @Test
