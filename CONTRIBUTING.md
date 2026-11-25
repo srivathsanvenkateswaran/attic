@@ -39,10 +39,18 @@ are songs and where each library root starts. The four folder names that become 
 - Add or update unit tests in `app/src/test/` when you change logic outside the UI.
 - Run `./gradlew :app:testDebugUnitTest assembleDebug` before you push. CI runs the same.
 - A change that affects what you see needs it in both styles, Expressive and Comfort, in light
-  and dark. Each style draws only from its own kit; read `KIT.md` in
-  `app/src/main/java/app/attic/player/ui/expressive/` or `.../ui/comfort/` first. Put before and
-  after screenshots in the pull request.
+  and dark. Each style draws only from its own kit. Start with the design system in
+  [docs/design-system/](docs/design-system/README.md): its tokens, components and the rules for
+  adding a screen through `ui/model`. Each style's `KIT.md` in
+  `app/src/main/java/app/attic/player/ui/expressive/` or `.../ui/comfort/` has the kit's detail.
+  Put before and after screenshots in the pull request.
 - User-facing text goes in `res/values/strings.xml`.
+
+## Rules for every change
+
+[AGENTS.md](AGENTS.md) lists the rules that apply to every change, by a person or an AI agent:
+design, copy, build and test, performance, privacy, git and signing. Claude Code reads them through
+[CLAUDE.md](CLAUDE.md); Codex, Cursor and other agents read AGENTS.md directly.
 
 ## Design files
 

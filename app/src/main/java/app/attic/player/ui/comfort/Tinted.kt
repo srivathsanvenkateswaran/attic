@@ -126,7 +126,7 @@ object ComfortTint {
 }
 
 /** How long a tinted container takes to change colour when the cover changes. */
-private val TintSpec: AnimationSpec<Color> = tween(durationMillis = 450)
+internal val TintSpec: AnimationSpec<Color> = tween(durationMillis = 450)
 
 /**
  * Draws [content] in the colours of a cover: kit.css `.tinted`, and with [wash] `.tinted.wash`.
