@@ -1,5 +1,7 @@
 package app.attic.player.ui.expressive
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +62,7 @@ fun ExpressiveQueue(state: QueueState, actions: QueueActions) {
 
 @Composable
 private fun QueuePage(state: QueueState, actions: QueueActions) {
+    val haptics = rememberHaptics()
     val colors = MaterialTheme.colorScheme
     val current = state.current
 
@@ -103,7 +106,10 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                             current = true,
                             playing = state.isPlaying,
                             onLongClick = { actions.showMenu(current) },
-                            trailing = { RowMoreButton(current.title) { actions.showMenu(current) } },
+                            trailing = {
+                                if (state.currentSmartPick) RowSmartPickMark()
+                                RowMoreButton(current.title) { actions.showMenu(current) }
+                            },
                         )
                     }
                 }
@@ -141,14 +147,17 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                                     onClick = { actions.jumpTo(row.queueIndex) },
                                     onLongClick = { actions.showMenu(row.track) },
                                     trailing = {
+                                        if (row.smartPick) RowSmartPickMark()
                                         RowDragHandle(
                                             row.track.title,
                                             Modifier.draggableHandle(
                                                 onDragStarted = {
+                                                    haptics.perform(Haptic.PickUp)
                                                     dragging = true
                                                     dragFrom = row.queueIndex
                                                 },
                                                 onDragStopped = {
+                                                    haptics.perform(Haptic.Drop)
                                                     actions.move(dragFrom, rows.indexOfFirst { it.id == row.id })
                                                     dragFrom = -1
                                                     dragging = false

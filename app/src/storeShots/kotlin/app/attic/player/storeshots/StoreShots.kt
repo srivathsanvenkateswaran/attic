@@ -45,6 +45,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import app.attic.player.R
+import app.attic.player.designrefs.scrollMain
 import androidx.compose.ui.unit.dp
 import app.attic.player.ui.expressive.AtticMarkIcon
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -77,12 +81,26 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
     @Test
     fun shot() {
         val name = "${style.name.lowercase()}-${if (dark) "dark" else "light"}-$screen"
-        compose.shoot(compose.activity, name, style, dark) { Screen(style, screen) }
+        // Home from "Mixes" down, and Settings from "Playback" down, each heading just below the bar
+        // that stays pinned at the top (Comfort's Home keeps its tabs there too).
+        val expressive = style == UiStyle.Expressive
+        val heading = when (screen) {
+            "home-mixes" -> R.string.home_mixes to if (expressive) 150f else 175f
+            "settings-playback" -> R.string.settings_playback to 125f
+            else -> null
+        }
+        val prepare: ComposeContentTestRule.() -> Unit = {
+            if (heading != null) bringToTop(context.getString(heading.first), heading.second)
+        }
+        compose.shoot(compose.activity, name, style, dark, prepare = prepare) { Screen(style, screen) }
     }
+
+    private val context get() = ApplicationProvider.getApplicationContext<Application>()
 
     companion object {
         val Screens = listOf(
-            "home", "album", "artist", "now-playing", "lyrics", "queue", "library", "search", "search-browse", "settings", "recap",
+            "home", "home-mixes", "album", "artist", "now-playing", "lyrics", "queue", "library", "search", "search-browse", "settings",
+            "settings-playback", "recap",
         )
 
         @JvmStatic
@@ -98,7 +116,7 @@ private fun Screen(style: UiStyle, screen: String) {
     val expressive = style == UiStyle.Expressive
     val s = DemoStates
     when (screen) {
-        "home" -> InShell(style, Tab.Home) { if (expressive) ExpressiveHome(s.home, s.homeActions) else ComfortHome(s.home, s.homeActions) }
+        "home", "home-mixes" -> InShell(style, Tab.Home) { if (expressive) ExpressiveHome(s.home, s.homeActions) else ComfortHome(s.home, s.homeActions) }
         "album" -> {
             val state = s.album("Paper Lanterns")
             InShell(style, Tab.Home) { if (expressive) ExpressiveAlbum(state, s.albumActions) else ComfortAlbum(state, s.albumActions) }
@@ -120,7 +138,7 @@ private fun Screen(style: UiStyle, screen: String) {
         }
         "search-browse" ->
             InShell(style, Tab.Search) { if (expressive) ExpressiveSearch(s.searchBrowse, s.searchActions) else ComfortSearch(s.searchBrowse, s.searchActions) }
-        "settings" -> {
+        "settings", "settings-playback" -> {
             val state = s.settings(style, LocalIsDark.current)
             InShell(style, Tab.Home) { if (expressive) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions) }
         }
@@ -128,6 +146,21 @@ private fun Screen(style: UiStyle, screen: String) {
             InShell(style, Tab.Home) { if (expressive) ExpressiveRecap(s.wrappedPage, s.wrappedActions) else ComfortRecap(s.wrappedPage, s.wrappedActions) }
         else -> error("Unknown screen $screen")
     }
+}
+
+/** Scrolls the page until the first node showing exactly [text] has its top [topDp] below the screen's top. */
+private fun ComposeContentTestRule.bringToTop(text: String, topDp: Float) {
+    val top = topDp * ApplicationProvider.getApplicationContext<Application>().resources.displayMetrics.density
+    repeat(20) {
+        val found = onAllNodesWithText(text, useUnmergedTree = true).fetchSemanticsNodes()
+        if (found.isNotEmpty()) {
+            scrollMain(found.first().boundsInRoot.top - top)
+            return
+        }
+        scrollMain(1200f)
+        mainClock.advanceTimeBy(100)
+    }
+    error("No \"$text\" on the page")
 }
 
 private object RegisterActivity : ExternalResource() {

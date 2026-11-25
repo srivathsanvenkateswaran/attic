@@ -23,6 +23,7 @@ sealed interface Destination {
     data class Artist(val key: String) : Destination
     data class Folder(val name: String) : Destination
     data class Playlist(val id: Long) : Destination
+    data class Genre(val key: String) : Destination
     data object Liked : Destination
 }
 
@@ -32,6 +33,7 @@ fun UiActions.open(destination: Destination) {
         is Destination.Artist -> openArtist(destination.key)
         is Destination.Folder -> openFolder(destination.name)
         is Destination.Playlist -> openPlaylist(destination.id)
+        is Destination.Genre -> openGenre(destination.key)
         Destination.Liked -> openLiked()
     }
 }

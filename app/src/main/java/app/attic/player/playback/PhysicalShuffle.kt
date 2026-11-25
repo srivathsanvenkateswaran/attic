@@ -11,15 +11,31 @@ import androidx.media3.common.util.UnstableApi
  * song that is playing is never removed, so toggling shuffle doesn't interrupt it.
  */
 @UnstableApi
-class PhysicalShuffle(private val player: Player) {
+class PhysicalShuffle(
+    private val player: Player,
+    /** Called when the smart-shuffle picks change, so the service can tell the controllers. */
+    private val onSmartChanged: () -> Unit = {},
+) {
     /** The order to return to when shuffle goes off. Null while shuffle is off. */
     var baseOrder: List<String>? = null
         private set
+
+    /**
+     * Songs smart shuffle added from outside the collection, marked in the queue. Empty unless smart
+     * shuffle is on. They are not in [baseOrder], so turning shuffle off takes them out again.
+     */
+    var smartPicks: Set<String> = emptySet()
+        private set(value) {
+            if (field == value) return
+            field = value
+            onSmartChanged()
+        }
 
     class Ordered(val items: List<MediaItem>, val startIndex: Int)
 
     /** Called when a whole new queue is about to be set. With shuffle on, it starts out shuffled. */
     fun orderNewQueue(items: List<MediaItem>, startIndex: Int): Ordered {
+        smartPicks = emptySet()
         if (!player.shuffleModeEnabled || items.isEmpty()) {
             baseOrder = null
             return Ordered(items, startIndex)
@@ -29,9 +45,36 @@ class PhysicalShuffle(private val player: Player) {
     }
 
     /** Puts saved state back without reshuffling the saved queue. */
-    fun restore(enabled: Boolean, base: List<String>?) {
+    fun restore(enabled: Boolean, base: List<String>?, picks: Set<String> = emptySet()) {
         player.shuffleModeEnabled = enabled
         baseOrder = if (enabled) base else null
+        smartPicks = if (enabled) picks else emptySet()
+    }
+
+    /**
+     * Smart shuffle: [base] (the collection, in its own order) shuffled, with [picks] spread through
+     * it one song in three. With [keepCurrent] and the current song in [base], that song plays on and
+     * the rest goes after it; otherwise the queue is replaced and starts from its first song. Shuffle
+     * is switched on underneath, so the list is already in the order it plays.
+     */
+    fun startSmart(base: List<MediaItem>, picks: List<MediaItem>, keepCurrent: Boolean) {
+        val currentId = player.currentMediaItem?.mediaId
+        val keptIndex = if (keepCurrent) base.indexOfFirst { it.mediaId == currentId } else -1
+        player.shuffleModeEnabled = true
+        baseOrder = base.map { it.mediaId }
+        if (keptIndex >= 0 && player.mediaItemCount > 0) {
+            replaceAround(emptyList(), SmartShuffle.interleave(QueueOrder.shuffledRest(base, keptIndex), picks))
+        } else {
+            player.setMediaItems(SmartShuffle.interleave(base.shuffled(), picks), 0, 0L)
+        }
+        smartPicks = picks.map { it.mediaId }.toSet()
+    }
+
+    /** Smart shuffle off, shuffle still on: every pick leaves the queue except one that is playing. */
+    fun stopSmart() {
+        val live = liveItems().map { it.mediaId }
+        SmartShuffle.removals(live, player.currentMediaItemIndex, smartPicks).forEach(player::removeMediaItem)
+        smartPicks = emptySet()
     }
 
     /**
@@ -59,12 +102,16 @@ class PhysicalShuffle(private val player: Player) {
     private fun turnOff() {
         val base = baseOrder
         baseOrder = null
+        // Smart shuffle's picks go with it; a pick that is playing finishes, then the collection plays in order.
+        val picks = smartPicks
+        if (picks.isNotEmpty()) stopSmart()
         val live = liveItems()
         if (base == null || live.size < 2) return
 
         val currentIndex = player.currentMediaItemIndex
         val currentId = live[currentIndex].mediaId
-        val target = QueueOrder.unshuffled(base, live.map { it.mediaId })
+        val unshuffled = QueueOrder.unshuffled(base, live.map { it.mediaId })
+        val target = if (currentId in picks) listOf(currentId) + (unshuffled - currentId) else unshuffled
 
         val pool = HashMap<String, ArrayDeque<MediaItem>>()
         live.filterIndexed { i, _ -> i != currentIndex }

@@ -2,9 +2,16 @@ app/src/main/assets/discogs-effnet-bsdynamic-1.onnx is the unmodified Discogs-Ef
 from https://essentia.upf.edu/models.html, created by the Music Technology Group,
 Universitat Pompeu Fabra.
 
-Essentia's models page licenses it under CC BY-NC-SA 4.0, while MTG's licensing page names
-CC BY-NC-ND 4.0. Both allow non-commercial use with attribution only. Commercial use needs a
-proprietary licence from MTG.
+app/src/main/assets/discogs-effnet-bsdynamic-1.json is the unmodified metadata file published
+with the model, from
+https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bsdynamic-1.json
+Attic reads its "classes" list, the names of the 400 Discogs styles the model scores, to name
+the genres it shows. The file is distributed as part of the model, under the model's licence
+below, and the same terms apply to it.
+
+Essentia's models page licenses the model under CC BY-NC-SA 4.0, while MTG's licensing page and
+the licence file in Essentia's model directory name CC BY-NC-ND 4.0. Both allow non-commercial
+use with attribution only. Commercial use needs a proprietary licence from MTG.
 
 Licence texts:
   https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode

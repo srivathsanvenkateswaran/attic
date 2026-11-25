@@ -9,15 +9,18 @@ import app.attic.player.ui.comfort.ComfortAlbum
 import app.attic.player.ui.comfort.ComfortArtist
 import app.attic.player.ui.comfort.ComfortFavourites
 import app.attic.player.ui.comfort.ComfortFolder
+import app.attic.player.ui.comfort.ComfortGenre
 import app.attic.player.ui.comfort.ComfortPlaylist
 import app.attic.player.ui.expressive.ExpressiveAlbum
 import app.attic.player.ui.expressive.ExpressiveArtist
 import app.attic.player.ui.expressive.ExpressiveFavourites
 import app.attic.player.ui.expressive.ExpressiveFolder
+import app.attic.player.ui.expressive.ExpressiveGenre
 import app.attic.player.ui.expressive.ExpressivePlaylist
 import app.attic.player.ui.model.rememberAlbumModel
 import app.attic.player.ui.model.rememberArtistModel
 import app.attic.player.ui.model.rememberFolderModel
+import app.attic.player.ui.model.rememberGenreModel
 import app.attic.player.ui.model.rememberLikedModel
 import app.attic.player.ui.model.rememberPlaylistModel
 
@@ -45,6 +48,15 @@ fun FolderScreen(library: Library, name: String) {
     when (LocalUiStyle.current) {
         UiStyle.Expressive -> ExpressiveFolder(state, actions)
         UiStyle.Comfort -> ComfortFolder(state, actions)
+    }
+}
+
+@Composable
+fun GenreScreen(key: String) {
+    val (state, actions) = rememberGenreModel(key)
+    when (LocalUiStyle.current) {
+        UiStyle.Expressive -> ExpressiveGenre(state, actions)
+        UiStyle.Comfort -> ComfortGenre(state, actions)
     }
 }
 

@@ -60,6 +60,7 @@ class UiActions(
     fun openArtist(key: String) = go("artist/${Uri.encode(key)}")
     fun openFolder(name: String) = go("folder/${Uri.encode(name)}")
     fun openPlaylist(id: Long) = go("playlist/$id")
+    fun openGenre(key: String) = go("genre/${Uri.encode(key)}")
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
     fun openWrapped() = go("wrapped")
@@ -240,6 +241,9 @@ private fun AppNavHost(nav: NavHostController, library: Library, transitions: Na
         }
         composable("playlist/{id}") { entry ->
             PlaylistScreen(library, entry.arguments?.getString("id")?.toLongOrNull() ?: -1L)
+        }
+        composable("genre/{key}") { entry ->
+            GenreScreen(Uri.decode(entry.arguments?.getString("key").orEmpty()))
         }
         composable("liked") { LikedScreen(library) }
         composable("settings") { SettingsScreen(library) }

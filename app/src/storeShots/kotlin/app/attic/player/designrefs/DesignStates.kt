@@ -82,8 +82,8 @@ object DesignStates {
     fun home(filter: HomeFilter): HomeState {
         val h = s.home
         return HomeState(
-            isEmpty = false, filter = filter, shortcuts = h.shortcuts, wrapped = h.wrapped, speedDial = h.speedDial,
-            recentTracks = h.recentTracks, startListening = h.startListening, folders = h.folders,
+            isEmpty = false, filter = filter, shortcuts = h.shortcuts, wrapped = h.wrapped, speedDial = h.speedDial, tasteMixes = h.tasteMixes,
+            recentTracks = h.recentTracks, onRepeat = h.onRepeat, notLately = h.notLately, newlyAdded = h.newlyAdded, startListening = h.startListening, folders = h.folders,
             biggestAlbums = h.biggestAlbums, biggestArtists = h.biggestArtists, spotlight = h.spotlight,
             currentKey = h.currentKey, isPlaying = h.isPlaying, favouriteCount = h.favouriteCount, radioSeedKey = h.radioSeedKey,
         )
@@ -91,8 +91,8 @@ object DesignStates {
 
     /** A phone with access granted and no music on it. */
     val homeEmpty = HomeState(
-        isEmpty = true, filter = HomeFilter.All, shortcuts = emptyList(), wrapped = null, speedDial = emptyList(),
-        recentTracks = emptyList(), startListening = emptyList(), folders = emptyList(), biggestAlbums = emptyList(),
+        isEmpty = true, filter = HomeFilter.All, shortcuts = emptyList(), wrapped = null, speedDial = emptyList(), tasteMixes = emptyList(),
+        recentTracks = emptyList(), onRepeat = emptyList(), notLately = emptyList(), newlyAdded = emptyList(), startListening = emptyList(), folders = emptyList(), biggestAlbums = emptyList(),
         biggestArtists = emptyList(), spotlight = null, currentKey = null, isPlaying = false, favouriteCount = 0, radioSeedKey = null,
     )
 
@@ -157,7 +157,7 @@ object DesignStates {
     val playlistActions = PlaylistActions(
         back = noop, controls = controlsActions, openOverflow = noop, dismissOverflow = noop, startRenaming = noop,
         dismissRenaming = noop, rename = {}, startDeleting = noop, dismissDeleting = noop, delete = noop, startAdding = noop,
-        dismissAdding = noop, toggleReordering = noop, reorder = {}, play = {}, showMenu = {},
+        dismissAdding = noop, toggleReordering = noop, reorder = {}, play = {}, showMenu = {}, toggleSmartShuffle = noop,
     )
 
     // Sheets and dialogs
@@ -328,6 +328,9 @@ object DesignStates {
             songCount = total,
             analysis = if (analysing) AnalysisProgress(done = 41, total = total, running = true) else base.analysis,
             backup = backup,
+            volumeLevelling = base.volumeLevelling,
+            crossfadeSeconds = base.crossfadeSeconds,
+            equaliserAvailable = base.equaliserAvailable,
         )
     }
 

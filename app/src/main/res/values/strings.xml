@@ -66,6 +66,16 @@
     <string name="home_recently_played">Recently played</string>
     <string name="home_start_listening_overline">Picked at random from your songs</string>
     <string name="home_start_listening">Start listening</string>
+    <string name="home_on_repeat">On repeat</string>
+    <string name="home_not_lately">Haven\'t heard in a while</string>
+    <string name="home_newly_added">Newly added</string>
+    <string name="home_mixes">Mixes</string>
+    <string name="home_mixes_overline">Songs you play, grouped by sound</string>
+    <!-- A taste mix, named after the artists it plays most. -->
+    <string name="home_mix_name_two">Mix: %1$s, %2$s and more</string>
+    <string name="home_mix_name_one">Mix: %1$s and more</string>
+    <!-- A taste mix whose songs have no artist tags. -->
+    <string name="home_mix_name_numbered">Mix %1$s</string>
     <string name="home_your_folders">Your folders</string>
     <string name="home_albums">Albums</string>
     <string name="home_more_from">More from</string>
@@ -82,6 +92,8 @@
     <string name="search_result_artist">Artist</string>
     <string name="search_result_playlist">Playlist</string>
     <string name="search_result_album">Album, %1$s</string>
+    <string name="search_result_genre">Genre</string>
+    <string name="search_genres">Genres</string>
     <string name="search_no_results_title">No results for “%1$s”</string>
     <string name="search_no_results_body">Check the spelling, or try fewer words.</string>
 
@@ -117,9 +129,15 @@
     <string name="collection_add_to_playlist_cd">Add %1$s to a playlist</string>
     <string name="collection_shuffle_cd">Shuffle %1$s</string>
     <string name="collection_options_cd">Playlist options</string>
+    <string name="favourites_options_cd">Favourites options</string>
+    <!-- A menu toggle on playlists and Favourites: about one song in three comes from the rest of the library. -->
+    <string name="collection_smart_shuffle">Smart shuffle</string>
+    <string name="queue_smart_pick_cd">Added by smart shuffle</string>
     <string name="collection_album_gone">This album is gone</string>
     <string name="collection_artist_gone">This artist is gone</string>
     <string name="collection_playlist_gone">This playlist is gone</string>
+    <string name="collection_genre_gone">This genre is gone</string>
+    <string name="collection_radio_cd">Start radio from %1$s</string>
     <string name="collection_gone_body">It may have been removed from this phone.</string>
 
     <!-- Album (2.7) -->
@@ -139,6 +157,8 @@
 
     <!-- Folder, Favourites and Playlist (2.9) -->
     <string name="folder_subtitle">Playlist from a folder on this phone</string>
+    <!-- Under a genre's name: its songs come from their genre tags, or from analysis for songs without one. -->
+    <string name="genre_subtitle">Genre, from tags and analysis</string>
     <string name="favourites_empty_title">Songs you like will appear here</string>
     <string name="favourites_empty_body">Tap the heart on a song to save it.</string>
     <string name="playlist_rename">Rename</string>
@@ -266,6 +286,19 @@
     <string name="settings_style">Style</string>
     <string name="settings_style_expressive">Expressive</string>
     <string name="settings_style_comfort">Comfort</string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_volume_levelling">Volume levelling</string>
+    <string name="settings_volume_levelling_body">Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are.</string>
+    <string name="settings_crossfade">Crossfade</string>
+    <string name="settings_crossfade_body">Songs from one album played in order still run straight into each other.</string>
+    <string name="settings_crossfade_off">Off</string>
+    <plurals name="settings_crossfade_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <string name="settings_equaliser">Equaliser</string>
+    <string name="settings_equaliser_body">Opens the equaliser on this phone.</string>
+    <string name="settings_equaliser_failed">Couldn\'t open the equaliser</string>
     <string name="settings_lyrics">Lyrics</string>
     <string name="settings_lyrics_saved">%1$s of %2$s songs have lyrics saved on this phone. Saved lyrics work offline.</string>
     <string name="settings_lyrics_privacy">Downloading sends each song\'s title, artist, album and length to lrclib.net. Your music files are never sent.</string>
@@ -466,6 +499,8 @@
     <string name="message_save_failed">Couldn\'t save the image</string>
     <string name="message_radio_unreadable">Radio couldn\'t read this song</string>
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
+    <string name="message_smart_shuffle_nothing">Smart shuffle has nothing to add yet, so this is a plain shuffle</string>
+    <string name="message_genre_radio_unanalysed">Radio can start from this genre once its songs are analysed</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>
@@ -518,6 +553,13 @@
     <string name="notification_shuffle_off">Turn shuffle off</string>
     <string name="notification_favourite_add">Add to favourites</string>
     <string name="notification_favourite_remove">Remove from favourites</string>
+    <!-- Android Auto and other car screens -->
+    <!-- Shown by the car when Attic can't read music yet. VI-1: the driver looks at the phone only when it's safe -->
+    <string name="car_needs_permission">Attic can\'t see your music yet. When it\'s safe, open Attic on your phone and allow access to music.</string>
+    <!-- The button under that message, on cars that run Android themselves -->
+    <string name="car_open_attic">Open Attic</string>
+    <!-- "Play X" by voice, when nothing in the library matches X -->
+    <string name="car_not_found">Couldn\'t find \u201c%1$s\u201d in your music</string>
     <string name="analysis_channel">Song analysis</string>
     <string name="analysis_channel_description">Progress while Attic analyses your songs for radio</string>
     <string name="analysis_notification_title">Analysing your songs</string>

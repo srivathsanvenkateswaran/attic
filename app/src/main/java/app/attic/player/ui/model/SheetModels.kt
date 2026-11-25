@@ -1,5 +1,7 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -116,6 +118,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         }
     }
     val language by remember(track.key) { app.radio.languageFlow(track) }.collectAsStateWithLifecycle(null)
+    val haptics = rememberHaptics()
     val albumKey = track.albumKey?.takeIf { it in library.albumByKey }
     val artistKey = track.artistKeys.firstOrNull { it in library.artistByKey }
     val artist = artistKey?.let { library.artistByKey[it] }
@@ -144,6 +147,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
             onDismiss()
         },
         toggleLike = {
+            haptics.toggle(track.key !in liked)
             app.userData.toggleLike(track.key)
             onDismiss()
         },
@@ -183,6 +187,7 @@ fun rememberTrackMenuModel(request: TrackMenuRequest, library: Library, onDismis
         },
         pickSleepTimer = { pickingSleepTimer = true },
         chooseSleepTimer = { choice ->
+            haptics.perform(Haptic.Confirm)
             app.player.setSleepTimer(choice)
             app.messages.tryEmit(
                 when (choice) {

@@ -113,7 +113,7 @@ FontFamily for other combinations; each style already sets an optical size near 
 
 `SymbolIcon(Symbol.QueueMusic, size = 24.dp, filled = false, tint = LocalContentColor.current)`.
 Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use, plus `file_save` and
-`file_open` for Settings' backup rows; `Symbol` is an
+`file_open` for Settings' backup rows and `transition_fade` and `equalizer` for its Playback rows; `Symbol` is an
 enum named after the ligature in CamelCase (`queue_music` → `Symbol.QueueMusic`,
 `Symbol.named("queue_music")`). Filled is the selected state and the transport glyphs. Sizes 18–40.
 `weight = 300` for Comfort. A name not in the enum is not in the font: add it (see the enum's doc
@@ -155,12 +155,13 @@ house until they are redrawn.
 | `.sec` | `SectionHeader(title, modifier, overline, trailing)` | |
 | `.list-label` | `ListLabel(text)` | |
 | `.group` | `ListGroup(count) { index -> … }`; lazy: `groupItems(list, key) { index, item -> … }`; any modifier: `Modifier.groupCell(index, count, color)` | sheets raise cells via `LocalGroupCellColor` (ExpressiveSheet sets it) |
-| `.row` (cover, number, rank + cover, rank + cookie, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/RankedArtist/None, current, playing, lifted, onClick, onLongClick, trailing)` | the wave goes over the cover or replaces the number on the current song; an empty `subtitle` leaves the title alone (Recap's top artists) |
-| row trailing | `RowMoreButton(title, onClick)`, `RowDragHandle(title, modifier)`, `RowAddToggle(title, added, onToggle)`, `RowCount(text)` | describe themselves from the shared copy |
+| `.row` (cover, number, rank + cover, rank + cookie, `.now`, `.lifted`) | `SongRow(title, subtitle, lead = RowLead.Cover/Number/RankedCover/RankedArtist/None, current, playing, lifted, onClick, onLongClick, onSwipeToQueue, trailing)` | the wave goes over the cover or replaces the number on the current song; an empty `subtitle` leaves the title alone (Recap's top artists); `onSwipeToQueue` wraps the row in `SwipeToQueueCell` |
+| row trailing | `RowMoreButton(title, onClick)`, `RowDragHandle(title, modifier)`, `RowAddToggle(title, added, onToggle)`, `RowCount(text)`, `RowSmartPickMark()` | describe themselves from the shared copy; the smart-pick mark (radio glyph in primary, 20dp) goes before the handle on a queue row smart shuffle added |
 | `.swipe` | `SwipeToRemove(onRemove, resetKey) { SongRow(…) }` | the swipe starts over when `resetKey` changes; the queue passes its up-next list, because a row's key passes to the song's next copy after a removal |
-| `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode |
+| swipe to queue (no mock) | `SwipeToQueueCell(onQueue) { … }`, or `SongRow(onSwipeToQueue = …)` | towards the end only; uncovers `surfaceContainerHighest` with `queue_music` and "Add to queue", `primaryContainer` once letting go would queue; settles on `fastSpatial`. Thresholds and the confirm haptic are shared (`ui/SwipeToQueue.kt`). Never inside the queue, whose rows swipe to remove |
+| `.row.lifted` in a group | `Modifier.liftableCell(index, count, lifted)` on a lazy item, with `SongRow(lifted = …)` | a group cell that can be dragged: in its place while it rests; all four corners 20 and an unclipped shadow while held. The queue and a playlist's reorder mode. The handle's `onDragStarted` gives `Haptic.PickUp` and `onDragStopped` gives `Haptic.Drop` (`ui/Haptics.kt`) |
 | `.row.coll` | `CollectionRow(title, subtitle, lead = { Cover(…, size = 56.dp) }, onClick)` | |
-| `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick)` | |
+| `.tile`, `.tile.s`, `.tile.artist`, `.tile.now` | `Tile(title, onClick, art = { m -> Cover(art, m) }, subtitle, width = 148.dp, artist, now, playing, onLongClick, titleLines = 1)` | `titleLines = 2` for a name that needs it (Home's taste mixes) |
 | `.shelf` | `Shelf { item { Tile(…) } }` | LazyRow, 12dp gaps |
 | `.grid`, `.grid.c3` | `TileGrid(items, columns = 2) { Tile(…, width = null) }` | not lazy |
 | `.hero` | `HeroCarousel(count, leading = { FavouritesPill(…) }, caption = { HeroCaption(…) }, onItemClick) { index -> Cover(…, Modifier.fillMaxSize(), shape = RectangleShape) }` | Material multi-browse carousel |
@@ -172,7 +173,7 @@ house until they are redrawn.
 | `.stat` | `StatTile(value, label, modifier, accent)` | |
 | `.sheet`, `.handle`, `.sheet-head`, `.sheet-title`, `.divider`, `.sheet-row` | `ExpressiveSheet(onDismiss, bottomPadding) { SheetHeader(title, subtitle) { m -> Cover(…, m) }; SheetDivider(); SheetRow(symbol, label, onClick, selected) }`, `SheetTitle(text)` | opens fully expanded; a sheet whose list scrolls to its foot passes `bottomPadding = 0.dp` |
 | `.dialog`, `.field` | `ExpressiveDialog(title, onDismiss, confirmButton, dismissButton, body) { DialogTextField(value, onValueChange, label) }` | buttons are `ExpressiveButton(variant = Text)` |
-| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger) }` | a null `symbol` keeps its space, so a list of choices ticks only the current one |
+| `.menu`, `.menu-item` | `ExpressiveMenu(expanded, onDismiss) { ExpressiveMenuItem(symbol, label, onClick, danger, checked) }` | a null `symbol` keeps its space, so a list of choices ticks only the current one; a non-null `checked` makes an on/off item (smart shuffle): filled primary symbol and a trailing tick while on, read as a toggle |
 | `.snack` | `SnackbarHost(state) { ExpressiveSnackbar(it) }`; `StaticSnackbar(text)` for previews | over the player the shell draws it inside `FromCover`, so it takes the cover scheme's inverse roles (07 J) |
 | `.empty`, `.empty-art` | `EmptyState(title, body, symbol or art = { AtticMarkIcon(size = 56.dp) }, action)` | `clover = true` draws the 128dp clover (`.empty-art.clover`), the empty library; `body = null` for a title alone ("Nothing up next") |
 | `.set-sec`, `.set-row`, `.set-note` | `SettingsSection(title)`, `SetRow(title, summary, leading, trailing)`, `SetSwitchRow`, `SetRadioRow`, `SetNote(text) { …; SetNoteStatus(text) }` | put rows in a `ListGroup` |

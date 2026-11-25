@@ -22,7 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -83,6 +85,16 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
                 SettingsSection(stringResource(R.string.settings_appearance))
                 ListGroup(2) { index ->
                     if (index == 0) ThemeCell(state.themeMode, actions) else StyleCell(state.uiStyle, actions)
+                }
+            }
+            item(key = "playback") {
+                SettingsSection(stringResource(R.string.settings_playback))
+                ListGroup(if (state.equaliserAvailable) 3 else 2) { index ->
+                    when (index) {
+                        0 -> VolumeLevellingRow(state.volumeLevelling, actions)
+                        1 -> CrossfadeRow(state, actions)
+                        else -> EqualiserRow(actions)
+                    }
                 }
             }
             item(key = "lyrics") {
@@ -298,6 +310,60 @@ private fun AutoplayRow(autoplay: Boolean, actions: SettingsActions) {
     ) {
         RowTitle(stringResource(R.string.settings_autoplay))
         SupportingText(stringResource(R.string.settings_autoplay_body))
+    }
+}
+
+@Composable
+private fun VolumeLevellingRow(enabled: Boolean, actions: SettingsActions) {
+    SetIconRow(
+        Symbol.VolumeUp,
+        modifier = Modifier.toggleable(value = enabled, role = Role.Switch, onValueChange = actions.setVolumeLevelling),
+        trailing = { ExpressiveSwitch(enabled, onCheckedChange = null, modifier = Modifier.padding(top = 4.dp)) },
+    ) {
+        RowTitle(stringResource(R.string.settings_volume_levelling))
+        SupportingText(stringResource(R.string.settings_volume_levelling_body))
+    }
+}
+
+/** "Crossfade" with its length as the supporting line; tapping opens the kit's menu of lengths, the current one ticked. */
+@Composable
+private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
+    var picking by remember { mutableStateOf(false) }
+    Box {
+        SetIconRow(Symbol.TransitionFade, modifier = Modifier.clickable(role = Role.DropdownList) { picking = true }) {
+            RowTitle(stringResource(R.string.settings_crossfade))
+            SupportingText(crossfadeLabel(state.crossfadeSeconds))
+            Status(stringResource(R.string.settings_crossfade_body))
+        }
+        ExpressiveMenu(expanded = picking, onDismiss = { picking = false }, modifier = Modifier) {
+            for (seconds in state.crossfadeChoices) {
+                ExpressiveMenuItem(
+                    symbol = if (seconds == state.crossfadeSeconds) Symbol.Check else null,
+                    label = crossfadeLabel(seconds),
+                    onClick = {
+                        picking = false
+                        actions.setCrossfadeSeconds(seconds)
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun crossfadeLabel(seconds: Int): String =
+    if (seconds <= 0) stringResource(R.string.settings_crossfade_off) else pluralStringResource(R.plurals.settings_crossfade_seconds, seconds, seconds)
+
+/** Shown only when something on the phone opens an equaliser; it opens there, on Attic's audio session. */
+@Composable
+private fun EqualiserRow(actions: SettingsActions) {
+    SetIconRow(
+        Symbol.Equalizer,
+        modifier = Modifier.clickable(role = Role.Button, onClick = actions.openEqualiser),
+        trailing = { SymbolIcon(Symbol.OpenInNew, size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp)) },
+    ) {
+        RowTitle(stringResource(R.string.settings_equaliser))
+        SupportingText(stringResource(R.string.settings_equaliser_body))
     }
 }
 

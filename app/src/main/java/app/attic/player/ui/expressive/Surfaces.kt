@@ -42,6 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -220,18 +223,27 @@ fun ExpressiveMenu(expanded: Boolean, onDismiss: () -> Unit, modifier: Modifier 
 
 /**
  * A menu item (`.menu-item`): a symbol and a label. [danger] turns both to the error colour. A null
- * [symbol] keeps its space, so a menu of choices can tick only the current one (sheet 03 H).
+ * [symbol] keeps its space, so a menu of choices can tick only the current one (sheet 03 H). A
+ * non-null [checked] makes it a switch-like item that ends in a tick while on and reads as on or off
+ * (smart shuffle in a playlist's menu).
  */
 @Composable
-fun ExpressiveMenuItem(symbol: Symbol?, label: String, onClick: () -> Unit, danger: Boolean = false) {
+fun ExpressiveMenuItem(symbol: Symbol?, label: String, onClick: () -> Unit, danger: Boolean = false, checked: Boolean? = null) {
     val colors = MaterialTheme.colorScheme
     DropdownMenuItem(
         text = { Text(label, style = MaterialTheme.typography.labelLarge) },
         onClick = onClick,
-        leadingIcon = { if (symbol != null) SymbolIcon(symbol) else Spacer(Modifier.size(24.dp)) },
+        modifier = if (checked != null) Modifier.semantics { toggleableState = ToggleableState(checked) } else Modifier,
+        leadingIcon = { if (symbol != null) SymbolIcon(symbol, filled = checked == true) else Spacer(Modifier.size(24.dp)) },
+        trailingIcon = if (checked == true) ({ SymbolIcon(Symbol.Check) }) else null,
         colors = MenuDefaults.itemColors(
             textColor = if (danger) colors.error else colors.onSurface,
-            leadingIconColor = if (danger) colors.error else colors.onSurfaceVariant,
+            leadingIconColor = when {
+                danger -> colors.error
+                checked == true -> colors.primary
+                else -> colors.onSurfaceVariant
+            },
+            trailingIconColor = colors.primary,
         ),
     )
 }

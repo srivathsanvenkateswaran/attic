@@ -279,4 +279,111 @@ class RadioEngineTest {
         assertTrue(RadioTaste.affinity(liked = true, finished = 2, skipped = 0) > 0f)
         assertFalse(RadioTaste.affinity(liked = false, finished = 0, skipped = 0) != 0f)
     }
+
+    // A collection seed (smart shuffle)
+
+    private fun RadioEngine.fromCollection(members: List<RadioSong>, n: Int, recent: Set<String> = emptySet()): List<String> {
+        val state = RadioState.forCollection(members, recent)
+        return buildList {
+            repeat(n) {
+                val next = next(state) ?: return@buildList
+                add(next.key)
+                state.played(next.key)
+            }
+        }
+    }
+
+    @Test
+    fun aCollectionSeedPicksWhatSoundsLikeItsMiddle() {
+        // The playlist sits at -20 and 20 degrees, so its middle is 0: "middle" is closest, "edge" further.
+        val members = listOf(song("p1", -20.0), song("p2", 20.0))
+        val e = engine(*members.toTypedArray(), song("edge", 40.0), song("middle", 2.0), song("far", 90.0))
+        assertEquals(listOf("middle", "edge"), e.fromCollection(members, 3))
+    }
+
+    @Test
+    fun aCollectionSeedNeverPicksTheCollectionsOwnSongs() {
+        val members = listOf(song("p1", 0.0), song("p2", 5.0), song("p3", 10.0))
+        val e = engine(*members.toTypedArray(), song("other", 30.0))
+        assertEquals(listOf("other"), e.fromCollection(members, 5))
+    }
+
+    @Test
+    fun aCollectionSeedLeavesOutOtherVersionsOfItsSongs() {
+        val members = listOf(song("p1", 0.0), song("p2", 10.0))
+        val e = engine(
+            *members.toTypedArray(), song("p1Copy", 0.5), song("p2Remix", 25.0), song("fresh", 30.0),
+            sameSong = { a, b -> setOf(a.key, b.key) == setOf("p2", "p2Remix") },
+        )
+        assertEquals(listOf("fresh"), e.fromCollection(members, 3))
+    }
+
+    @Test
+    fun aCollectionSeedKeepsToTheCollectionsLanguages() {
+        val members = listOf(song("tamil", -40.0, "ta"), song("hindi", 40.0, "hi"))
+        val e = engine(
+            *members.toTypedArray(),
+            song("ta2", -15.0, "ta"), song("hi2", 15.0, "hi"), song("te", 0.0, "te"), song("unknown", -28.0, null),
+        )
+        val picked = e.fromCollection(members, 4)
+        assertEquals(setOf("ta2", "hi2", "unknown"), picked.toSet())
+    }
+
+    @Test
+    fun aCollectionSeedPrefersSongsYouHaventPlayedLately() {
+        val members = listOf(song("p1", 0.0))
+        val e = engine(*members.toTypedArray(), song("recent", 15.0), song("rare", 25.0))
+        assertEquals(listOf("rare", "recent"), e.fromCollection(members, 2, recent = setOf("recent")))
+    }
+
+    @Test
+    fun songRadioIsUnchangedByCollectionSeeds() {
+        // The seed song itself is still never picked, and stays the anchor.
+        val e = engine(song("seed", 0.0), song("near", 10.0), song("far", 40.0))
+        assertEquals(listOf("near", "far"), e.chain("seed", 3))
+    }
+
+    @Test
+    fun centroidIsTheNormalisedMean() {
+        val c = Centroid.of(listOf(floatArrayOf(1f, 0f), floatArrayOf(0f, 1f)))!!
+        assertEquals(0.7071f, c[0], 1e-4f)
+        assertEquals(0.7071f, c[1], 1e-4f)
+        assertNull(Centroid.of(emptyList()))
+        assertNull(Centroid.of(listOf(floatArrayOf(1f, 0f), floatArrayOf(-1f, 0f))))
+    }
+
+    @Test
+    fun genreRadioOpensWithTheSongNearestTheMiddle() {
+        val vectors = listOf(0.0, 40.0, 80.0).associate { d ->
+            val r = Math.toRadians(d)
+            "s$d" to floatArrayOf(cos(r).toFloat(), sin(r).toFloat())
+        }
+        val centre = Centroid.of(vectors.values.toList())!!
+        assertEquals("s40.0", Centroid.nearest(centre, vectors))
+    }
+
+    @Test
+    fun aSeedVectorSteersInPlaceOfTheSeedSong() {
+        // The seed song sits at 0 degrees, but the session is steered towards 60.
+        val e = engine(song("seed", 0.0), song("nearSeed", 10.0), song("nearMiddle", 55.0))
+        val r = Math.toRadians(60.0)
+        val state = RadioState("seed", crossEvery = 1000, seedVector = floatArrayOf(cos(r).toFloat(), sin(r).toFloat()))
+        assertEquals("nearMiddle", e.next(state)?.key)
+    }
+
+    @Test
+    fun genreRadioNeverRepeatsTheSongItOpenedWith() {
+        // Steered toward 5 degrees, where the opening song itself sits closest: it must still not come back.
+        val e = engine(song("seed", 5.0), song("near", 15.0), song("far", 40.0))
+        val r = Math.toRadians(5.0)
+        val state = RadioState("seed", crossEvery = 1000, seedVector = floatArrayOf(cos(r).toFloat(), sin(r).toFloat()))
+        val picked = buildList {
+            repeat(3) {
+                val next = e.next(state, queueWouldEnd = true) ?: return@buildList
+                add(next.key)
+                state.played(next.key)
+            }
+        }
+        assertEquals(listOf("near", "far"), picked)
+    }
 }

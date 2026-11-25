@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.items
@@ -43,6 +44,7 @@ import app.attic.player.R
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
+import app.attic.player.data.Genre
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.LocalOverlayCovered
 import app.attic.player.ui.model.Destination
@@ -56,7 +58,8 @@ import app.attic.player.ui.model.BrowseTile as BrowseItem
 
 /**
  * Search (sheet 02). At rest: the root bar ("Search" and settings), the search bar, then Browse: the
- * folders as tonal tiles in their own covers' hues and the biggest albums as a shelf of covers. With
+ * folders as tonal tiles in their own covers' hues, "Genres" in the same tiles, and the biggest albums
+ * as a shelf of covers. With
  * focus or a query the bar docks at the top behind a back arrow and the page becomes results: what you
  * open (artists, albums, folders) in one group, the songs you play under "Songs" in the next. Back
  * clears the query and returns to Browse.
@@ -101,7 +104,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
         )
         val results = state.results
         when {
-            !docked -> Browse(state.tiles, browseState, actions)
+            !docked -> Browse(state.tiles, state.genres, browseState, actions)
             results == null -> Unit
             results.isEmpty -> EmptyState(
                 title = stringResource(R.string.search_no_results_title, state.query),
@@ -114,7 +117,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
 }
 
 @Composable
-private fun Browse(tiles: List<BrowseItem>, listState: LazyListState, actions: SearchActions) {
+private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, listState: LazyListState, actions: SearchActions) {
     val folders = tiles.filter { it.destination is Destination.Folder }
     val albums = tiles.filter { it.destination !is Destination.Folder }
     LazyColumn(
@@ -123,26 +126,11 @@ private fun Browse(tiles: List<BrowseItem>, listState: LazyListState, actions: S
         contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
     ) {
         item(key = "browse") { SectionHeader(stringResource(R.string.search_browse)) }
-        items(folders.chunked(2), key = { row -> "folders:${row.first().title}" }) { row ->
-            Row(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                for (column in 0 until 2) {
-                    val tile = row.getOrNull(column)
-                    if (tile == null) {
-                        Spacer(Modifier.weight(1f))
-                    } else {
-                        BrowseTile(
-                            title = tile.title,
-                            seed = rememberArtColor(tile.cover, fallback = Color.Unspecified),
-                            onClick = { actions.open(tile.destination) },
-                            modifier = Modifier.weight(1f),
-                            subtitle = songCount(tile.songCount),
-                        ) { m -> Mosaic(tile.mosaicIds.map(Art::Song), m, shape = RoundedCornerShape(ExpressiveShapes.Large)) }
-                    }
-                }
-            }
+        tonalTiles(folders, "folders", actions)
+        // Genres are another way into the same songs, so they share the folders' tile and sit under them.
+        if (genres.isNotEmpty()) {
+            item(key = "genresLabel") { SmallLabel(stringResource(R.string.search_genres)) }
+            tonalTiles(genres, "genres", actions)
         }
         if (albums.isNotEmpty()) {
             item(key = "albumsLabel") { SmallLabel(stringResource(R.string.home_albums)) }
@@ -157,6 +145,31 @@ private fun Browse(tiles: List<BrowseItem>, listState: LazyListState, actions: S
                             width = 120.dp,
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+/** Folder and genre tiles two across: tonal containers in their own covers' hues, with the mosaic. */
+private fun LazyListScope.tonalTiles(tiles: List<BrowseItem>, section: String, actions: SearchActions) {
+    items(tiles.chunked(2), key = { row -> "$section:${row.first().destination}" }) { row ->
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            for (column in 0 until 2) {
+                val tile = row.getOrNull(column)
+                if (tile == null) {
+                    Spacer(Modifier.weight(1f))
+                } else {
+                    BrowseTile(
+                        title = tile.title,
+                        seed = rememberArtColor(tile.cover, fallback = Color.Unspecified),
+                        onClick = { actions.open(tile.destination) },
+                        modifier = Modifier.weight(1f),
+                        subtitle = songCount(tile.songCount),
+                    ) { m -> Mosaic(tile.mosaicIds.map(Art::Song), m, shape = RoundedCornerShape(ExpressiveShapes.Large)) }
                 }
             }
         }
@@ -179,12 +192,17 @@ private sealed interface Openable {
     data class OfFolder(val folder: FolderPlaylist) : Openable {
         override val key get() = "folder:${folder.name}"
     }
+
+    data class OfGenre(val genre: Genre) : Openable {
+        override val key get() = "genre:${genre.key}"
+    }
 }
 
 @Composable
 private fun Results(results: SearchResults, state: SearchState, actions: SearchActions) {
     val openables = remember(results) {
-        results.artists.map(Openable::OfArtist) + results.albums.map(Openable::OfAlbum) + results.folders.map(Openable::OfFolder)
+        results.artists.map(Openable::OfArtist) + results.albums.map(Openable::OfAlbum) + results.folders.map(Openable::OfFolder) +
+            results.genres.map(Openable::OfGenre)
     }
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -210,6 +228,12 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                     lead = { Mosaic(mosaicIds(hit.folder.tracks).map(Art::Song), size = 56.dp) },
                     onClick = { actions.open(Destination.Folder(hit.folder.name)) },
                 )
+                is Openable.OfGenre -> CollectionRow(
+                    title = hit.genre.name,
+                    subtitle = stringResource(R.string.search_result_genre),
+                    lead = { Mosaic(mosaicIds(hit.genre.tracks).map(Art::Song), size = 56.dp) },
+                    onClick = { actions.open(Destination.Genre(hit.genre.key)) },
+                )
             }
         }
         if (results.tracks.isNotEmpty()) {
@@ -225,6 +249,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                     playing = state.isPlaying,
                     onClick = { actions.play(track) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
                 )
             }

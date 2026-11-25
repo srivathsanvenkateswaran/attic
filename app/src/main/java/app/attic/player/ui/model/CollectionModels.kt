@@ -1,5 +1,7 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.Haptics
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -9,17 +11,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.AtticApp
+import app.attic.player.R
 import app.attic.player.attic
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
+import app.attic.player.data.Genre
 import app.attic.player.data.Library
 import app.attic.player.data.Track
 import app.attic.player.data.UserPlaylist
 import app.attic.player.playback.PlayerUiState
+import app.attic.player.playback.SmartShuffle
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
 import app.attic.player.ui.UiActions
+import kotlinx.coroutines.launch
 
 /** The row under every collection header: add all to a playlist, shuffle, and play or pause. */
 @Immutable
@@ -32,6 +38,11 @@ class PlayControlsState(
     val shuffleOn: Boolean,
     /** This collection is what's playing, and it is playing. */
     val isPlaying: Boolean,
+    /**
+     * Smart shuffle is on for this collection. Null where it isn't offered: only playlists and
+     * Favourites have it, behind their more button.
+     */
+    val smartShuffle: Boolean? = null,
 )
 
 class PlayControlsActions(
@@ -39,30 +50,61 @@ class PlayControlsActions(
     val shuffle: () -> Unit,
     /** Pauses or resumes this collection, or starts it from the top if something else is playing. */
     val playOrPause: () -> Unit,
+    /**
+     * Turns smart shuffle on (asking radio for songs that fit, about one in three) or off (taking them
+     * out again). Turned on while this collection plays, the song playing carries on.
+     */
+    val toggleSmartShuffle: () -> Unit = {},
 )
 
 private fun playControls(
     app: AtticApp,
     ui: UiActions,
+    haptics: Haptics,
     player: PlayerUiState,
     tracks: List<Track>,
     contextName: String,
+    offersSmartShuffle: Boolean = false,
 ): UiModel<PlayControlsState, PlayControlsActions> {
-    val isThisContext = isSameContext(player.contextName, contextName) && player.current?.key in tracks.map { it.key }
+    val current = player.current?.key
+    // A song smart shuffle added still counts as this collection playing.
+    val isThisContext = isSameContext(player.contextName, contextName) &&
+        (current in tracks.map { it.key } || current in player.smartPicks)
+    val smartOn = isThisContext && player.smartPicks.isNotEmpty()
     val state = PlayControlsState(
         contextName = contextName,
         enabled = tracks.isNotEmpty(),
         shuffleOn = player.shuffle && isThisContext,
         isPlaying = isThisContext && player.isPlaying,
+        smartShuffle = if (offersSmartShuffle) smartOn else null,
     )
     val actions = PlayControlsActions(
         addToPlaylist = { ui.addToPlaylist(tracks.map { it.key }) },
         shuffle = { app.player.shufflePlay(tracks, contextName) },
         playOrPause = {
+            haptics.toggle(!(isThisContext && player.isPlaying))
             if (isThisContext) app.player.togglePlayPause() else app.player.play(tracks, 0, contextName, shuffled = false)
+        },
+        toggleSmartShuffle = {
+            if (smartOn) {
+                app.player.stopSmartShuffle()
+            } else if (tracks.isNotEmpty()) {
+                app.scope.launch { startSmartShuffle(app, tracks, contextName, keepCurrent = isThisContext) }
+            }
         },
     )
     return UiModel(state, actions)
+}
+
+/** Radio chooses the songs off the main thread; with none to add it says so and shuffles plainly. */
+private suspend fun startSmartShuffle(app: AtticApp, tracks: List<Track>, contextName: String, keepCurrent: Boolean) {
+    val picks = app.radio.smartPicks(tracks.map { it.key }, SmartShuffle.pickCount(tracks.size))
+    if (picks.isNotEmpty()) {
+        app.player.smartShuffle(tracks, picks, contextName, keepCurrent)
+        return
+    }
+    app.messages.tryEmit(app.getString(R.string.message_smart_shuffle_nothing))
+    if (keepCurrent) app.player.setShuffle(true) else app.player.shufflePlay(tracks, contextName)
 }
 
 // Album
@@ -85,6 +127,8 @@ class AlbumActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -94,7 +138,7 @@ fun rememberAlbumModel(library: Library, key: String): UiModel<AlbumState, Album
     val album = library.albumByKey[key]
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = album?.tracks.orEmpty()
-    val controls = playControls(app, ui, player, tracks, album?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, album?.name.orEmpty())
     val mediaId = album?.tracks?.first()?.mediaId
     val state = AlbumState(
         album = album,
@@ -109,6 +153,7 @@ fun rememberAlbumModel(library: Library, key: String): UiModel<AlbumState, Album
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, album?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -135,6 +180,8 @@ class ArtistActions(
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
     val openAlbum: (Album) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -148,7 +195,7 @@ fun rememberArtistModel(library: Library, key: String): UiModel<ArtistState, Art
         val rank = recentKeys.withIndex().associate { it.value to it.index }
         artist?.tracks.orEmpty().sortedBy { rank[it.key] ?: Int.MAX_VALUE }
     }
-    val controls = playControls(app, ui, player, artist?.tracks.orEmpty(), artist?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, artist?.tracks.orEmpty(), artist?.name.orEmpty())
     val state = ArtistState(
         artist = artist,
         popular = ranked.take(POPULAR_COUNT),
@@ -163,6 +210,7 @@ fun rememberArtistModel(library: Library, key: String): UiModel<ArtistState, Art
         play = { index -> app.player.play(ranked, index, artist?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
         openAlbum = { ui.openAlbum(it.key) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -185,6 +233,8 @@ class FolderActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -194,13 +244,14 @@ fun rememberFolderModel(library: Library, name: String): UiModel<FolderState, Fo
     val folder = library.folders.firstOrNull { it.name == name }
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = folder?.tracks.orEmpty()
-    val controls = playControls(app, ui, player, tracks, folder?.name.orEmpty())
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, folder?.name.orEmpty())
     val state = FolderState(folder, controls.state, player.current?.key, player.isPlaying)
     val actions = FolderActions(
         back = { ui.back() },
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, folder?.name.orEmpty()) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -214,6 +265,8 @@ class LikedState(
     val controls: PlayControlsState,
     val currentKey: String?,
     val isPlaying: Boolean,
+    /** The more button's menu, which holds smart shuffle. */
+    val overflowOpen: Boolean = false,
 )
 
 class LikedActions(
@@ -221,6 +274,12 @@ class LikedActions(
     val controls: PlayControlsActions,
     val play: (index: Int) -> Unit,
     val showMenu: (Track) -> Unit,
+    val openOverflow: () -> Unit = {},
+    val dismissOverflow: () -> Unit = {},
+    /** Closes the menu and turns smart shuffle on or off. */
+    val toggleSmartShuffle: () -> Unit = {},
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -230,13 +289,21 @@ fun rememberLikedModel(library: Library): UiModel<LikedState, LikedActions> {
     val likedKeys by app.userData.likedKeys.collectAsStateWithLifecycle()
     val player by app.player.state.collectAsStateWithLifecycle()
     val tracks = remember(likedKeys, library) { likedKeys.mapNotNull { library.trackByKey[it] } }
-    val controls = playControls(app, ui, player, tracks, FAVOURITES_CONTEXT)
-    val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying)
+    var overflow by remember { mutableStateOf(false) }
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, FAVOURITES_CONTEXT, offersSmartShuffle = true)
+    val state = LikedState(tracks, controls.state, player.current?.key, player.isPlaying, overflow)
     val actions = LikedActions(
         back = { ui.back() },
         controls = controls.actions,
         play = { index -> app.player.play(tracks, index, FAVOURITES_CONTEXT) },
         showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        openOverflow = { overflow = true },
+        dismissOverflow = { overflow = false },
+        toggleSmartShuffle = {
+            overflow = false
+            controls.actions.toggleSmartShuffle()
+        },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }
@@ -274,12 +341,16 @@ class PlaylistActions(
     val delete: () -> Unit,
     val startAdding: () -> Unit,
     val dismissAdding: () -> Unit,
+    /** Closes the menu and turns smart shuffle on or off. */
+    val toggleSmartShuffle: () -> Unit,
     val toggleReordering: () -> Unit,
     /** Saves the order rows were dragged into. */
     val reorder: (keys: List<String>) -> Unit,
     /** Does nothing in reorder mode. */
     val play: (Track) -> Unit,
     val showMenu: (Track) -> Unit,
+    /** A swipe on a song row adds it to the queue. Not offered in reorder mode. */
+    val queue: (Track) -> Unit = {},
 )
 
 @Composable
@@ -299,7 +370,7 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
     var overflow by remember { mutableStateOf(false) }
 
     val name = playlist?.name.orEmpty()
-    val controls = playControls(app, ui, player, tracks, name)
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, name, offersSmartShuffle = true)
     val state = PlaylistState(
         playlist = playlist,
         tracks = tracks,
@@ -338,12 +409,65 @@ fun rememberPlaylistModel(library: Library, id: Long): UiModel<PlaylistState, Pl
         },
         startAdding = { adding = true },
         dismissAdding = { adding = false },
+        toggleSmartShuffle = {
+            overflow = false
+            controls.actions.toggleSmartShuffle()
+        },
         toggleReordering = { reordering = !reordering },
         reorder = { keys -> app.userData.reorderPlaylist(id, keys) },
         play = { track ->
             if (!reordering) app.player.play(tracks, tracks.indexOf(track), name)
         },
         showMenu = { ui.showMenu(TrackMenuRequest(it, playlistId = id)) },
+        queue = app::queueSong,
+    )
+    return UiModel(state, actions)
+}
+
+// Genre
+
+@Immutable
+class GenreState(
+    /** Null while the list is still being built ([loading]) or when the genre has gone. */
+    val genre: Genre?,
+    val loading: Boolean,
+    val controls: PlayControlsState,
+    val currentKey: String?,
+    val isPlaying: Boolean,
+)
+
+class GenreActions(
+    val back: () -> Unit,
+    val controls: PlayControlsActions,
+    val play: (index: Int) -> Unit,
+    val showMenu: (Track) -> Unit,
+    val openAlbum: (Album) -> Unit,
+    /** Radio from the middle of the genre's sound. */
+    val startRadio: () -> Unit,
+    /** A swipe on a song row adds it to the queue. */
+    val queue: (Track) -> Unit,
+)
+
+/** A genre's page. The list of genres is built off the main thread by [app.attic.player.data.GenreRepository]. */
+@Composable
+fun rememberGenreModel(key: String): UiModel<GenreState, GenreActions> {
+    val app = LocalContext.current.attic
+    val ui = LocalUi.current
+    val genres by app.genres.genres.collectAsStateWithLifecycle()
+    val player by app.player.state.collectAsStateWithLifecycle()
+    val genre = genres?.firstOrNull { it.key == key }
+    val tracks = genre?.tracks.orEmpty()
+    val name = genre?.name.orEmpty()
+    val controls = playControls(app, ui, rememberHaptics(), player, tracks, name)
+    val state = GenreState(genre, genres == null, controls.state, player.current?.key, player.isPlaying)
+    val actions = GenreActions(
+        back = { ui.back() },
+        controls = controls.actions,
+        play = { index -> app.player.play(tracks, index, name) },
+        showMenu = { ui.showMenu(TrackMenuRequest(it)) },
+        openAlbum = { ui.openAlbum(it.key) },
+        startRadio = { if (genre != null) app.scope.launch { app.radio.startFromGenre(genre.name, genre.tracks) } },
+        queue = app::queueSong,
     )
     return UiModel(state, actions)
 }

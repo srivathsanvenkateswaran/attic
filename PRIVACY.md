@@ -1,6 +1,6 @@
 # Attic privacy policy
 
-Effective 23 November 2026. Applies to Attic for Android, package `app.attic.player`, version 1.0
+Effective 25 November 2026. Applies to Attic for Android, package `app.attic.player`, version 1.0
 and later.
 
 Attic is a music player for the audio files already on your phone. It has no account, no ads, no
@@ -22,11 +22,13 @@ analytics and no crash reporting. The developer receives no data from the app.
 All of this stays in the app's private storage on the device:
 
 - favourites and playlists
-- a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap
+- a listening log of plays, skips, finishes and likes, used for radio, the mixes and shelves on
+  Home, and Recap
 - the saved play queue and your settings
 - lyrics you have downloaded, and lyrics read from your music and `.lrc` files
-- the results of song analysis, which turns each song's sound into a list of numbers so radio can
-  find similar songs, and any language you set for a song
+- the results of song analysis: a list of numbers describing each song's sound, which radio uses
+  to find similar songs, the musical styles the model rates likeliest for it, and its loudness
+- any language you set for a song
 
 Song analysis runs on the phone. No audio, and no analysis result, leaves the device.
 
@@ -84,6 +86,23 @@ app's version number and the address of its source code.
 No file, cover art, account, device identifier or listening history is sent. As with any web
 request, LRCLIB sees your IP address. LRCLIB is run independently of Attic and its own terms apply
 to what it does with requests.
+
+## Cars, watches and other apps on the phone
+
+**Android Auto and media controls.** When Android Auto, a watch or another app connects to
+Attic's playback to control it, Attic gives that app the titles, artists, albums and covers of
+the songs it asks for: the lists a car browses or searches, and the songs around the one playing.
+Attic lets an app read a cover only after it has connected in this way. What that app does with
+them, such as showing them on a car's screen, is up to it and its own terms.
+
+**Voice requests.** When you ask the phone's assistant to play something on Attic, the assistant
+hands Attic the words it heard, and Attic looks for them in your library on the phone. The
+assistant handles your voice under its own terms.
+
+**Equaliser apps.** While it plays, Attic tells equaliser apps on the phone which audio session
+to adjust. That message carries the session's number and Attic's package name, nothing else.
+
+None of this goes to the internet from Attic.
 
 ## Sharing and saving Recap cards
 

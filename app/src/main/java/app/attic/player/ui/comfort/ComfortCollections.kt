@@ -1,5 +1,7 @@
 package app.attic.player.ui.comfort
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,6 +51,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -68,6 +73,8 @@ import app.attic.player.ui.model.ArtistActions
 import app.attic.player.ui.model.ArtistState
 import app.attic.player.ui.model.FolderActions
 import app.attic.player.ui.model.FolderState
+import app.attic.player.ui.model.GenreActions
+import app.attic.player.ui.model.GenreState
 import app.attic.player.ui.model.LikedActions
 import app.attic.player.ui.model.LikedState
 import app.attic.player.ui.model.PlayControlsActions
@@ -120,6 +127,7 @@ fun ComfortAlbum(state: AlbumState, actions: AlbumActions) {
                 meta = formatDuration(track.durationMs),
                 onClick = { actions.play(index) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
             )
         }
@@ -172,6 +180,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                 )
             }
@@ -206,6 +215,7 @@ fun ComfortArtist(state: ArtistState, actions: ArtistActions) {
                     playing = state.isPlaying,
                     onClick = { actions.play(index + offset) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                 )
             }
@@ -231,7 +241,55 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
         }
         item(key = "actions") { PlayRow(folder.name, state.controls, actions.controls) }
         item(key = "gap") { Spacer(Modifier.height(16.dp)) }
-        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
+    }
+}
+
+/**
+ * A genre: the folder's header, with the line under the name saying where the genre comes from and
+ * radio in the row of actions. Albums most of whose songs are in it come first as a shelf, then every
+ * song as one card.
+ */
+@Composable
+fun ComfortGenre(state: GenreState, actions: GenreActions) {
+    val genre = state.genre
+    if (genre == null) {
+        // While the list is first built there is nothing to say yet; after that, the genre has gone.
+        if (!state.loading) GoneState(R.string.collection_genre_gone, Symbol.QueueMusic, actions.back)
+        return
+    }
+    val tracks = genre.tracks
+    CollectionFrame(title = genre.name, onBack = actions.back, titleTop = HeaderArt) {
+        item(key = "header") {
+            CollectionHeader(
+                title = genre.name,
+                art = { m -> Mosaic(mosaicIds(tracks).map(Art::Song), m) },
+                meta = stringResource(R.string.genre_subtitle) + "\n" + songsAndLength(tracks),
+                artSize = HeaderArt,
+            )
+        }
+        item(key = "actions") { PlayRow(genre.name, state.controls, actions.controls, radio = actions.startRadio) }
+        if (genre.albums.isNotEmpty()) {
+            item(key = "albums") {
+                Column {
+                    Label(stringResource(R.string.artist_albums))
+                    Shelf {
+                        items(genre.albums, key = { it.key }) { album ->
+                            Tile(
+                                title = album.name,
+                                onClick = { actions.openAlbum(album) },
+                                art = { m -> Cover(Art.of(album.tracks.firstOrNull()?.mediaId), m) },
+                                subtitle = album.artist,
+                            )
+                        }
+                    }
+                }
+            }
+            item(key = "songsLabel") { Label(stringResource(R.string.library_filter_songs)) }
+        } else {
+            item(key = "gap") { Spacer(Modifier.height(16.dp)) }
+        }
+        songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
 
@@ -243,7 +301,22 @@ fun ComfortFolder(state: FolderState, actions: FolderActions) {
 fun ComfortFavourites(state: LikedState, actions: LikedActions) {
     val title = stringResource(R.string.favourites)
     val tracks = state.tracks
-    CollectionFrame(title = title, onBack = actions.back, titleTop = HeaderArt) {
+    CollectionFrame(
+        title = title,
+        onBack = actions.back,
+        titleTop = HeaderArt,
+        barActions = {
+            // The mock has no place for smart shuffle, so it sits behind a more button as on a playlist.
+            if (tracks.isNotEmpty()) {
+                Box {
+                    ComfortIconButton(Symbol.MoreVert, stringResource(R.string.favourites_options_cd), actions.openOverflow)
+                    ComfortMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                        SmartShuffleRow(state.controls, actions.toggleSmartShuffle)
+                    }
+                }
+            }
+        },
+    ) {
         item(key = "header") {
             CollectionHeader(
                 title = title,
@@ -263,9 +336,23 @@ fun ComfortFavourites(state: LikedState, actions: LikedActions) {
             }
         } else {
             item(key = "gap") { Spacer(Modifier.height(16.dp)) }
-            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu)
+            songRows(tracks, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
         }
     }
+}
+
+/** "Smart shuffle" in a collection's menu: selected, with the tick, while on for this collection. */
+@Composable
+private fun SmartShuffleRow(controls: PlayControlsState, onToggle: () -> Unit) {
+    val on = controls.smartShuffle == true
+    MenuRow(
+        Symbol.ShuffleOn,
+        stringResource(R.string.collection_smart_shuffle),
+        onToggle,
+        modifier = Modifier.semantics { toggleableState = ToggleableState(on) },
+        selected = on,
+        check = true,
+    )
 }
 
 private fun LazyListScope.songRows(
@@ -274,6 +361,7 @@ private fun LazyListScope.songRows(
     isPlaying: Boolean,
     onPlay: (Int) -> Unit,
     onMenu: (Track) -> Unit,
+    onQueue: (Track) -> Unit,
 ) {
     groupItems(tracks, key = { it.key }) { index, track ->
         SongRow(
@@ -284,6 +372,7 @@ private fun LazyListScope.songRows(
             playing = isPlaying,
             onClick = { onPlay(index) },
             onLongClick = { onMenu(track) },
+            onSwipeToQueue = { onQueue(track) },
             trailing = { SongMoreButton(track.title, { onMenu(track) }) },
         )
     }
@@ -310,6 +399,7 @@ fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
             Box {
                 ComfortIconButton(Symbol.MoreVert, stringResource(R.string.collection_options_cd), actions.openOverflow)
                 ComfortMenu(expanded = state.overflowOpen, onDismiss = actions.dismissOverflow) {
+                    if (tracks.isNotEmpty()) SmartShuffleRow(state.controls, actions.toggleSmartShuffle)
                     MenuRow(Symbol.Edit, stringResource(R.string.playlist_rename), actions.startRenaming)
                     MenuRow(Symbol.Delete, stringResource(R.string.playlist_delete), actions.startDeleting, danger = true)
                 }
@@ -355,6 +445,7 @@ fun ComfortPlaylist(state: PlaylistState, actions: PlaylistActions) {
                             playing = state.isPlaying,
                             onClick = { actions.play(track) },
                             onLongClick = { actions.showMenu(track) },
+                            onSwipeToQueue = { actions.queue(track) },
                             trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
                         )
                     }
@@ -412,6 +503,7 @@ private fun RowScope.ToolHalf(symbol: Symbol, label: String, onClick: () -> Unit
  */
 @Composable
 private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
+    val haptics = rememberHaptics()
     val tracks = state.tracks
     // The rows follow the playlist, except mid-drag, when they hold the order being dragged.
     val rows = remember { mutableStateListOf<Track>() }
@@ -455,8 +547,12 @@ private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
                                     SongDragHandle(
                                         track.title,
                                         Modifier.draggableHandle(
-                                            onDragStarted = { dragging = true },
+                                            onDragStarted = {
+                                                haptics.perform(Haptic.PickUp)
+                                                dragging = true
+                                            },
                                             onDragStopped = {
+                                                haptics.perform(Haptic.Drop)
                                                 actions.reorder(rows.map { it.key })
                                                 dragging = false
                                             },
@@ -526,10 +622,11 @@ private fun CollectionFrame(
 /**
  * `.c-actions`: Play (Pause while this collection plays), then shuffle, lit while it is on for this
  * collection, and add to a playlist. All three are off for an empty collection. In light the resting
- * toggles take the card colour, since the putty fill vanishes on the plaster ground.
+ * toggles take the card colour, since the putty fill vanishes on the plaster ground. [radio], for a
+ * genre, adds a fourth button between shuffle and add to playlist.
  */
 @Composable
-private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControlsActions) {
+private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControlsActions, radio: (() -> Unit)? = null) {
     val colors = Comfort.colors
     val container = if (colors.dark) colors.fill else colors.card
     CollectionActions {
@@ -543,6 +640,16 @@ private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControl
             enabled = state.enabled,
             container = container,
         )
+        if (radio != null) {
+            TonalIconButton(
+                Symbol.Sensors,
+                stringResource(R.string.collection_radio_cd, name),
+                radio,
+                large = true,
+                enabled = state.enabled,
+                container = container,
+            )
+        }
         TonalIconButton(
             Symbol.PlaylistAdd,
             stringResource(R.string.collection_add_to_playlist_cd, name),

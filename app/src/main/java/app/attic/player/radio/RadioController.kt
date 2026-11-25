@@ -5,9 +5,9 @@ import app.attic.player.AtticApp
 import app.attic.player.R
 import app.attic.player.analysis.MelodyMatch
 import app.attic.player.analysis.SongAnalyzer
+import app.attic.player.analysis.saveAnalysis
 import app.attic.player.data.LanguageLabels
 import app.attic.player.data.LibraryRepository
-import app.attic.player.data.SongAnalysisEntity
 import app.attic.player.data.SongLanguageEntity
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
@@ -43,7 +43,7 @@ object LanguageImport {
 
 /** Runs the radio session the playback service asks it to keep filled. */
 class RadioController(private val app: AtticApp) {
-    private class Session(val seedKey: String, val contextName: String) {
+    private class Session(val seedKey: String, val contextName: String, val seedVector: FloatArray? = null) {
         /** False until the player reports this context, so the old queue's events can't end a new session. */
         @Volatile var seen = false
         var engine: RadioEngine? = null
@@ -92,10 +92,41 @@ class RadioController(private val app: AtticApp) {
 
     /** Plays the song straight away. The service then asks for the songs that follow it. */
     fun start(track: Track) {
-        val started = Session(track.key, "$CONTEXT_PREFIX${track.title}")
+        app.player.play(listOf(track), 0, begin(track), shuffled = false)
+    }
+
+    /**
+     * Opens a radio session seeded from [track] and returns the name its queue plays under. The caller
+     * puts the song in the player; a car row does this inside the service, which has the player itself.
+     * Genre radio passes the genre's centre as [steerTo] and its own [title]. Smart shuffle never opens
+     * a session: its picks come from [smartPicks], which leaves the running session alone.
+     */
+    fun begin(track: Track, title: String = track.title, steerTo: FloatArray? = null): String {
+        val started = Session(track.key, "$CONTEXT_PREFIX$title", steerTo)
         session = started
         stoppedContext = null
-        app.player.play(listOf(track), 0, started.contextName, shuffled = false)
+        return started.contextName
+    }
+
+    /**
+     * Radio from a genre: opens with the song nearest the middle of the genre's sound and keeps steering
+     * toward that middle, so it doesn't drift off after the first song as song radio may. Says so and
+     * does nothing when none of [tracks] has been analysed yet.
+     */
+    suspend fun startFromGenre(name: String, tracks: List<Track>) {
+        val keys = tracks.mapTo(HashSet()) { it.key }
+        val vectors = withContext(Dispatchers.Default) {
+            app.database.dao().embeddings(SongAnalyzer.MODEL_VERSION)
+                .filter { it.trackKey in keys }
+                .associate { it.trackKey to SongAnalyzer.toFloats(it.embedding) }
+        }
+        val centre = Centroid.of(vectors.values.toList())
+        val seed = centre?.let { Centroid.nearest(it, vectors) }?.let { key -> tracks.firstOrNull { it.key == key } }
+        if (centre == null || seed == null) {
+            app.messages.tryEmit(app.getString(R.string.message_genre_radio_unanalysed))
+            return
+        }
+        app.player.play(listOf(seed), 0, begin(seed, title = name, steerTo = centre), shuffled = false)
     }
 
     /**
@@ -150,7 +181,7 @@ class RadioController(private val app: AtticApp) {
         // Background analysis may have reached more songs since this session began.
         val analyzedNow = app.database.dao().analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
         if (analyzedNow != current.analyzedCount) {
-            val songs = loadSongs(current)
+            val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
             synchronized(current) {
                 current.engine = RadioEngine(songs) { a, b -> sameMelody(a.key, b.key) }
                 current.analyzedCount = analyzedNow
@@ -180,7 +211,7 @@ class RadioController(private val app: AtticApp) {
             return false
         }
         val analyzedNow = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
-        val songs = loadSongs(current)
+        val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
         val cross = dao.crossCounts()
         val state = RadioState(
             seedKey = current.seedKey,
@@ -189,6 +220,7 @@ class RadioController(private val app: AtticApp) {
                 skipped = cross.filter { it.outcome == ListenTracker.SKIPPED || it.outcome == ListenTracker.REMOVED }.sumOf { it.total },
             ),
             recent = dao.recentKeys(RECENT_TO_AVOID).toSet() - current.seedKey,
+            seedVector = current.seedVector,
         )
         synchronized(current) {
             current.pendingSkips.forEach(state::skipped)
@@ -202,8 +234,32 @@ class RadioController(private val app: AtticApp) {
         return true
     }
 
-    /** Every analysed song as radio sees it. Run again as analysis reaches more of the library. */
-    private suspend fun loadSongs(current: Session): List<RadioSong> {
+    /**
+     * Smart shuffle's picks for a collection: up to [count] songs from the rest of the library that fit
+     * its sound, chosen by a radio session seeded with the collection's average sound
+     * ([RadioState.forCollection]). Prefers songs you haven't played lately, keeps to the collection's
+     * languages and leaves out other versions of its songs. Empty when none of it has been analysed.
+     */
+    suspend fun smartPicks(collection: List<String>, count: Int): List<Track> = withContext(Dispatchers.Default) {
+        if (count <= 0 || collection.isEmpty()) return@withContext emptyList()
+        val tracks = HashMap<String, Track>()
+        val songs = loadSongs { tracks[it.key] = it }
+        val inCollection = collection.toSet()
+        val members = songs.filter { it.key in inCollection }
+        if (members.isEmpty()) return@withContext emptyList()
+        val state = RadioState.forCollection(members, recent = app.database.dao().recentKeys(RECENT_TO_AVOID).toSet())
+        val engine = RadioEngine(songs) { a, b -> sameMelody(a.key, b.key) }
+        val picks = ArrayList<Track>(count)
+        while (picks.size < count) {
+            val next = engine.next(state) ?: break
+            state.played(next.key)
+            tracks[next.key]?.let(picks::add)
+        }
+        picks
+    }
+
+    /** Every analysed song as radio sees it, handing each track to [found]. Run again as analysis reaches more of the library. */
+    private suspend fun loadSongs(found: (Track) -> Unit): List<RadioSong> {
         val dao = app.database.dao()
         val library = app.library.await()
         val stored = dao.storedLanguages().associate { it.trackKey to it.language }
@@ -214,7 +270,7 @@ class RadioController(private val app: AtticApp) {
             val track = library.trackByKey[row.trackKey] ?: return@mapNotNull null
             val text = lyrics[track.key]
             val counts = outcomes[track.key].orEmpty()
-            synchronized(current) { current.tracks[track.key] = track }
+            found(track)
             RadioSong(
                 key = track.key,
                 vector = SongAnalyzer.toFloats(row.embedding),
@@ -236,10 +292,9 @@ class RadioController(private val app: AtticApp) {
         val dao = app.database.dao()
         if (dao.chroma(key) != null) return true
         val track = app.library.await().trackByKey[key] ?: return false
-        val analysis = SongAnalyzer(app).use { it.analyze(LibraryRepository.uriFor(track.mediaId)) } ?: return false
-        dao.saveAnalysis(
-            SongAnalysisEntity(key, SongAnalyzer.MODEL_VERSION, SongAnalyzer.toBytes(analysis.embedding), analysis.chroma, System.currentTimeMillis()),
-        )
+        val analysis = SongAnalyzer(app).use { it.analyze(LibraryRepository.uriFor(track.mediaId)) }
+        if (analysis.sound == null) return false
+        dao.saveAnalysis(key, analysis)
         return true
     }
 

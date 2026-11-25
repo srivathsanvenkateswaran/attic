@@ -1,5 +1,6 @@
 package app.attic.player.ui.expressive
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,9 +31,11 @@ import app.attic.player.R
 import app.attic.player.data.Album
 import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
+import app.attic.player.data.Track
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.model.HomeActions
 import app.attic.player.ui.model.HomeFilter
+import app.attic.player.ui.model.HomeShelf
 import app.attic.player.ui.model.HomeState
 import app.attic.player.ui.model.Shortcut
 import app.attic.player.ui.model.WrappedTeaser
@@ -42,8 +45,9 @@ import java.text.NumberFormat
 /**
  * Home (sheet 01): the root bar with the mark, "Attic" and settings; the connected filter; then, under
  * "All", the carousel of places with Favourites pinned as the pill, the Recap card, Instant mixes,
- * Recently played, Start listening as a grouped list, folders, albums, the "More from" block and top
- * artists. Another filter gives its one kind of content the page as a grid.
+ * the taste mixes, Recently played, the shelves from your listening (On repeat, Haven't heard in a
+ * while, Newly added), Start listening as a grouped list, folders, albums, the "More from" block and
+ * top artists. Another filter gives its one kind of content the page as a grid.
  */
 @Composable
 fun ExpressiveHome(state: HomeState, actions: HomeActions) {
@@ -125,24 +129,27 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
             }
         }
     }
-    if (state.recentTracks.isNotEmpty()) {
-        item(key = "recent") {
-            SectionHeader(stringResource(R.string.home_recently_played))
+    if (state.tasteMixes.isNotEmpty()) {
+        item(key = "tasteMixes") {
+            SectionHeader(stringResource(R.string.home_mixes), overline = stringResource(R.string.home_mixes_overline))
             Shelf {
-                items(state.recentTracks, key = { it.key }) { track ->
+                // Mixes never share a song, so the first one names the mix.
+                items(state.tasteMixes, key = { it.tracks.first().key }) { mix ->
                     Tile(
-                        title = track.title,
-                        onClick = { actions.playRecent(track) },
-                        art = { Cover(Art.of(track.mediaId), it) },
-                        subtitle = track.artist,
-                        width = 112.dp,
-                        now = state.currentKey == track.key,
-                        playing = state.isPlaying,
+                        title = mix.name,
+                        onClick = { actions.playMix(mix) },
+                        art = { Mosaic(mix.mosaicIds.map(Art::Song), it) },
+                        subtitle = songCount(mix.tracks.size),
+                        titleLines = 2,
                     )
                 }
             }
         }
     }
+    songShelf("recent", R.string.home_recently_played, state.recentTracks, state) { actions.playRecent(it) }
+    songShelf("onRepeat", R.string.home_on_repeat, state.onRepeat, state) { actions.playShelf(HomeShelf.OnRepeat, it) }
+    songShelf("notLately", R.string.home_not_lately, state.notLately, state) { actions.playShelf(HomeShelf.NotLately, it) }
+    songShelf("newlyAdded", R.string.home_newly_added, state.newlyAdded, state) { actions.playShelf(HomeShelf.NewlyAdded, it) }
     if (state.startListening.isNotEmpty()) {
         item(key = "startHeader") {
             SectionHeader(
@@ -159,6 +166,7 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
                 playing = state.isPlaying,
                 onClick = { actions.playStartListening(track) },
                 onLongClick = { actions.showMenu(track) },
+                onSwipeToQueue = { actions.queue(track) },
                 trailing = { RowMoreButton(track.title) { actions.showMenu(track) } },
             )
         }
@@ -201,6 +209,27 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
         item(key = "artists") {
             SectionHeader(stringResource(R.string.home_top_artists))
             Shelf { items(state.biggestArtists, key = { it.key }) { ArtistTile(it, actions) } }
+        }
+    }
+}
+
+/** A shelf of songs (Recently played and the shelves after it): cover, title, artist; tap plays the shelf from that song. */
+private fun LazyListScope.songShelf(key: String, @StringRes title: Int, tracks: List<Track>, state: HomeState, onPlay: (Track) -> Unit) {
+    if (tracks.isEmpty()) return
+    item(key = key) {
+        SectionHeader(stringResource(title))
+        Shelf {
+            items(tracks, key = { it.key }) { track ->
+                Tile(
+                    title = track.title,
+                    onClick = { onPlay(track) },
+                    art = { Cover(Art.of(track.mediaId), it) },
+                    subtitle = track.artist,
+                    width = 112.dp,
+                    now = state.currentKey == track.key,
+                    playing = state.isPlaying,
+                )
+            }
         }
     }
 }

@@ -12,6 +12,17 @@
     </style>
 
     <!--
+        Read only by Android Auto (the manifest's com.google.android.gms.car.application.theme), which
+        styles its playback controls with the accent. No activity or window uses it, so it can't change
+        either in-app style. Headroom terracotta, the launcher icon's ground; the car may adjust it for
+        contrast.
+    -->
+    <style name="Theme.Attic.Car" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/headroom_ground</item>
+        <item name="android:colorAccent">@color/headroom_ground</item>
+    </style>
+
+    <!--
         The manifest's launch theme, used until the app has run once: the Expressive splash. The
         launcher icon (Headroom on terracotta) sits on the style's ground.
     -->

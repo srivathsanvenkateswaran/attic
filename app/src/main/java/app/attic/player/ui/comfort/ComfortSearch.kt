@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -162,7 +163,7 @@ private const val FIND_ROW = "findRow"
 
 /**
  * Browse: every folder, then the biggest albums, as neutral cards two across, with the mosaic or the
- * cover upright in the corner. At rest it opens with the hero and the field's row; [top] is set when it
+ * cover upright in the corner; then "Genres" in the same cards. At rest it opens with the hero and the field's row; [top] is set when it
  * shows under the bar instead (the keyboard is up with nothing typed).
  */
 @Composable
@@ -183,15 +184,23 @@ private fun Browse(state: SearchState, actions: SearchActions, listState: LazyLi
             }
         }
         item(key = "browseLabel") { Label(stringResource(R.string.search_browse)) }
-        items(state.tiles.chunked(2), key = { row -> "browse:${row.first().destination}" }) { row ->
-            Row(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                for (column in 0 until 2) {
-                    val tile = row.getOrNull(column)
-                    if (tile == null) Spacer(Modifier.weight(1f)) else BrowseCard(tile, actions, Modifier.weight(1f))
-                }
+        browseCards(state.tiles, "browse", actions)
+        if (state.genres.isNotEmpty()) {
+            item(key = "genresLabel") { Label(stringResource(R.string.search_genres)) }
+            browseCards(state.genres, "genres", actions)
+        }
+    }
+}
+
+private fun LazyListScope.browseCards(tiles: List<BrowseItem>, section: String, actions: SearchActions) {
+    items(tiles.chunked(2), key = { row -> "$section:${row.first().destination}" }) { row ->
+        Row(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            for (column in 0 until 2) {
+                val tile = row.getOrNull(column)
+                if (tile == null) Spacer(Modifier.weight(1f)) else BrowseCard(tile, actions, Modifier.weight(1f))
             }
         }
     }
@@ -199,13 +208,14 @@ private fun Browse(state: SearchState, actions: SearchActions, listState: LazyLi
 
 @Composable
 private fun BrowseCard(tile: BrowseItem, actions: SearchActions, modifier: Modifier) {
-    val folder = tile.destination is Destination.Folder
+    // Folders and genres are gatherings of songs: a mosaic and a count. An album is its cover and artist.
+    val gathered = tile.destination is Destination.Folder || tile.destination is Destination.Genre
     BrowseTile(
         title = tile.title,
         onClick = { actions.open(tile.destination) },
-        art = { m -> if (folder) Mosaic(tile.mosaicIds.map(Art::Song), m) else Cover(Art.of(tile.cover), m) },
+        art = { m -> if (gathered) Mosaic(tile.mosaicIds.map(Art::Song), m) else Cover(Art.of(tile.cover), m) },
         modifier = modifier,
-        subtitle = if (folder) songCount(tile.songCount) else tile.artist,
+        subtitle = if (gathered) songCount(tile.songCount) else tile.artist,
     )
 }
 
@@ -217,7 +227,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
         state = listState,
         contentPadding = PaddingValues(top = top, bottom = bottom + 8.dp),
     ) {
-        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty()) {
+        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty() || results.genres.isNotEmpty()) {
             item(key = "found") {
                 Shelf(Modifier.padding(top = 16.dp)) {
                     items(results.artists, key = { "artist:${it.key}" }) { artist ->
@@ -241,6 +251,13 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                             { actions.open(Destination.Album(album.key)) },
                         ) { m -> Cover(Art.of(album.tracks.firstOrNull()?.mediaId), m) }
                     }
+                    items(results.genres, key = { "genre:${it.key}" }) { genre ->
+                        ResultTile(
+                            genre.name,
+                            stringResource(R.string.search_result_genre),
+                            { actions.open(Destination.Genre(genre.key)) },
+                        ) { m -> Mosaic(mosaicIds(genre.tracks).map(Art::Song), m) }
+                    }
                 }
             }
         }
@@ -256,6 +273,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                     playing = state.isPlaying,
                     onClick = { actions.play(track) },
                     onLongClick = { actions.showMenu(track) },
+                    onSwipeToQueue = { actions.queue(track) },
                     trailing = { SongMoreButton(track.title, onClick = { actions.showMenu(track) }) },
                 )
             }

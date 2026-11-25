@@ -1,5 +1,6 @@
 package app.attic.player.ui.model
 
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -102,10 +103,14 @@ fun rememberLyricsScreenModel(player: PlayerUiState, onClose: () -> Unit): UiMod
     val track = player.current
     val lyrics = rememberLyricsModel(track)
     val clock = remember(app) { PlaybackClock(app.player::positionMs) }
+    val haptics = rememberHaptics()
     val state = LyricsScreenState(track, player.isPlaying, lyrics.state, clock)
     val actions = LyricsScreenActions(
         close = onClose,
-        togglePlayPause = { app.player.togglePlayPause() },
+        togglePlayPause = {
+            haptics.toggle(!player.isPlaying)
+            app.player.togglePlayPause()
+        },
         seekTo = { app.player.seekTo(it) },
         lyrics = lyrics.actions,
     )

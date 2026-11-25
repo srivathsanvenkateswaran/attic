@@ -75,8 +75,30 @@ class AppSettings(context: Context) {
         _autoplay.value = enabled
     }
 
+    private val _volumeLevelling = MutableStateFlow(prefs.getBoolean(KEY_VOLUME_LEVELLING, true))
+
+    /** Whether songs play at a matched loudness, from their tags or the level analysis measured. */
+    val volumeLevelling: StateFlow<Boolean> = _volumeLevelling.asStateFlow()
+
+    fun setVolumeLevelling(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_VOLUME_LEVELLING, enabled).apply()
+        _volumeLevelling.value = enabled
+    }
+
+    private val _crossfadeSeconds = MutableStateFlow(prefs.getInt(KEY_CROSSFADE_SECONDS, 0))
+
+    /** How long one song fades into the next, in seconds. 0 is off, the default. */
+    val crossfadeSeconds: StateFlow<Int> = _crossfadeSeconds.asStateFlow()
+
+    fun setCrossfadeSeconds(seconds: Int) {
+        prefs.edit().putInt(KEY_CROSSFADE_SECONDS, seconds).apply()
+        _crossfadeSeconds.value = seconds
+    }
+
     private companion object {
         const val KEY_THEME = "theme"
+        const val KEY_CROSSFADE_SECONDS = "crossfade_seconds"
+        const val KEY_VOLUME_LEVELLING = "volume_levelling"
         const val KEY_UI_STYLE = "ui_style"
         const val KEY_AUTOPLAY = "autoplay"
         const val KEY_ONBOARDING_DONE = "onboarding_done"

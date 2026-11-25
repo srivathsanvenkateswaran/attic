@@ -1,28 +1,24 @@
 package app.attic.player.analysis
 
-import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
-import android.media.AudioFormat
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.net.Uri
 import android.system.Os
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import kotlin.math.sqrt
 
-/** Turns one audio file into what radio needs: a sound embedding and a melody fingerprint. */
+/**
+ * Turns one audio file into what radio, genres and volume levelling need: a sound embedding, a melody
+ * fingerprint, its top styles and its loudness.
+ */
 class SongAnalyzer(private val context: Context) : Closeable {
-    class Result(val embedding: FloatArray, val chroma: ByteArray)
+    class Result(val embedding: FloatArray, val chroma: ByteArray, val styles: List<StyleScore>)
 
-    private val environment = quietEnvironment()
-    private val session: OrtSession = environment.createSession(
-        context.assets.open(MODEL_ASSET).use { it.readBytes() },
+    private val model = EffnetModel(
+        quietEnvironment(),
+        context.assets.open(EffnetModel.ASSET).use { it.readBytes() },
         OrtSession.SessionOptions().apply {
             addXnnpack(mapOf("intra_op_num_threads" to MODEL_THREADS.toString()))
             setIntraOpNumThreads(1)
@@ -30,110 +26,51 @@ class SongAnalyzer(private val context: Context) : Closeable {
     )
     private val mel = MelSpectrogram()
 
-    /** Null when the file is too short or can't be decoded. */
-    fun analyze(uri: Uri): Result? {
-        val pcm = decode(uri) ?: return null
-        val patches = mel.patches(pcm)
-        if (patches.isEmpty()) return null
-        return Result(embed(patches), Chroma.frames(pcm))
-    }
-
-    private fun embed(patches: List<FloatArray>): FloatArray {
-        val sum = FloatArray(EMBEDDING_SIZE)
-        patches.chunked(1).forEach { batch ->
-            val values = FloatBuffer.allocate(batch.size * batch[0].size)
-            batch.forEach(values::put)
-            values.rewind()
-            val shape = longArrayOf(batch.size.toLong(), MelSpectrogram.PATCH_FRAMES.toLong(), MelSpectrogram.BANDS.toLong())
-            OnnxTensor.createTensor(environment, values, shape).use { tensor ->
-                session.run(mapOf(MODEL_INPUT to tensor), setOf(MODEL_OUTPUT)).use { result ->
-                    @Suppress("UNCHECKED_CAST")
-                    val rows = result[0].value as Array<FloatArray>
-                    for (row in rows) for (i in row.indices) sum[i] += row[i]
-                }
-            }
+    /**
+     * The sound embedding, melody fingerprint and top styles (null when the file is too short or can't be
+     * decoded), and the file's loudness, measured in the same decode.
+     */
+    fun analyze(uri: Uri): Analysis {
+        val decoded = decode(uri) ?: return Analysis(null, null)
+        val patches = mel.patches(decoded.mono)
+        val sound = if (patches.isEmpty()) {
+            null
+        } else {
+            val output = model.run(patches)
+            Result(output.embedding, Chroma.frames(decoded.mono), output.styles)
         }
-        return normalized(sum)
+        return Analysis(sound, decoded.loudness)
     }
 
-    private fun normalized(vector: FloatArray): FloatArray {
-        var norm = 0f
-        for (value in vector) norm += value * value
-        norm = sqrt(norm)
-        if (norm > 0) for (i in vector.indices) vector[i] /= norm
-        return vector
-    }
+    class Analysis(val sound: Result?, val loudness: SongLoudness?)
 
-    private fun decode(uri: Uri): FloatArray? {
-        val extractor = MediaExtractor()
-        var codec: MediaCodec? = null
-        try {
-            extractor.setDataSource(context, uri, null)
-            val track = (0 until extractor.trackCount).firstOrNull {
-                extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true
-            } ?: return null
-            extractor.selectTrack(track)
-            val format = extractor.getTrackFormat(track)
-            codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
-            codec.configure(format, null, null, 0)
-            codec.start()
-            return drain(extractor, codec)
-        } catch (_: Exception) {
-            return null
-        } finally {
-            runCatching { codec?.stop() }
-            runCatching { codec?.release() }
-            extractor.release()
-        }
-    }
+    private class Decoded(val mono: FloatArray, val loudness: SongLoudness?)
 
-    private fun drain(extractor: MediaExtractor, codec: MediaCodec): FloatArray {
+    /** Mono 16 kHz audio of the first twelve minutes for the model, and loudness over the whole file. */
+    private fun decode(uri: Uri): Decoded? {
         val out = GrowingFloats()
-        val info = MediaCodec.BufferInfo()
         var resampler: LinearResampler? = null
+        var meter: LoudnessMeter? = null
         var channels = 1
-        var encoding = AudioFormat.ENCODING_PCM_16BIT
-        var inputDone = false
-        var outputDone = false
-        while (!outputDone && out.size < MAX_SAMPLES) {
-            if (!inputDone) {
-                val index = codec.dequeueInputBuffer(0)
-                if (index >= 0) {
-                    val read = extractor.readSampleData(codec.getInputBuffer(index)!!, 0)
-                    if (read < 0) {
-                        codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                        inputDone = true
-                    } else {
-                        codec.queueInputBuffer(index, 0, read, extractor.sampleTime, 0)
-                        extractor.advance()
-                    }
-                }
-            }
-            val index = codec.dequeueOutputBuffer(info, if (inputDone) CODEC_TIMEOUT_US else 0)
-            when {
-                index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    val format = codec.outputFormat
-                    channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-                    resampler = LinearResampler(format.getInteger(MediaFormat.KEY_SAMPLE_RATE), TARGET_RATE)
-                    if (format.containsKey(MediaFormat.KEY_PCM_ENCODING)) encoding = format.getInteger(MediaFormat.KEY_PCM_ENCODING)
-                }
-                index >= 0 -> {
-                    if (info.size > 0 && resampler != null) {
-                        val buffer = codec.getOutputBuffer(index)!!.order(ByteOrder.LITTLE_ENDIAN)
-                        buffer.position(info.offset)
-                        buffer.limit(info.offset + info.size)
-                        val samples = PcmBuffer.samples(buffer, encoding) ?: throw IllegalStateException("Unknown PCM encoding $encoding")
-                        out.add(resampler.push(PcmBuffer.toMono(samples, channels)))
-                    }
-                    codec.releaseOutputBuffer(index, false)
-                    if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) outputDone = true
-                }
-            }
-        }
-        return out.toArray()
+        val decoded = PcmDecoder.decode(
+            context,
+            uri,
+            onFormat = { rate, count ->
+                channels = count
+                resampler = LinearResampler(rate, TARGET_RATE)
+                meter = LoudnessMeter(rate, count)
+            },
+            onSamples = { samples ->
+                meter?.add(samples)
+                if (out.size < MAX_SAMPLES) out.add(resampler!!.push(PcmBuffer.toMono(samples, channels)))
+                true
+            },
+        )
+        if (!decoded) return null
+        return Decoded(out.toArray(), meter?.result())
     }
 
-    override fun close() = session.close()
+    override fun close() = model.close()
 
     private class GrowingFloats {
         private var values = FloatArray(16_000 * 60 * 5)
@@ -164,13 +101,12 @@ class SongAnalyzer(private val context: Context) : Closeable {
         /** Raise this if the model or its input changes, so every song gets analysed again. */
         const val MODEL_VERSION = 1
 
-        private const val MODEL_ASSET = "discogs-effnet-bsdynamic-1.onnx"
-        private const val MODEL_INPUT = "melspectrogram"
-        private const val MODEL_OUTPUT = "embeddings"
         private const val MODEL_THREADS = 2
-        private const val EMBEDDING_SIZE = 1280
+        const val EMBEDDING_SIZE = 1280
+
+        /** How many Discogs styles the model scores: the length of its `activations` output. */
+        const val STYLE_COUNT = 400
         private const val TARGET_RATE = 16_000
-        private const val CODEC_TIMEOUT_US = 10_000L
         private const val MAX_SAMPLES = TARGET_RATE * 60 * 12 // A long mix is judged by its first twelve minutes.
 
         fun toBytes(vector: FloatArray): ByteArray {

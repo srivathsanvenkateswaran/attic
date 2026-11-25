@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionToken
 import app.attic.player.data.ExternalTrack
 import app.attic.player.data.Library
@@ -30,6 +31,8 @@ data class PlayerUiState(
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val contextName: String? = null,
     val sleepTimer: SleepTimerStatus = SleepTimerStatus(),
+    /** Songs smart shuffle added to this queue from outside the collection. Empty when it is off. */
+    val smartPicks: Set<String> = emptySet(),
 ) {
     val current: Track? get() = queue.getOrNull(currentIndex)
 }
@@ -39,6 +42,7 @@ class PlayerClient(
     private val context: Context,
     private val library: LibraryRepository,
     private val scope: CoroutineScope,
+    private val onMessage: (String) -> Unit = {},
 ) {
     private val _state = MutableStateFlow(PlayerUiState())
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
@@ -61,6 +65,12 @@ class PlayerClient(
                 .setListener(
                     object : MediaController.Listener {
                         override fun onExtrasChanged(controller: MediaController, extras: Bundle) = publish()
+
+                        // "Couldn't find …" from a spoken request the service had no match for.
+                        @OptIn(UnstableApi::class)
+                        override fun onError(controller: MediaController, sessionError: SessionError) {
+                            sessionError.message.takeIf { it.isNotBlank() }?.let { onMessage(it) }
+                        }
                     },
                 )
                 .buildAsync()
@@ -102,6 +112,7 @@ class PlayerClient(
             repeatMode = c.repeatMode,
             contextName = c.playlistMetadata.title?.toString(),
             sleepTimer = SleepTimerSession.statusFrom(c.sessionExtras),
+            smartPicks = SmartShuffleSession.picksFrom(c.sessionExtras),
         )
     }
 
@@ -134,6 +145,17 @@ class PlayerClient(
         c.play()
     }
 
+    /**
+     * "Play X on Attic" said to the phone's assistant. The service resolves [query] the same way it
+     * does for a car, so both find the same songs; an empty query carries on with the saved queue.
+     */
+    fun playFromSearch(query: String, extras: Bundle?) = act { c ->
+        val request = MediaItem.RequestMetadata.Builder().setSearchQuery(query).setExtras(extras).build()
+        c.setMediaItem(MediaItem.Builder().setRequestMetadata(request).build())
+        c.prepare()
+        c.play()
+    }
+
     fun shufflePlay(tracks: List<Track>, contextName: String?) {
         if (tracks.isEmpty()) return
         play(tracks, tracks.indices.random(), contextName, shuffled = true)
@@ -160,6 +182,19 @@ class PlayerClient(
     }
 
     fun toggleShuffle() = act { it.shuffleModeEnabled = !it.shuffleModeEnabled }
+
+    fun setShuffle(enabled: Boolean) = act { it.shuffleModeEnabled = enabled }
+
+    /**
+     * Plays [tracks] smart-shuffled under [contextName], with [picks] (chosen by radio) one in three.
+     * With [keepCurrent], the song playing now carries on and the rest goes after it.
+     */
+    fun smartShuffle(tracks: List<Track>, picks: List<Track>, contextName: String, keepCurrent: Boolean) = act { c ->
+        c.sendCustomCommand(SmartShuffleSession.START, SmartShuffleSession.args(tracks.map { it.key }, picks.map { it.key }, contextName, keepCurrent))
+    }
+
+    /** Takes smart shuffle's picks out of the queue; shuffle stays on. */
+    fun stopSmartShuffle() = act { it.sendCustomCommand(SmartShuffleSession.STOP, Bundle.EMPTY) }
 
     fun cycleRepeat() = act { c ->
         c.repeatMode = when (c.repeatMode) {
@@ -211,6 +246,8 @@ fun Track.toMediaItem(): MediaItem =
                 .setAlbumTitle(album)
                 .setTrackNumber(trackNumber)
                 .setDurationMs(durationMs)
+                // Cars take covers only as a URI. The notification still prefers the file's own embedded picture.
+                .setArtworkUri(if (mediaId >= 0 && !ExternalTrack.isExternal(key)) ArtProvider.uriFor(mediaId) else null)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
                 .setIsPlayable(true)
                 .setIsBrowsable(false)

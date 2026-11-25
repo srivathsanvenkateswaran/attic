@@ -1,5 +1,7 @@
 package app.attic.player.ui.comfort
 
+import app.attic.player.ui.Haptic
+import app.attic.player.ui.rememberHaptics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -70,6 +72,7 @@ fun ComfortQueue(state: QueueState, actions: QueueActions) {
 
 @Composable
 private fun QueuePage(state: QueueState, actions: QueueActions) {
+    val haptics = rememberHaptics()
     val colors = Comfort.colors
     val current = state.current
 
@@ -143,14 +146,17 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
                                     onClick = { actions.jumpTo(row.queueIndex) },
                                     onLongClick = { actions.showMenu(row.track) },
                                     trailing = {
+                                        if (row.smartPick) SongSmartPickMark()
                                         SongDragHandle(
                                             row.track.title,
                                             Modifier.draggableHandle(
                                                 onDragStarted = {
+                                                    haptics.perform(Haptic.PickUp)
                                                     dragging = true
                                                     dragFrom = row.queueIndex
                                                 },
                                                 onDragStopped = {
+                                                    haptics.perform(Haptic.Drop)
                                                     actions.move(dragFrom, rows.indexOfFirst { it.id == row.id })
                                                     dragFrom = -1
                                                     dragging = false
@@ -222,7 +228,10 @@ private fun NowPlayingRow(track: Track, state: QueueState, actions: QueueActions
                     current = true,
                     playing = state.isPlaying,
                     onLongClick = { actions.showMenu(track) },
-                    trailing = { SongMoreButton(track.title, { actions.showMenu(track) }) },
+                    trailing = {
+                        if (state.currentSmartPick) SongSmartPickMark()
+                        SongMoreButton(track.title, { actions.showMenu(track) })
+                    },
                 )
             }
         }

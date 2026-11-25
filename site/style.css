@@ -227,7 +227,9 @@ code {
 
 .hero-note {
   margin: 1.25rem 0 0;
-  font-size: var(--step--1);
+  /* 19px bold counts as large text, which needs 3:1; cream on terracotta measures 3.8:1. */
+  font-size: 1.1875rem;
+  font-weight: 650;
 }
 
 /* Two phones, one per style, standing over the cut into the page below. */
@@ -430,6 +432,11 @@ h3 {
 
 .feature-phone { width: 100%; }
 
+.feature-copy .ledger { margin-top: 1.75rem; }
+.feature-copy .new { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem; color: var(--link); font-size: var(--step--1); font-weight: 600; }
+.feature-copy .new::before { content: ""; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: var(--terracotta); }
+.feature-copy .note { margin-top: 1.25rem; font-size: var(--step--1); }
+
 .tags {
   width: 100%;
   margin-top: 1.75rem;
@@ -460,7 +467,7 @@ h3 {
 
 /* ---------- Privacy ---------- */
 
-.privacy { background: var(--deep); color: var(--cream); }
+.privacy { background: var(--deep); color: var(--cream); --rule: rgba(245, 237, 221, 0.2); --ink-2: #e3d6c3; }
 .privacy a { color: #f0a08a; }
 .privacy a:hover { color: var(--cream); }
 .privacy :focus-visible { outline-color: var(--cream); }
@@ -472,13 +479,16 @@ h3 {
   align-items: start;
 }
 
-.privacy-lead { margin: 1.25rem 0 1.5rem; font-size: var(--step-1); line-height: 1.55; color: #e3d6c3; max-width: 40ch; }
+.privacy-lead { margin: 1.25rem 0 1.5rem; font-size: var(--step-1); line-height: 1.55; color: var(--ink-2); max-width: 40ch; }
 
+/* Ruled rows. The privacy band sets --rule and --ink-2 for its dark ground; elsewhere the page's apply. */
 .ledger { margin: 0; }
-.ledger > div { padding: 1.25rem 0; border-top: 1px solid rgba(245, 237, 221, 0.2); }
-.ledger > div:last-child { border-bottom: 1px solid rgba(245, 237, 221, 0.2); }
-.ledger dt { font-weight: 650; }
-.ledger dd { margin: 0.3rem 0 0; color: #e3d6c3; }
+.ledger > div { padding: 1.25rem 0; border-top: 1px solid var(--rule); }
+.ledger > div:last-child { border-bottom: 1px solid var(--rule); }
+.ledger dt { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 1rem; font-weight: 650; }
+.ledger dd { margin: 0.3rem 0 0; color: var(--ink-2); }
+/* A row's value sits at its end, as in the app's Settings rows. */
+.ledger .value { color: var(--link); font-size: var(--step--1); font-weight: 600; }
 
 /* ---------- Performance ---------- */
 
