@@ -172,6 +172,7 @@ enum class AppBarSurface { Plain, Scrolled, OverArt }
  * A detail app bar (`.appbar`): back, a 22/28 title, actions. [surface] Scrolled gives it the
  * container colour under the status bar (`.appbar.scrolled`); OverArt leaves it transparent with
  * scrims behind the buttons (`.appbar.over`) and hides the title until the header has scrolled away.
+ * [contentInset] moves the buttons in by a tablet's extra margin.
  */
 @Composable
 fun DetailAppBar(
@@ -180,6 +181,7 @@ fun DetailAppBar(
     modifier: Modifier = Modifier,
     surface: AppBarSurface = AppBarSurface.Plain,
     windowInsets: WindowInsets = WindowInsets.statusBars,
+    contentInset: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -190,7 +192,7 @@ fun DetailAppBar(
     )
     val over = surface == AppBarSurface.OverArt
     Box(modifier.fillMaxWidth().background(container).windowInsetsPadding(windowInsets)) {
-        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp + contentInset), verticalAlignment = Alignment.CenterVertically) {
             OverArtScrim(over) {
                 ExpressiveIconButton(Symbol.ArrowBack, stringResource(R.string.back), onBack, tint = if (over) colors.onSurface else Color.Unspecified)
             }

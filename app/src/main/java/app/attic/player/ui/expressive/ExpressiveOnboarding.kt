@@ -50,6 +50,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.centredInsetDp
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.data.OnboardingStep
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
@@ -60,6 +62,9 @@ import app.attic.player.ui.model.OnboardingActions
 import app.attic.player.ui.model.OnboardingState
 import java.text.NumberFormat
 
+/** The first run's column on a tablet: Material's dialog width, so the two look cards keep their proportions. */
+private const val FirstRunColumnDp = 560f
+
 /**
  * The first run, laid out as the permission screen was (sheet 08 C): a bar with back and the step
  * pips, the start-aligned emphasised headline, the step's content on the surface, and the one filled
@@ -68,10 +73,13 @@ import java.text.NumberFormat
 @Composable
 fun ExpressiveOnboarding(state: OnboardingState, actions: OnboardingActions) {
     val colors = MaterialTheme.colorScheme
+    // On a tablet each step is a centred column at most 560dp wide (SPEC.md, First run).
+    val window = LocalWindowLayout.current
     Column(
         Modifier
             .fillMaxSize()
             .background(colors.surface)
+            .then(if (window.wide) Modifier.padding(horizontal = centredInsetDp(window.widthDp, FirstRunColumnDp).dp) else Modifier)
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {

@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.onSecondaryClick
 import app.attic.player.ui.SwipeToQueue
 
 /** The colour a group's cells take. Sheets raise it to surface container high. */
@@ -211,6 +213,8 @@ private fun SongRowBody(
     trailing: (@Composable () -> Unit)?,
 ) {
     val colors = MaterialTheme.colorScheme
+    // A right click opens the song's menu, as a long press does; only where a mouse is expected.
+    val rightClick = onLongClick != null && LocalWindowLayout.current.wide
     val fill by animateColorAsState(
         when {
             lifted -> colors.surfaceContainerHighest
@@ -228,6 +232,7 @@ private fun SongRowBody(
             .then(if (lifted) Modifier.shadow(6.dp, liftShape) else Modifier)
             .clip(liftShape)
             .background(fill)
+            .then(if (rightClick && onLongClick != null) Modifier.onSecondaryClick(true, onLongClick) else Modifier)
             .then(
                 if (onClick != null || onLongClick != null) {
                     Modifier.combinedClickable(

@@ -9,6 +9,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
@@ -20,6 +26,8 @@ import app.attic.player.ui.adaptive.WideMarginDp
 import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.ui.adaptive.WindowLayout
 import app.attic.player.ui.adaptive.adaptiveColumns
+import app.attic.player.ui.adaptive.centredInsetDp
+import app.attic.player.ui.adaptive.ReadableWidthDp
 
 /*
  * The Expressive style's share of docs/design/2026-11-25-tablet/SPEC.md: the sizes the wide layouts
@@ -130,3 +138,30 @@ fun Modifier.coverSlot(): Modifier = layout { measurable, constraints ->
     val height = constraints.maxHeight
     layout(width, height) { placeable.place((width - side) / 2, (height - side) / 2) }
 }
+
+/** Fades the content out over [edge] at its top and bottom, so a line cut by the edge doesn't show whole. */
+fun Modifier.fadeEdges(edge: Dp = 24.dp): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val fade = edge.toPx() / size.height
+        drawRect(
+            Brush.verticalGradient(0f to Color.Transparent, fade to Color.Black, 1f - fade to Color.Black, 1f to Color.Transparent),
+            blendMode = BlendMode.DstIn,
+        )
+    }
+
+/** Takes [top] off the top of the content: a section header that opens a pane beside a header card sits higher. */
+fun Modifier.trimTop(top: Dp): Modifier = layout { measurable, constraints ->
+    val trim = top.roundToPx()
+    val placeable = measurable.measure(constraints)
+    layout(placeable.width, (placeable.height - trim).coerceAtLeast(0)) { placeable.place(0, -trim) }
+}
+
+/**
+ * The inset at each side that keeps a page's column at most [maxDp] wide (its rows' 16dp margins
+ * extra) and centred in the content area, and never under the 8dp a destination adds on a tablet.
+ * Lists take it as horizontal content padding, so they still scroll from anywhere across the window.
+ */
+fun WindowLayout.readableInset(maxDp: Float = ReadableWidthDp): Dp =
+    centredInsetDp(contentWidthDp, maxDp + 32f, minDp = WideExtraMargin.value).dp

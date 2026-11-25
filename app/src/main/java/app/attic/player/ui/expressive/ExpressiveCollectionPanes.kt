@@ -99,9 +99,10 @@ internal fun CollectionPanes(
 /** The start of the header beside the Library's list, and as its own screen: 8 and 24dp in. */
 private fun lead(detail: Boolean): Dp = if (detail) 8.dp else 24.dp
 
-private fun columnsFor(listWidthDp: Float) = CollectionColumns(
+private fun columnsFor(listWidthDp: Float, gap: Dp = 12.dp) = CollectionColumns(
     rows = adaptiveColumns(listWidthDp - 32f, RowColumnMinDp, 12f),
     tiles = adaptiveColumns(listWidthDp - 32f, TileColumnMinDp, 12f),
+    gap = gap,
 )
 
 @Composable
@@ -120,7 +121,8 @@ private fun TwoPanes(
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp
     val bottom = LocalBottomPadding.current
     // The songs run from 8dp before the start pane's end to 8dp before the pane's own.
-    val columns = remember(pane, start) { columnsFor(pane - start) }
+    // Under the bar the songs start 8dp down; beside the Library's list, level with the card.
+    val columns = remember(pane, start, detail) { columnsFor(pane - start, gap = if (detail) 0.dp else 8.dp) }
     Row(Modifier.fillMaxSize()) {
         Box(
             Modifier
@@ -158,8 +160,7 @@ private fun TwoPanes(
             LazyColumn(
                 Modifier.fillMaxSize(),
                 state = listState,
-                // The list's own first gap (12dp) is the space under the bar, or lines the songs up with the card.
-                contentPadding = PaddingValues(top = if (detail) top - 12.dp else 0.dp, bottom = bottom),
+                contentPadding = PaddingValues(top = if (detail) top else 0.dp, bottom = bottom),
             ) {
                 content(columns)
             }

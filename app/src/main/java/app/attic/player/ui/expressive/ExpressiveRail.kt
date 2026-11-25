@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
  * The navigation rail (SPEC.md, the shell): Material 3 Expressive's collapsed rail, [RailWidth] wide on
  * the page colour with no divider, in place of the navigation bar on medium and expanded windows. The
  * Headroom mark (32dp, primary) sits 20dp under the status bar, centred on the top bar's title line;
- * the destinations follow 28dp below it (each item has Material's 6dp above its pill), each a 56 x 32 indicator pill (secondary container when
+ * the destinations follow 28dp below it, each a 56 x 32 indicator pill (secondary container when
  * selected, the icon filled) over its label in Label/Medium, 4dp apart, items 12dp apart.
  *
  * The items are tabs in one selectable group: Tab moves to the selected one and the arrow keys along
@@ -59,7 +59,8 @@ fun ExpressiveNavigationRail(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AtticMarkIcon(size = 32.dp, tint = colors.primary)
-        Spacer(Modifier.height(28.dp))
+        // 28dp to the first item, whose pill sits 6dp into it as Material's rail item draws it.
+        Spacer(Modifier.height(34.dp))
         Column(
             Modifier.selectableGroup(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -84,8 +85,7 @@ private fun RailItem(item: NavItem, selected: Boolean, onClick: () -> Unit) {
     Column(
         Modifier
             .width(RailWidth)
-            .selectable(selected = selected, interactionSource = interaction, indication = null, role = Role.Tab, onClick = onClick)
-            .padding(top = 6.dp),
+            .selectable(selected = selected, interactionSource = interaction, indication = null, role = Role.Tab, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(

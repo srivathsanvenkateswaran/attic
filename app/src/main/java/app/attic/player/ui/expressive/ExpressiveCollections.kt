@@ -125,7 +125,7 @@ fun ExpressiveAlbum(state: AlbumState, actions: AlbumActions) {
             controlActions = actions.controls,
         ),
     ) { columns ->
-        item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+        item(key = "gap") { Spacer(Modifier.height(columns.gap)) }
         columnGroupItems(tracks.withIndex().toList(), columns.rows, key = { it.value.key }) { _, (index, track) ->
             SongRow(
                 title = track.title,
@@ -209,7 +209,10 @@ fun ExpressiveArtist(state: ArtistState, actions: ArtistActions) {
         ),
     ) { columns ->
         if (state.popular.isNotEmpty()) {
-            item(key = "topHeader") { SectionHeader(stringResource(R.string.artist_top_songs)) }
+            item(key = "topHeader") {
+                // Beside a header card the first heading sits 12dp under the bar, not the usual 28.
+                SectionHeader(stringResource(R.string.artist_top_songs), if (columns.gap < 12.dp) Modifier.trimTop(16.dp) else Modifier)
+            }
             columnGroupItems(state.popular, columns.rows, key = { "top:${it.key}" }) { index, track ->
                 SongRow(
                     title = track.title,
@@ -280,7 +283,7 @@ fun ExpressiveFolder(state: FolderState, actions: FolderActions) {
             controlActions = actions.controls,
         ),
     ) { columns ->
-        item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+        item(key = "gap") { Spacer(Modifier.height(columns.gap)) }
         songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
 }
@@ -326,7 +329,7 @@ fun ExpressiveGenre(state: GenreState, actions: GenreActions) {
             }
             item(key = "songsHeader") { SectionHeader(stringResource(R.string.library_filter_songs)) }
         } else {
-            item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+            item(key = "gap") { Spacer(Modifier.height(columns.gap)) }
         }
         songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
     }
@@ -371,7 +374,7 @@ fun ExpressiveFavourites(state: LikedState, actions: LikedActions) {
                 EmptyState(stringResource(R.string.favourites_empty_title), stringResource(R.string.favourites_empty_body))
             }
         } else {
-            item(key = "gap") { Spacer(Modifier.height(12.dp)) }
+            item(key = "gap") { Spacer(Modifier.height(columns.gap)) }
             songRows(tracks, columns, state.currentKey, state.isPlaying, onPlay = { actions.play(it) }, onMenu = actions.showMenu, onQueue = actions.queue)
         }
     }
@@ -450,7 +453,10 @@ fun ExpressivePlaylist(state: PlaylistState, actions: PlaylistActions) {
         ),
     ) { columns ->
         item(key = "tools") {
-            Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.padding(start = 16.dp, end = 16.dp, top = if (columns.gap < 12.dp) 0.dp else 12.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 ExpressiveButton(
                     stringResource(R.string.playlist_add_songs_cd),
                     onClick = actions.startAdding,
@@ -715,10 +721,11 @@ internal class HeaderParts(
 
 /**
  * How many columns a collection's list takes: rows of songs at least 360dp wide, and the albums as a
- * grid of [tiles] columns instead of a shelf. A phone has one column and the shelf.
+ * grid of [tiles] columns instead of a shelf. [gap] is the space above the first song: 12dp under a
+ * header, less in the songs pane beside a header card. A phone has one column and the shelf.
  */
 @Immutable
-internal class CollectionColumns(val rows: Int, val tiles: Int) {
+internal class CollectionColumns(val rows: Int, val tiles: Int, val gap: Dp = 12.dp) {
     companion object {
         val Phone = CollectionColumns(rows = 1, tiles = 0)
     }

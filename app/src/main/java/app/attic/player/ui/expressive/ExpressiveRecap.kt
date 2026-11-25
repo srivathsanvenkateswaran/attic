@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.model.WrappedCard
 import app.attic.player.ui.model.WrappedData
@@ -70,8 +71,15 @@ fun ExpressiveRecap(state: WrappedPageState, actions: WrappedPageActions) {
     // The bar shows the title once the large one has scrolled away.
     val titleGone by remember(list) { derivedStateOf { list.firstVisibleItemIndex > 1 } }
     val periods = RecapPeriod.entries
+    // On a tablet the page is a centred column at most 720dp wide (SPEC.md, Recap).
+    val window = LocalWindowLayout.current
+    val inset = if (window.wide) window.readableInset() else 0.dp
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
-        LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = PaddingValues(bottom = LocalBottomPadding.current)) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            state = list,
+            contentPadding = PaddingValues(start = inset, end = inset, bottom = LocalBottomPadding.current),
+        ) {
             item(key = "bar") { Column { Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars)); Spacer(Modifier.height(64.dp)) } }
             item(key = "title") {
                 Text(
@@ -115,6 +123,7 @@ fun ExpressiveRecap(state: WrappedPageState, actions: WrappedPageActions) {
             title = if (titleGone) stringResource(R.string.recap_title) else "",
             onBack = actions.back,
             surface = if (titleGone) AppBarSurface.Scrolled else AppBarSurface.Plain,
+            contentInset = if (window.wide) WideExtraMargin else 0.dp,
         )
     }
 }

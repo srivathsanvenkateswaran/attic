@@ -42,6 +42,7 @@ import app.attic.player.ui.crossfadeLengthBody
 import app.attic.player.ui.crossfadeLengthLabel
 import app.attic.player.ui.transitionBody
 import app.attic.player.ui.transitionLabel
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.data.BulkProgress
 import app.attic.player.data.ThemeMode
@@ -74,13 +75,21 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
         derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > titleGone }
     }
     val format = NumberFormat.getIntegerInstance()
+    // On a tablet the bar spans the window and the list is a centred column (SPEC.md, Settings).
+    val window = LocalWindowLayout.current
+    val inset = if (window.wide) window.readableInset() else 0.dp
     Column(Modifier.fillMaxSize()) {
         DetailAppBar(
             title = if (collapsed) stringResource(R.string.settings_title) else "",
             onBack = actions.back,
             surface = if (collapsed) AppBarSurface.Scrolled else AppBarSurface.Plain,
+            contentInset = if (window.wide) WideExtraMargin else 0.dp,
         )
-        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current)) {
+        LazyColumn(
+            Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(start = inset, end = inset, bottom = LocalBottomPadding.current),
+        ) {
             item(key = "title") {
                 Text(
                     stringResource(R.string.settings_title),

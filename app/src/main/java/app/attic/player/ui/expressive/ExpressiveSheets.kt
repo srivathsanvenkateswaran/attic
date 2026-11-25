@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import androidx.compose.foundation.layout.width
 import app.attic.player.data.LanguageLabels
 import app.attic.player.playback.SleepChoice
 import app.attic.player.ui.sleepChoiceLabel
@@ -455,6 +456,8 @@ fun ExpressiveAddSongs(state: AddSongsState, actions: AddSongsActions) {
     }
 }
 
+private val OneFieldDialogWidth = 400.dp
+
 /**
  * The playlist name dialog (frame E1 and its two other titles): the emphasised title, the outlined
  * "Playlist name" field focused on open, Cancel and a confirm that waits for a name.
@@ -466,6 +469,8 @@ fun ExpressivePlaylistNameDialog(state: PlaylistNameState, actions: PlaylistName
     ExpressiveDialog(
         title = state.title,
         onDismiss = actions.dismiss,
+        // A dialog with one field is 400dp wide on a tablet (SPEC.md, Sheets and dialogs).
+        modifier = if (isWideWindow()) Modifier.width(OneFieldDialogWidth) else Modifier,
         confirmButton = {
             ExpressiveButton(state.confirm, actions.confirm, variant = ButtonVariant.Text, enabled = state.canConfirm)
         },
