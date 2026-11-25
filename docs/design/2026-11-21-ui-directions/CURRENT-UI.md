@@ -8,7 +8,7 @@ Written 2026-11-21 from the working tree on branch `ui-redesign`, including the 
 - Strings in "double quotes" are copied from the code. `{braces}` mark a value filled in at runtime.
 - Colour role names (`surfaceContainer`, `onSurfaceVariant`, `primary`) are the Material 3 roles defined in `ui/Theme.kt`. Section 3 gives their hex values. Type style names (`titleMedium`) map to the sp sizes in the same section.
 - "Tint" always means the colour extracted from a cover. Section 3.6 explains how it is computed.
-- The app is portrait-only (`AndroidManifest.xml:31`), draws edge to edge under transparent system bars (`MainActivity.kt:29-33`), and targets phones. There is no tablet or landscape layout.
+- The app draws edge to edge under transparent system bars (`MainActivity.kt`). Phones stay in portrait, set at runtime; tablets turn freely and get the layouts in section 2.23 (added 2026-11-25). Before that it was portrait-only with no tablet layout.
 
 **Screenshots and where they disagree with the code**
 
@@ -1049,6 +1049,26 @@ Added 2026-11-23. Purpose: play the library from a car screen. The car draws eve
 - **Search** groups results under "Songs", "Artists", "Albums" and "Playlists".
 - **Voice**: "Play X on Attic" plays a matching playlist, artist, album or song; "play music" carries on with the queue. When nothing matches, the car shows "Couldn't find “{query}” in your music". The same phrase said to the phone opens Attic and plays, and the miss shows as a snackbar.
 - **No audio access**: the car shows "Attic can't see your music yet. When it's safe, open Attic on your phone and allow access to music." Cars that run Android themselves add an "Open Attic" button.
+
+### 2.23 Tablets and large windows (added 2026-11-25)
+
+The rules are in `docs/design/2026-11-25-tablet/SPEC.md` and drawn on the `Tablet` page of both design files. This section says what the code does.
+
+- **Which layout.** `ui/adaptive/AdaptiveLayout.kt` reads the window from `currentWindowAdaptiveInfoV2()` and the window's size, and hands every screen a `WindowLayout` through `LocalWindowLayout` (provided in `MainActivity`). Compact windows (under 600 dp wide, or under 480 dp tall) keep every phone layout in this document unchanged. Medium windows (600 to 839 dp, the Xiaomi Pad 6 upright at 720 dp) and expanded ones (840 dp and wider, the Pad sideways at 1152 dp) get the layouts below. Panes pick their own layout from the width they are given.
+- **Orientation and resizing.** The manifest no longer locks orientation; `MainActivity` asks for portrait only when the display's smaller side is under 600 dp. The activity handles rotation, split screen and window resizing itself (`android:configChanges`), so the screen, the open overlay, scroll positions and playback carry across.
+- **Navigation.** Medium and expanded windows replace the bottom bar with a rail at the start edge. Expressive draws Material's 96 dp rail with the Headroom mark at its top (`ui/expressive/ExpressiveRail.kt`), and Home's top bar drops its own mark. Comfort draws its dock as an 80 dp floating card on the start edge, the mark at its top and the tabs stacked under it (`ui/comfort/SideDock.kt`).
+- **The playing song.** On medium windows the phone mini player floats at the bottom of the content area, at most 576 dp wide. On expanded windows a player bar runs along the bottom of the content area: cover, title and artist; previous, play or pause and next with the times and a progress bar; then favourite, queue and lyrics (`ExpressivePlayerBar.kt`, `ComfortPlayerBar.kt`). Comfort's bar is a floating card whose played-so-far fill is its progress; Expressive's bar has a wavy progress bar and no ring on its play button.
+- **Home.** Shelves show more items. Expressive puts the Recap card beside Instant mixes; Instant mixes take three columns; album, artist and folder grids take as many 160 dp columns as fit; Comfort's shortcut tray takes six columns.
+- **Library.** On an expanded window wider than it is tall, the Library is list and detail (`ui/LibraryPanes.kt`): the list in a 400 dp pane, the album, artist, playlist, folder or Favourites it opened beside it, the first item open on arrival and the open row marked. Opening an item from the list selects it instead of navigating; the detail has no back button, and a playlist's or Favourites' menu sits at the end of its header's buttons. Elsewhere list rows sit in 360 dp columns and the grid in 160 dp columns.
+- **Search.** The field is at most 720 dp wide; results and browse tiles sit in columns.
+- **Album, artist, playlist, folder, Favourites, genre.** In a pane 760 dp or wider the header (cover, title, details, buttons) sits in a 320 or 360 dp start pane and the songs scroll beside it, in columns when there is room. Between 600 and 759 dp the header becomes a row above the songs.
+- **Now Playing.** On an expanded window wider than it is tall, the player takes the start half and the end half switches between Up next (the queue, with drag to reorder and swipe to remove) and Lyrics (with the full-screen button); "Up next" is `player_panel_up_next`. Otherwise the phone layout sits in a centred column at most 576 dp wide.
+- **Full-screen lyrics** on such a window keep the cover, title, seek bar and previous, play and next in a 360 dp start pane, the lines in a column at most 640 dp wide beside it.
+- **Settings, queue, Recap, licences.** Centred columns at most 720 dp wide. The Recap story keeps a phone screen's proportions, centred.
+- **Sheets and dialogs.** Bottom sheets are at most 640 dp wide and centred; dialogs at most 560 dp, one-field dialogs 400 dp, centred (Comfort's sit at the bottom only on phones).
+- **First run.** A centred column at most 560 dp wide; Comfort puts the look cards beside the theme choice when the window is landscape.
+- **Keyboard and mouse.** Space plays and pauses, and Esc closes what is open (`MainActivity.onKeyDown`); both act only when nothing on screen took the key. A right click on a song row opens its menu on medium and expanded windows. Rail, dock, player bar and panel switch items are ordinary focusable buttons with hover and focus states.
+- **Home-screen widget.** The same three layouts stretch to a tablet launcher's larger cells; Expressive's 4 x 2 crops its five recent-album tiles taller than they are wide.
 
 ---
 

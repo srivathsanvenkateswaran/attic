@@ -71,6 +71,25 @@ cards in the other.
 7. **Look at it.** Run it on a phone in both styles and both themes. `design/README.md` describes
    the JVM reference renders, which need no phone.
 
+### Lay it out for tablets too
+
+A screen has a phone layout and, on medium and expanded windows, a tablet one
+([the tablet spec](../design/2026-11-25-tablet/SPEC.md)). The decisions are plain functions in
+[`ui/adaptive/AdaptiveLayout.kt`](../../app/src/main/java/app/attic/player/ui/adaptive/AdaptiveLayout.kt), unit tested in
+`AdaptiveLayoutTest`; `LocalWindowLayout` hands every screen the window's `WindowLayout`.
+
+- **Phones keep their layout and their speed.** Branch once, at the top of the drawing, on
+  `LocalWindowLayout.current`, and leave the compact branch exactly as it was. No
+  `BoxWithConstraints` or other subcomposition on a compact window: measure a pane's width only in
+  the wide branch. The phone reference renders must stay pixel identical.
+- **Panes decide from their own width.** An album beside the Library list gets about 650dp on the
+  Pad, not the window's 1152dp: pick its layout with `collectionLayout(paneWidthDp)`.
+- **Columns, not stretched rows.** Text, rows and settings stay in a column at most
+  `ReadableWidthDp` (720dp) wide; grids take `adaptiveColumns(…)`; sheets stop at 640dp and dialogs
+  at 560dp.
+- **Draw the Tablet frames** on the Tablet page of both FigCraft files, and render the code with
+  `scripts/store_shots/tablet_refs.sh`; `tablet_compare.py` puts each render beside its frame.
+
 ### What keeps the seam clean
 
 - **A model never imports a style.** No file in `ui/model/` imports `ui.expressive` or `ui.comfort`.

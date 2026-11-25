@@ -222,6 +222,31 @@ Don't:
 LazyColumn(contentPadding = PaddingValues(bottom = 176.dp)) { … }
 ```
 
+## The rail, the side dock and the player bar (tablets)
+
+FigCraft: [`Attic Expressive.figcraft`][fx] › Components / Navigation and › Tablet;
+[`Attic Comfort.figcraft`][fc] › Components / Navigation and › Tablet
+
+On a medium or expanded window ([`WindowLayout.nav`](../../app/src/main/java/app/attic/player/ui/adaptive/AdaptiveLayout.kt) is `Rail`) the
+shells put the tabs at the start edge and the playing song at the bottom of the content area. The
+rules and sizes are in [the tablet spec](../design/2026-11-25-tablet/SPEC.md). A screen still never
+draws either; it reads `LocalBottomPadding` as on a phone, and the rail's width is simply not its.
+
+| | Expressive | Comfort |
+|---|---|---|
+| The shell | `ExpressiveShell` hands a wide window to `ExpressiveWideShell` in [`ExpressiveWideShell.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressiveWideShell.kt) | `ComfortShell` hands it to `ComfortWideShell` in [`ComfortShellWide.kt`](../../app/src/main/java/app/attic/player/ui/comfort/ComfortShellWide.kt) |
+| The tabs | `ExpressiveNavigationRail(items, selectedIndex, onSelect)` in [`ExpressiveRail.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressiveRail.kt): Material's 96dp collapsed rail on `surface`, the Headroom mark at its top, a 56 × 32dp pill indicator in `secondaryContainer` | `ComfortSideDock(items, selectedIndex, onSelect)` in [`SideDock.kt`](../../app/src/main/java/app/attic/player/ui/comfort/SideDock.kt): the dock's card on its side, 80dp wide, 12dp from the start edge, the mark at its top, the selected tab on the amber selection fill |
+| Medium window, song playing | The phone mini player, floating at the bottom of the content area, at most 576dp wide | The phone mini player in its own dock card, at most 576dp wide |
+| Expanded window, song playing | `ExpressivePlayerBar(…)` in [`ExpressivePlayerBar.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressivePlayerBar.kt): an 80dp row on the cover scheme's `surfaceContainer`, 28dp top corners, a wavy progress bar under previous, play and next | `ComfortPlayerBar(…)` in [`ComfortPlayerBar.kt`](../../app/src/main/java/app/attic/player/ui/comfort/ComfortPlayerBar.kt): a 76dp floating card in the mini player's colours, the played-so-far fill as its progress |
+| Now Playing beside its queue or lyrics | `ExpressiveNowPlayingWide` in [`ExpressiveNowPlayingWide.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressiveNowPlayingWide.kt) | `ComfortNowPlayingWide` in [`ComfortNowPlayingWide.kt`](../../app/src/main/java/app/attic/player/ui/comfort/ComfortNowPlayingWide.kt) |
+| Two-pane collections | `CollectionPanes` in [`ExpressiveCollectionPanes.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressiveCollectionPanes.kt) | `ComfortAlbumPanes` and the others in [`ComfortCollectionPanes.kt`](../../app/src/main/java/app/attic/player/ui/comfort/ComfortCollectionPanes.kt) |
+| Style helpers | [`ExpressiveAdaptive.kt`](../../app/src/main/java/app/attic/player/ui/expressive/ExpressiveAdaptive.kt): `isWideWindow()`, `rowColumns`, `tileColumns`, `columnGroupItems`, `readableInset` | [`ComfortAdaptive.kt`](../../app/src/main/java/app/attic/player/ui/comfort/ComfortAdaptive.kt) |
+
+Shared between the styles: the Library's list and detail, [`LibraryListDetail`](../../app/src/main/java/app/attic/player/ui/LibraryPanes.kt),
+which marks the open row through `LocalListDetailSelection` and tells the detail it has no back
+button through `LocalDetailPane`; and `Modifier.onSecondaryClick` in
+[`adaptive/Input.kt`](../../app/src/main/java/app/attic/player/ui/adaptive/Input.kt), which opens a song's menu on a right click.
+
 ## Top bars
 
 FigCraft: [`Attic Expressive.figcraft`][fx] › Components / Navigation;
