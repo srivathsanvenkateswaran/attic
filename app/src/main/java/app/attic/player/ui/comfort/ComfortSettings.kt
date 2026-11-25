@@ -1,6 +1,7 @@
 package app.attic.player.ui.comfort
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,14 +11,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -245,36 +243,42 @@ private val Bold = SpanStyle(fontWeight = FontWeight.SemiBold)
 /**
  * "Crossfade" with its length as the row's value, opening the kit's pop-over over its row toward the
  * value, the way the track menu's sleep timer does: a caption, then the lengths with the current one ticked.
+ *
+ * The menu hangs from a zero-height anchor on the row's bottom edge. The row sits low in Settings, so
+ * the menu usually has no room below and opens upward, its bottom on the row's bottom, covering the
+ * row. Material applies a y offset the same way in both directions, so an offset that covers the row
+ * opening downward leaves a row-high gap opening upward; the anchor needs none.
  */
 @Composable
 private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
     var picking by remember { mutableStateOf(false) }
-    var rowHeight by remember { mutableIntStateOf(0) }
-    val density = LocalDensity.current
-    BoxWithConstraints(Modifier.onSizeChanged { rowHeight = it.height }) {
+    BoxWithConstraints {
+        val menuX = maxWidth - 214.dp
         SetRow(
             stringResource(R.string.settings_crossfade),
             summary = stringResource(R.string.settings_crossfade_body),
             value = crossfadeLabel(state.crossfadeSeconds),
             onClick = { picking = true },
         )
-        ComfortMenu(
-            expanded = picking,
-            onDismiss = { picking = false },
-            offset = DpOffset(maxWidth - 214.dp, with(density) { -rowHeight.toDp() }),
-        ) {
-            MenuCaption(stringResource(R.string.settings_crossfade))
-            for (seconds in state.crossfadeChoices) {
-                MenuRow(
-                    null,
-                    crossfadeLabel(seconds),
-                    {
-                        picking = false
-                        actions.setCrossfadeSeconds(seconds)
-                    },
-                    selected = seconds == state.crossfadeSeconds,
-                    check = true,
-                )
+        Box(Modifier.align(Alignment.BottomStart)) {
+            ComfortMenu(
+                expanded = picking,
+                onDismiss = { picking = false },
+                offset = DpOffset(menuX, 0.dp),
+            ) {
+                MenuCaption(stringResource(R.string.settings_crossfade))
+                for (seconds in state.crossfadeChoices) {
+                    MenuRow(
+                        null,
+                        crossfadeLabel(seconds),
+                        {
+                            picking = false
+                            actions.setCrossfadeSeconds(seconds)
+                        },
+                        selected = seconds == state.crossfadeSeconds,
+                        check = true,
+                    )
+                }
             }
         }
     }
