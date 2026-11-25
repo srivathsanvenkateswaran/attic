@@ -97,7 +97,7 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
         // the bar that stays pinned at the top (Comfort's Home keeps its tabs there too).
         val expressive = style == UiStyle.Expressive
         val heading = when (screen) {
-            "home-mixes" -> R.string.home_mixes to if (expressive) 150f else 175f
+            "home-mixes", "home-mixes-moods" -> R.string.home_mixes to if (expressive) 150f else 175f
             "home-moods" -> R.string.home_moods to if (expressive) 150f else 175f
             "settings-playback" -> R.string.settings_playback to 125f
             else -> null
@@ -113,7 +113,7 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
     companion object {
         val Screens = listOf(
             "home", "home-mixes", "album", "artist", "now-playing", "lyrics", "queue", "library", "search", "search-browse", "settings",
-            "settings-playback", "recap", "equaliser", "equaliser-settings", "home-moods", "mood", "interests",
+            "settings-playback", "recap", "equaliser", "equaliser-settings", "home-moods", "home-mixes-moods", "mood", "interests",
         )
 
         /** Screens with a sheet over them, captured with every window. */
@@ -175,8 +175,9 @@ private fun Screen(style: UiStyle, screen: String) {
             val page = EqualiserDemo.page()
             if (expressive) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
         }
-        // Mood mixes: Home with the Moods shelf, Chill's page, and the picks page with picks saved.
-        "home-moods" -> {
+        // Mood mixes: Home with the Moods shelf (from Mixes down in "home-mixes-moods", so both rows
+        // show), Chill's page, and the picks page with picks saved.
+        "home-moods", "home-mixes-moods" -> {
             val state = MoodStates.home(ask = false)
             InShell(style, Tab.Home) { if (expressive) ExpressiveHome(state, s.homeActions) else ComfortHome(state, s.homeActions) }
         }
