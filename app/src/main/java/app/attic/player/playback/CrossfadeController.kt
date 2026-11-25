@@ -152,60 +152,132 @@ class CrossfadeController(
 
     fun release() {
         cancel()
+        pending = null
+        planning.shutdownNow()
         main.removeListener(listener)
         tail?.release()
         tail = null
     }
 
     /** Works out whether this song fades into the next, and when to start getting ready. */
+    /**
+     * Works out whether this song fades into the next, and when to start getting ready. The inputs are
+     * read here on the main thread; the planning itself (a fraction of a millisecond on a fast phone,
+     * several in a debug build) runs on [planning], and its result comes back here. A result is kept
+     * against its inputs, so the replans a radio refill or a timeline change set off cost nothing.
+     */
     private fun replan() {
         if (state is State.Fading) return
-        val plan = planNow()
+        val inputs = inputsNow()
+        if (inputs == null) {
+            pending = null
+            apply(null, null)
+            return
+        }
+        val known = planned
+        if (known != null && known.first == inputs) {
+            apply(inputs, known.second)
+            return
+        }
+        if (inputs == pending) return
+        // Until the new plan arrives, nothing is armed for an old one.
+        if (state !is State.Fading) cancel()
+        pending = inputs
+        if (planning.isShutdown) return
+        planning.execute {
+            val started = System.nanoTime()
+            val transition = TransitionPlanner.plan(
+                mode = inputs.mode,
+                lengthSeconds = inputs.lengthSeconds,
+                current = inputs.current,
+                next = inputs.next,
+                currentDurationMs = inputs.durationMs,
+                nextDurationMs = inputs.nextDurationMs,
+                repeatOne = inputs.repeatOne,
+                stopsAfterThisSong = inputs.stopsAfterThisSong,
+                outgoing = inputs.outgoing,
+                incoming = inputs.incoming,
+            )
+            val micros = (System.nanoTime() - started) / 1_000
+            handler.post {
+                if (pending != inputs) return@post
+                pending = null
+                planned = inputs to transition
+                if (transition != null) {
+                    Log.i(TAG, "Plan ${describe(transition)}, planned in $micros µs off the main thread: ${inputs.currentKey} → ${inputs.nextKey}")
+                }
+                if (state !is State.Fading) apply(inputs, transition)
+            }
+        }
+    }
+
+    /** Puts a plan in place: publishes it and waits for its moment, or clears everything when there is none. */
+    private fun apply(inputs: PlanInputs?, transition: Transition?) {
+        val nextKey = inputs?.nextKey
+        val plan = if (inputs == null || transition == null || nextKey == null) null else Plan(inputs.currentKey, nextKey, transition, inputs.durationMs)
         publish(plan)
         if (plan == null) {
+            if (lastLogged != null && inputs != null) Log.i(TAG, "No transition out of ${inputs.currentKey}")
+            lastLogged = null
             cancel()
             return
         }
+        lastLogged = plan
         val aligning = state as? State.Aligning
         if (aligning != null && aligning.plan == plan) return
+        val waiting = state as? State.Waiting
+        if (waiting != null && waiting.plan == plan) return
         cancel()
         state = State.Waiting(plan)
         evaluate()
     }
 
-    private fun planNow(): Plan? {
+    /** Everything a plan depends on, read from the player and settings on the main thread. */
+    private data class PlanInputs(
+        val currentKey: String,
+        val nextKey: String?,
+        val mode: TransitionMode,
+        val lengthSeconds: Int,
+        val current: LevelTrack,
+        val next: LevelTrack?,
+        val durationMs: Long,
+        val nextDurationMs: Long?,
+        val repeatOne: Boolean,
+        val stopsAfterThisSong: Boolean,
+        val outgoing: SongTransitions?,
+        val incoming: SongTransitions?,
+    )
+
+    private fun inputsNow(): PlanInputs? {
         val item = main.currentMediaItem ?: return null
         if (!main.playWhenReady) return null
         val nextIndex = main.nextMediaItemIndex
         val next = if (nextIndex == C.INDEX_UNSET) null else main.getMediaItemAt(nextIndex)
         val duration = main.duration.takeIf { it != C.TIME_UNSET } ?: item.mediaMetadata.durationMs ?: return null
-        val started = System.nanoTime()
-        val transition = TransitionPlanner.plan(
+        return PlanInputs(
+            currentKey = item.mediaId,
+            nextKey = next?.mediaId,
             mode = mode(),
             lengthSeconds = lengthSeconds(),
             current = levelTrack(item.mediaId),
             next = next?.let { levelTrack(it.mediaId) },
-            currentDurationMs = duration,
+            durationMs = duration,
             nextDurationMs = next?.mediaMetadata?.durationMs,
             repeatOne = main.repeatMode == Player.REPEAT_MODE_ONE,
             stopsAfterThisSong = stopsAfterThisSong(),
             outgoing = transitionsFor(item.mediaId),
             incoming = next?.let { transitionsFor(it.mediaId) },
         )
-        if (transition == null) {
-            if (lastLogged != null) Log.i(TAG, "No transition out of ${item.mediaId}")
-            lastLogged = null
-            return null
-        }
-        if (next == null) return null
-        val plan = Plan(item.mediaId, next.mediaId, transition, duration)
-        if (plan != lastLogged) {
-            lastLogged = plan
-            Log.i(TAG, "Plan ${describe(transition)}, planned in ${(System.nanoTime() - started) / 1_000} µs: ${item.mediaId} → ${next.mediaId}")
-        }
-        return plan
     }
 
+    private val planning = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
+        Thread({
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+            runnable.run()
+        }, "AtticTransitionPlanner").apply { isDaemon = true }
+    }
+    private var pending: PlanInputs? = null
+    private var planned: Pair<PlanInputs, Transition?>? = null
     private var lastLogged: Plan? = null
 
     private fun describe(t: Transition): String = buildString {
