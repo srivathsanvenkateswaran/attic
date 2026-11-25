@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Android-13%2B-C6533A?logo=android&logoColor=white" alt="Android 13 or newer">
   <img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C6533A?logo=kotlin&logoColor=white" alt="Kotlin and Jetpack Compose">
-  <img src="https://img.shields.io/badge/APK-58%20MB-C6533A" alt="APK size 58 MB">
+  <img src="https://img.shields.io/badge/APK-64%20MB-C6533A" alt="APK size 64 MB">
 </p>
 
 <p align="center">
@@ -45,6 +45,7 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
 - Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
 - Mixes on Home: three to five mixes of the songs you play and like, grouped by how they sound and topped up with songs you rarely play that sound like them. They are named after their artists and change once a day
+- Mood mixes on Home: one mix a day for each of Chill, Happy, Energetic, Focus, Party, Melancholy and Romantic that has at least eight songs, from mood scores worked out on the phone and the moods, genres and languages you pick in Settings > Moods. A mood's page has Play, shuffle and Mood radio, and Search's Browse lists the moods too
 - "On repeat", "Haven't heard in a while" and "Newly added" shelves on Home, from the listening log and the dates your files arrived
 - Smart shuffle on playlists and Favourites puts one similar song from the rest of the library after every two of the collection's own
 - Genres in Search, from your files' genre tags or the styles the analysis model hears, and radio from any genre
@@ -108,9 +109,9 @@ Measured on a POCO M4 Pro 4G running Android 16, with release builds and a libra
 | Cold start | 0.25 s | 0.24 s |
 | Memory at Home (PSS) | 242 MB | 243 MB |
 
-The release APK is 58 MB because it carries the analysis model and its runtime, and it only runs on 64-bit ARM phones.
+The release APK is 64 MB because it carries the analysis model, its runtime and the mood classifiers, and it only runs on 64-bit ARM phones.
 
-Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging. Mixes, genres from analysis and measured loudness wait for it, so on a new library, or one analysed before 1.1.0, they fill in as it reaches each song.
+Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging. Mixes, mood mixes, genres from analysis and measured loudness wait for it, so on a new library, or one analysed before 1.1.0, they fill in as it reaches each song. After an update to 1.3.0, analysis reads each song once more so Romantic can have a mix; the other moods work from the start.
 
 The equaliser costs about 1.4% of one core while a curve is on, and left cold start and scrolling unchanged on the same phone ([details](docs/equaliser.md)).
 
@@ -148,7 +149,7 @@ The release build is signed with the debug key, which suits sideloading on your 
 | UI | Kotlin, Jetpack Compose, Material 3 |
 | Playback | Media3 ExoPlayer with `MediaLibraryService`, which also serves the Android Auto browse tree |
 | Library | MediaStore |
-| Your data | Room: likes, playlists, history, the saved queue, lyrics and equaliser settings |
+| Your data | Room: likes, playlists, history, the saved queue, lyrics, equaliser settings and mood scores |
 | Covers | Coil, loading embedded art through MediaStore thumbnails |
 | Widget | `RemoteViews`, with one layout for each size |
 
@@ -157,13 +158,15 @@ Worth reading if you open the code:
 - **Shuffle reorders the real playlist** instead of keeping a separate play order, so the queue screen always shows what will actually play. See [`PhysicalShuffle.kt`](app/src/main/java/app/attic/player/playback/PhysicalShuffle.kt).
 - **Saved data points at file paths, not MediaStore IDs**, so likes and playlists survive a media rescan.
 
-## How radio, mixes and levelling work
+## How radio, mixes, moods and levelling work
 
 Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
 
 The same pass keeps the five Discogs styles the model scores highest for each song, such as "Pop---Bollywood". A song without a genre tag gets its genre from them, which is where Search's Genres come from. Radio started from a genre steers towards the average sound of that genre's songs.
 
 Home's Mixes come from the same numbers. The songs you have played or liked are grouped by k-means into three to five clusters, one more for every 20 such songs, and each cluster of four or more becomes a mix of up to 25 songs, a third of them songs you rarely play that sound like the rest. Smart shuffle and genre radio use the same search as song radio, seeded with the average sound of the playlist or genre.
+
+Mood mixes start from the same numbers too. Nine small classifiers bundled with the app read each song's stored analysis and score it for things like happy, sad, relaxed, danceable and instrumental. Each mood is a weighted mean of those scores, ranked within your own library, plus a limit on the raw scores, so the saddest songs in a party library don't become a Melancholy mix. Songs that fit a mood are ranked by that fit, then nudged by the genres and languages you picked and by your likes and skips, and away from what you heard in the last few hours. The day's 25 songs are a weighted draw from the top 50, with at most three per artist and two per album, using a random generator seeded by the date, so the same library and picks give the same mix all day and a different one tomorrow. [`docs/features/mood-mixes.md`](docs/features/mood-mixes.md) has the formulas.
 
 The pass also measures each song's loudness. Volume levelling brings a song to about -14 LUFS, from its ReplayGain tags when it has them, without raising its loudest peak past -1 dBFS, and an album played in order shares one gain so its quiet and loud tracks keep their balance.
 
@@ -195,7 +198,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 
 ## Credits and legal
 
-Song analysis and genre names use the Discogs-EffNet model and its published list of style names by the Music Technology Group, Universitat Pompeu Fabra (Alonso-Jiménez et al., ISMIR 2022), licensed for non-commercial use, and [ONNX Runtime](https://onnxruntime.ai) under the MIT License. See [`third_party/discogs-effnet-NOTICE.txt`](third_party/discogs-effnet-NOTICE.txt).
+Song analysis and genre names use the Discogs-EffNet model and its published list of style names by the Music Technology Group, Universitat Pompeu Fabra (Alonso-Jiménez et al., ISMIR 2022), and mood scores use nine of the MTG's Essentia classifier models trained on it, all licensed for non-commercial use, and [ONNX Runtime](https://onnxruntime.ai) under the MIT License. See [`third_party/discogs-effnet-NOTICE.txt`](third_party/discogs-effnet-NOTICE.txt).
 
 Built with [Media3](https://developer.android.com/media/media3), [Jetpack Compose](https://developer.android.com/compose), [Room](https://developer.android.com/training/data-storage/room), [Coil](https://coil-kt.github.io/coil/) and [Reorderable](https://github.com/Calvin-LL/Reorderable). Lyrics come from [LRCLIB](https://lrclib.net). The [Google Sans Flex](https://github.com/googlefonts/googlesans-flex) and [Onest](https://github.com/simpals/onest) fonts are bundled under the SIL Open Font License ([Google Sans Flex](third_party/OFL-google-sans-flex.txt), [Onest](third_party/OFL-onest.txt)), and a subset of [Material Symbols Rounded](https://github.com/google/material-design-icons) under the [Apache License 2.0](third_party/LICENSE-material-symbols.txt). See [`third_party/fonts-NOTICE.txt`](third_party/fonts-NOTICE.txt).
 
