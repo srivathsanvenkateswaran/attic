@@ -3,6 +3,7 @@
 
     scripts/store_shots/run.sh                  # once, makes the raw 1080 x 2400 captures
     python3 scripts/render_site_images.py       # write the site's images
+    python3 scripts/render_site_images.py --screens mood   # or only some screens
 
 Each screen in site/img/screens/ becomes a 360 px and a 720 px WebP, plus a 360 px PNG for
 browsers without WebP. It also draws the icons (icon-32.png, apple-touch-icon.png) and the
@@ -36,6 +37,7 @@ STYLES = ("expressive", "comfort")
 SCREENS = (
     "home", "now-playing", "album", "artist",
     "library", "queue", "home-mixes", "lyrics", "recap", "settings-playback", "equaliser",
+    "home-moods", "mood",
 )
 WIDTHS = (360, 720)
 
@@ -141,6 +143,8 @@ def og(raw: Path, out: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--raw", type=Path, default=DEFAULT_RAW, help=f"raw captures (default {DEFAULT_RAW})")
+    parser.add_argument("--screens", nargs="+", choices=SCREENS, metavar="SCREEN",
+                        help="write only these screens, and skip the icons and og.png (default: everything)")
     args = parser.parse_args()
     if not shutil.which("cwebp"):
         print("cwebp not found; brew install webp", file=sys.stderr)
@@ -148,7 +152,7 @@ def main() -> int:
     TARGET.mkdir(parents=True, exist_ok=True)
     for style in STYLES:
         for theme in THEMES:
-            for screen in SCREENS:
+            for screen in args.screens or SCREENS:
                 name = f"{style}-{theme}-{screen}"
                 source = args.raw / f"{name}.png"
                 if not source.exists():
@@ -159,6 +163,8 @@ def main() -> int:
                     webp(image, width, TARGET / f"{name}-{width}.webp")
                 png(image, WIDTHS[0], TARGET / f"{name}-{WIDTHS[0]}.png")
                 print(f"wrote {name}")
+    if args.screens:
+        return 0
     icon(32, 0.22, IMG / "icon-32.png")
     icon(180, 0, IMG / "apple-touch-icon.png")  # iOS rounds the corners itself
     og(args.raw, IMG / "og.png")
