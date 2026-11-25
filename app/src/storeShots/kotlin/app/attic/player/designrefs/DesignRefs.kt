@@ -27,6 +27,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -573,6 +575,17 @@ class Ref(
                 "settings" -> settings()
                 "settings_transitions_off" -> settings(transitions = TransitionMode.Off)
                 "settings_transitions_smart" -> settings(transitions = TransitionMode.Smart)
+                // Tablet only: the Transitions menu open beside its row. Expressive only: opening Comfort's
+                // pop-over this way stalls the render (it is the phone's PickerRow, unchanged on tablets).
+                "menu_transitions" -> if (!e) null else settings(
+                    transitions = TransitionMode.Smart,
+                    capture = Capture.Screen,
+                    prepare = {
+                        // The row may not be composed yet in a lazy list, so the list scrolls to it first.
+                        onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(hasText("Transitions"))
+                        onNode(hasText("Transitions")).performClick()
+                    },
+                )
                 "settings_full" -> settings(height = FULL_HEIGHT)
                 "settings_analysis" -> Ref(settings(analysing = true).content, prepare = { scrollMain(6000f) })
                 "settings_lyrics_download" -> Ref(settings(lyrics = true).content, prepare = { scrollMain(900f) })
