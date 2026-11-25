@@ -70,6 +70,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -100,9 +101,10 @@ import kotlinx.coroutines.flow.drop
 
 /**
  * The equaliser for the song that is playing (frames B to F2, I). The title row carries the switch.
- * Under the group, the actions that change the scope: saving for the song or its album as a button
- * group, and the outlined button that removes an own setting with what it removes beside it. Saving or
- * removing changes the scope cell in place; the sheet stays open.
+ * Under the group, one block of the actions that change the scope: saving for the song or its album,
+ * and the outlined button that removes an own setting, with one caption under them. Saving or removing
+ * changes the scope cell in place; the sheet stays open and, because the block is the same height in
+ * every scope, nothing else moves.
  */
 @Composable
 fun ExpressiveEqualiserSheet(state: EqualiserSheetState, actions: EqualiserSheetActions) {
@@ -124,19 +126,7 @@ fun ExpressiveEqualiserSheet(state: EqualiserSheetState, actions: EqualiserSheet
                     EqualiserEditor(editor, actions.editor)
                 }
             }
-            val saving = state.canSaveForSong || state.canSaveForAlbum
-            if (saving) SaveActions(state.canSaveForSong, state.canSaveForAlbum, actions.saveForSong, actions.saveForAlbum)
-            // The note explains saving to someone who has not saved yet; once the song plays with a
-            // setting of its own or its album's, the scope cell already shows what saving does.
-            if (saving && state.scope == EqScope.Default) {
-                Text(
-                    stringResource(R.string.equaliser_saved_note),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 10.dp),
-                )
-            }
-            state.removal?.let { RemovalRow(it, actions.remove, afterSave = saving) }
+            EqualiserActions(state, actions)
         }
     }
 }
@@ -160,52 +150,81 @@ private fun EqualiserTitle(on: Boolean, setOn: (Boolean) -> Unit) {
     }
 }
 
-/** "Save for this song" (the one filled button) and "Save for this album" (tonal). One alone fills the width. */
-@Composable
-private fun SaveActions(song: Boolean, album: Boolean, saveForSong: () -> Unit, saveForAlbum: () -> Unit) {
-    ButtonGroup(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp), fill = true) {
-        if (song) {
-            val interaction = remember { MutableInteractionSource() }
-            ExpressiveButton(stringResource(R.string.equaliser_save_song), saveForSong, Modifier.groupItem(interaction), interactionSource = interaction)
-        }
-        if (album) {
-            val interaction = remember { MutableInteractionSource() }
-            ExpressiveButton(
-                stringResource(R.string.equaliser_save_album),
-                saveForAlbum,
-                Modifier.groupItem(interaction),
-                variant = ButtonVariant.Tonal,
-                interactionSource = interaction,
-            )
-        }
-    }
-}
-
 /**
- * "Use default" or "Use album setting", with what it removes beside it. A screen reader gets the two
- * as one button ("Use default. Removes this song's setting"), so the consequence is heard before the tap.
+ * The actions that change the scope (`Equaliser/Actions`): one row of small buttons and one caption
+ * under it, 82dp in every scope at font scale 1, so saving or removing a setting moves nothing above it
+ * in a sheet anchored to the foot of the screen.
+ *
+ * - The default: "Save for this song" filled and "Save for this album" tonal, and the note on what
+ *   saving does across the width.
+ * - The album's setting: "Save for this song" filled and "Use default" outlined, with what it removes
+ *   under that button alone, so it reads as the button's caption.
+ * - The song's own: "Use default" or "Use album setting" outlined across the width, with what it removes.
+ *
+ * A screen reader hears a removal as one button ("Use default. Removes this song's setting"), so the
+ * consequence comes before the tap and the caption itself is left out.
  */
 @Composable
-private fun RemovalRow(removal: EqRemoval, onRemove: () -> Unit, afterSave: Boolean) {
-    val label = stringResource(if (removal == EqRemoval.SongToAlbum) R.string.equaliser_use_album else R.string.equaliser_use_default)
-    val consequence = stringResource(if (removal == EqRemoval.AlbumToDefault) R.string.equaliser_removes_album else R.string.equaliser_removes_song)
-    Row(
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = if (afterSave) 8.dp else 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        ExpressiveButton(
-            label,
-            onRemove,
-            Modifier.semantics { contentDescription = "$label. $consequence" },
-            variant = ButtonVariant.Outlined,
-        )
-        Text(
-            consequence,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f).clearAndSetSemantics { },
-        )
+private fun EqualiserActions(state: EqualiserSheetState, actions: EqualiserSheetActions) {
+    val removal = state.removal
+    if (!state.canSaveForSong && !state.canSaveForAlbum && removal == null) return
+    val removeLabel = removal?.let { stringResource(if (it == EqRemoval.SongToAlbum) R.string.equaliser_use_album else R.string.equaliser_use_default) }
+    val consequence = removal?.let { stringResource(if (it == EqRemoval.AlbumToDefault) R.string.equaliser_removes_album else R.string.equaliser_removes_song) }
+    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
+        ButtonGroup(Modifier.fillMaxWidth(), fill = true) {
+            if (state.canSaveForSong) {
+                val interaction = remember { MutableInteractionSource() }
+                ExpressiveButton(
+                    stringResource(R.string.equaliser_save_song),
+                    actions.saveForSong,
+                    Modifier.groupItem(interaction),
+                    interactionSource = interaction,
+                )
+            }
+            if (state.canSaveForAlbum) {
+                val interaction = remember { MutableInteractionSource() }
+                ExpressiveButton(
+                    stringResource(R.string.equaliser_save_album),
+                    actions.saveForAlbum,
+                    Modifier.groupItem(interaction),
+                    variant = ButtonVariant.Tonal,
+                    interactionSource = interaction,
+                )
+            }
+            if (removeLabel != null) {
+                val interaction = remember { MutableInteractionSource() }
+                ExpressiveButton(
+                    removeLabel,
+                    actions.remove,
+                    Modifier.groupItem(interaction).semantics { contentDescription = "$removeLabel. $consequence" },
+                    variant = ButtonVariant.Outlined,
+                    interactionSource = interaction,
+                )
+            }
+        }
+        val caption: @Composable (String, Modifier) -> Unit = { text, modifier ->
+            Text(
+                text,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = modifier,
+            )
+        }
+        val captionTop = Modifier.padding(top = 10.dp)
+        // The removal button already says its consequence; the caption repeating it is for the eye only.
+        val unspoken = Modifier.clearAndSetSemantics { }
+        when {
+            consequence == null -> caption(stringResource(R.string.equaliser_saved_note), captionTop.fillMaxWidth())
+            // Saving for the song sits beside the removal, so the consequence goes under its own button.
+            state.canSaveForSong -> Row(captionTop.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.weight(1f))
+                caption(consequence, Modifier.weight(1f).then(unspoken))
+            }
+            else -> caption(consequence, captionTop.fillMaxWidth().then(unspoken))
+        }
     }
 }
 
