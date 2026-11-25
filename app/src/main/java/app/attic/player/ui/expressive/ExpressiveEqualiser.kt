@@ -51,6 +51,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -206,10 +207,13 @@ private fun RemovalRow(removal: EqRemoval, onRemove: () -> Unit, afterSave: Bool
 }
 
 /**
- * The scope cell: which setting the bands below change. The default is the kit's round tonal glyph; a
- * song or album of its own squares it off and fills it with primary, the kit's "squared off means on".
- * The corner moves on the fast spatial spring and the colours on default effects, so a save or a removal
- * is seen in place. Read as one node, politely announced when it changes.
+ * The scope cell: which setting the bands below change. The default is the kit's round tonal glyph on
+ * the group's cell colour. A song or album of its own squares the glyph off and fills it with primary,
+ * the kit's "squared off means on", and fills the whole cell with primary container: someone dragging a
+ * band has their eye on the graph, and a cell that changes colour is seen from there where a 40dp glyph
+ * is not. The corner moves on the fast spatial spring and the colours on default effects, so a save or
+ * a removal is seen in place; nothing animates until the scope changes. Read as one node, politely
+ * announced when it changes.
  */
 @Composable
 fun EqualiserScopeCell(scope: EqScope, detail: String, modifier: Modifier = Modifier) {
@@ -218,9 +222,16 @@ fun EqualiserScopeCell(scope: EqScope, detail: String, modifier: Modifier = Modi
     val corner by animateDpAsState(if (own) ExpressiveShapes.Medium else 20.dp, ExpressiveMotion.fastSpatial(), label = "scopeCorner")
     val fill by animateColorAsState(if (own) colors.primary else colors.secondaryContainer, ExpressiveMotion.defaultEffects(), label = "scopeFill")
     val ink by animateColorAsState(if (own) colors.onPrimary else colors.onSecondaryContainer, ExpressiveMotion.defaultEffects(), label = "scopeInk")
+    val cell = groupCellColor()
+    val cellFill by animateColorAsState(if (own) colors.primaryContainer else cell, ExpressiveMotion.defaultEffects(), label = "scopeCell")
+    val title by animateColorAsState(if (own) colors.onPrimaryContainer else colors.onSurface, ExpressiveMotion.defaultEffects(), label = "scopeTitle")
+    val body by animateColorAsState(if (own) colors.onPrimaryContainer else colors.onSurfaceVariant, ExpressiveMotion.defaultEffects(), label = "scopeBody")
     Row(
         modifier
             .fillMaxWidth()
+            // Over the group's own fill, which the cell's shape already clips; read while drawing, and
+            // not drawn at all while it matches the group's colour.
+            .drawBehind { if (cellFill != cell) drawRect(cellFill) }
             .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
             .heightIn(min = 72.dp)
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -240,9 +251,9 @@ fun EqualiserScopeCell(scope: EqScope, detail: String, modifier: Modifier = Modi
                     },
                 ),
                 style = Expressive.type.titleLargeEmphasized,
-                color = colors.onSurface,
+                color = title,
             )
-            Text(detail, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(detail, style = MaterialTheme.typography.bodyMedium, color = body, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
