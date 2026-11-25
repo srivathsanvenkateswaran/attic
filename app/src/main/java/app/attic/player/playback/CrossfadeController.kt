@@ -191,7 +191,12 @@ class CrossfadeController(
             stopsAfterThisSong = stopsAfterThisSong(),
             outgoing = transitionsFor(item.mediaId),
             incoming = next?.let { transitionsFor(it.mediaId) },
-        ) ?: return null
+        )
+        if (transition == null) {
+            if (lastLogged != null) Log.i(TAG, "No transition out of ${item.mediaId}")
+            lastLogged = null
+            return null
+        }
         if (next == null) return null
         val plan = Plan(item.mediaId, next.mediaId, transition, duration)
         if (plan != lastLogged) {
