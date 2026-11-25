@@ -425,7 +425,12 @@ private fun OwnSongRow(row: EqOwnRow, calls: State<EqualiserPageActions>) {
             // `.song .meta + .ib`: the preset 2dp from the button.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 OwnPreset(row.preset, onest(13f, 18f))
-                ComfortIconButton(Symbol.Close, stringResource(R.string.equaliser_own_remove_cd, row.title), { calls.value.remove(row.target) })
+                ComfortIconButton(
+                    Symbol.Close,
+                    stringResource(R.string.equaliser_own_remove_cd, row.title),
+                    { calls.value.remove(row.target) },
+                    dim = true,
+                )
             }
         },
     )
