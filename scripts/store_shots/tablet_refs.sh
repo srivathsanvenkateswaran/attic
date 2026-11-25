@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Renders the tablet layouts on the JVM, as the design files' Tablet pages draw them: both styles,
 # light and dark, on the Xiaomi Pad 6's 2880x1800 px at 1152x720 dp landscape and 720x1152 dp portrait
-# (its stock 400 dpi), and 1440x900 dp landscape (a smaller display size). No phone or emulator. Keys are
-# listed in TabletRefs.kt.
+# (its stock 400 dpi), and 1440x900 dp landscape (a smaller display size), and the other window sizes in
+# TabletRefs.kt; TenInch and SevenInch are the Play listing's tablet screenshots, which frame_tablets.py
+# frames. No phone or emulator. Keys are listed in TabletRefs.kt.
 #
 #   scripts/store_shots/tablet_refs.sh                              everything, into /tmp/attic-dev/tablet-renders
 #   scripts/store_shots/tablet_refs.sh '*[Landscape-Comfort-*]'     only the tests whose name matches
@@ -36,7 +37,10 @@ from PIL import Image
 out = sys.argv[1]
 groups = collections.defaultdict(list)
 for f in sorted(glob.glob(os.path.join(out, "tablet-*.png"))):
-    size, style, theme = os.path.basename(f).split("-")[1:4]
+    # Sizes such as ten-inch hold a hyphen, so the style is found by name.
+    parts = os.path.basename(f).split("-")
+    at = next(i for i, p in enumerate(parts) if p in ("expressive", "comfort"))
+    size, style, theme = "-".join(parts[1:at]), parts[at], parts[at + 1]
     groups[(size, style, theme)].append(f)
 for (size, style, theme), files in groups.items():
     thumbs = []

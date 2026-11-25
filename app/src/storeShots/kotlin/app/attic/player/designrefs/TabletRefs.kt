@@ -33,6 +33,15 @@ enum class TabletSize(val key: String, val qualifiers: String, val widthPx: Int,
 
     /** A bigger tablet upright: an expanded width taller than it is wide. */
     LargePortrait("large-portrait", "w900dp-h1440dp-port-xhdpi", 1800, 2880),
+
+    /** The store listing's 10-inch tablet, sideways: 2560 by 1600 pixels at 320 dpi. */
+    TenInch("ten-inch", "w1280dp-h800dp-land-xhdpi", 2560, 1600),
+
+    /**
+     * The store listing's smaller tablet, sideways: 2048 by 1280 pixels at 320 dpi. At 960 by 600 dp, the
+     * usual 7-inch window, Comfort's Now Playing shortens the title and both players squeeze their buttons.
+     */
+    SevenInch("seven-inch", "w1024dp-h640dp-land-xhdpi", 2048, 1280),
 }
 
 /**
@@ -87,12 +96,16 @@ class TabletRefs(private val size: TabletSize, private val style: UiStyle, priva
             "moods_home", "mood_page", "sheet_equaliser", "settings_equaliser",
         )
 
+        /** The screens the store listing's tablet screenshots and the website's tablet section show. */
+        val Store = listOf("home", "library_albums", "album", "search_results", "now_playing", "now_playing_lyrics")
+
         @JvmStatic
         @ParameterizedRobolectricTestRunner.Parameters(name = "{0}-{1}-{2}-{3}")
         fun shots(): List<Array<Any>> = buildList {
             for ((size, keys) in listOf(
                 TabletSize.Landscape to Landscape, TabletSize.Portrait to Portrait, TabletSize.Large to Large,
                 TabletSize.Split to OtherSizes, TabletSize.Floating to OtherSizes, TabletSize.LargePortrait to OtherSizes,
+                TabletSize.TenInch to Store, TabletSize.SevenInch to Store,
             )) {
                 for (style in UiStyle.entries) for (dark in listOf(true, false)) for (key in keys) add(arrayOf(size, style, dark, key))
             }
