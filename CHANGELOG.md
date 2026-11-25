@@ -28,6 +28,14 @@ All notable changes to Attic are listed here. Versions follow [Semantic Versioni
 
 <!-- TODO: tablets -->
 
+### Tablets
+- Laid out for tablets and other large windows, in both styles, light and dark. A navigation rail (Expressive) or a side dock (Comfort) replaces the bottom bar, and a player bar runs along the bottom of the screen
+- The Library shows the album, artist or playlist you open beside its list when the tablet is sideways; albums, artists and playlists put their cover and buttons beside the songs
+- Now Playing sits beside the queue or the lyrics when the tablet is sideways, and full-screen lyrics keep the cover and controls beside them
+- Home, Search and the Library spread into columns; Settings, the queue and the Recap page stay a readable width; sheets and dialogs no longer stretch across the screen
+- Tablets turn freely and keep the screen, the open player and your place in a list when rotated or resized, including in split screen and floating windows. Phones stay in portrait
+- With a keyboard, Space plays and pauses and Esc closes what is open; with a mouse, a right click on a song opens its menu
+
 ## [1.2.0] - 2026-11-25
 
 ### Equaliser

@@ -1067,7 +1067,7 @@ The rules are in `docs/design/2026-11-25-tablet/SPEC.md` and drawn on the `Table
 - **Settings, queue, Recap, licences.** Centred columns at most 720 dp wide. The Recap story keeps a phone screen's proportions, centred.
 - **Sheets and dialogs.** Bottom sheets are at most 640 dp wide and centred; dialogs at most 560 dp, one-field dialogs 400 dp, centred (Comfort's sit at the bottom only on phones).
 - **First run.** A centred column at most 560 dp wide; Comfort puts the look cards beside the theme choice when the window is landscape.
-- **Keyboard and mouse.** Space plays and pauses, and Esc closes what is open (`MainActivity.onKeyDown`); both act only when nothing on screen took the key. A right click on a song row opens its menu on medium and expanded windows. Rail, dock, player bar and panel switch items are ordinary focusable buttons with hover and focus states.
+- **Keyboard and mouse.** Space plays and pauses wherever focus is, unless a text field is taking the typing (`MainActivity.dispatchKeyEvent`); Enter activates the focused control. Esc closes what is open, as Back does, when nothing on screen took the key (`MainActivity.onKeyDown`). A right click on a song row opens its menu on medium and expanded windows. Rail, dock, player bar and panel switch items are ordinary focusable buttons with hover and focus states.
 - **Home-screen widget.** The same three layouts stretch to a tablet launcher's larger cells; Expressive's 4 x 2 crops its five recent-album tiles taller than they are wide.
 
 ---
