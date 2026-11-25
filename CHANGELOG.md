@@ -2,7 +2,7 @@
 
 All notable changes to Attic are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.3.0] - unreleased
+## [1.3.0] - 2026-11-25
 
 ### Mood mixes
 - A Moods shelf on Home, after Mixes: one mix a day for each of Chill, Happy, Energetic, Focus, Party, Melancholy and Romantic that has enough songs, up to 25 songs each
