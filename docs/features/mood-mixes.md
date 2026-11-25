@@ -318,7 +318,8 @@ seeded the way `RadioState.forCollection` seeds smart shuffle:
 - picks come only from songs that fit the mood (step 2), so radio stays in the mood instead of
   drifting to whatever sounds close
 - the opening song is the fitting song nearest the centroid
-- picks keep to the picked languages, or the mix's own when none are picked
+- picks keep to the picked languages when any are picked; with none, radio follows the
+  session's language as song radio does
 - the queue plays as "Radio · Chill"
 
 When a mood mix runs out, autoplay continues the same way, leaving out the mix's songs.
