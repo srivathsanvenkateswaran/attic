@@ -10,7 +10,7 @@ read the embedding analysis already stored. You can pick the moods, genres and l
 Each day Attic builds one mix per mood from those scores, your picks and your listening, by fixed
 arithmetic with a seeded daily rotation. Everything runs on the phone.
 
-Status: architecture, 2026-11-25. Branch `feature/mood-mixes`, from `tier2-integration` at dffdd29.
+Status: architecture, 2026-11-25. Branch `feature/mood-mixes`, on `ui-redesign` at 65ebfb8 (1.1.0, Room 5).
 
 ## What exists today, and what this builds on
 
@@ -107,6 +107,12 @@ So:
   songs analysed by an unreleased build that stored styles but no length get a decode they
   wouldn't have had. If that decode fails, the length is stored as 0 (unknown), so the song isn't
   tried again and keeps its approximate scores.
+
+**On the owner's phone as it is today** (742 embeddings, no lengths, no styles, genre tags empty
+or YouTube categories), the approximate backfill alone gives six moods a full mix: 299 songs fit
+Chill, 304 Party, 242 Energetic, 233 Happy, 161 Melancholy and 60 Focus. Romantic has none until
+analysis has decoded songs again. Scoring the 742 took 0.6 s on the JVM, building the mixes 36 ms.
+Focus is the weakest without the tags: a few soft vocal songs get in.
 
 ### When scores are computed
 
@@ -334,6 +340,12 @@ and the tablet sizes from `docs/design/2026-11-25-tablet/SPEC.md` (on `feature/t
   name ("chill") lists the mood with the genres.
 - **Moods and interests.** The picker page, from the Home card and Settings.
 - **Settings.** A "Moods and interests" row with the picks' summary.
+
+**Before any mood data.** Until at least 8 songs have mood scores (a new install before analysis,
+or the moment after this update before the first backfill finishes), the Moods shelf, its card and
+Search's Moods group are hidden rather than empty. A mood page opened then (a back stack restored
+after a restart) builds the mixes itself and says "This mood has no mix today" if there is still
+none. The picker works with no data: its moods are fixed, and its Genres group shows its empty line.
 
 No new icons: the icon font is a subset (`ui/expressive/Symbols.kt`), and adding glyphs means
 cutting it again.
