@@ -1,5 +1,6 @@
 /* Attic site. One family (Onest, bundled with the app under the OFL), no scripts, no third-party
-   requests. The one interactive part, the style viewer, runs on radio buttons and :has(). */
+   requests. The one interactive part, the style viewer, runs on radio buttons and :has(); its Style
+   choice also sets the style of every other screenshot on the page. */
 
 @font-face {
   font-family: "Onest";
@@ -232,7 +233,7 @@ code {
   font-weight: 650;
 }
 
-/* Two phones, one per style, standing over the cut into the page below. */
+/* Two phones in the chosen style, Home behind Now Playing, standing over the cut into the page below. */
 .hero-phones {
   position: relative;
   z-index: 1;
@@ -285,19 +286,24 @@ h3 {
   letter-spacing: -0.015em;
 }
 
-.section-head { max-width: 46rem; margin: 0 auto; text-align: center; }
-.section-head p { margin: 1.25rem 0 0; color: var(--ink-2); font-size: var(--step-1); line-height: 1.55; }
-
 /* ---------- Two styles: a copy of the app's Appearance setting ---------- */
 
 .styles { padding-top: calc(var(--slope) + clamp(4rem, 8vw, 7rem)); }
 
+/* One phone and the three choices that describe it. Stacked and centred until there is room for
+   the phone to stand beside the panel. */
+.viewer { display: grid; justify-items: center; gap: 3rem; }
+
+.viewer-panel { width: 100%; max-width: 46rem; text-align: center; }
+.viewer-intro { margin: 1.25rem 0 0; color: var(--ink-2); font-size: var(--step-1); line-height: 1.55; }
+
+.viewer-phone { width: min(100%, 19rem); }
+
 .controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem 2.5rem;
-  margin: 3rem 0 3.5rem;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  margin: 2.5rem 0 0;
 }
 
 .seg {
@@ -344,39 +350,48 @@ h3 {
 .seg input:checked + label { background: var(--ink); color: var(--page); border-color: var(--ink); border-radius: 999px; }
 .seg input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 2px; }
 
-/* Without :has() the controls do nothing, so they are hidden and Home shows in the visitor's theme. */
-@supports not selector(:has(a)) {
-  .controls { display: none; }
+/* Style is the one choice that reaches past the viewer, so its buttons are a size up and carry
+   each style's own accent: Expressive's cover tint and Comfort's amber. */
+.seg-style label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 1.4rem;
+  font-size: var(--step-0);
+  font-weight: 600;
 }
-
-/* Wide: the two phones meet in the middle, each caption on its own outer side. */
-.pair {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(1rem, 3vw, 2.5rem);
-}
-
-.style { margin: 0; display: grid; gap: 1.5rem; align-content: start; }
-.style .phone { width: min(100%, 19rem); }
-
-@media (min-width: 961px) {
-  .style { grid-template-columns: minmax(0, 1fr) 18rem; align-items: center; gap: clamp(1.5rem, 3vw, 2.5rem); }
-  .style.expressive figcaption { order: -1; text-align: right; justify-self: end; }
-  .style.expressive figcaption h3 { justify-content: flex-end; }
-  .style.comfort { grid-template-columns: 18rem minmax(0, 1fr); }
-  .style figcaption p { max-width: 26ch; }
-}
-
-.style figcaption h3 { display: flex; align-items: center; gap: 0.6rem; }
-/* Each style's own accent: Expressive's cover tint and Comfort's amber. */
-.style figcaption h3::before {
+.seg-style label::before {
   content: "";
-  width: 0.8em; height: 0.8em;
+  width: 0.7em; height: 0.7em;
   flex: none;
 }
-.expressive figcaption h3::before { background: #e98a72; border-radius: 30%; transform: rotate(45deg) scale(0.85); }
-.comfort figcaption h3::before { background: #f2a93b; border-radius: 50%; }
-.style figcaption p { margin: 0.6rem 0 0; max-width: 34ch; color: var(--ink-2); }
+.seg-style label[for="style-expressive"]::before { background: #e98a72; border-radius: 30%; transform: rotate(45deg) scale(0.85); }
+.seg-style label[for="style-comfort"]::before { background: #f2a93b; border-radius: 50%; }
+
+/* What the chosen style looks like, in a sentence, under its button. */
+.style-note { margin: -0.25rem 0 0.75rem; max-width: 46ch; color: var(--ink-2); }
+
+/* Wide: the phone stands on the left, the panel reads beside it, and the three rows of buttons
+   start on one line. */
+@media (min-width: 961px) {
+  .viewer {
+    grid-template-columns: 19rem minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    gap: clamp(2rem, 7vw, 6rem);
+    max-width: 64rem;
+    margin: 0 auto;
+  }
+  .viewer-panel { order: 2; max-width: var(--measure); text-align: left; }
+  .controls { justify-items: start; }
+  .viewer .seg legend { width: 4.25rem; margin-right: 0; }
+  .style-note { margin-left: 4.5rem; }
+}
+
+/* Style: Expressive shows unless Comfort is picked, in every screenshot on the page. */
+.only-comfort { display: none; }
+body:has(#style-comfort:checked) .only-expressive { display: none; }
+body:has(#style-comfort:checked) .only-comfort { display: block; }
 
 /* Screen: Home shows unless another screen is picked. */
 .screen:not([data-screen="home"]) { display: none; }
@@ -395,6 +410,12 @@ h3 {
 .styles:has(#t-dark:checked) .shot-dark { display: block; }
 .styles:has(#t-light:checked) .shot-dark,
 .styles:has(#t-dark:checked) .shot-light { display: none; }
+
+/* Without :has() the controls do nothing, so they and the sentence about them are hidden, and the
+   page shows Expressive throughout, with Home in the visitor's theme in the viewer. */
+@supports not selector(:has(a)) {
+  .controls, .needs-has { display: none; }
+}
 
 .demo-note { margin: 3rem 0 0; color: var(--ink-2); font-size: var(--step--1); text-align: center; }
 
@@ -590,13 +611,16 @@ h3 {
 @media (max-width: 640px) {
   .wide-only { display: none; }
   .get .button { flex: 1 1 100%; }
-  .section-head { text-align: left; }
-  .controls { flex-direction: column; gap: 1.25rem; margin: 2rem 0; }
+  .viewer-panel { text-align: left; }
+  .viewer-phone { width: 15rem; }
+  .controls { justify-items: stretch; margin-top: 2rem; }
+  .controls > .seg + .seg { margin-top: 0.25rem; }
   .seg { flex-wrap: nowrap; gap: 0.2rem; }
   .seg legend { float: none; padding: 0; margin: 0 0 0.5rem; }
   .seg label { flex: 1 1 auto; text-align: center; padding: 0.65rem 0.35rem; font-size: 0.8125rem; }
+  .seg-style label { justify-content: center; padding: 0.85rem 0.5rem; font-size: 1rem; }
+  .style-note { font-size: 0.9375rem; }
   .demo-note { text-align: left; }
-  .style figcaption p { font-size: 0.9375rem; }
   .perf tbody td { font-size: var(--step-1); }
   .doc td code { white-space: normal; }
 }

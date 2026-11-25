@@ -67,19 +67,31 @@
       </div>
       <div class="hero-phones">
         <div class="phone back">
-          <picture>
+          <picture class="only-expressive">
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-360.png">
+            <source type="image/webp" srcset="img/screens/expressive-light-home-360.webp 360w, img/screens/expressive-light-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
+            <img src="img/screens/expressive-light-home-360.png" width="360" height="800" alt="Home in the Expressive style" fetchpriority="high" decoding="async">
+          </picture>
+          <picture class="only-comfort">
             <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
             <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-360.png">
             <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 961px) 280px, (min-width: 700px) 225px, 42vw">
-            <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style" fetchpriority="high" decoding="async">
+            <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style" loading="lazy" decoding="async">
           </picture>
         </div>
         <div class="phone front">
-          <picture>
+          <picture class="only-expressive">
             <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
             <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-now-playing-360.png">
             <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
             <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style" fetchpriority="high" decoding="async">
+          </picture>
+          <picture class="only-comfort">
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-now-playing-360.png">
+            <source type="image/webp" srcset="img/screens/comfort-light-now-playing-360.webp 360w, img/screens/comfort-light-now-playing-720.webp 720w" sizes="(min-width: 961px) 320px, (min-width: 700px) 256px, 48vw">
+            <img src="img/screens/comfort-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style" loading="lazy" decoding="async">
           </picture>
         </div>
       </div>
@@ -89,124 +101,121 @@
   <main id="main">
     <section class="styles" id="styles" aria-labelledby="styles-title">
       <div class="wrap">
-        <div class="section-head">
-          <h2 id="styles-title">Two styles, one app</h2>
-          <p>Expressive and Comfort each restyle every screen. Switch in Settings &gt; Appearance: the change applies at once and the song keeps playing. Both come in light and dark.</p>
-        </div>
+        <div class="viewer">
+          <div class="viewer-panel">
+            <h2 id="styles-title">Two styles, one app</h2>
+            <p class="viewer-intro">Expressive and Comfort each restyle every screen, in light and dark. In the app, switch in Settings &gt; Appearance: the change applies at once and the song keeps playing. <span class="needs-has">Pick a style here and every screenshot on this page changes with it.</span></p>
 
-        <div class="controls">
-          <fieldset class="seg">
-            <legend>Screen</legend>
-            <input type="radio" name="screen" id="s-home" checked><label for="s-home">Home</label>
-            <input type="radio" name="screen" id="s-now-playing"><label for="s-now-playing">Now Playing</label>
-            <input type="radio" name="screen" id="s-album"><label for="s-album">Album</label>
-            <input type="radio" name="screen" id="s-artist"><label for="s-artist">Artist</label>
-          </fieldset>
-          <fieldset class="seg">
-            <legend>Theme</legend>
-            <input type="radio" name="theme" id="t-auto" checked><label for="t-auto">Match device</label>
-            <input type="radio" name="theme" id="t-light"><label for="t-light">Light</label>
-            <input type="radio" name="theme" id="t-dark"><label for="t-dark">Dark</label>
-          </fieldset>
-        </div>
+            <div class="controls">
+              <fieldset class="seg seg-style">
+                <legend>Style</legend>
+                <input type="radio" name="style" id="style-expressive" aria-describedby="note-expressive" checked><label for="style-expressive">Expressive</label>
+                <input type="radio" name="style" id="style-comfort" aria-describedby="note-comfort"><label for="style-comfort">Comfort</label>
+              </fieldset>
+              <p class="style-note only-expressive" id="note-expressive">Colour taken from the album art and the phone's wallpaper, a wavy progress line, and buttons that change shape as you press them.</p>
+              <p class="style-note only-comfort" id="note-comfort">Soft rounded cards, a warm amber accent, and a dock at the bottom for Home, Search and Library. Album pages still take a tint from the cover.</p>
+              <fieldset class="seg">
+                <legend>Screen</legend>
+                <input type="radio" name="screen" id="s-home" checked><label for="s-home">Home</label>
+                <input type="radio" name="screen" id="s-now-playing"><label for="s-now-playing">Now Playing</label>
+                <input type="radio" name="screen" id="s-album"><label for="s-album">Album</label>
+                <input type="radio" name="screen" id="s-artist"><label for="s-artist">Artist</label>
+              </fieldset>
+              <fieldset class="seg">
+                <legend>Theme</legend>
+                <input type="radio" name="theme" id="t-auto" checked><label for="t-auto">Match device</label>
+                <input type="radio" name="theme" id="t-light"><label for="t-light">Light</label>
+                <input type="radio" name="theme" id="t-dark"><label for="t-dark">Dark</label>
+              </fieldset>
+            </div>
+          </div>
 
-        <div class="pair">
-          <figure class="style expressive">
-            <div class="phone">
+          <div class="phone viewer-phone">
+            <div class="only-expressive">
               <div class="screen" data-screen="home">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/expressive-light-home-360.webp 360w, img/screens/expressive-light-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-light-home-360.webp 360w, img/screens/expressive-light-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-light-home-360.png" width="360" height="800" alt="Home in the Expressive style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-dark-home-360.png" width="360" height="800" alt="Home in the Expressive style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="now-playing">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="album">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/expressive-light-album-360.webp 360w, img/screens/expressive-light-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-light-album-360.webp 360w, img/screens/expressive-light-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-light-album-360.png" width="360" height="800" alt="Album in the Expressive style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-album-360.webp 360w, img/screens/expressive-dark-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-album-360.webp 360w, img/screens/expressive-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-dark-album-360.png" width="360" height="800" alt="Album in the Expressive style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="artist">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/expressive-light-artist-360.webp 360w, img/screens/expressive-light-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-light-artist-360.webp 360w, img/screens/expressive-light-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-light-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-artist-360.webp 360w, img/screens/expressive-dark-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/expressive-dark-artist-360.webp 360w, img/screens/expressive-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/expressive-dark-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
             </div>
-            <figcaption>
-              <h3>Expressive</h3>
-              <p>Colour taken from the album art and the phone's wallpaper, a wavy progress line, and buttons that change shape as you press them.</p>
-            </figcaption>
-          </figure>
-          <figure class="style comfort">
-            <div class="phone">
+            <div class="only-comfort">
               <div class="screen" data-screen="home">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-dark-home-360.png" width="360" height="800" alt="Home in the Comfort style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="now-playing">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/comfort-light-now-playing-360.webp 360w, img/screens/comfort-light-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-light-now-playing-360.webp 360w, img/screens/comfort-light-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="album">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/comfort-light-album-360.webp 360w, img/screens/comfort-light-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-light-album-360.webp 360w, img/screens/comfort-light-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-light-album-360.png" width="360" height="800" alt="Album in the Comfort style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-album-360.webp 360w, img/screens/comfort-dark-album-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-album-360.webp 360w, img/screens/comfort-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-dark-album-360.png" width="360" height="800" alt="Album in the Comfort style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="artist">
                 <picture class="shot-light">
-                  <source type="image/webp" srcset="img/screens/comfort-light-artist-360.webp 360w, img/screens/comfort-light-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-light-artist-360.webp 360w, img/screens/comfort-light-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-light-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, light theme" loading="lazy" decoding="async">
                 </picture>
                 <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-artist-360.webp 360w, img/screens/comfort-dark-artist-720.webp 720w" sizes="(min-width: 700px) 304px, 44vw">
+                  <source type="image/webp" srcset="img/screens/comfort-dark-artist-360.webp 360w, img/screens/comfort-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
                   <img src="img/screens/comfort-dark-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, dark theme" loading="lazy" decoding="async">
                 </picture>
               </div>
             </div>
-            <figcaption>
-              <h3>Comfort</h3>
-              <p>Soft rounded cards, a warm amber accent, and a dock at the bottom for Home, Search and Library. Album pages still take a tint from the cover.</p>
-            </figcaption>
-          </figure>
+          </div>
         </div>
         <p class="demo-note">The screenshots use a demo library with invented artists and generated covers.</p>
       </div>
@@ -233,7 +242,13 @@
             </table>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-library-360.webp 360w, img/screens/expressive-dark-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-library-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-library-360.webp 360w, img/screens/expressive-light-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-library-360.png" width="360" height="800" alt="The Library screen in the Expressive style, listing playlists" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-library-360.webp 360w, img/screens/comfort-dark-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-library-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-library-360.webp 360w, img/screens/comfort-light-library-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
@@ -254,11 +269,17 @@
             </ul>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-queue-360.webp 360w, img/screens/expressive-dark-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-queue-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-queue-360.webp 360w, img/screens/expressive-light-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <img src="img/screens/expressive-light-queue-360.png" width="360" height="800" alt="The queue in the Expressive style, with eleven songs up next" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-queue-360.webp 360w, img/screens/comfort-dark-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-queue-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-queue-360.webp 360w, img/screens/comfort-light-queue-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-queue-360.png" width="360" height="800" alt="The queue in the Comfort style, with eleven songs up next" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
@@ -286,11 +307,17 @@
             <p class="note">Mixes, and genres for untagged songs, come from song analysis, which runs while the phone charges. After an update from 1.0, they fill in as analysis reaches each song.</p>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-mixes-360.webp 360w, img/screens/expressive-dark-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-mixes-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-home-mixes-360.webp 360w, img/screens/expressive-light-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <img src="img/screens/expressive-light-home-mixes-360.png" width="360" height="800" alt="Home in the Expressive style: three mixes named after their artists, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-mixes-360.webp 360w, img/screens/comfort-dark-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-mixes-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-home-mixes-360.webp 360w, img/screens/comfort-light-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-home-mixes-360.png" width="360" height="800" alt="Home in the Comfort style: three mixes named after their artists, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
@@ -305,7 +332,13 @@
             </ul>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-lyrics-360.webp 360w, img/screens/expressive-dark-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-lyrics-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-lyrics-360.webp 360w, img/screens/expressive-light-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-lyrics-360.png" width="360" height="800" alt="Synced lyrics in the Expressive style, with the current line highlighted" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-lyrics-360.webp 360w, img/screens/comfort-dark-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-lyrics-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-lyrics-360.webp 360w, img/screens/comfort-light-lyrics-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
@@ -320,11 +353,17 @@
             <p>Your top songs, artists and listening clock for the week, month, year or all time, counted from the log on your phone. Save or share any of the cards as an image.</p>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-recap-360.webp 360w, img/screens/expressive-dark-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-recap-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-recap-360.webp 360w, img/screens/expressive-light-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <img src="img/screens/expressive-light-recap-360.png" width="360" height="800" alt="Recap in the Expressive style, showing minutes, plays, songs, artists and the longest streak for the year" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-recap-360.webp 360w, img/screens/comfort-dark-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-recap-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-recap-360.webp 360w, img/screens/comfort-light-recap-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-recap-360.png" width="360" height="800" alt="Recap in the Comfort style, showing minutes, plays, songs, artists and the longest streak for the year" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
@@ -390,7 +429,13 @@
             <p class="note">Loudness is measured during song analysis, which runs while the phone charges. A song that hasn't been measured plays as it is, so after an update from 1.0, levelling reaches more of the library as analysis goes on.</p>
           </div>
           <div class="phone feature-phone">
-            <picture>
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-settings-playback-360.webp 360w, img/screens/expressive-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-settings-playback-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-settings-playback-360.webp 360w, img/screens/expressive-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-settings-playback-360.webp 360w, img/screens/comfort-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-settings-playback-360.webp 360w, img/screens/comfort-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">

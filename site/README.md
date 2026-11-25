@@ -5,7 +5,9 @@ The landing page and privacy policy, served by GitHub Pages from this folder by
 servers. The one font, Onest, is self-hosted under the SIL Open Font License (`fonts/OFL-onest.txt`).
 
 The style viewer under "Two styles, one app" runs on radio buttons and the CSS `:has()` selector.
-Browsers without `:has()` hide its controls and show Home in the visitor's theme.
+Its Style choice also sets the style of every other screenshot on the page; Screen and Theme change
+the viewer's phone only. Browsers without `:has()` hide the controls and show Expressive throughout,
+with Home in the visitor's theme in the viewer.
 
 ## Turning it on
 
@@ -39,8 +41,9 @@ drop "coming soon" from anywhere else it appears.
 ## Images
 
 `img/screens/` holds the phone screenshots, each as a 360 px and a 720 px WebP and a 360 px PNG
-fallback. `img/og.png` (1200 × 630), `img/apple-touch-icon.png` and `img/icon-32.png` are drawn from
-the Headroom mark. All of them come from one script:
+fallback, and every screen is rendered in both styles, light and dark. `img/og.png` (1200 × 630),
+`img/apple-touch-icon.png` and `img/icon-32.png` are drawn from the Headroom mark. All of them come
+from one script:
 
 ```bash
 scripts/store_shots/run.sh                  # raw 1080 x 2400 captures of the demo library
