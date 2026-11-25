@@ -29,12 +29,14 @@ FONT = ROOT / "site/fonts/onest.ttf"
 DEFAULT_RAW = Path(os.environ.get("STORE_SHOTS_DIR", "/tmp/attic-dev/store-shots")) / "raw"
 
 THEMES = ("light", "dark")
-# Screens shown on the page for each style, by the name the store-shot test gives them. The first
-# four fill the style viewer; the rest illustrate one feature or section each.
-SCREENS = {
-    "expressive": ("home", "now-playing", "album", "artist", "queue", "recap", "home-mixes"),
-    "comfort": ("home", "now-playing", "album", "artist", "library", "lyrics", "settings-playback"),
-}
+# Screens shown on the page, by the name the store-shot test gives them. Every one is rendered in
+# both styles, because the page's Style switch shows one style throughout. The first four fill the
+# style viewer; the rest illustrate one feature or section each.
+STYLES = ("expressive", "comfort")
+SCREENS = (
+    "home", "now-playing", "album", "artist",
+    "library", "queue", "home-mixes", "lyrics", "recap", "settings-playback",
+)
 WIDTHS = (360, 720)
 
 
@@ -144,9 +146,9 @@ def main() -> int:
         print("cwebp not found; brew install webp", file=sys.stderr)
         return 1
     TARGET.mkdir(parents=True, exist_ok=True)
-    for style, screens in SCREENS.items():
+    for style in STYLES:
         for theme in THEMES:
-            for screen in screens:
+            for screen in SCREENS:
                 name = f"{style}-{theme}-{screen}"
                 source = args.raw / f"{name}.png"
                 if not source.exists():
