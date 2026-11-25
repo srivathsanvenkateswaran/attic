@@ -103,7 +103,7 @@ class CrossfadeController(
     private val listener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             if (isOwnTransition) return
-            if (state is State.Fading) cut()
+            if (state is State.Fading) cut("a move to another song")
             replan()
         }
 
@@ -111,19 +111,19 @@ class CrossfadeController(
             if (isOwnTransition) return
             if (reason == Player.DISCONTINUITY_REASON_SEEK || reason == Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT) {
                 // A seek or skip by the listener. Mid-fade it ends the fade; before one, the tail has to line up again.
-                cancel()
+                cut("a seek")
                 replan()
             }
         }
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            if (!playWhenReady) cancel() else replan()
+            if (!playWhenReady) cut("a pause") else replan()
         }
 
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             val fading = state as? State.Fading
             if (fading != null) {
-                if (main.currentMediaItem?.mediaId != fading.plan.nextKey) cut()
+                if (main.currentMediaItem?.mediaId != fading.plan.nextKey) cut("a queue change")
                 return
             }
             replan()
@@ -131,7 +131,7 @@ class CrossfadeController(
 
         override fun onRepeatModeChanged(repeatMode: Int) = replan()
 
-        override fun onPlayerError(error: PlaybackException) = cancel()
+        override fun onPlayerError(error: PlaybackException) = cut("an error")
     }
 
     init {
@@ -146,7 +146,7 @@ class CrossfadeController(
 
     /** The setting or the sleep timer changed. */
     fun settingsChanged() {
-        if (state is State.Fading && mode() == TransitionMode.Off) cut()
+        if (state is State.Fading && mode() == TransitionMode.Off) cut("the setting turned off")
         replan()
     }
 
@@ -339,12 +339,19 @@ class CrossfadeController(
     }
 
     private fun finishFade() {
+        (state as? State.Fading)?.let { Log.i(TAG, "Fade finished after ${SystemClock.elapsedRealtime() - it.startedAt} ms: ${it.plan.nextKey}") }
         cancel()
         replan()
     }
 
     /** Stops a fade halfway: the tail goes, the new song plays at full volume. */
-    private fun cut() = cancel()
+    private fun cut(why: String) {
+        val fading = state as? State.Fading
+        if (fading != null) {
+            Log.i(TAG, "Cut the fade by $why, ${SystemClock.elapsedRealtime() - fading.startedAt} ms in: ${fading.plan.currentKey} → ${fading.plan.nextKey}")
+        }
+        cancel()
+    }
 
     private fun cancel() {
         handler.removeCallbacks(evaluate)
