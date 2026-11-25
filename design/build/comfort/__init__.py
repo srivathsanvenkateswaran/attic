@@ -5,10 +5,11 @@ TITLE = "Attic Comfort"
 VERSION = "1.1.0"
 CODE_PACKAGE = "app.attic.player.ui.comfort"
 
-# Build order. Each module owns the pages its docstring names. `equaliser` (1.1.0) adds to a finished file: it reads
-# what it needs back out of the document, so it also runs on its own against the saved .figcraft
-# (python3 -m comfort.equaliser SRC DST), which is how the equaliser got into the file.
-MODULES = ['foundations', 'components_core', 'components_overlays', 'components_states', 'screens_browse', 'screens_playback', 'screens_settings', 'system_surfaces', 'cover', 'flows', 'handoff', 'equaliser']
+# Build order. Each module owns the pages its docstring names. `equaliser` (1.1.0) and `transitions` add to a
+# finished file: they read what they need back out of the document, so they also run on their own against the
+# saved .figcraft (python3 -m comfort.equaliser SRC DST), which is how they got into the file. In a build from
+# scratch `transitions` skips itself.
+MODULES = ['foundations', 'components_core', 'components_overlays', 'components_states', 'screens_browse', 'screens_playback', 'screens_settings', 'system_surfaces', 'cover', 'flows', 'handoff', 'equaliser', 'transitions']
 # Built before any module passed to --only, since screens are made of these.
 FOUNDATION_MODULES = ["foundations", "components_core", "components_overlays", "components_states"]
 
