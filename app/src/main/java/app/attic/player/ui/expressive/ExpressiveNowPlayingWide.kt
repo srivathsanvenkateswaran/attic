@@ -30,6 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import app.attic.player.R
 import app.attic.player.ui.adaptive.LocalInitialPlayerPanel
 import app.attic.player.ui.adaptive.PlayerPanel
@@ -122,8 +123,8 @@ private val PlayerPanel.label: Int
 
 /**
  * The player under the header, sized from the height the half has: the cover takes what the rest
- * leaves, on the 8dp grid, at most 440dp, and the column is the cover plus the next cover's 72dp
- * and the 8 between them, centred in the half.
+ * leaves, on the 8dp grid, at most 440dp (and none under [MinCover]), and the column is the cover plus
+ * the next cover's 72dp and the 8 between them, at least the transport's width, centred in the half.
  */
 @Composable
 private fun Player(state: NowPlayingState, actions: NowPlayingActions, track: app.attic.player.data.Track, lyric: Boolean) {
@@ -132,18 +133,25 @@ private fun Player(state: NowPlayingState, actions: NowPlayingActions, track: ap
         val compact = maxHeight + 64.dp < 816.dp
         val fixed = if (compact) CompactFixed else RoomyFixed
         val room = maxHeight - nav - fixed
-        val side: Dp = (room.value / 8f).toInt().times(8f).coerceIn(160f, 440f).dp
+        val fitted: Dp = (room.value / 8f).toInt().times(8f).coerceAtMost(440f).dp
             .coerceAtMost(maxWidth - 128.dp)
-        val column = side + Peek + 8.dp
+        // A window too short for even a small cover (840 by 480dp) leaves it out, so the controls fit.
+        val side = if (fitted >= MinCover) fitted else 0.dp
+        val pager = side + Peek + 8.dp
+        // Never narrower than the transport, so a short window (a 7-inch tablet sideways) shrinks the
+        // cover but keeps next in view; the cover then starts at the column's start, as the title does.
+        val column = max(pager, TransportWidth)
         Column(Modifier.width(column + 48.dp)) {
-            CoverPager(
-                state,
-                actions,
-                cover = side,
-                modifier = Modifier.padding(top = if (compact) 0.dp else 4.dp),
-                inset = 24.dp,
-                sliver = Peek,
-            )
+            if (side > 0.dp) {
+                CoverPager(
+                    state,
+                    actions,
+                    cover = side,
+                    modifier = Modifier.width(pager + 48.dp).padding(top = if (compact) 0.dp else 4.dp),
+                    inset = 24.dp,
+                    sliver = Peek,
+                )
+            }
             TitleBlock(state, actions, track, top = if (compact) 16.dp else 26.dp, lyric = lyric && !compact)
             SeekSection(state, track, actions.seekTo, top = if (compact) 8.dp else 10.dp)
             Transport(
@@ -161,6 +169,12 @@ private fun Player(state: NowPlayingState, actions: NowPlayingActions, track: ap
         }
     }
 }
+
+/** The transport's width while paused: two 76dp skip buttons, the 152dp play control, 8dp between. */
+private val TransportWidth = (76 + 8 + 152 + 8 + 76).dp
+
+/** The smallest cover the player shows; a shorter window leaves the cover out. */
+private val MinCover = 96.dp
 
 /** The next cover's width beside the cover. */
 private val Peek = 72.dp

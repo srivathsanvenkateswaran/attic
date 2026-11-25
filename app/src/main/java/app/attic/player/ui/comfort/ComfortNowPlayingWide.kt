@@ -54,6 +54,16 @@ private val PanelHead = 60.dp
 private val WideDeckHeight = 232.dp
 
 /**
+ * The narrowest the player's column gets: the column on the Pad 6 sideways (its 274dp cover and 60),
+ * so a title has the room it has there and the transport (two 64dp skip buttons and the 76dp play
+ * button, 26dp apart, 316dp with the deck's margins and padding) always fits.
+ */
+private val WideColumnMinWidth = 334.dp
+
+/** The smallest cover the player shows; a shorter window leaves the cover out. */
+private val MinCover = 96.dp
+
+/**
  * Now Playing beside its queue or lyrics, for an expanded window wider than it is tall
  * (docs/design/2026-11-25-tablet/SPEC.md, Now Playing; the design file's Tablet page, Now Playing).
  * Washed with the cover's colour as on the phone. The start half is the player: the header across it,
@@ -100,7 +110,12 @@ private fun WidePlayer(state: NowPlayingState, actions: NowPlayingActions, track
         // Header 60, the cover's 4 under it, title 74, then the deck's own 16dp top margin, the deck,
         // and 16 over the gesture area.
         val room = maxHeight - insets - 60.dp - 4.dp - 74.dp - 16.dp - WideDeckHeight - 16.dp
-        val cover = max(120.dp, min(min(440.dp, room), maxWidth - 120.dp))
+        val fitted = min(min(440.dp, room), maxWidth - 120.dp)
+        // A window too short for even a small cover (840 by 480dp) leaves it out, so the deck fits.
+        val cover = if (fitted >= MinCover) fitted else 0.dp
+        // A short window (a 7-inch tablet sideways) shrinks the cover but not the column, so the title
+        // keeps its room and next stays in view. The cover stays centred.
+        val column = max(cover + 60.dp, WideColumnMinWidth)
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             NowPlayingHeader(
                 context = contextLabel(state.contextName, state.contextKind),
@@ -108,8 +123,8 @@ private fun WidePlayer(state: NowPlayingState, actions: NowPlayingActions, track
                 onMore = actions.showMenu,
                 moreDescription = stringResource(R.string.more_options_for_cd, track.title),
             )
-            Column(Modifier.width(cover + 60.dp).weight(1f)) {
-                CoverPager(state, actions, cover)
+            Column(Modifier.width(column).weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (cover > 0.dp) CoverPager(state, actions, cover)
                 NowPlayingTitle(track.title, track.artist, onArtistClick = actions.openTrackArtist)
                 Spacer(Modifier.weight(1f))
                 Deck {
