@@ -134,13 +134,17 @@ simply show more items. Everything that is a single full-width block on a phone 
 
 **Library** (`ExpressiveLibrary.kt` / `ComfortLibrary.kt`, with `ui/LibraryPanes.kt` ·
 `LibraryListDetail`). The grid view uses adaptive columns, a cell at least 160 dp wide. When the window
-is expanded and wider than it is tall (the Pad in landscape) the Library is list and detail: the list
+is expanded and wider than it is tall (the Pad in landscape), and the content area beside the rail or
+dock is at least 1000 dp wide, the Library is list and detail: the list
 in a 400 dp pane at the start, and the album, artist or playlist it opened in the pane beside it, the
 first item selected on arrival. The pane is 400 rather than 360 dp because the filter chips need
 372 dp with one of them on. The selected row takes the colours a playing song's row has; in Comfort's
 grid view the open tile sits on the same bed, reaching 6 dp past the tile. The detail
 pane is about 650 dp wide on the Pad, so the detail takes its header-row layout; at 1440 dp it is wide
-enough for two panes. The detail has no back button, since the list is beside it. Comfort's list pane
+enough for two panes. The detail has no back button, since the list is beside it. A narrower
+expanded window (a 7-inch tablet sideways, about 960 by 600 dp) would leave the detail under 600 dp,
+where it takes the phone's screen with its back button, so there the Library is the list alone, in
+columns, and opens items as their own screens. Comfort's list pane
 uses the collapsed bar instead of the hero, which would leave four rows at 720 dp. Narrower or
 upright windows open the detail as its own screen, as phones do, and list rows sit in adaptive columns
 at least 360 dp wide, each column its own group, filled top to bottom.
@@ -153,7 +157,10 @@ least 180 dp wide. Results keep their sections; song and album rows sit in adapt
 `CollectionPanes`, `ui/comfort/ComfortCollectionPanes.kt` · `ComfortCollectionPanes`).
 - Pane 760 dp or wider: two panes. The start pane (360 dp, 320 dp below 1000 dp) holds the header and
   does not scroll unless it has to: cover up to 296 dp, title, artist, the details line, and the play,
-  shuffle and add buttons in one row. The end pane holds the songs, scrolling, in adaptive columns at
+  shuffle and add buttons in one row. On a short window the cover gets smaller (to 120 dp at least,
+  centred in Expressive's card) so the buttons stay above the player bar; where the row leaves Play
+  too little room for its label (Expressive's card on a 7-inch tablet), Play takes a row of its own
+  above shuffle and add. The end pane holds the songs, scrolling, in adaptive columns at
   least 360 dp wide (two columns at 1440 dp), filled top to bottom. An artist's end pane holds Top
   songs, then Albums in adaptive columns. A playlist's Add songs and Reorder songs sit above its songs.
   Expressive draws the header as a card on the cover's scheme (32 dp corners, hugging its content,
@@ -168,7 +175,10 @@ least 180 dp wide. Results keep their sections; song and album rows sit in adapt
 `ui/comfort/ComfortNowPlayingWide.kt` · `ComfortNowPlayingWide`).
 - Expanded and landscape: two halves. The start half is the player: the top bar ("Playing from", close,
   menu), the cover as large as fits (about 280 dp on the Pad's 720 dp height, up to 440 dp), the title block, the seek bar, the transport and the
-  tools row. At 720 dp tall the line being sung is left out from under the title and the gaps are
+  tools row. The player's column is never narrower than its transport, so on a short window
+  (960 by 600 dp) the cover shrinks but previous, play and next keep their size and the title its
+  room; the cover then starts at the column's start in Expressive and stays centred in Comfort.
+  At 720 dp tall the line being sung is left out from under the title and the gaps are
   tighter, so the tools row ends above the gesture area; Comfort leaves that line out of the wide
   layout altogether, since Lyrics is one tap away. The end half has a two-way switch at its top, Up
   next and Lyrics, and under it the queue as the queue screen lays it out (drag to reorder, swipe to

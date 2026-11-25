@@ -244,7 +244,9 @@ draws either; it reads `LocalBottomPadding` as on a phone, and the rail's width 
 
 Shared between the styles: the Library's list and detail, [`LibraryListDetail`](../../app/src/main/java/app/attic/player/ui/LibraryPanes.kt),
 which marks the open row through `LocalListDetailSelection` and tells the detail it has no back
-button through `LocalDetailPane`; and `Modifier.onSecondaryClick` in
+button through `LocalDetailPane` (`libraryShowsListDetail` in `LibraryScreen.kt` decides whether the
+Library uses it); `CoverToFit` in [`adaptive/CoverToFit.kt`](../../app/src/main/java/app/attic/player/ui/adaptive/CoverToFit.kt),
+which shrinks a two-pane header's cover to the height its pane has; and `Modifier.onSecondaryClick` in
 [`adaptive/Input.kt`](../../app/src/main/java/app/attic/player/ui/adaptive/Input.kt), which opens a song's menu on a right click.
 
 ## Top bars
