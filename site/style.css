@@ -486,6 +486,30 @@ body:has(#style-comfort:checked) .only-comfort { display: block; }
   border-top: 1px solid var(--rule);
 }
 
+/* ---------- Tablets ---------- */
+
+.tablets { background: var(--band); }
+.tablets-copy { margin: 0 auto; text-align: center; }
+.tablets-copy .new { justify-content: center; }
+.tablets-copy h2 { margin: 0; }
+
+/* A landscape tablet: the phone's bezel, thinner for the wider screen. */
+.tablet {
+  width: min(100%, 52rem);
+  margin: clamp(2.5rem, 5vw, 4rem) auto 0;
+  background: var(--bezel);
+  padding: 1.5%;
+  border-radius: 3.4% / 5.4%;
+  box-shadow: var(--shadow);
+}
+.tablet img { display: block; width: 100%; height: auto; border-radius: 2% / 3.2%; }
+
+/* Unlike the feature phones, the tablet also follows the viewer's Theme choice. */
+body:has(#t-light:checked) .tablet .shot-light,
+body:has(#t-dark:checked) .tablet .shot-dark { display: block; }
+body:has(#t-light:checked) .tablet .shot-dark,
+body:has(#t-dark:checked) .tablet .shot-light { display: none; }
+
 /* ---------- Privacy ---------- */
 
 .privacy { background: var(--deep); color: var(--cream); --rule: rgba(245, 237, 221, 0.2); --ink-2: #e3d6c3; }
@@ -621,6 +645,8 @@ body:has(#style-comfort:checked) .only-comfort { display: block; }
   .seg-style label { justify-content: center; padding: 0.85rem 0.5rem; font-size: 1rem; }
   .style-note { font-size: 0.9375rem; }
   .demo-note { text-align: left; }
+  .tablets-copy { text-align: left; }
+  .tablets-copy .new { justify-content: flex-start; }
   .perf tbody td { font-size: var(--step-1); }
   .doc td code { white-space: normal; }
 }

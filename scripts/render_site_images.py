@@ -10,6 +10,13 @@ browsers without WebP. It also draws the icons (icon-32.png, apple-touch-icon.pn
 1200 x 630 sharing image (og.png). The raw captures use a demo library with invented artists and
 generated covers.
 
+The tablet section's screenshot comes from tablet_refs.sh's 10-inch renders (2560 x 1600):
+
+    scripts/store_shots/tablet_refs.sh '*[TenInch-*]'
+    python3 scripts/render_site_images.py --tablet   # or only the tablet images
+
+and becomes tablet-<style>-<theme>-<screen> at 720 and 1440 px in WebP, and 720 px in PNG.
+
 Needs Pillow and cwebp (brew install webp).
 """
 
@@ -40,6 +47,11 @@ SCREENS = (
     "home-moods", "mood",
 )
 WIDTHS = (360, 720)
+
+DEFAULT_TABLET = Path(os.environ.get("TABLET_REFS_DIR", "/tmp/attic-dev/tablet-renders"))
+# Tablet screens on the page, by the page's name and the tablet render's key, at the 10-inch size.
+TABLET_SCREENS = {"library": "library_albums"}
+TABLET_WIDTHS = (720, 1440)
 
 
 def webp(src: Image.Image, width: int, out: Path) -> None:
@@ -140,16 +152,40 @@ def og(raw: Path, out: Path) -> None:
     img.save(out, optimize=True)
 
 
+def tablets(renders: Path) -> int:
+    for style in STYLES:
+        for theme in THEMES:
+            for screen, key in TABLET_SCREENS.items():
+                source = renders / f"tablet-ten-inch-{style}-{theme}-{key}.png"
+                if not source.exists():
+                    print(f"missing {source}", file=sys.stderr)
+                    return 1
+                name = f"tablet-{style}-{theme}-{screen}"
+                image = Image.open(source).convert("RGB")
+                for width in TABLET_WIDTHS:
+                    webp(image, width, TARGET / f"{name}-{width}.webp")
+                png(image, TABLET_WIDTHS[0], TARGET / f"{name}-{TABLET_WIDTHS[0]}.png")
+                print(f"wrote {name}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--raw", type=Path, default=DEFAULT_RAW, help=f"raw captures (default {DEFAULT_RAW})")
     parser.add_argument("--screens", nargs="+", choices=SCREENS, metavar="SCREEN",
                         help="write only these screens, and skip the icons and og.png (default: everything)")
+    parser.add_argument("--tablet-renders", type=Path, default=DEFAULT_TABLET, help=f"tablet renders (default {DEFAULT_TABLET})")
+    parser.add_argument("--tablet", action="store_true", help="write only the tablet screenshots")
     args = parser.parse_args()
     if not shutil.which("cwebp"):
         print("cwebp not found; brew install webp", file=sys.stderr)
         return 1
     TARGET.mkdir(parents=True, exist_ok=True)
+    if args.tablet or not args.screens:
+        if tablets(args.tablet_renders):
+            return 1
+        if args.tablet:
+            return 0
     for style in STYLES:
         for theme in THEMES:
             for screen in args.screens or SCREENS:

@@ -46,7 +46,8 @@ Practical notes:
 - `docs/play/CONSOLE.md` has the answers for the Console forms.
 
 Store assets are in `fastlane/metadata/android/en-US/`, and `fastlane supply` can upload them. The
-phone screenshots still have to be captured; see the README in `images/phoneScreenshots/`.
+phone, 7-inch and 10-inch tablet screenshots are under `images/`; the READMEs in
+`images/phoneScreenshots/` and `images/tenInchScreenshots/` say how they are made.
 
 ## F-Droid (main repository)
 

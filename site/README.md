@@ -5,8 +5,8 @@ The landing page and privacy policy, served by GitHub Pages from this folder by
 servers. The one font, Onest, is self-hosted under the SIL Open Font License (`fonts/OFL-onest.txt`).
 
 The style viewer under "Two styles, one app" runs on radio buttons and the CSS `:has()` selector.
-Its Style choice also sets the style of every other screenshot on the page; Screen and Theme change
-the viewer's phone only. Browsers without `:has()` hide the controls and show Expressive throughout,
+Its Style choice also sets the style of every other screenshot on the page; Screen changes the
+viewer's phone only, and Theme changes the viewer's phone and the tablet screenshot. Browsers without `:has()` hide the controls and show Expressive throughout,
 with Home in the visitor's theme in the viewer.
 
 ## Turning it on
@@ -41,12 +41,15 @@ drop "coming soon" from anywhere else it appears.
 ## Images
 
 `img/screens/` holds the phone screenshots, each as a 360 px and a 720 px WebP and a 360 px PNG
-fallback, and every screen is rendered in both styles, light and dark. `img/og.png` (1200 × 630),
+fallback, and every screen is rendered in both styles, light and dark. The tablet section's
+screenshot (`tablet-*`) is a landscape 10-inch render, as a 720 px and a 1440 px WebP and a 720 px
+PNG. `img/og.png` (1200 × 630),
 `img/apple-touch-icon.png` and `img/icon-32.png` are drawn from the Headroom mark. All of them come
 from one script:
 
 ```bash
 scripts/store_shots/run.sh                  # raw 1080 x 2400 captures of the demo library
+scripts/store_shots/tablet_refs.sh '*[TenInch-*]'   # the 2560 x 1600 tablet renders
 python3 scripts/render_site_images.py       # needs Pillow and cwebp (brew install webp)
 ```
 
