@@ -39,6 +39,7 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - MP3, M4A, FLAC, Ogg, Opus and WAV files
 - Dark and light themes, or match the phone
 - Two styles to pick from in Settings, Expressive and Comfort. The default depends on the phone
+- Tablet and large-window layouts in both styles: a navigation rail or side dock, a player bar along the bottom, and two panes when the tablet is sideways (the Library beside the album you open, Now Playing beside the queue or lyrics). Tablets turn freely; phones stay in portrait. Space plays and pauses, Esc closes what is open, and a right click on a song opens its menu
 - Light haptics on like, play and pause, reordering and swipe to queue, following the phone's touch-feedback setting
 
 **Finds what to play next, offline**
@@ -197,6 +198,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 - Radio's lean towards songs whose tempo, energy and key follow on is small: it reorders close matches and never brings in a song radio wouldn't otherwise play.
 - Smart transitions haven't yet lined up beats on a phone: none of the song pairs tried there had tempos within 6% of each other. How they sound still needs listening.
 - Android Auto support hasn't been tried in a car or on a head unit yet.
+- Tablet layouts were tested on the phone set to a tablet's screen size and density (1800 × 2880 at 400 dpi), not yet on a real tablet. On tablets a song's menu still opens as a bottom sheet rather than next to the row ([details](docs/play/LARGE-SCREENS.md)).
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
 
 ## Credits and legal
