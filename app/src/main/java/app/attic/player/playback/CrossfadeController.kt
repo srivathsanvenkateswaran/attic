@@ -96,6 +96,14 @@ class CrossfadeController(
     private val tailEqualiser = EqualiserAudioProcessor(equaliser)
     private var tail: ExoPlayer? = null
     private val alignment = TailAlignment()
+
+    /** Positions as they really are, not as last reported: see [SmoothedPosition]. */
+    private val mainPosition = SmoothedPosition()
+    private val tailPosition = SmoothedPosition()
+
+    private fun mainNow(): Long = mainPosition.add(SystemClock.elapsedRealtime(), main.currentPosition)
+
+    private fun tailNow(tail: ExoPlayer): Long = tailPosition.add(SystemClock.elapsedRealtime(), tail.currentPosition)
     private var state: State = State.Idle
     private var masterVolume = 1f
     private var mainRamp = 1f
@@ -333,6 +341,7 @@ class CrossfadeController(
         tail.setMediaItem(item)
         tail.setPlaybackSpeed(1f)
         tail.prepare()
+        mainPosition.reset()
         val aligning = State.Aligning(plan, settleUntil = 0)
         state = aligning
         seekTail(aligning)
@@ -343,7 +352,8 @@ class CrossfadeController(
     private fun seekTail(aligning: State.Aligning) {
         aligning.seeks++
         alignment.reset()
-        tail?.seekTo(alignment.seekTarget(main.currentPosition))
+        tailPosition.reset()
+        tail?.seekTo(alignment.seekTarget(mainNow()))
         aligning.settleUntil = SystemClock.elapsedRealtime() + SETTLE_MS
     }
 
@@ -351,7 +361,7 @@ class CrossfadeController(
         val aligning = state as? State.Aligning ?: return
         val tail = tail ?: return
         val fadeStart = joinAt(aligning.plan.transition)
-        val position = main.currentPosition
+        val position = mainNow()
         val now = SystemClock.elapsedRealtime()
         if (position >= fadeStart) {
             // The tail is heard from the fade on, so it must have been back at normal speed for a while.
@@ -371,18 +381,24 @@ class CrossfadeController(
         if (Log.isLoggable(TAG, Log.DEBUG)) {
             // Every raw reading, for working out how long readings take to settle after a seek on a phone.
             val sinceSeek = SystemClock.elapsedRealtime() - (aligning.settleUntil - SETTLE_MS)
-            Log.d(TAG, "Reading ${sinceSeek} ms after seek ${aligning.seeks}: tail − main = ${tail.currentPosition - main.currentPosition} ms (tail playing ${tail.isPlaying})")
+            Log.d(
+                TAG,
+                "Reading ${sinceSeek} ms after seek ${aligning.seeks}: tail − main = ${tailNow(tail) - position} ms, " +
+                    "as reported ${tail.currentPosition - main.currentPosition} ms (tail playing ${tail.isPlaying}, speed ${tail.playbackParameters.speed})",
+            )
         }
         if (aligning.nudgeUntil != 0L) {
             if (now >= aligning.nudgeUntil) {
                 tail.setPlaybackSpeed(1f)
+                // Readings taken off speed drift, so they don't count towards the estimate.
+                tailPosition.reset()
                 aligning.nudgeUntil = 0
                 aligning.normalSpeedSince = now
                 aligning.settleUntil = now + SETTLE_MS
                 alignment.remeasure()
             }
         } else if (!aligning.aligned && tail.isPlaying && now >= aligning.settleUntil) {
-            when (val verdict = alignment.record(tail.currentPosition - main.currentPosition)) {
+            when (val verdict = alignment.record(tailNow(tail) - position)) {
                 TailAlignment.Verdict.Aligned -> {
                     aligning.aligned = true
                     Log.i(
@@ -429,6 +445,7 @@ class CrossfadeController(
         } finally {
             isOwnTransition = false
         }
+        mainPosition.reset()
         handler.post(fadeTick)
     }
 
@@ -454,7 +471,7 @@ class CrossfadeController(
         val fading = state as? State.Fading ?: return
         val tail = tail
         val t = fading.plan.transition
-        val progress = (main.currentPosition - t.incomingStartMs).toFloat() / t.fadeMs
+        val progress = (mainNow() - t.incomingStartMs).toFloat() / t.fadeMs
         if (tail == null || progress >= 1f || tail.playbackState == Player.STATE_ENDED) {
             finishFade()
             return
@@ -475,7 +492,7 @@ class CrossfadeController(
         if (since < JOIN_FROM_MS || since > JOIN_UNTIL_MS || fading.joinReadings.size >= JOIN_READINGS) return
         if (!main.isPlaying || !tail.isPlaying) return
         val t = fading.plan.transition
-        fading.joinReadings += (tail.currentPosition - t.fadeStartMs) - (main.currentPosition - t.incomingStartMs)
+        fading.joinReadings += (tailNow(tail) - t.fadeStartMs) - (mainNow() - t.incomingStartMs)
         if (fading.joinReadings.size < JOIN_READINGS) return
         val error = fading.joinReadings.sorted()[JOIN_READINGS / 2]
         val usedLead = if (t.beatAligned) entryLeadMs else 0L
