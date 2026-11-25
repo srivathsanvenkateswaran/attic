@@ -154,6 +154,37 @@ data class SongLanguageEntity(
 )
 
 /**
+ * Where a song really starts and ends, its level and beat near both ends, its key and how busy it is:
+ * what a smart transition and radio's ordering read ([app.attic.player.analysis.SongTransitions]). A null
+ * [decodedMs] records a file that couldn't be measured; it isn't tried again until [version] changes.
+ * Times are milliseconds from the start of the decoded audio. [key] is 0–11 major, 12–23 minor.
+ *
+ * Carried verbatim from `feature/smart-transitions`, which owns version 6, so the equaliser's version 7
+ * builds on the same schema the owner's phone already has. When the two branches meet, theirs wins.
+ */
+@Entity(tableName = "song_transitions")
+class SongTransitionsEntity(
+    @PrimaryKey val trackKey: String,
+    val version: Int,
+    val decodedMs: Long?,
+    val audioStartMs: Long?,
+    val audioEndMs: Long?,
+    val outroStartMs: Long?,
+    val introBpm: Double?,
+    val introBeatMs: Long?,
+    val introBeatConfidence: Float?,
+    val outroBpm: Double?,
+    val outroBeatMs: Long?,
+    val outroBeatConfidence: Float?,
+    val energy: Float?,
+    val key: Int?,
+    val keyConfidence: Float?,
+    val introEnergy: ByteArray?,
+    val outroEnergy: ByteArray?,
+    val measuredAt: Long,
+)
+
+/**
  * An equaliser curve saved for one song or one album. [scope] is [EQ_SCOPE_SONG], with a song's
  * [Track.key] as [key], or [EQ_SCOPE_ALBUM], with an album's [Track.albumKey]. [gains] is the curve as
  * [app.attic.player.playback.eq.EqCurve.encode] writes it, one value in dB per band.
@@ -513,10 +544,11 @@ object PlaylistOrder {
         LocalLyricsCheckEntity::class,
         SongStylesEntity::class,
         SongLoudnessEntity::class,
+        SongTransitionsEntity::class,
         EqSettingEntity::class,
         EqPresetEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
@@ -526,7 +558,12 @@ abstract class AtticDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): AtticDatabase =
             Room.databaseBuilder(context, AtticDatabase::class.java, "attic.db")
-                .addMigrations(DatabaseMigrations.FROM_3_TO_4, DatabaseMigrations.FROM_4_TO_5, DatabaseMigrations.FROM_5_TO_6)
+                .addMigrations(
+                    DatabaseMigrations.FROM_3_TO_4,
+                    DatabaseMigrations.FROM_4_TO_5,
+                    DatabaseMigrations.FROM_5_TO_6,
+                    DatabaseMigrations.FROM_6_TO_7,
+                )
                 .build()
     }
 }
@@ -548,8 +585,24 @@ object DatabaseMigrations {
             "`integratedLufs` REAL, `samplePeak` REAL, `measuredAt` INTEGER NOT NULL, PRIMARY KEY(`trackKey`))",
     )
 
-    /** Adds `eq_settings` and `eq_presets` for the equaliser. Nothing existing changes. */
+    /**
+     * Adds `song_transitions` for smart transitions and radio's ordering. Nothing existing changes. Songs
+     * analysed before it get their row from a decode on the next charging run.
+     *
+     * Version 6 belongs to `feature/smart-transitions`; this is its migration, word for word, so a phone
+     * on that branch's version 6 and one coming from 5 end up with the same database here.
+     */
     val SQL_5_TO_6 = listOf(
+        "CREATE TABLE IF NOT EXISTS `song_transitions` (`trackKey` TEXT NOT NULL, `version` INTEGER NOT NULL, " +
+            "`decodedMs` INTEGER, `audioStartMs` INTEGER, `audioEndMs` INTEGER, `outroStartMs` INTEGER, " +
+            "`introBpm` REAL, `introBeatMs` INTEGER, `introBeatConfidence` REAL, " +
+            "`outroBpm` REAL, `outroBeatMs` INTEGER, `outroBeatConfidence` REAL, " +
+            "`energy` REAL, `key` INTEGER, `keyConfidence` REAL, `introEnergy` BLOB, `outroEnergy` BLOB, " +
+            "`measuredAt` INTEGER NOT NULL, PRIMARY KEY(`trackKey`))",
+    )
+
+    /** Adds `eq_settings` and `eq_presets` for the equaliser. Nothing existing changes. */
+    val SQL_6_TO_7 = listOf(
         "CREATE TABLE IF NOT EXISTS `eq_settings` (`scope` TEXT NOT NULL, `key` TEXT NOT NULL, `gains` TEXT NOT NULL, " +
             "`savedAt` INTEGER NOT NULL, PRIMARY KEY(`scope`, `key`))",
         "CREATE TABLE IF NOT EXISTS `eq_presets` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, " +
@@ -566,5 +619,9 @@ object DatabaseMigrations {
 
     val FROM_5_TO_6 = object : Migration(5, 6) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_5_TO_6.forEach(db::execSQL)
+    }
+
+    val FROM_6_TO_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) = SQL_6_TO_7.forEach(db::execSQL)
     }
 }

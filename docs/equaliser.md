@@ -54,7 +54,7 @@ Inside (`EqDesign.kt`, `EqualiserAudioProcessor.kt`):
 
 ## Settings
 
-- `eq_settings` (Room 6): one row per song (by library key) or album (by album key), the curve as
+- `eq_settings` (Room 7, on top of smart transitions' version 6): one row per song (by library key) or album (by album key), the curve as
   ten numbers. `eq_presets`: the user's named curves. The switch and the default curve are in
   settings. Backups carry all of it (schema 2; version 1 files still read). See `backup.md`.
 - `EqualiserStore` holds everything as one immutable value the playback thread reads without
@@ -100,7 +100,7 @@ over 10 cold starts and 3 full scrolls of the song list.
   - on the next song, flat: 3.15%
 
   So the equaliser costs about 1.4% of one core. That is an upper bound: the `AtticEq` debug meters were on for the test, and they filter the signal again.
-- **Migration:** opening the test install's data with this branch ran the 5→6 migration without a crash.
+- **Migration:** opening the test install's data with this branch ran the equaliser's migration without a crash. That was before the equaliser moved to version 7; the 6→7 step is covered by `DatabaseMigrationTest`, starting from smart transitions' version-6 schema.
 
 ## Checking it on a phone
 

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "d83334ea39b0e674851ef5a07cf5b7b7",
+    "identityHash": "5f86fc0f6b5eb0017f518d398245b698",
     "entities": [
       {
         "tableName": "liked",
@@ -509,30 +509,99 @@
         }
       },
       {
-        "tableName": "eq_settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`scope` TEXT NOT NULL, `key` TEXT NOT NULL, `gains` TEXT NOT NULL, `savedAt` INTEGER NOT NULL, PRIMARY KEY(`scope`, `key`))",
+        "tableName": "song_transitions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`trackKey` TEXT NOT NULL, `version` INTEGER NOT NULL, `decodedMs` INTEGER, `audioStartMs` INTEGER, `audioEndMs` INTEGER, `outroStartMs` INTEGER, `introBpm` REAL, `introBeatMs` INTEGER, `introBeatConfidence` REAL, `outroBpm` REAL, `outroBeatMs` INTEGER, `outroBeatConfidence` REAL, `energy` REAL, `key` INTEGER, `keyConfidence` REAL, `introEnergy` BLOB, `outroEnergy` BLOB, `measuredAt` INTEGER NOT NULL, PRIMARY KEY(`trackKey`))",
         "fields": [
           {
-            "fieldPath": "scope",
-            "columnName": "scope",
+            "fieldPath": "trackKey",
+            "columnName": "trackKey",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "version",
+            "columnName": "version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "decodedMs",
+            "columnName": "decodedMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "audioStartMs",
+            "columnName": "audioStartMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "audioEndMs",
+            "columnName": "audioEndMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "outroStartMs",
+            "columnName": "outroStartMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "introBpm",
+            "columnName": "introBpm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "introBeatMs",
+            "columnName": "introBeatMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "introBeatConfidence",
+            "columnName": "introBeatConfidence",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "outroBpm",
+            "columnName": "outroBpm",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "outroBeatMs",
+            "columnName": "outroBeatMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "outroBeatConfidence",
+            "columnName": "outroBeatConfidence",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "energy",
+            "columnName": "energy",
+            "affinity": "REAL"
           },
           {
             "fieldPath": "key",
             "columnName": "key",
-            "affinity": "TEXT",
-            "notNull": true
+            "affinity": "INTEGER"
           },
           {
-            "fieldPath": "gains",
-            "columnName": "gains",
-            "affinity": "TEXT",
-            "notNull": true
+            "fieldPath": "keyConfidence",
+            "columnName": "keyConfidence",
+            "affinity": "REAL"
           },
           {
-            "fieldPath": "savedAt",
-            "columnName": "savedAt",
+            "fieldPath": "introEnergy",
+            "columnName": "introEnergy",
+            "affinity": "BLOB"
+          },
+          {
+            "fieldPath": "outroEnergy",
+            "columnName": "outroEnergy",
+            "affinity": "BLOB"
+          },
+          {
+            "fieldPath": "measuredAt",
+            "columnName": "measuredAt",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -540,51 +609,14 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "scope",
-            "key"
-          ]
-        }
-      },
-      {
-        "tableName": "eq_presets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `gains` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "gains",
-            "columnName": "gains",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "createdAt",
-            "columnName": "createdAt",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "id"
+            "trackKey"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd83334ea39b0e674851ef5a07cf5b7b7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5f86fc0f6b5eb0017f518d398245b698')"
     ]
   }
 }
