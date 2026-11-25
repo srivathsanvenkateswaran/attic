@@ -32,7 +32,7 @@
   <main id="main" class="wrap">
     <div class="doc">
       <h1>Attic privacy policy</h1>
-      <p class="effective">Effective 23 November 2026. Applies to Attic for Android, package <code>app.attic.player</code>, version 1.0
+      <p class="effective">Effective 25 November 2026. Applies to Attic for Android, package <code>app.attic.player</code>, version 1.0
       and later.</p>
       <p>Attic is a music player for the audio files already on your phone. It has no account, no ads, no
       analytics and no crash reporting. The developer receives no data from the app.</p>
@@ -51,11 +51,13 @@
       <p>All of this stays in the app's private storage on the device:</p>
       <ul>
       <li>favourites and playlists</li>
-      <li>a listening log of plays, skips, finishes and likes, used for radio, instant mixes and Recap</li>
+      <li>a listening log of plays, skips, finishes and likes, used for radio, the mixes and shelves on
+        Home, and Recap</li>
       <li>the saved play queue and your settings</li>
       <li>lyrics you have downloaded, and lyrics read from your music and <code>.lrc</code> files</li>
-      <li>the results of song analysis, which turns each song's sound into a list of numbers so radio can
-        find similar songs, and any language you set for a song</li>
+      <li>the results of song analysis: a list of numbers describing each song's sound, which radio uses
+        to find similar songs, the musical styles the model rates likeliest for it, and its loudness</li>
+      <li>any language you set for a song</li>
       </ul>
       <p>Song analysis runs on the phone. No audio, and no analysis result, leaves the device.</p>
       <p>Uninstalling Attic, or clearing its storage in Android settings, deletes all of it from the phone.
@@ -104,6 +106,18 @@
       <p>No file, cover art, account, device identifier or listening history is sent. As with any web
       request, LRCLIB sees your IP address. LRCLIB is run independently of Attic and its own terms apply
       to what it does with requests.</p>
+      <h2>Cars, watches and other apps on the phone</h2>
+      <p><strong>Android Auto and media controls.</strong> When Android Auto, a watch or another app connects to
+      Attic's playback to control it, Attic gives that app the titles, artists, albums and covers of
+      the songs it asks for: the lists a car browses or searches, and the songs around the one playing.
+      Attic lets an app read a cover only after it has connected in this way. What that app does with
+      them, such as showing them on a car's screen, is up to it and its own terms.</p>
+      <p><strong>Voice requests.</strong> When you ask the phone's assistant to play something on Attic, the assistant
+      hands Attic the words it heard, and Attic looks for them in your library on the phone. The
+      assistant handles your voice under its own terms.</p>
+      <p><strong>Equaliser apps.</strong> While it plays, Attic tells equaliser apps on the phone which audio session
+      to adjust. That message carries the session's number and Attic's package name, nothing else.</p>
+      <p>None of this goes to the internet from Attic.</p>
       <h2>Sharing and saving Recap cards</h2>
       <p>When you tap Share on a Recap card, Attic renders the card as an image and hands it to the app
       you pick in Android's share sheet. When you tap Save, it writes the image to <code>Pictures/Attic</code> on
