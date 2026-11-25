@@ -46,6 +46,8 @@ Launch
    │  ├─ artist/{key}
    │  ├─ folder/{name} .......... read-only playlist made from a music folder
    │  ├─ genre/{key} ............ songs of one genre, from tags and analysis (added 2026-11-23)
+   │  ├─ mood/{id} .............. one mood's mix for the day (added 2026-11-25, section 2.9b)
+   │  ├─ interests .............. Moods and interests, full screen over the shell (added 2026-11-25)
    │  ├─ playlist/{id} .......... user playlist
    │  ├─ liked .................. Liked Songs
    │  ├─ settings
@@ -264,7 +266,10 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 - **"Haven't heard in a while"**: favourites, and songs played three times or more, with no play in the last 60 days, most played first (a favourite counts as three plays). A favourite you never played counts from the day you liked it.
 - **"Newly added"**: songs whose files arrived in the last 30 days, newest first, by the date MediaStore gives. Absent when every song in the library is that new, as on a phone whose music was copied over in one go.
 - These three are shelves of up to 20 songs drawn like "Recently played": cover, title, artist, and the playing song marked. Tap plays the shelf from that song, under "On repeat", "Haven't heard in a while" or "Newly added". Each is absent with fewer than four songs.
-- Order under "All": shortcuts, Recap, Instant mixes, Mixes, Recently played, On repeat, Haven't heard in a while, Newly added, Start listening, folders, Albums, More from, Top artists.
+- **"Moods"** (added 2026-11-25; `home/MoodMixes.kt`, docs/features/mood-mixes.md), straight after "Mixes", with the overline "Your songs, sorted by how they feel". A shelf of one tile per mood that has a mix today: the mood's name, "{n} songs", its one line ("Slow and easy", "Bright and cheerful", "Fast and driving", "Mostly instrumental, steady", "Made for dancing", "Sad and reflective", "Tender and warm") and a mosaic of four covers. Expressive's tile is a 200 by 108 tonal container in the first cover's hue; Comfort's is a 200 by 133 card. Tapping opens the mood's page (section 2.9b). With moods picked, only those moods show, in the picked order; with none, every mood that has a mix, in the order Chill, Happy, Energetic, Focus, Party, Melancholy, Romantic.
+  - Until picks are saved or "Not now" is tapped, a full-width card comes first under the heading: "What do you like to listen to?", "Pick moods, genres and languages, and the Moods shelf follows them.", a filled "Choose" (opens Moods and interests) and a text "Not now" (hides the card for good).
+  - The mixes change once a day, and again the same day when the picks change or more songs get mood scores. Listening during the day doesn't change them.
+- Order under "All": shortcuts, Recap, Instant mixes, Mixes, Moods, Recently played, On repeat, Haven't heard in a while, Newly added, Start listening, folders, Albums, More from, Top artists.
 
 **States**
 
@@ -273,6 +278,7 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 - **No listening log**: no Wrapped card.
 - **Radio has not run yet**: no "Speed dial".
 - **Fewer than four songs for a shelf, or fewer than 12 played or liked songs analysed**: that shelf, or "Mixes", is absent (added 2026-11-23).
+- **Fewer than eight songs with mood scores**: "Moods" and its card are absent (added 2026-11-25). Scores come from stored embeddings, so they appear on the first Home refresh after analysis has run.
 - **Light theme**: tiles and chips use the light greys. The Wrapped card and Speed dial tiles keep their fixed colours.
 
 Artists have no photos. Every "artist picture" in the app is the cover of one of that artist's songs.
@@ -310,6 +316,8 @@ One flat list with no section headings, in this order:
 Matching ignores case and accents. Names that start with the query rank first, then names that contain it, then songs whose artist or album contains it and albums whose artist contains it (`ui/SearchScreen.kt:70-89`). User playlists are not searched.
 
 **No matches**: empty message, title `No results for "{query}"`, body "Check the spelling, or try fewer words."
+
+**Moods (added 2026-11-25).** Browse has "Moods" between the folders and "Genres", in the same tiles, one per mood that has a mix today, picked or not. A query also matches up to three mood names, labelled "Mood" (Expressive: a result row with a mosaic; Comfort: a tile in the results shelf).
 
 **Genres (added 2026-11-23).** In both styles Browse has "Genres" after the folders, in the folders' tiles: Expressive's tonal tiles in each genre's cover hue with a mosaic and "{n} songs", Comfort's neutral cards. Biggest genre first; a genre with fewer than five songs is not shown. A query also matches up to three genre names, labelled "Genre" (Expressive: a result row with a mosaic; Comfort: a tile in the results shelf). Section 2.9a has the genre page and where genres come from.
 
@@ -459,6 +467,17 @@ All three use the gradient header and control row from 2.6, followed by track ro
 - **Controls.** Play / pause and shuffle as on any collection, plus radio (`sensors` glyph, description "Start radio from {genre}"). Expressive puts radio in the cluster where add to playlist sits elsewhere, and moves add to playlist to the bar; Comfort adds radio to its row of buttons, between shuffle and add to playlist.
 - **Genre radio.** Context "Radio · {genre}". It opens with the song nearest the middle of the genre's sound (the normalised mean of its analysed songs' embeddings) and keeps steering towards that middle instead of the first song. With none of the genre's songs analysed yet it shows "Radio can start from this genre once its songs are analysed" and plays nothing.
 - **Gone.** A genre that no longer has five songs: "This genre is gone".
+
+### 2.9b Mood (added 2026-11-25)
+
+`ui/model/MoodModels.kt` (`rememberMoodModel`), drawn by `ExpressiveMood` and `ComfortMood` (`ui/expressive/ExpressiveMoods.kt`, `ui/comfort/ComfortMoods.kt`). Opened from Home's Moods shelf and Search.
+
+- **Layout.** The genre page's: mosaic of the mix's covers, the mood's name, "Mood mix · {n} songs, {duration}", then "Picked from how your songs sound and what you play. New each day." Then the songs, in the mix's order.
+- **Controls.** Play / pause and shuffle, plus Mood radio (`sensors` glyph, description "Mood radio"), where the genre page has its radio. No add to playlist: the mix changes daily. The mix plays under "{mood} mood mix".
+- **Mood radio.** Context "Radio · {mood}". It opens with the song that fits the mood nearest the middle of the day's mix, keeps steering toward that middle, picks only songs that fit the mood and keeps to the picked languages. When a mood mix runs out, autoplay carries on the same way, leaving out the mix's songs. Before any song has mood scores it shows "Mood radio can start once songs have been analysed".
+- **No mix.** Opened before the day's mixes are built, it builds them and shows nothing meanwhile; a mood with no mix then shows "This mood has no mix today".
+
+**Moods and interests** (`rememberInterestsModel`, drawn by `ExpressiveInterests` and `ComfortInterests`). Full screen in a window over the shell, as the first-run pages are: no tabs, dock or mini player. The large title "Moods and interests", "The Moods shelf on Home follows what you pick here. It all stays on this phone.", then three groups of filter chips: "Moods you like" (the seven moods), "Genres" (the library's genres, biggest first, up to 24; "Genres show up once your songs have genre tags or have been analysed." when there are none) and "Languages" (those the library has, from Tamil, Hindi, Telugu, Malayalam, Kannada, English and No vocals). "Save" is pinned at the bottom; it saves, rebuilds the mixes and goes back. Back leaves without saving. Expressive's group titles are in `primary`; Comfort puts each group's chips on a card under its label.
 
 ### 2.10 Now Playing
 
@@ -704,6 +723,7 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
   - Running: 12dp, a linear progress bar across the width (16dp side margins), then "Checked {done} of {total}, found {found}" in `bodySmall`. The button is hidden.
   - After a run with failures, above the button in `bodySmall`: "{n} songs couldn't be checked. Download again to retry them." or, when it gave up after five failures in a row, "Stopped because the connection failed. Check your internet, then download again to continue."
 
+- **"Moods"** section title (added 2026-11-25), then one row: "Moods and interests" over the picks ("Chill, Focus, Romantic · 3 genres · Tamil, English", or "Nothing picked yet"), with a chevron; it opens Moods and interests. Expressive leads it with `partly_cloudy_day`.
 - **"Song radio"** section title.
   - A row (padding 16 sides, 12 below): "Autoplay" in `bodyLarge` over "When a queue reaches its last song, radio keeps going with similar songs." in `bodySmall` `onSurfaceVariant`, with a Material switch at the right. Tapping the row or the switch toggles it. Default on.
   - "Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded." in `bodyMedium` `onSurfaceVariant`.
@@ -901,6 +921,7 @@ Purpose: short confirmations and playback or radio errors.
 | "Radio is using {n} of {total} songs until analysis finishes" | Radio started before the whole library was analysed |
 | "Added to queue" | A song row swiped to queue it (added 2026-11-23, section 2.0) |
 | "Radio can start from this genre once its songs are analysed" | Genre radio with none of the genre's songs analysed (added 2026-11-23) |
+| "Mood radio can start once songs have been analysed" | Mood radio with no song scored for moods yet (added 2026-11-25) |
 | "Skipped {title} because it can't be played" | A queued file failed to play and was dropped |
 | "Music will pause in {n} minutes" | Sleep timer set to 15, 30, 45 or 60 minutes (added 2026-11-23) |
 | "Music will pause after this song" | Sleep timer set to "End of this song" (added 2026-11-23) |
@@ -1337,6 +1358,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Smart shuffle on playlists and Favourites, from the more menu, ticked while on (added 2026-11-23)
 - [ ] "is gone" state for missing items
 - [ ] Genre: songs, albums mostly in the genre, play, shuffle, genre radio, add to playlist (added 2026-11-23)
+- [ ] Mood: the day's mix, play, shuffle, Mood radio (added 2026-11-25)
+- [ ] "Moods" on Home and in Browse, mood names in results labelled "Mood", the picks card, and Moods and interests from Home and Settings (added 2026-11-25)
 
 **Song rows and the track menu**
 - [ ] Current-song highlight and animated playing indicator
@@ -1405,6 +1428,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Start radio from any song, and from Speed dial
 - [ ] Radio context shown as "Radio · {song title}"
 - [ ] Radio from a genre, shown as "Radio · {genre}" (added 2026-11-23)
+- [ ] Mood radio, shown as "Radio · {mood}", and autoplay after a mood mix continuing in that mood (added 2026-11-25)
 - [ ] Self-refilling queue of ten upcoming songs
 - [ ] Removing an upcoming song steers radio; "Clear" stops it
 - [ ] "Autoplay" setting (default on)
@@ -1430,7 +1454,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Loading and empty-period states
 
 **Settings**
-- [ ] "Appearance", "Playback", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
+- [ ] "Appearance", "Playback", "Lyrics", "Moods", "Song radio", "Backup", "About" sections with the controls above
 - [ ] "Volume levelling" switch (default on), "Crossfade" length (default off) (added 2026-11-23)
 - [ ] Equaliser (added 2026-11-25): switch (default off), ten bands, eleven presets, saved presets with rename and delete, a setting per song and per album (song, then album, then default), the sheet from Now Playing's menu and its header pill, the Settings page with the lists of own settings, and "Phone equaliser" when the phone has one
 - [ ] "Back up to a file" and "Restore from a file", with the restore confirmation, result and problem dialogs

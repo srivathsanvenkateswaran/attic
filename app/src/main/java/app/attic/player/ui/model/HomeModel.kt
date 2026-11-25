@@ -18,6 +18,8 @@ import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Library
 import app.attic.player.data.Track
+import app.attic.player.home.Mood
+import app.attic.player.home.MoodMixes
 import app.attic.player.home.TasteMixes
 import app.attic.player.ui.LocalUi
 import app.attic.player.ui.TrackMenuRequest
@@ -92,6 +94,10 @@ class HomeState(
     val favouriteCount: Int,
     /** The song the radio that is playing was started from, if radio is playing. */
     val radioSeedKey: String?,
+    /** Today's mood mixes: your picked moods' in your order, or every mood's when none is picked. */
+    val moods: List<MoodTile> = emptyList(),
+    /** Shows the card asking for moods, genres and languages at the start of the Moods shelf. */
+    val askForMoods: Boolean = false,
 )
 
 class HomeActions(
@@ -112,6 +118,11 @@ class HomeActions(
     val playMix: (TasteMix) -> Unit,
     /** A swipe on a "Start listening" row adds it to the queue. */
     val queue: (Track) -> Unit = {},
+    val openMood: (MoodTile) -> Unit = {},
+    /** The card's "Choose": the Moods and interests page. */
+    val openInterests: () -> Unit = {},
+    /** The card's "Not now". It doesn't come back; Settings still offers the page. */
+    val dismissMoodPrompt: () -> Unit = {},
 )
 
 @Composable
@@ -143,6 +154,13 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
                 else -> resources.getString(R.string.home_mix_name_two, artists[0], artists[1])
             }
         }
+    }
+
+    val interests by app.settings.interests.collectAsStateWithLifecycle()
+    val promptDismissed by app.settings.moodPromptDismissed.collectAsStateWithLifecycle()
+    val moods = remember(feed.moodMixes, library, interests) {
+        val picks = MoodMixes.Picks(moods = interests.moods.mapNotNull(Mood::fromId))
+        moodTiles(MoodMixes.forHome(feed.moodMixes, picks), library, resources)
     }
 
     val recentTracks = remember(recentKeys, library) {
@@ -181,6 +199,9 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
         isPlaying = player.isPlaying,
         favouriteCount = remember(library, liked) { library.tracks.count { it.key in liked } },
         radioSeedKey = app.radio.seedFor(player.contextName),
+        moods = moods,
+        // Only once there are mixes to show, so the question has an answer you can see.
+        askForMoods = moods.isNotEmpty() && !promptDismissed && interests.isUnset,
     )
     val actions = HomeActions(
         setFilter = { filter = it },
@@ -211,6 +232,9 @@ fun rememberHomeModel(library: Library): UiModel<HomeState, HomeActions> {
         // In the mix's own order, which already spreads its new songs through it.
         playMix = { mix -> app.player.play(mix.tracks, 0, mix.name, shuffled = false) },
         queue = app::queueSong,
+        openMood = { ui.openMood(it.mood.id) },
+        openInterests = { ui.openInterests() },
+        dismissMoodPrompt = app.settings::dismissMoodPrompt,
     )
     return UiModel(state, actions)
 }

@@ -74,6 +74,7 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
             val analyzer = lazy { SongAnalyzer(applicationContext) }
             try {
                 val started = System.currentTimeMillis()
+                var sinceMoods = 0
                 for ((track, need) in todo) {
                     coroutineContext.ensureActive()
                     // A background job gets stopped and retried ever more slowly, so it hands over first.
@@ -97,6 +98,11 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     }
                     done++
                     showProgress(done, total)
+                    // Mood scores come from the saved embeddings, a batch at a time, so mixes can use new songs soon.
+                    if (++sinceMoods >= MOOD_EVERY) {
+                        app.moodScorer.scoreMissing()
+                        sinceMoods = 0
+                    }
                 }
             } finally {
                 if (analyzer.isInitialized()) analyzer.value.close()
@@ -105,6 +111,7 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
             restyle.cancel()
             notifications.cancel(NOTIFICATION_ID)
         }
+        app.moodScorer.scoreMissing()
         // Files added during this run didn't get a job of their own, because this one was already going.
         val finishedNow = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
         val measuredNow = dao.measuredKeysNow(LOUDNESS_VERSION).toSet()
@@ -152,6 +159,7 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         private const val NOTIFICATION_ID = 2001
         private const val RECENT_FIRST = 200
         private const val CHUNK_MS = 8 * 60 * 1000L
+        private const val MOOD_EVERY = 50
 
         /**
          * Android's standard progress notification, as both 10-system sheets draw frame C. The style

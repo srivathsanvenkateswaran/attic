@@ -166,6 +166,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.grid2/3/4`, `.tray` | `TileGrid(count, columns, modifier, tray) { i -> Tile(…, width = null) }`; tray tiles: `artSize = trayArt(columns), centered = true` | not lazy; put a tray in `Group(pad = true)` |
 | `.pager` | `Pager(pageCount) { page -> item { SongRow(…) } }` | 312dp cards, 10dp apart |
 | `.browse` (`.tinted.wash`) | `BrowseTile(title, onClick, art = { m -> Mosaic(…, m) }, modifier, subtitle, seed)` | art gets 56dp; a seed washes the card |
+| Mood tile, Mood picks card (design) | `MoodTile(tile, onClick)`, `MoodPicksCard(onChoose, onDismiss)` in `ComfortMoods.kt` | Home's Moods shelf: the browse card at 200 by 133, mosaic top left, count top right; the card is `--card` with a filled and a text button |
 | `.c-head`, `.c-head.person` | `CollectionHeader(title, art = { m -> Cover(art, m) }, modifier, byline, onBylineClick, meta, person, artSize)` | art gets 196dp (148 for a person) unless `artSize`; sheet 04 draws 176 |
 | `.c-actions` | `CollectionActions { CollectionPlayButton(playing, onClick, Modifier.weight(1f), enabled); TonalIconButton(…, large = true) }` | Play reads Pause while this collection plays; `enabled = false` is `.off` |
 | `.btn` (`.filled .tonal .plain .text`, `.lg .sm .block .danger .off`) | `ComfortButton(text, onClick, modifier, style, size = Small/Medium/Large, leading, leadingFilled, block, danger, enabled)` | |

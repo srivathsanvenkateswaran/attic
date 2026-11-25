@@ -185,6 +185,10 @@ private fun Browse(state: SearchState, actions: SearchActions, listState: LazyLi
         }
         item(key = "browseLabel") { Label(stringResource(R.string.search_browse)) }
         browseCards(state.tiles, "browse", actions)
+        if (state.moods.isNotEmpty()) {
+            item(key = "moodsLabel") { Label(stringResource(R.string.search_moods)) }
+            browseCards(state.moods, "moods", actions)
+        }
         if (state.genres.isNotEmpty()) {
             item(key = "genresLabel") { Label(stringResource(R.string.search_genres)) }
             browseCards(state.genres, "genres", actions)
@@ -209,7 +213,7 @@ private fun LazyListScope.browseCards(tiles: List<BrowseItem>, section: String, 
 @Composable
 private fun BrowseCard(tile: BrowseItem, actions: SearchActions, modifier: Modifier) {
     // Folders and genres are gatherings of songs: a mosaic and a count. An album is its cover and artist.
-    val gathered = tile.destination is Destination.Folder || tile.destination is Destination.Genre
+    val gathered = tile.destination is Destination.Folder || tile.destination is Destination.Genre || tile.destination is Destination.Mood
     BrowseTile(
         title = tile.title,
         onClick = { actions.open(tile.destination) },
@@ -227,7 +231,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
         state = listState,
         contentPadding = PaddingValues(top = top, bottom = bottom + 8.dp),
     ) {
-        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty() || results.genres.isNotEmpty()) {
+        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty() || results.genres.isNotEmpty() || results.moods.isNotEmpty()) {
             item(key = "found") {
                 Shelf(Modifier.padding(top = 16.dp)) {
                     items(results.artists, key = { "artist:${it.key}" }) { artist ->
@@ -250,6 +254,13 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                             stringResource(R.string.search_result_album, album.artist),
                             { actions.open(Destination.Album(album.key)) },
                         ) { m -> Cover(Art.of(album.tracks.firstOrNull()?.mediaId), m) }
+                    }
+                    items(results.moods, key = { "mood:${it.destination}" }) { mood ->
+                        ResultTile(
+                            mood.title,
+                            stringResource(R.string.search_result_mood),
+                            { actions.open(mood.destination) },
+                        ) { m -> Mosaic(mood.mosaicIds.map(Art::Song), m) }
                     }
                     items(results.genres, key = { "genre:${it.key}" }) { genre ->
                         ResultTile(

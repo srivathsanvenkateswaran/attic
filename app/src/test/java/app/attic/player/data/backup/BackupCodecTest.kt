@@ -45,6 +45,7 @@ class BackupCodecTest {
         equaliserSongs = listOf(BackupEqualiser("Music/Hindi/Kabira.mp3", "-1.5,-3,-3,1.5,3.75,3.75,3,1.5,0,-1.5", 1_794_100_000_000)),
         equaliserAlbums = listOf(BackupEqualiser("monsoon tapes|kavya", "5.5,4.25,3.5,2.5,1.25,0,0,0,0,0", 1_794_200_000_000)),
         equaliserPresets = listOf(BackupEqualiserPreset("Car \"loud\"", "3,3,0,0,0,0,0,0,2,2", 1_794_300_000_000)),
+        interests = BackupInterests(listOf("chill", "focus"), listOf("hip hop"), listOf("ta", "en"), 1_795_000_000_000),
     )
 
     @Test
@@ -73,7 +74,7 @@ class BackupCodecTest {
     fun fileStartsWithFormatAndVersion() {
         val text = BackupCodec.encode(full)
         assertTrue(text.contains("\"format\":\"attic-backup\""))
-        assertTrue(text.contains("\"schemaVersion\":2"))
+        assertTrue(text.contains("\"schemaVersion\":3"))
     }
 
     @Test
@@ -109,7 +110,25 @@ class BackupCodecTest {
 
     @Test
     fun newerSchemaIsRefused() {
-        assertReason(BackupReadException.Reason.TooNew, """{"format":"attic-backup","schemaVersion":3,"createdAt":5}""")
+        assertReason(BackupReadException.Reason.TooNew, """{"format":"attic-backup","schemaVersion":4,"createdAt":5}""")
+    }
+
+    @Test
+    fun versionOneAndTwoFilesStillReadAndHaveNoPicks() {
+        val backup = BackupCodec.decode("""{"format":"attic-backup","schemaVersion":1,"createdAt":5,"likes":[{"song":"a","likedAt":2}]}""")
+        assertNull(backup.interests)
+        assertEquals(1, backup.likes.size)
+    }
+
+    @Test
+    fun picksWithMissingListsReadAsEmpty() {
+        val backup = BackupCodec.decode("""{"format":"attic-backup","schemaVersion":3,"createdAt":5,"interests":{"moods":["party"]}}""")
+        assertEquals(BackupInterests(listOf("party"), emptyList(), emptyList(), 0), backup.interests)
+    }
+
+    @Test
+    fun noPicksWritesNoSection() {
+        assertTrue(!BackupCodec.encode(full.copy(interests = null)).contains("interests"))
     }
 
     @Test

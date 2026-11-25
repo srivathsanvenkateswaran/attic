@@ -30,6 +30,22 @@ enum class UiStyle {
     }
 }
 
+/**
+ * The moods, genres and languages you picked for mood mixes: [Mood] ids, [Genre.key]s and
+ * [LanguageLabels] codes, moods in the order you chose them. [updatedAt] is 0 until you first save.
+ */
+data class Interests(
+    val moods: List<String> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val languages: List<String> = emptyList(),
+    val updatedAt: Long = 0,
+) {
+    val isEmpty: Boolean get() = moods.isEmpty() && genres.isEmpty() && languages.isEmpty()
+
+    /** Never saved: a restore may fill these in. */
+    val isUnset: Boolean get() = updatedAt == 0L && isEmpty
+}
+
 class AppSettings(context: Context) {
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
@@ -120,9 +136,47 @@ class AppSettings(context: Context) {
         _equaliserDefault.value = gains
     }
 
+    private val _interests = MutableStateFlow(readInterests())
+
+    /** What mood mixes follow. Stored here rather than in the database: a few short lists that need no migration. */
+    val interests: StateFlow<Interests> = _interests.asStateFlow()
+
+    fun setInterests(interests: Interests) {
+        prefs.edit()
+            .putString(KEY_INTEREST_MOODS, interests.moods.joinToString(LIST_SEPARATOR))
+            .putString(KEY_INTEREST_GENRES, interests.genres.joinToString(LIST_SEPARATOR))
+            .putString(KEY_INTEREST_LANGUAGES, interests.languages.joinToString(LIST_SEPARATOR))
+            .putLong(KEY_INTERESTS_UPDATED, interests.updatedAt)
+            .apply()
+        _interests.value = interests
+    }
+
+    private fun readInterests(): Interests {
+        fun list(key: String) = prefs.getString(key, null).orEmpty().split(LIST_SEPARATOR).filter { it.isNotEmpty() }
+        return Interests(list(KEY_INTEREST_MOODS), list(KEY_INTEREST_GENRES), list(KEY_INTEREST_LANGUAGES), prefs.getLong(KEY_INTERESTS_UPDATED, 0))
+    }
+
+    private val _moodPromptDismissed = MutableStateFlow(prefs.getBoolean(KEY_MOOD_PROMPT_DISMISSED, false))
+
+    /** True once Home's card asking for picks was answered with "Not now" or the picks were saved. */
+    val moodPromptDismissed: StateFlow<Boolean> = _moodPromptDismissed.asStateFlow()
+
+    fun dismissMoodPrompt() {
+        prefs.edit().putBoolean(KEY_MOOD_PROMPT_DISMISSED, true).apply()
+        _moodPromptDismissed.value = true
+    }
+
     private companion object {
         const val KEY_EQUALISER_ON = "equaliser_on"
         const val KEY_EQUALISER_DEFAULT = "equaliser_default"
+        const val KEY_INTEREST_MOODS = "interest_moods"
+        const val KEY_INTEREST_GENRES = "interest_genres"
+        const val KEY_INTEREST_LANGUAGES = "interest_languages"
+        const val KEY_INTERESTS_UPDATED = "interests_updated_at"
+        const val KEY_MOOD_PROMPT_DISMISSED = "mood_prompt_dismissed"
+
+        /** No genre name or language code holds it. */
+        const val LIST_SEPARATOR = "\u001F"
         const val KEY_THEME = "theme"
         const val KEY_CROSSFADE_SECONDS = "crossfade_seconds"
         const val KEY_VOLUME_LEVELLING = "volume_levelling"

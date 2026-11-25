@@ -61,6 +61,8 @@ class UiActions(
     fun openFolder(name: String) = go("folder/${Uri.encode(name)}")
     fun openPlaylist(id: Long) = go("playlist/$id")
     fun openGenre(key: String) = go("genre/${Uri.encode(key)}")
+    fun openMood(id: String) = go("mood/${Uri.encode(id)}")
+    fun openInterests() = go("interests")
     fun openLiked() = go("liked")
     fun openSettings() = go("settings")
     fun openWrapped() = go("wrapped")
@@ -252,6 +254,8 @@ private fun AppNavHost(nav: NavHostController, library: Library, transitions: Na
         composable("genre/{key}") { entry ->
             GenreScreen(Uri.decode(entry.arguments?.getString("key").orEmpty()))
         }
+        composable("mood/{id}") { entry -> MoodScreen(library, Uri.decode(entry.arguments?.getString("id").orEmpty())) }
+        composable("interests") { InterestsScreen(library) }
         composable("liked") { LikedScreen(library) }
         composable("settings") { SettingsScreen(library) }
         composable("wrapped") { WrappedScreen(library) }

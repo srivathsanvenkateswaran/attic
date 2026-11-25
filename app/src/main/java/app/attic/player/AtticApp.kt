@@ -3,6 +3,7 @@ package app.attic.player
 import android.app.Application
 import android.content.Context
 import app.attic.player.analysis.AnalysisWorker
+import app.attic.player.analysis.MoodScorer
 import app.attic.player.data.AppSettings
 import app.attic.player.data.GenreRepository
 import app.attic.player.data.LibraryRepository
@@ -69,6 +70,9 @@ class AtticApp : Application(), SingletonImageLoader.Factory {
     val player by lazy { PlayerClient(this, library, scope) { messages.tryEmit(it) } }
     val radio by lazy { RadioController(this) }
     val homeFeed by lazy { HomeFeed(this) }
+
+    /** Mood scores from stored embeddings; called after analysis and before Home's mixes are built. */
+    val moodScorer by lazy { MoodScorer(this, database.dao()) }
     val genres by lazy { GenreRepository(this, database.dao(), library.library, scope) }
     val wrapped by lazy { WrappedRepository(this) }
     val backup by lazy {

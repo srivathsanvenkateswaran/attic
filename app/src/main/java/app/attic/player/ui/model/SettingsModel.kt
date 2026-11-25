@@ -9,6 +9,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.R
 import app.attic.player.analysis.AnalysisProgress
@@ -44,6 +45,8 @@ class SettingsState(
     val backup: BackupUiState,
     /** The Equaliser row: on or off, the default's preset, and how many songs and albums have their own. */
     val equaliser: EqualiserSettingsRow,
+    /** The Moods and interests row's second line: "Chill, Focus · 3 genres · Tamil, English". */
+    val interestsSummary: String = "",
 ) {
     /** The crossfade lengths offered, in seconds, Off first. */
     val crossfadeChoices: List<Int> get() = CrossfadePlan.choices
@@ -97,6 +100,8 @@ class SettingsActions(
     val confirmRestore: () -> Unit,
     /** Closes the restore question, result or problem. */
     val dismissBackupDialog: () -> Unit,
+    /** The Moods and interests page, where the mood mixes' picks are made. */
+    val openInterests: () -> Unit = {},
 )
 
 @Composable
@@ -119,6 +124,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)
 
     val backupStatus by app.backupSession.status.collectAsStateWithLifecycle()
+    val interests by app.settings.interests.collectAsStateWithLifecycle()
     val haptics = rememberHaptics()
     // The system picker writes and reads through the Storage Access Framework, so no storage permission is needed.
     val createFile = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(BACKUP_MIME)) { uri ->
@@ -140,6 +146,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         analysis,
         BackupUiState.of(backupStatus),
         rememberEqualiserSettingsRow(library),
+        interestsSummary(interests, LocalResources.current),
     )
     val actions = SettingsActions(
         back = { ui.back() },
@@ -160,6 +167,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         restore = { openFile.launch(arrayOf(BACKUP_MIME, "application/gzip", "application/x-gzip", "application/octet-stream", "text/plain")) },
         confirmRestore = app.backupSession::confirm,
         dismissBackupDialog = app.backupSession::dismiss,
+        openInterests = { ui.openInterests() },
     )
     return UiModel(state, actions)
 }

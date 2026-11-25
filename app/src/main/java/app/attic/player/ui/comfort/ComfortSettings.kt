@@ -145,6 +145,17 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
             val analysis = state.analysis
             val done = format.format(analysis.done)
             val total = format.format(analysis.total)
+            Label(stringResource(R.string.settings_moods))
+            Group {
+                item {
+                    SetRow(
+                        stringResource(R.string.settings_interests),
+                        summary = state.interestsSummary,
+                        onClick = actions.openInterests,
+                        trailing = { ComfortIcon(Symbol.ChevronRight, tint = Comfort.colors.on3) },
+                    )
+                }
+            }
             Label(stringResource(R.string.settings_song_radio))
             Group {
                 item {
