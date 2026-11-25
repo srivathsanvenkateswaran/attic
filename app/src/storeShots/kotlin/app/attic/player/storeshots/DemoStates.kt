@@ -318,12 +318,13 @@ object DemoStates {
 
     // Settings
 
-    fun settings(style: UiStyle, dark: Boolean) = SettingsState(
+    /** [transitions] is Crossfade, as the design files draw Settings; the store shot of Playback shows Smart. */
+    fun settings(style: UiStyle, dark: Boolean, transitions: TransitionMode = TransitionMode.Crossfade) = SettingsState(
         themeMode = if (dark) ThemeMode.Dark else ThemeMode.Light,
         uiStyle = style,
         autoplay = true,
         volumeLevelling = true,
-        transitions = TransitionMode.Crossfade,
+        transitions = transitions,
         crossfadeSeconds = 6,
         bulkLyrics = BulkProgress(done = 0, total = 0, found = 0, running = false),
         savedLyricsCount = 51,

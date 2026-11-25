@@ -7,6 +7,7 @@ import app.attic.player.ui.expressive.ExpressiveEqualiserPage
 import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
 import app.attic.player.ui.expressive.FromCover
 import app.attic.player.designrefs.MoodStates
+import app.attic.player.playback.TransitionMode
 import app.attic.player.ui.comfort.ComfortInterests
 import app.attic.player.ui.comfort.ComfortMood
 import app.attic.player.ui.expressive.ExpressiveInterests
@@ -154,7 +155,9 @@ private fun Screen(style: UiStyle, screen: String) {
         "search-browse" ->
             InShell(style, Tab.Search) { if (expressive) ExpressiveSearch(s.searchBrowse, s.searchActions) else ComfortSearch(s.searchBrowse, s.searchActions) }
         "settings", "settings-playback" -> {
-            val state = s.settings(style, LocalIsDark.current)
+            // Playback shows Smart, the 1.3 transition; the full Settings shot keeps the default demo.
+            val transitions = if (screen == "settings-playback") TransitionMode.Smart else TransitionMode.Crossfade
+            val state = s.settings(style, LocalIsDark.current, transitions)
             InShell(style, Tab.Home) { if (expressive) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions) }
         }
         "recap" ->
