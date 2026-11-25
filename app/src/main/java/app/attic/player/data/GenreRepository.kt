@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.stateIn
 @OptIn(ExperimentalCoroutinesApi::class)
 class GenreRepository(context: Context, dao: MusicDao, library: StateFlow<Library?>, scope: CoroutineScope) {
     private val app = context.applicationContext
-    private val labels by lazy { StyleLabels.parse(app.assets.open(StyleLabels.ASSET).bufferedReader().use { it.readText() }) }
+    /** The model's 400 style names, read once. Mood mixes use them to file untagged songs under genres. */
+    val labels by lazy { StyleLabels.parse(app.assets.open(StyleLabels.ASSET).bufferedReader().use { it.readText() }) }
 
     val genres: StateFlow<List<Genre>?> =
         combine(library.filterNotNull(), dao.styles(SongAnalyzer.MODEL_VERSION)) { lib, rows -> lib to rows }
