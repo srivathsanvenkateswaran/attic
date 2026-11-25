@@ -9,6 +9,18 @@ Attic reads its "classes" list, the names of the 400 Discogs styles the model sc
 the genres it shows. The file is distributed as part of the model, under the model's licence
 below, and the same terms apply to it.
 
+app/src/main/assets/moods/ holds nine of Essentia's classifier heads for this model, each
+unmodified, with its unmodified metadata file, from
+https://essentia.upf.edu/models/classification-heads/<name>/<name>-discogs-effnet-1.onnx and .json:
+
+  mood_happy, mood_sad, mood_relaxed, mood_aggressive, mood_party, danceability,
+  voice_instrumental, engagement_regression, mtg_jamendo_moodtheme
+
+They are by the same group, published under the same licence below. Attic runs them on the
+embeddings the model produces, to give each song mood scores for its mood mixes. The heads' own
+metadata names their training data: MTG's in-house collections for the mood, danceability,
+voice and engagement heads, and the MTG-Jamendo dataset (mood and theme subset) for the tags.
+
 Essentia's models page licenses the model under CC BY-NC-SA 4.0, while MTG's licensing page and
 the licence file in Essentia's model directory name CC BY-NC-ND 4.0. Both allow non-commercial
 use with attribution only. Commercial use needs a proprietary licence from MTG.
@@ -18,7 +30,7 @@ Licence texts:
   https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode
 Essentia's licence file for its model directory: https://essentia.upf.edu/models/LICENSE
 
-The model is provided as-is, with no warranties, as both licences state.
+The model and the heads are provided as-is, with no warranties, as both licences state.
 
 Reference: Alonso-Jiménez, Serra and Bogdanov, "Music Representation Learning Based on Editorial
 Metadata from Discogs", ISMIR 2022.

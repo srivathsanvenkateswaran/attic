@@ -20,8 +20,12 @@ class EffnetModel(
 ) : Closeable {
     private val session: OrtSession = environment.createSession(modelBytes, options)
 
-    /** [embedding] has length 1. [styles] is empty when the run didn't ask for them. */
-    class Output(val embedding: FloatArray, val styles: List<StyleScore>)
+    /**
+     * [embedding] has length 1; [norm] is the length the mean of the patches' embeddings had before
+     * that, which the mood heads need (docs/features/mood-mixes.md). [styles] is empty when the run
+     * didn't ask for them.
+     */
+    class Output(val embedding: FloatArray, val norm: Float, val styles: List<StyleScore>)
 
     fun run(patches: List<FloatArray>, withStyles: Boolean = true): Output {
         val sum = FloatArray(SongAnalyzer.EMBEDDING_SIZE)
@@ -43,15 +47,13 @@ class EffnetModel(
                 }
             }
         }
-        return Output(normalized(sum), if (withStyles) styles.top() else emptyList())
-    }
-
-    private fun normalized(vector: FloatArray): FloatArray {
+        // The sum over patches, divided by their count, is the mean whose length the mood heads need.
+        val count = patches.size.coerceAtLeast(1)
         var norm = 0f
-        for (value in vector) norm += value * value
+        for (value in sum) norm += value * value
         norm = sqrt(norm)
-        if (norm > 0) for (i in vector.indices) vector[i] /= norm
-        return vector
+        if (norm > 0) for (i in sum.indices) sum[i] /= norm
+        return Output(sum, norm / count, if (withStyles) styles.top() else emptyList())
     }
 
     override fun close() = session.close()

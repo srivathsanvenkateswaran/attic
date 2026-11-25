@@ -32,7 +32,7 @@ object AnalysisPlan {
     /**
      * Every key still to do, with what it needs. Songs that only need their loudness go first, as they are
      * quick; then songs radio can't use yet ([analyzed] doesn't hold them); then songs analysed before
-     * styles were stored. Within each, songs you played most recently ([recent], newest at 0) come first.
+     * styles or embedding lengths were stored. Within each, songs you played most recently ([recent], newest at 0) come first.
      * A song missing both styles and loudness gets one full decode for both, never a second for loudness.
      */
     fun todo(
@@ -60,8 +60,8 @@ object AnalysisPlan {
 /**
  * Saves what one decode learned: the sound for radio, the styles for genres and the loudness for volume
  * levelling, in one transaction. A song that already had an embedding ([hadEmbedding]: analysed before
- * styles were stored) keeps it if its file can't be read now; it gets an empty styles row instead, so
- * it isn't tried again.
+ * styles or the embedding's length were stored) keeps it if its file can't be read now; it gets an
+ * empty styles row and an unknown (0) length instead, so it isn't tried again.
  */
 suspend fun MusicDao.saveAnalysis(
     key: String,
@@ -81,15 +81,18 @@ suspend fun MusicDao.saveAnalysis(
                 embedding = sound?.embedding?.let(SongAnalyzer::toBytes),
                 chroma = sound?.chroma,
                 analyzedAt = now,
+                embeddingNorm = sound?.norm,
             )
         },
         styles = when {
             sound != null -> SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, StyleCodec.encode(sound.styles))
-            keepOld -> SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, ByteArray(0))
+            // A song that kept its styles and only lacked its length keeps them.
+            keepOld && !hasStyles(key, SongAnalyzer.MODEL_VERSION) -> SongStylesEntity(key, SongAnalyzer.MODEL_VERSION, ByteArray(0))
             else -> null
         },
         loudness = loudnessEntity(key, analysis.loudness, now),
     )
+    if (keepOld) markNormUnknown(key)
 }
 
 /** A null [loudness] records a file that couldn't be measured, so it isn't tried on every run. */

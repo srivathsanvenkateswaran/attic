@@ -14,7 +14,8 @@ import java.nio.ByteOrder
  * fingerprint, its top styles and its loudness.
  */
 class SongAnalyzer(private val context: Context) : Closeable {
-    class Result(val embedding: FloatArray, val chroma: ByteArray, val styles: List<StyleScore>)
+    /** [norm] is the embedding's length before it was made unit length ([EffnetModel.Output.norm]). */
+    class Result(val embedding: FloatArray, val chroma: ByteArray, val styles: List<StyleScore>, val norm: Float)
 
     private val model = EffnetModel(
         quietEnvironment(),
@@ -37,7 +38,7 @@ class SongAnalyzer(private val context: Context) : Closeable {
             null
         } else {
             val output = model.run(patches)
-            Result(output.embedding, Chroma.frames(decoded.mono), output.styles)
+            Result(output.embedding, Chroma.frames(decoded.mono), output.styles, output.norm)
         }
         return Analysis(sound, decoded.loudness)
     }

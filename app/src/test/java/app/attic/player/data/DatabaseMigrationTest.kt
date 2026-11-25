@@ -15,7 +15,8 @@ import java.sql.DriverManager
  * with data in it, must end up with exactly the tables Room exported for the version it migrates to,
  * data intact. Version 4 adds `song_styles`, version 5 `song_loudness`, version 6 `song_transitions`
  * (smart transitions' version, carried from that branch: its `6.json` is the schema the owner's phone
- * has), version 7 the equaliser's `eq_settings` and `eq_presets`.
+ * has), version 7 the equaliser's `eq_settings` and `eq_presets`, version 8 mood mixes' `song_moods`
+ * and the embedding's length in `song_analysis`.
  */
 class DatabaseMigrationTest {
     private val schemas = File("schemas/app.attic.player.data.AtticDatabase")
@@ -111,13 +112,14 @@ class DatabaseMigrationTest {
     }
 
     @Test
-    fun theMigrationsChainFromThreeToSeven() {
+    fun theMigrationsChainFromThreeToEight() {
         assertEquals(3 to 4, DatabaseMigrations.FROM_3_TO_4.startVersion to DatabaseMigrations.FROM_3_TO_4.endVersion)
         assertEquals(4 to 5, DatabaseMigrations.FROM_4_TO_5.startVersion to DatabaseMigrations.FROM_4_TO_5.endVersion)
         assertEquals(5 to 6, DatabaseMigrations.FROM_5_TO_6.startVersion to DatabaseMigrations.FROM_5_TO_6.endVersion)
         assertEquals(6 to 7, DatabaseMigrations.FROM_6_TO_7.startVersion to DatabaseMigrations.FROM_6_TO_7.endVersion)
+        assertEquals(7 to 8, DatabaseMigrations.FROM_7_TO_8.startVersion to DatabaseMigrations.FROM_7_TO_8.endVersion)
         // The newest exported schema is the one the last migration reaches.
-        assertEquals(7, schemas.list()!!.mapNotNull { it.removeSuffix(".json").toIntOrNull() }.max())
+        assertEquals(8, schemas.list()!!.mapNotNull { it.removeSuffix(".json").toIntOrNull() }.max())
     }
 
     @Test
@@ -173,6 +175,70 @@ class DatabaseMigrationTest {
             }
         }
         assertEquals(3, count("eq_settings"))
+    }
+
+    /** Column name to its default, as SQLite reports it. */
+    private fun defaults(table: String): Map<String, String?> = db.createStatement().use { s ->
+        s.executeQuery("PRAGMA table_info(`$table`)").use { rows ->
+            buildMap { while (rows.next()) put(rows.getString("name"), rows.getString("dflt_value")) }
+        }
+    }
+
+    @Test
+    fun sevenToEightAddsMoodsAndTheLengthAndKeepsEverything() {
+        create(schema(7))
+        insertVersion3Rows()
+        db.createStatement().use {
+            it.execute("INSERT INTO song_styles (trackKey, modelVersion, top) VALUES ('Music/a.mp3', 1, x'0100ffff')")
+            it.execute("INSERT INTO eq_presets (name, gains, createdAt) VALUES ('Car', '3,3,0,0,0,0,0,0,2,2', 9)")
+        }
+        run(DatabaseMigrations.SQL_7_TO_8)
+
+        // ALTER TABLE keeps the added column's SQL text apart from Room's CREATE, so song_analysis is
+        // compared by its columns and defaults, as Room compares it on the phone; every other table by its SQL.
+        assertEquals(storedStatements(8) - "song_analysis", tables() - "song_analysis")
+        assertEquals(storedStatements(8).keys, tables().keys)
+        assertColumnsMatch(8)
+        assertEquals("NULL", defaults("song_analysis")["embeddingNorm"])
+        assertVersion3RowsKept()
+        assertEquals(1, count("song_styles"))
+        assertEquals(1, count("eq_presets"))
+        db.createStatement().use { s ->
+            // A song analysed before has no length yet, so it gets approximate mood scores until analysis decodes it again.
+            s.executeQuery("SELECT embeddingNorm FROM song_analysis WHERE trackKey = 'Music/a.mp3'").use { row ->
+                assertTrue(row.next())
+                row.getFloat(1)
+                assertTrue(row.wasNull())
+            }
+            s.executeUpdate("INSERT INTO song_moods (trackKey, version, exact, scores) VALUES ('Music/a.mp3', 1, 0, x'ffff')")
+        }
+        assertEquals(1, count("song_moods"))
+    }
+
+    @Test
+    fun versionEightOnlyAddsTheMoodsTableAndTheLength() {
+        val before = createStatements(schema(7))
+        val after = createStatements(schema(8))
+        assertEquals(before - "song_analysis", after - "song_analysis" - "song_moods")
+        assertEquals(setOf("song_moods"), after.keys - before.keys)
+        assertEquals(
+            before.getValue("song_analysis").replace(", PRIMARY KEY", ", `embeddingNorm` REAL DEFAULT NULL, PRIMARY KEY"),
+            after.getValue("song_analysis"),
+        )
+        val strip = { sql: String -> sql.replace("CREATE TABLE IF NOT EXISTS", "").trim() }
+        assertEquals(strip(after.getValue("song_moods")), strip(DatabaseMigrations.SQL_7_TO_8[1]))
+    }
+
+    @Test
+    fun threeToEightRunsEveryMigration() {
+        create(schema(3))
+        insertVersion3Rows()
+        listOf(DatabaseMigrations.SQL_3_TO_4, DatabaseMigrations.SQL_4_TO_5, DatabaseMigrations.SQL_5_TO_6, DatabaseMigrations.SQL_6_TO_7, DatabaseMigrations.SQL_7_TO_8)
+            .forEach(::run)
+        assertEquals(storedStatements(8).keys, tables().keys)
+        assertColumnsMatch(8)
+        assertVersion3RowsKept()
+        assertEquals(0, count("song_moods"))
     }
 
     @Test
@@ -281,6 +347,7 @@ class DatabaseMigrationTest {
         )
     }
 
+    /** 7 → 8 adds a column, which SQLite can't do twice; Room never runs a migration twice either. */
     @Test
     fun eachMigrationRunsTwiceWithoutHarm() {
         create(schema(3))
