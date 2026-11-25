@@ -29,6 +29,7 @@ All of this stays in the app's private storage on the device:
 - the results of song analysis: a list of numbers describing each song's sound, which radio uses
   to find similar songs, the musical styles the model rates likeliest for it, and its loudness
 - any language you set for a song
+- equaliser settings you save for a song or an album, and your equaliser presets
 
 Song analysis runs on the phone. No audio, and no analysis result, leaves the device.
 
@@ -42,9 +43,10 @@ Your music files are never changed or deleted, and neither are Recap images you 
 to your Google account, usually once a day:
 
 - a backup file Attic keeps in its private storage, with your favourites, playlists, listening log,
-  downloaded lyrics, the languages you set and the saved queue. Each song is named by its file's
+  downloaded lyrics, the languages you set, the saved queue, and your equaliser settings and
+  presets. Each song is named by its file's
   path on the phone, such as `Music/Hindi/Kabira.mp3`.
-- your settings: theme, style and autoplay
+- your settings, such as theme, style, autoplay and the equaliser
 
 Attic tells Android to send this only when the phone can encrypt it end to end, which needs
 Android 9 or later and a screen lock. Neither Google nor the developer can read it. Song analysis
