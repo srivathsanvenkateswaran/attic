@@ -61,7 +61,7 @@ window's end edge.
 | | Compact | Medium | Expanded |
 |---|---|---|---|
 | Navigation | bottom bar (Expressive), dock (Comfort) | rail at the start edge | rail at the start edge |
-| Song playing | mini player above the bar | mini player floating at the bottom of the content area, at most 560 dp wide, centred | player bar along the bottom of the content area |
+| Song playing | mini player above the bar | mini player floating at the bottom of the content area, at most 576 dp wide, centred | player bar along the bottom of the content area |
 | Now Playing, queue, lyrics | full-screen overlays | full-screen overlays | full-screen overlays, laid out side by side in landscape |
 
 **Expressive rail** (`ui/expressive/ExpressiveRail.kt` · `ExpressiveNavigationRail`): Material 3
@@ -98,7 +98,8 @@ Centre: the elapsed time, previous, play/pause, next, the length. Right: heart, 
 no separate seek line: the played-so-far fill across the card is its progress, and a second one at
 another scale read as a mistake.
 
-On medium widths the mini player is the phone's, at most 560 dp wide, centred in the content area,
+On medium widths the mini player is the phone's, at most 576 dp wide (so on the Pad upright it lines up
+with the 24 dp margins of the 624 dp content area; the frames draw 560), centred in the content area,
 12 dp above the gesture inset. Expressive draws the gesture inset in the page colour so the page does
 not show under the handle; Comfort puts the mini player in its dock card over the dock's fade.
 
@@ -170,7 +171,7 @@ least 180 dp wide. Results keep their sections; song and album rows sit in adapt
   remove) or the synced lyrics, with the button that opens them full screen at the end of the switch's
   row. The end half sits on the page, not on a card.
 - Otherwise (the Pad upright, medium widths, expanded portrait on bigger tablets): the phone layout in
-  a centred column at most 560 dp wide, the cover up to 480 dp.
+  a centred column at most 576 dp wide, the cover up to 480 dp.
 
 **Full-screen lyrics** (`ExpressiveLyrics.kt` / `ComfortLyrics.kt`). Expanded and landscape: a 360 dp
 start pane with the cover, title, artist, seek bar and play controls, drawn as one card; the lyrics in
