@@ -1,6 +1,6 @@
 package app.attic.player.ui.adaptive
 
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
@@ -58,8 +58,8 @@ data class WindowLayout(
     /** Now Playing and full-screen lyrics put the player beside the queue or the lyrics. */
     val playerSideBySide: Boolean = widthClass == WidthClass.Expanded && landscape
 
-    /** The Library shows the item it opened beside its list. */
-    val libraryListDetail: Boolean = wideShell && widthDp >= ListDetailMinWidthDp
+    /** The Library shows the item it opened beside its list: the Pad 6 sideways (1152 dp) and wider. */
+    val libraryListDetail: Boolean = wideShell && widthClass == WidthClass.Expanded && landscape
 
     companion object {
         /** A phone-sized window, the default before the window has been measured. */
@@ -119,8 +119,8 @@ const val MiniPlayerMaxWidthDp = 560f
 /** Below this height the phone shell stays, so a short landscape window keeps its bottom bar. */
 const val MinWideShellHeightDp = 480f
 
-/** The Library goes list and detail from this window width, the Pad in landscape. */
-const val ListDetailMinWidthDp = 1200f
+/** The Library's list pane when it shows list and detail. */
+const val LibraryListPaneDp = 360f
 
 /** A collection pane this wide puts its header beside the songs. */
 const val CollectionTwoPaneMinDp = 760f
@@ -135,7 +135,7 @@ val LocalWindowLayout = compositionLocalOf { WindowLayout.Phone }
  */
 @Composable
 fun currentWindowLayout(): WindowLayout {
-    val sizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val sizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
     val size = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
     return remember(sizeClass, size, density) {

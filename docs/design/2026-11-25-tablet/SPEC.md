@@ -6,10 +6,13 @@ The rules both styles follow on medium and expanded windows. The FigCraft `Table
 the Compose code implements them; where the two disagree once the code lands, the code wins and the
 design file is updated. Phones (compact width) keep every layout they have today.
 
-The target device is a Xiaomi Pad 6: 2880 × 1800 px, which is about 1440 × 900 dp in landscape and
-900 × 1440 dp in portrait at its default density (to be confirmed on the device). It is used in both
-orientations, mostly landscape, and HyperOS lets the app run in split screen and floating windows, so
-any width between about 300 and 1440 dp can occur and can change while the app runs.
+The target device is a Xiaomi Pad 6: 2880 × 1800 px at 400 dpi (density 2.5, from its stock
+`ro.sf.lcd_density`; to be confirmed with `wm density` on the device), so **1152 × 720 dp in landscape
+and 720 × 1152 dp in portrait**. Landscape is an expanded width; portrait is a medium width. Its last
+update is HyperOS 2 on Android 14. It is used in both orientations, mostly landscape, and HyperOS lets
+the app run in split screen (each half about 570 dp wide in landscape, a compact width) and in floating
+windows, so any width from about 300 dp up can occur and can change while the app runs. A smaller
+"display size" setting, or a bigger tablet, gives 1440 × 900 dp and more.
 
 ## Window classes
 
@@ -17,9 +20,9 @@ Width decides the layout. The breakpoints are Material's window size classes:
 
 | Class | Width | Pad 6 case |
 |---|---|---|
-| Compact | under 600 dp | phones; a narrow floating window |
-| Medium | 600 to 839 dp | half of the Pad in split screen (about 700 dp) |
-| Expanded | 840 dp and wider | the Pad full screen, either orientation |
+| Compact | under 600 dp | phones; a narrow floating window; half of the Pad in split screen (about 570 dp) |
+| Medium | 600 to 839 dp | the Pad upright (720 dp) |
+| Expanded | 840 dp and wider | the Pad sideways (1152 dp); bigger tablets |
 
 Height matters in two places only: Now Playing and full-screen lyrics go side by side when the window
 is expanded **and** wider than it is tall, and a window under 480 dp tall keeps the compact shell
@@ -42,9 +45,9 @@ opened beside the Library list lays itself out for the width of that pane.
 
 | Frame | Size (dp) | Stands for |
 |---|---|---|
-| Expanded landscape | 1440 × 900 | the Pad 6 held sideways |
-| Expanded portrait | 900 × 1440 | the Pad 6 held upright |
-| Medium | 700 × 900 | half of the Pad in split screen |
+| Landscape | 1152 × 720 | the Pad 6 held sideways, at its stock density |
+| Portrait | 720 × 1152 | the Pad 6 held upright (a medium width) |
+| Large landscape | 1440 × 900 | the Pad 6 at a smaller display size, or a bigger tablet |
 
 Each frame starts with a status bar across its full width (24 dp on a tablet) and ends with the
 gesture handle (20 dp), both from the style's system-bar components, stretched.
@@ -100,10 +103,11 @@ simply show more items. Everything that is a single full-width block on a phone 
 
 **Library** (`ExpressiveLibrary.kt` / `ComfortLibrary.kt`, with `ui/LibraryPanes.kt` ·
 `LibraryListDetail`). The grid view uses adaptive columns, a cell at least 160 dp wide. When the window
-is at least 1200 dp wide (the Pad in landscape) the Library is list and detail: the list in a 400 dp
-pane at the start, and the album, artist or playlist it opened in the pane beside it, the first item
-selected on arrival. Narrower windows open the detail as its own screen, as phones do, and list rows
-sit in adaptive columns at least 360 dp wide.
+is expanded and wider than it is tall (the Pad in landscape) the Library is list and detail: the list
+in a 360 dp pane at the start, and the album, artist or playlist it opened in the pane beside it, the
+first item selected on arrival. That pane is about 700 dp wide on the Pad, so the detail takes its
+header-row layout; at 1440 dp it is wide enough for two panes. Narrower or upright windows open the
+detail as its own screen, as phones do, and list rows sit in adaptive columns at least 360 dp wide.
 
 **Search** (`ExpressiveSearch.kt` / `ComfortSearch.kt`). Browse tiles in adaptive columns, a cell at
 least 180 dp wide. Results keep their sections; song and album rows sit in adaptive columns at least
@@ -121,12 +125,12 @@ least 180 dp wide. Results keep their sections; song and album rows sit in adapt
 **Now Playing** (`ui/expressive/ExpressiveNowPlayingWide.kt` · `ExpressiveNowPlayingWide`,
 `ui/comfort/ComfortNowPlayingWide.kt` · `ComfortNowPlayingWide`).
 - Expanded and landscape: two halves. The start half is the player: the top bar ("Playing from", close,
-  menu), the cover as large as fits (up to 440 dp), the title block, the seek bar, the transport and the
+  menu), the cover as large as fits (about 280 dp on the Pad's 720 dp height, up to 440 dp), the title block, the seek bar, the transport and the
   tools row. The end half is a panel with a two-way switch, Up next and Lyrics: Up next is the queue
   list (drag to reorder, swipe to remove, as in the queue screen); Lyrics is the synced lyrics, with
   the button that opens them full screen.
-- Expanded portrait and medium: the phone layout in a centred column at most 560 dp wide, the cover up
-  to 480 dp.
+- Otherwise (the Pad upright, medium widths, expanded portrait on bigger tablets): the phone layout in
+  a centred column at most 560 dp wide, the cover up to 480 dp.
 
 **Full-screen lyrics** (`ExpressiveLyrics.kt` / `ComfortLyrics.kt`). Expanded and landscape: a 360 dp
 start pane with the cover, title, artist, seek bar and play controls; the lyrics in the rest, in a
@@ -156,15 +160,15 @@ text field has focus.
 
 ## Frames to draw, per style, each in Light and Dark
 
-| Screen | Expanded landscape | Expanded portrait | Medium |
+| Screen | Landscape 1152 × 720 | Portrait 720 × 1152 | Large landscape 1440 × 900 |
 |---|---|---|---|
 | Home | yes | yes | yes |
 | Library (landscape: list and detail with an album open) | yes | yes | yes |
-| Search, results | yes | yes | yes |
+| Search, results | yes | yes | |
 | Album | yes | yes | yes |
 | Artist | yes | | |
 | Playlist | yes | | |
-| Now Playing with Up next | yes | yes (column) | yes (column) |
+| Now Playing with Up next | yes | yes (column) | yes |
 | Now Playing with Lyrics | yes | | |
 | Full-screen lyrics | yes | | |
 | Settings | yes | yes | |

@@ -17,9 +17,13 @@ import org.junit.Test
 
 class AdaptiveLayoutTest {
     private val phone = WindowLayout(411f, 914f)
-    private val padLandscape = WindowLayout(1440f, 900f)
-    private val padPortrait = WindowLayout(900f, 1440f)
-    private val padHalf = WindowLayout(700f, 900f)
+
+    // The Xiaomi Pad 6 at its stock 400 dpi, and at a smaller display size.
+    private val padLandscape = WindowLayout(1152f, 720f)
+    private val padPortrait = WindowLayout(720f, 1152f)
+    private val padHalf = WindowLayout(570f, 720f)
+    private val largeLandscape = WindowLayout(1440f, 900f)
+    private val largePortrait = WindowLayout(900f, 1440f)
 
     @Test
     fun widthClassesFollowMaterialBreakpoints() {
@@ -47,19 +51,28 @@ class AdaptiveLayoutTest {
     }
 
     @Test
-    fun padPortraitGetsRailAndPlayerBarButStackedPlayerAndNoListDetail() {
+    fun padPortraitIsMediumWithRailFloatingMiniPlayerAndStackedPlayer() {
+        assertEquals(WidthClass.Medium, padPortrait.widthClass)
         assertEquals(NavPlacement.Rail, padPortrait.nav)
-        assertEquals(PlayerPlacement.Bar, padPortrait.player)
+        assertEquals(PlayerPlacement.Floating, padPortrait.player)
         assertFalse(padPortrait.playerSideBySide)
         assertFalse(padPortrait.libraryListDetail)
     }
 
     @Test
-    fun splitScreenHalfGetsRailAndFloatingMiniPlayer() {
-        assertEquals(WidthClass.Medium, padHalf.widthClass)
-        assertEquals(NavPlacement.Rail, padHalf.nav)
-        assertEquals(PlayerPlacement.Floating, padHalf.player)
-        assertFalse(padHalf.playerSideBySide)
+    fun splitScreenHalfOfThePadIsAPhone() {
+        assertEquals(WidthClass.Compact, padHalf.widthClass)
+        assertEquals(NavPlacement.BottomBar, padHalf.nav)
+        assertEquals(PlayerPlacement.Docked, padHalf.player)
+    }
+
+    @Test
+    fun largerTabletsFollowOrientation() {
+        assertTrue(largeLandscape.libraryListDetail)
+        assertTrue(largeLandscape.playerSideBySide)
+        assertEquals(PlayerPlacement.Bar, largePortrait.player)
+        assertFalse(largePortrait.libraryListDetail)
+        assertFalse(largePortrait.playerSideBySide)
     }
 
     @Test
@@ -84,11 +97,14 @@ class AdaptiveLayoutTest {
         assertEquals(CollectionLayout.Stacked, collectionLayout(411f))
         assertEquals(CollectionLayout.HeaderRow, collectionLayout(604f))
         assertEquals(CollectionLayout.HeaderRow, collectionLayout(759f))
-        // Portrait Pad after the rail, and the detail pane beside the Library list in landscape.
-        assertEquals(CollectionLayout.TwoPane, collectionLayout(804f))
-        assertEquals(CollectionLayout.TwoPane, collectionLayout(944f))
-        assertEquals(320f, collectionHeaderPaneDp(804f))
-        assertEquals(360f, collectionHeaderPaneDp(1344f))
+        // The Pad upright after the rail, and the detail pane beside the Library list on the Pad sideways.
+        assertEquals(CollectionLayout.HeaderRow, collectionLayout(624f))
+        assertEquals(CollectionLayout.HeaderRow, collectionLayout(696f))
+        // The Pad sideways, full width after the rail; the detail pane at 1440 dp.
+        assertEquals(CollectionLayout.TwoPane, collectionLayout(1056f))
+        assertEquals(CollectionLayout.TwoPane, collectionLayout(984f))
+        assertEquals(320f, collectionHeaderPaneDp(984f))
+        assertEquals(360f, collectionHeaderPaneDp(1056f))
     }
 
     @Test
