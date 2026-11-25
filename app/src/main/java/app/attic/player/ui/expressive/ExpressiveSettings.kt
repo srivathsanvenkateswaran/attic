@@ -110,6 +110,10 @@ fun ExpressiveSettings(state: SettingsState, actions: SettingsActions) {
                     }
                 }
             }
+            item(key = "moods") {
+                SettingsSection(stringResource(R.string.settings_moods))
+                ListGroup(1) { InterestsRow(state.interestsSummary, actions) }
+            }
             item(key = "radio") {
                 SettingsSection(stringResource(R.string.settings_song_radio))
                 ListGroup(2) { index ->
@@ -368,6 +372,19 @@ private fun EqualiserRow(row: EqualiserSettingsRow, actions: SettingsActions) {
         RowTitle(stringResource(R.string.equaliser))
         SupportingText(equaliserRowValue(row))
         equaliserOwnSummary(row)?.let { Status(it) }
+    }
+}
+
+/** Moods and interests, with what is picked; opens the page where the mood mixes' picks are made. */
+@Composable
+private fun InterestsRow(summary: String, actions: SettingsActions) {
+    SetIconRow(
+        Symbol.PartlyCloudyDay,
+        modifier = Modifier.clickable(role = Role.Button, onClick = actions.openInterests),
+        trailing = { SymbolIcon(Symbol.ChevronRight, size = 20.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp)) },
+    ) {
+        RowTitle(stringResource(R.string.settings_interests))
+        SupportingText(summary)
     }
 }
 

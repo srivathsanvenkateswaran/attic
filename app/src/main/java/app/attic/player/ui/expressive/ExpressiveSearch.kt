@@ -104,7 +104,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
         )
         val results = state.results
         when {
-            !docked -> Browse(state.tiles, state.genres, browseState, actions)
+            !docked -> Browse(state.tiles, state.genres, state.moods, browseState, actions)
             results == null -> Unit
             results.isEmpty -> EmptyState(
                 title = stringResource(R.string.search_no_results_title, state.query),
@@ -117,7 +117,7 @@ fun ExpressiveSearch(state: SearchState, actions: SearchActions) {
 }
 
 @Composable
-private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, listState: LazyListState, actions: SearchActions) {
+private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, moods: List<BrowseItem>, listState: LazyListState, actions: SearchActions) {
     val folders = tiles.filter { it.destination is Destination.Folder }
     val albums = tiles.filter { it.destination !is Destination.Folder }
     LazyColumn(
@@ -127,7 +127,11 @@ private fun Browse(tiles: List<BrowseItem>, genres: List<BrowseItem>, listState:
     ) {
         item(key = "browse") { SectionHeader(stringResource(R.string.search_browse)) }
         tonalTiles(folders, "folders", actions)
-        // Genres are another way into the same songs, so they share the folders' tile and sit under them.
+        // Moods and genres are other ways into the same songs, so they share the folders' tile and sit under them.
+        if (moods.isNotEmpty()) {
+            item(key = "moodsLabel") { SmallLabel(stringResource(R.string.search_moods)) }
+            tonalTiles(moods, "moods", actions)
+        }
         if (genres.isNotEmpty()) {
             item(key = "genresLabel") { SmallLabel(stringResource(R.string.search_genres)) }
             tonalTiles(genres, "genres", actions)
@@ -196,13 +200,17 @@ private sealed interface Openable {
     data class OfGenre(val genre: Genre) : Openable {
         override val key get() = "genre:${genre.key}"
     }
+
+    data class OfMood(val tile: BrowseItem) : Openable {
+        override val key get() = "mood:${tile.destination}"
+    }
 }
 
 @Composable
 private fun Results(results: SearchResults, state: SearchState, actions: SearchActions) {
     val openables = remember(results) {
         results.artists.map(Openable::OfArtist) + results.albums.map(Openable::OfAlbum) + results.folders.map(Openable::OfFolder) +
-            results.genres.map(Openable::OfGenre)
+            results.moods.map(Openable::OfMood) + results.genres.map(Openable::OfGenre)
     }
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -233,6 +241,12 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                     subtitle = stringResource(R.string.search_result_genre),
                     lead = { Mosaic(mosaicIds(hit.genre.tracks).map(Art::Song), size = 56.dp) },
                     onClick = { actions.open(Destination.Genre(hit.genre.key)) },
+                )
+                is Openable.OfMood -> CollectionRow(
+                    title = hit.tile.title,
+                    subtitle = stringResource(R.string.search_result_mood),
+                    lead = { Mosaic(hit.tile.mosaicIds.map(Art::Song), size = 56.dp) },
+                    onClick = { actions.open(hit.tile.destination) },
                 )
             }
         }

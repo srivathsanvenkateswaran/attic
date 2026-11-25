@@ -154,7 +154,7 @@ fun FavouritesPill(count: String, unit: String, description: String, onClick: ()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-private fun Modifier.combinedClickableCompat(onClick: () -> Unit, onLongClick: (() -> Unit)? = null): Modifier =
+internal fun Modifier.combinedClickableCompat(onClick: () -> Unit, onLongClick: (() -> Unit)? = null): Modifier =
     this.combinedClickable(interactionSource = null, indication = null, onClick = onClick, onLongClick = onLongClick)
 
 /**

@@ -415,7 +415,7 @@ private fun SmartShuffleItem(controls: PlayControlsState, onToggle: () -> Unit) 
     ExpressiveMenuItem(Symbol.ShuffleOn, stringResource(R.string.collection_smart_shuffle), onToggle, checked = controls.smartShuffle == true)
 }
 
-private fun LazyListScope.songRows(
+internal fun LazyListScope.songRows(
     tracks: List<Track>,
     currentKey: String?,
     isPlaying: Boolean,
@@ -625,7 +625,7 @@ private fun ReorderPlaylist(state: PlaylistState, actions: PlaylistActions, name
  * [header] gets the modifier to put on its title, which tells the bar when the title has gone under it.
  */
 @Composable
-private fun CollectionFrame(
+internal fun CollectionFrame(
     title: String,
     seed: Color,
     controls: PlayControlsState,
@@ -709,7 +709,7 @@ private fun CollectionBar(
  * byline, the meta lines, and the 208dp cover with the play cluster beside it.
  */
 @Composable
-private fun CollectionHeader(
+internal fun CollectionHeader(
     title: String,
     titleModifier: Modifier,
     meta: List<String>,
@@ -720,6 +720,8 @@ private fun CollectionHeader(
     artist: Boolean = false,
     byline: (@Composable () -> Unit)? = null,
     radio: (() -> Unit)? = null,
+    /** What the radio button says to accessibility services; "Start radio from …" by default. */
+    radioLabel: String? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     Column(
@@ -745,7 +747,7 @@ private fun CollectionHeader(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             art(Modifier.size(CoverSize))
-            PlayCluster(name, controls, controlActions, Modifier.weight(1f).fillMaxHeight(), radio)
+            PlayCluster(name, controls, controlActions, Modifier.weight(1f).fillMaxHeight(), radio, radioLabel)
         }
     }
 }
@@ -784,7 +786,14 @@ private fun HeaderTitle(text: String, artist: Boolean, modifier: Modifier) {
  * moves to the bar.
  */
 @Composable
-private fun PlayCluster(name: String, state: PlayControlsState, actions: PlayControlsActions, modifier: Modifier, radio: (() -> Unit)? = null) {
+private fun PlayCluster(
+    name: String,
+    state: PlayControlsState,
+    actions: PlayControlsActions,
+    modifier: Modifier,
+    radio: (() -> Unit)? = null,
+    radioLabel: String? = null,
+) {
     val enabled = state.enabled
     Column(modifier.alpha(if (enabled) 1f else 0.38f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CollectionPlayButton(state.isPlaying, actions.playOrPause, enabled, Modifier.fillMaxWidth().weight(1f))
@@ -801,7 +810,7 @@ private fun PlayCluster(name: String, state: PlayControlsState, actions: PlayCon
             )
             ExpressiveIconButton(
                 if (radio != null) Symbol.Sensors else Symbol.PlaylistAdd,
-                stringResource(if (radio != null) R.string.collection_radio_cd else R.string.collection_add_to_playlist_cd, name),
+                radioLabel ?: stringResource(if (radio != null) R.string.collection_radio_cd else R.string.collection_add_to_playlist_cd, name),
                 radio ?: actions.addToPlaylist,
                 modifier = Modifier.weight(1f),
                 variant = IconButtonVariant.Tonal,
@@ -849,7 +858,7 @@ private fun CollectionPlayButton(playing: Boolean, onClick: () -> Unit, enabled:
  * had, the two lines, and Back where the thumb is.
  */
 @Composable
-private fun GoneState(@StringRes title: Int, symbol: Symbol, cookie: Boolean, onBack: () -> Unit) {
+internal fun GoneState(@StringRes title: Int, symbol: Symbol, cookie: Boolean, onBack: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     Column(Modifier.fillMaxSize()) {
         DetailAppBar(title = "", onBack = onBack)
