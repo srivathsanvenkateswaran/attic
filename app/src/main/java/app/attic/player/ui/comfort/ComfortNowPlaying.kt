@@ -107,6 +107,9 @@ fun ComfortNowPlaying(state: NowPlayingState, actions: NowPlayingActions) {
 }
 
 /** The cover's largest side in a tablet's column. */
+/** The narrowest Now Playing column on a tablet, whatever the window's height leaves the cover. */
+private val ShortColumnMin = 400.dp
+
 private val ColumnCoverMax = 480.dp
 
 /**
@@ -183,7 +186,9 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
         // Taken out of the state here so the header's slot changes only when the indicator does.
         val equaliser = state.equaliser
         val openEqualiser = actions.openEqualiser
-        val columnWidth = if (column == null) Modifier.fillMaxWidth() else Modifier.width(side + 60.dp)
+        // On a tablet the column is the cover's width plus its margins, but never narrower than 400dp,
+        // so a short floating window keeps a readable title and a full deck under a smaller cover.
+        val columnWidth = if (column == null) Modifier.fillMaxWidth() else Modifier.width(maxOf(side + 60.dp, minOf(maxWidth, column, ShortColumnMin)))
         Column(Modifier.fillMaxSize().verticalScroll(scroll), horizontalAlignment = Alignment.CenterHorizontally) {
             Column(columnWidth.height(pageHeight)) {
                 NowPlayingHeader(
