@@ -1,6 +1,6 @@
 # Smart transitions
 
-Status: built, 2026-11-25. Where the build differs from the first plan, this note says what was built. Branch `feature/smart-transitions`, from `tier2-integration` at dffdd29.
+Status: built, 2026-11-25, on `ui-redesign` after the per-song equaliser (Room 7 builds on this note's 6). Where the build differs from the first plan, this note says what was built. Branch `feature/smart-transitions`, from `tier2-integration` at dffdd29.
 
 A tester asked whether Attic crossfades the way the big streaming apps do. It already has a fixed
 crossfade (Off or 2–12 s). This adds a third choice, **Smart**: the next song comes in where the
@@ -293,10 +293,8 @@ applause or a hidden gap is the album's.
   the new song, wherever it is.
 - The sleep timer's countdown fade multiplies both players. "End of this song" turns transitions off
   for that song, as now.
-- The tail takes the main player's levelling gain. A per-song equaliser (`feature/per-song-equaliser`)
-  that sits beside levelling as an `AudioProcessor` would need the same treatment on the tail's
-  renderer: that is noted for whoever merges the two, since the tail is built here with its own
-  `LevellingRenderersFactory`.
+- The tail takes the main player's levelling gain and has its own equaliser reading the same settings
+  (added with the per-song equaliser), so the outgoing song keeps its own curve through a fade.
 
 ## 3. Smoother radio order
 
