@@ -225,6 +225,43 @@ frames draw those from the code at dffdd29, with invented genres for the demo li
 | Mood tile | Comfort | Lists and cards | 1 | Title, Description, Count |
 | Mood picks card | Comfort | Lists and cards | 1 | Title, Body |
 
+## Tablet (proposed)
+
+Added by hand on 2026-11-25 with version 1.1.0 of both files; `coverage.py` does not write this section. The
+`Tablet` page draws [the tablet layout spec](../docs/design/2026-11-25-tablet/SPEC.md). None of it is in the code
+yet, so every frame carries a `Proposed` annotation and no ready-for-development status. Frames are Landscape
+(1152 × 720), Portrait (720 × 1152) and Large landscape (1440 × 900), each in Light and Dark.
+
+| Area | Screen | Landscape | Portrait | Large landscape | Expressive | Comfort |
+|---|---|:-:|:-:|:-:|:-:|:-:|
+| Home | Home | ✓ | ✓ | ✓, and full length | ✓ | ✓ |
+| Library | Library (list and detail in landscape, an album open) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Search | Search, results | ✓ | ✓ | | ✓ | ✓ |
+| Collections | Album | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Collections | Artist | ✓ | | | ✓ | ✓ |
+| Collections | Playlist | ✓ | | | ✓ | ✓ |
+| Now Playing | Now Playing, Up next | ✓ | ✓ (the phone layout in a column) | ✓ | ✓ | ✓ |
+| Now Playing | Now Playing, Lyrics | ✓ | | | ✓ | ✓ |
+| Lyrics | Lyrics, full screen | ✓ | | | ✓ | ✓ |
+| Settings | Settings | ✓ | ✓ | | ✓ | ✓ |
+| Overlays | Track menu over the album | ✓ | | | ✓ | ✓ |
+| Overlays | New playlist over the Library | ✓ | | | ✓ | ✓ |
+| First run | First run, Look | ✓ | ✓ | | ✓ | ✓ |
+
+Components added for the tablet layouts, proposed like the frames:
+
+| File | Component | Page | Variants |
+|---|---|---|---|
+| Expressive | Navigation rail | Navigation | Selected |
+| Expressive | Player bar | Navigation | State |
+| Expressive | Now playing/Side panel | Playback | Selected |
+| Comfort | Side dock | Navigation | Selected |
+| Comfort | Side dock/Tab | Navigation | Selected |
+| Comfort | Player bar | Navigation | State |
+| Comfort | Now playing/Side panel | Playback | Selected |
+
+Not drawn: Settings' Playback group (added to the code after 4fe4dab) and every screen outside the table above.
+
 ## Components
 
 ### Expressive
