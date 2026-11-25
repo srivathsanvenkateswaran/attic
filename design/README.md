@@ -8,11 +8,16 @@ files. They are the reference for how each screen looks, and the place to propos
 | `Attic Expressive.figcraft` | Expressive: colour from the phone's wallpaper and the album art, wavy progress, connected button groups, cookie shapes | `app/src/main/java/app/attic/player/ui/expressive/` |
 | `Attic Comfort.figcraft` | Comfort: superellipse cards, the amber Lamplight accent, a bottom dock, the `Tinted(seed, wash)` colours from the album art | `app/src/main/java/app/attic/player/ui/comfort/` |
 
-Both are version 1.3.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
+Both are version 1.4.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
 equaliser (sheet, Now Playing indicator, Settings page), and 1.2.0 is the design review of it as
 built, which the code on `feature/per-song-equaliser` then followed. 1.3.0 adds a proposal, mood mixes
-(the Moods section on the Screens page), whose code lands on `feature/mood-mixes`. The code wins: if a
-file and the app disagree, the app is right and the file is out of date.
+(the Moods section on the Screens page), whose code lands on `feature/mood-mixes`. 1.4.0 adds smart
+transitions as they landed on `feature/smart-transitions`: the Transitions section of the Screens page
+(see [docs/features/smart-transitions.md](../docs/features/smart-transitions.md)). One proposal in it
+was reviewed and not built: Comfort's mark on the Now Playing seek bar, which said little under the
+total time. Its two frames and the Comfort seek bar's `Show next song mark` property stay in the file
+with a `Proposed` annotation. Everywhere else the code wins: if a file and the app disagree, the app is
+right and the file is out of date.
 
 ## What each file holds
 
@@ -41,7 +46,7 @@ The pages are the same in both files:
    the missing families.
 3. Open the `.figcraft` file. Present the prototype from the Screens page; its flow starting points
    are named after the flows (First run, Play an album, Search, Settings, Recap story, Sleep timer,
-   Share a song, Backup and restore, Equaliser, Mood mixes and others).
+   Share a song, Backup and restore, Equaliser, Mood mixes, Transitions and others).
 
 ### Figma
 
@@ -51,7 +56,7 @@ faithfully. Exported and opened again in FigCraft on 2026-11-23:
 - **Expressive:** 100 of 103 Light screens differ from the original. Sheets lose their rows, and the track menu shows only an empty placeholder. Scaled Recap cards lose their scale. Every text style drops its width and roundness axes.
 - **Comfort:** 40 of 96 Light screens differ, mostly in cover images inside nested components and in grid content.
 
-Exported again on 2026-11-25 with the equaliser added (1.1.0; not repeated for 1.2.0), and opened in FigCraft:
+Exported again on 2026-11-25 with the equaliser added (1.1.0; not repeated for 1.2.0 or 1.4.0), and opened in FigCraft:
 
 - **Expressive:** none of the 254 screen frames comes back pixel-identical, mostly because emphasised text falls back to regular weight. In the plain export the equaliser's band graph, the own-setting rows' covers and presets, the track menu and four sheet states are lost. With `--flat`, 10 of the 26 equaliser frames (the track menu and the default, song, album and off sheets) still show an empty placeholder.
 - **Comfort:** of the 26 equaliser frames, 7 come back identical and 14 differ by under 0.5 % of pixels in the plain export (5 and 17 with `--flat`); curves, wells, sliders, chips and the scope head survive, tabular figures do not. 142 of the 230 older screens differ.
@@ -96,6 +101,7 @@ original before sharing it.
 | Equaliser: sheet, indicator, Settings page | `ExpressiveEqualiser.kt`, `BandGraph.kt` | `ComfortEqualiser.kt` |
 | Mood mixes (proposed): mood page, Moods and interests, the Home shelf's tile and card | `ExpressiveMoods.kt` | `ComfortMoods.kt` |
 | Settings, backup and restore, licences | `ExpressiveSettings.kt`, `ExpressiveLicences.kt` | `ComfortSettings.kt`, `ComfortLicences.kt` |
+| Transitions: the Settings rows, the mark on the seek bar | `ExpressiveSettings.kt`, `PlayControls.kt` | `ComfortSettings.kt` (the mark is not built) |
 | Recap, its story and share images | `ExpressiveRecap.kt`, `ExpressiveRecapStory.kt`, `ExpressiveRecapCards.kt` | `ComfortRecap.kt`, `ComfortRecapStory.kt`, `ComfortRecapCards.kt` |
 | First run | `ExpressiveOnboarding.kt` | `ComfortOnboarding.kt` |
 | Permission, loading, empty | `ExpressiveStates.kt` | `ComfortStates.kt` |
@@ -167,3 +173,17 @@ a file, removes whatever an earlier run of it added, draws the components, frame
 again, and saves. It raises the Cover's minor version the first time only, so it also runs on a later
 version of a file. When the code lands, remove the frames' `Proposed` annotations and mark them ready
 for development; the tablet frames are redrawn once `feature/tablet-layouts` brings the shell.
+
+Smart transitions (1.4.0) were added to the 1.3.0 files the same way, in two steps. `transitions.py` in
+each folder draws them as a proposal: the Transitions section under Moods, the mark on the seek bar, the
+flow, the Cover and the Changelog entry. `transitions_landed.py` then follows the code: it removes the
+`Proposed` annotations from the frames that were built, marks them ready for development, records what
+wasn't built, rewrites the Changelog entry, and redraws the Crossfade row of
+`Equaliser / Settings, Playback` as the rows the code has now. Under Playback the Transitions frames
+follow 1.3.0's `Settings / Moods and interests row`, so `transitions.py` refuses a file without the
+equaliser or without the Moods section. Each also refuses a file that already has its work, and neither
+touches the Moods section or its handoff marks. Run in that order on a 1.3.0 file
+(`python3 -m expressive.transitions SRC OUT`, then `python3 -m expressive.transitions_landed OUT OUT2
+--check DIR --against SRC`, from `build/`) they reproduce 1.4.0, and `--check` exports every frame SRC has
+on the Screens page except the redrawn Equaliser one and fails unless OUT2 draws each the same. Each
+module's docstring lists what it adds and changes.
