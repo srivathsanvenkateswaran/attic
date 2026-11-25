@@ -128,7 +128,6 @@ import app.attic.player.ui.model.EqualiserPageState
 import app.attic.player.ui.model.EqualiserSheetActions
 import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.rememberHaptics
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -145,7 +144,7 @@ import kotlinx.coroutines.launch
  * ever edits the default.
  *
  * Moving a band is the one thing here that happens every frame, so the gains are kept where only the
- * two drawings read them ([BandsState]). The model does hand over a new state for each change, which
+ * plot's drawing reads them ([BandsState]). The model does hand over a new state for each change, which
  * is why the sheet and the page pass their state down in State holders and plain values: the pieces
  * whose inputs did not change are skipped, the chips, the scope head and the action rows among them.
  */
@@ -154,8 +153,8 @@ import kotlinx.coroutines.launch
 
 /**
  * The equaliser for the song that is playing (frames B to F2 and I). Top to bottom: the title with the
- * switch, the scope head, the presets, the response in its well, the ten bands, and the rows that give
- * the song or album its own setting or take it away. Over the player the caller washes it with the
+ * switch, the scope head, the presets, the plot with the response behind the ten bands, and the rows
+ * that give the song or album its own setting or take it away. Over the player the caller washes it with the
  * cover, as it does the track menu.
  */
 @Composable
@@ -186,7 +185,7 @@ private fun EqualiserSheetContent(current: State<EqualiserSheetState>, calls: St
             )
         }
         EqualiserScopeHead(state.scope, state.songTitle, state.albumName, state.mediaId)
-        EqualiserEditor(state.editor, editorCalls, chipPadding = 16.dp, wellMargin = 16.dp)
+        EqualiserEditor(state.editor, editorCalls, chipPadding = 16.dp, plotMargin = 16.dp)
         EqualiserActionRows(state.canSaveForSong, state.canSaveForAlbum, state.removal, calls)
     }
 }
@@ -385,7 +384,7 @@ private fun DefaultCard(editor: State<EqualiserEditorState>, calls: State<Equali
     Group {
         item {
             Column(Modifier.padding(top = 10.dp, bottom = 16.dp)) {
-                EqualiserEditor(editor.value, calls, chipPadding = 12.dp, wellMargin = 8.dp)
+                EqualiserEditor(editor.value, calls, chipPadding = 12.dp, plotMargin = 8.dp)
             }
         }
     }
@@ -438,7 +437,7 @@ private fun OwnPreset(name: String, style: TextStyle) {
     Text(name, style = style, color = Comfort.colors.on2, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 124.dp))
 }
 
-// ── The editor: presets, response and bands ──────────────────────────────────
+// ── The editor: presets and the plot ──────────────────────────────────
 
 /** How long a band, the scope head and the off state take to settle (the kit's 200 ms tween). */
 private const val Settle = 200
@@ -448,17 +447,17 @@ private const val Press = 100
 
 private const val Bands = EqualiserBands.COUNT
 
-/** The plot's gutters inside the well: the axis labels at the start, breathing room at the end. */
+/** The plot's gutters inside its card: the dB labels at the start, breathing room at the end. */
 private val PlotGutterStart = 30.dp
 private val PlotGutterEnd = 10.dp
 
 /**
- * The presets, the response and the ten bands, the same in the sheet and on the page's card. Emits
- * into the column it is called in. [chipPadding] is the chip row's side padding and [wellMargin] the
- * well's side margin; the bands sit under the well's plot, so each knob is under its bump of the curve.
+ * The presets, then the plot: the response drawn behind the ten bands in one card, the same in the
+ * sheet and on the page's card. Emits into the column it is called in. [chipPadding] is the chip row's
+ * side padding and [plotMargin] the plot card's side margin.
  */
 @Composable
-private fun EqualiserEditor(editor: EqualiserEditorState, actions: State<EqualiserEditorActions>, chipPadding: Dp, wellMargin: Dp) {
+private fun EqualiserEditor(editor: EqualiserEditorState, actions: State<EqualiserEditorActions>, chipPadding: Dp, plotMargin: Dp) {
     val bands = rememberBands(editor.curve, actions)
     val curve = rememberUpdatedState(editor.curve)
     // 1 with the equaliser on, 0 off. Read only where it is drawn.
@@ -467,13 +466,12 @@ private fun EqualiserEditor(editor: EqualiserEditorState, actions: State<Equalis
     PresetChips(presets, editor.selected, editor.on, lit, actions, chipPadding)
     // A graph keeps low frequencies on the left in every language.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        ResponseWell(bands, lit, Modifier.padding(start = wellMargin, end = wellMargin, top = 4.dp))
-        BandSliders(bands, curve, lit, actions, Modifier.padding(start = wellMargin + PlotGutterStart, end = wellMargin + PlotGutterEnd, top = 6.dp))
+        BandSliders(bands, curve, lit, actions, Modifier.padding(start = plotMargin, end = plotMargin, top = 4.dp))
     }
 }
 
 /**
- * The gains as the two drawings show them, apart from the model's curve so that moving a band redraws
+ * The gains as the plot shows them, apart from the model's curve so that moving a band redraws
  * and nothing recomposes. A drag writes here at once and tells the model at most once a frame; a
  * curve from the model (a preset, another song, a removal) is reached over 200 ms.
  */
@@ -826,100 +824,27 @@ private const val ResponsePoints = 96
 /** The response is drawn to 14 dB either way, so neighbouring boosts that sum past +12 still show. */
 private const val ResponseRangeDb = 14f
 
-/**
- * `.eq-well`: the equaliser's real response in a 120dp well on `--fill`: dashed lines at +12 and
- * -12 dB, a line at 0, the curve in the accent with a soft fill down to 0 dB. Off, it is the flat line
- * that is playing, in `--on-3`. One drawing; the path is rebuilt only when the gains change. Decoration
- * to TalkBack, which has the bands.
- */
-@Composable
-private fun ResponseWell(bands: BandsState, lit: State<Float>, modifier: Modifier = Modifier) {
-    val colors = rememberUpdatedState(Comfort.colors)
-    val measurer = rememberTextMeasurer(cacheSize = 4)
-    Spacer(
-        modifier
-            .fillMaxWidth()
-            .height(120.dp)
-            .clearAndSetSemantics { }
-            .drawWithCache {
-                val left = PlotGutterStart.toPx()
-                val right = size.width - PlotGutterEnd.toPx()
-                val height = 96.dp.toPx()
-                val mid = 12.dp.toPx() + height / 2
-                val perDb = height / (2 * ResponseRangeDb)
-                val hair = 1.dp.toPx()
-                val dashes = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 4.dp.toPx()))
-                val stroke = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-                val corner = CornerRadius(ComfortShapes.ControlRadius.toPx())
-                val axisStyle = onest(11f, 16f).tabular()
-                val marks = floatArrayOf(EqualiserBands.MAX_DB, 0f, EqualiserBands.MIN_DB)
-                val labels = marks.map { measurer.measure(EqualiserBands.formatDb(it), axisStyle) }
-                val labelEnd = 24.dp.toPx()
-                val line = Path()
-                val area = Path()
-                val scaled = FloatArray(Bands)
-                var drawnVersion = -1
-                var drawnLit = -1f
-                onDrawBehind {
-                    val ink = colors.value
-                    val gains = bands.gains
-                    val on = lit.value
-                    if (bands.version != drawnVersion || on != drawnLit) {
-                        drawnVersion = bands.version
-                        drawnLit = on
-                        line.rewind()
-                        area.rewind()
-                        if (on <= 0f) {
-                            line.moveTo(left, mid)
-                            line.lineTo(right, mid)
-                        } else {
-                            for (i in 0 until Bands) scaled[i] = gains[i] * on
-                            val response = EqualiserBands.response(scaled, ResponsePoints)
-                            val step = (right - left) / (response.size - 1)
-                            for (i in response.indices) {
-                                val x = left + step * i
-                                val y = mid - response[i].coerceIn(-ResponseRangeDb, ResponseRangeDb) * perDb
-                                if (i == 0) {
-                                    line.moveTo(x, y)
-                                    area.moveTo(x, y)
-                                } else {
-                                    line.lineTo(x, y)
-                                    area.lineTo(x, y)
-                                }
-                            }
-                            area.lineTo(right, mid)
-                            area.lineTo(left, mid)
-                            area.close()
-                        }
-                    }
-                    drawRoundRect(ink.fill, cornerRadius = corner)
-                    for (i in marks.indices) {
-                        val y = mid - marks[i] * perDb
-                        drawLine(ink.fill2, Offset(left, y), Offset(right, y), hair, pathEffect = if (marks[i] == 0f) null else dashes)
-                        val label = labels[i]
-                        drawText(label, color = ink.on2, topLeft = Offset(labelEnd - label.size.width, y - label.size.height / 2f))
-                    }
-                    if (on > 0f) drawPath(area, ink.accent, alpha = 0.2f * on)
-                    drawPath(line, lerp(ink.on3, ink.accent, on), style = stroke)
-                }
-            },
-    )
-}
-
 /** The bands' drawing is 184dp tall, with 0 dB in the middle and 6.5dp to a decibel. */
 private val BandsHeight = 184.dp
 private val BandsZero = 92.dp
 private val BandStep = 6.5.dp
 
 /**
- * `.eq-bands`: ten capsule tracks with the switch's knob, an accent run from 0 dB to each knob, and
- * the frequency under each. One drawing. Drag up or down anywhere in a band's column and its value
- * follows the finger from where it is, a decibel at a time; a tap alone does nothing, so resting a
- * thumb or scrolling past cannot change the sound; a double tap puts the band back to 0 dB. While a
- * band is dragged its knob grows and its value rides above it. Off, the run and the knob's ring lose
- * the accent.
+ * `.eq-bands`: the plot on a `--fill` card. Back to front: dashed rules at +12 and -12 dB and a line at
+ * 0, with their labels in the card's start padding; ten capsule tracks; the equaliser's real response,
+ * the line in the accent with a soft fill down to 0 dB; the switch's knob on each track; the frequency
+ * under each. The response is drawn at the knobs' own 6.5dp to a decibel, and the engine solves its
+ * filters to pass through the bands, so the line runs through every knob. Off, the line is the flat one
+ * that is playing and the knobs' rings lose the accent.
  *
- * TalkBack gets each band as a slider of its own ([BandSemantics]), laid over its column.
+ * Drag up or down anywhere in a band's column and its value follows the finger from where it is, a
+ * decibel at a time; a tap alone does nothing, so resting a thumb or scrolling past cannot change the
+ * sound; a double tap puts the band back to 0 dB. While a band is dragged its knob grows and its value
+ * rides above it.
+ *
+ * One drawing, which reads the gains only when it draws; the response path is rebuilt only when the
+ * gains or the switch's fade changed. TalkBack gets each band as a slider of its own ([BandSemantics]),
+ * laid over its column, and nothing of the drawing.
  */
 @Composable
 private fun BandSliders(
@@ -935,91 +860,144 @@ private fun BandSliders(
     val measurer = rememberTextMeasurer(cacheSize = 16)
     // The bubble's words for each half decibel from -12 to +12, made as they are first needed.
     val values = remember(resources) { arrayOfNulls<String>(49) }
-    Box(modifier.fillMaxWidth().pointerInput(bands) { bandGestures(bands) }) {
-        Column {
-            Spacer(
-                Modifier
-                    .fillMaxWidth()
-                    .height(BandsHeight)
-                    .drawWithCache {
-                        val column = size.width / Bands
-                        val zero = BandsZero.toPx()
-                        val perDb = BandStep.toPx()
-                        val trackTop = 14.dp.toPx()
-                        val trackBottom = 170.dp.toPx()
-                        val trackWidth = 6.dp.toPx()
-                        val hair = 1.dp.toPx()
-                        val overhang = 6.dp.toPx()
-                        val knob = 10.dp.toPx()
-                        val knobHeld = 13.dp.toPx()
-                        val ring = 2.dp.toPx()
-                        // The knob's shadow is one soft disc, drawn a little low under each knob: no blur, no layer.
-                        val shadowReach = knob + 4.dp.toPx()
-                        val shadowDrop = 1.5.dp.toPx()
-                        val shadowBrush = Brush.radialGradient(
-                            0f to shadow,
-                            (knob - ring) / shadowReach to shadow,
-                            1f to shadow.copy(alpha = 0f),
-                            center = Offset.Zero,
-                            radius = shadowReach,
-                        )
-                        val bubble = Size(62.dp.toPx(), 28.dp.toPx())
-                        val bubbleCorner = CornerRadius(bubble.height / 2)
-                        val bubbleGap = 10.dp.toPx()
-                        val bubbleStyle = onest(12.5f, 16f, 600).tabular()
-                        onDrawBehind {
-                            val ink = colors.value
-                            val gains = bands.gains
-                            val accent = lerp(ink.on3, ink.accent, lit.value)
-                            val grown = bands.grow.value
-                            val held = bands.held
-                            drawLine(ink.fill2, Offset(-overhang, zero), Offset(size.width + overhang, zero), hair)
-                            for (i in 0 until Bands) {
-                                val x = column * (i + 0.5f)
-                                val y = zero - gains[i] * perDb
-                                drawLine(ink.fill2, Offset(x, trackTop), Offset(x, trackBottom), trackWidth, StrokeCap.Round)
-                                if (abs(y - zero) > 0.5f) drawLine(accent, Offset(x, zero), Offset(x, y), trackWidth, StrokeCap.Round)
-                            }
-                            for (i in 0 until Bands) {
-                                val x = column * (i + 0.5f)
-                                val y = zero - gains[i] * perDb
-                                val radius = if (i == held) knob + (knobHeld - knob) * grown else knob
-                                translate(x, y + shadowDrop) {
-                                    scale(radius / knob, pivot = Offset.Zero) { drawCircle(shadowBrush, shadowReach, Offset.Zero) }
+    // The start padding holds the dB labels, the end padding lets the last knob breathe.
+    Box(
+        modifier
+            .fillMaxWidth()
+            .background(Comfort.colors.fill, ComfortShapes.Control)
+            .padding(start = PlotGutterStart, top = 6.dp, end = PlotGutterEnd, bottom = 10.dp),
+    ) {
+        Box(Modifier.fillMaxWidth().pointerInput(bands) { bandGestures(bands) }) {
+            Column {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(BandsHeight)
+                        .drawWithCache {
+                            val column = size.width / Bands
+                            val zero = BandsZero.toPx()
+                            val perDb = BandStep.toPx()
+                            val trackTop = 14.dp.toPx()
+                            val trackBottom = 170.dp.toPx()
+                            val trackWidth = 6.dp.toPx()
+                            val hair = 1.dp.toPx()
+                            val dashes = PathEffect.dashPathEffect(floatArrayOf(2.dp.toPx(), 4.dp.toPx()))
+                            val stroke = Stroke(2.5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                            // The labels end 6dp before the plot, in the card's padding, so the drawing is never clipped.
+                            val axisStyle = onest(11f, 16f).tabular()
+                            val marks = floatArrayOf(EqualiserBands.MAX_DB, 0f, EqualiserBands.MIN_DB)
+                            val labels = marks.map { measurer.measure(EqualiserBands.formatDb(it), axisStyle) }
+                            val labelEnd = -6.dp.toPx()
+                            val line = Path()
+                            val area = Path()
+                            val scaled = FloatArray(Bands)
+                            var drawnVersion = -1
+                            var drawnLit = -1f
+                            val knob = 10.dp.toPx()
+                            val knobHeld = 13.dp.toPx()
+                            val ring = 2.dp.toPx()
+                            // The knob's shadow is one soft disc, drawn a little low under each knob: no blur, no layer.
+                            val shadowReach = knob + 4.dp.toPx()
+                            val shadowDrop = 1.5.dp.toPx()
+                            val shadowBrush = Brush.radialGradient(
+                                0f to shadow,
+                                (knob - ring) / shadowReach to shadow,
+                                1f to shadow.copy(alpha = 0f),
+                                center = Offset.Zero,
+                                radius = shadowReach,
+                            )
+                            val bubble = Size(62.dp.toPx(), 28.dp.toPx())
+                            val bubbleCorner = CornerRadius(bubble.height / 2)
+                            val bubbleGap = 10.dp.toPx()
+                            val bubbleStyle = onest(12.5f, 16f, 600).tabular()
+                            onDrawBehind {
+                                val ink = colors.value
+                                val gains = bands.gains
+                                val on = lit.value
+                                val accent = lerp(ink.on3, ink.accent, on)
+                                val grown = bands.grow.value
+                                val held = bands.held
+                                if (bands.version != drawnVersion || on != drawnLit) {
+                                    drawnVersion = bands.version
+                                    drawnLit = on
+                                    line.rewind()
+                                    area.rewind()
+                                    if (on <= 0f) {
+                                        line.moveTo(0f, zero)
+                                        line.lineTo(size.width, zero)
+                                    } else {
+                                        for (i in 0 until Bands) scaled[i] = gains[i] * on
+                                        val response = EqualiserBands.response(scaled, ResponsePoints)
+                                        val step = size.width / (response.size - 1)
+                                        for (i in response.indices) {
+                                            val x = step * i
+                                            val y = zero - response[i].coerceIn(-ResponseRangeDb, ResponseRangeDb) * perDb
+                                            if (i == 0) {
+                                                line.moveTo(x, y)
+                                                area.moveTo(x, y)
+                                            } else {
+                                                line.lineTo(x, y)
+                                                area.lineTo(x, y)
+                                            }
+                                        }
+                                        area.lineTo(size.width, zero)
+                                        area.lineTo(0f, zero)
+                                        area.close()
+                                    }
                                 }
-                                // The ring keeps a white knob visible on a white card.
-                                drawCircle(accent, radius, Offset(x, y))
-                                drawCircle(ink.knob, radius - ring, Offset(x, y))
+                                for (i in marks.indices) {
+                                    val y = zero - marks[i] * perDb
+                                    drawLine(ink.fill2, Offset(0f, y), Offset(size.width, y), hair, pathEffect = if (marks[i] == 0f) null else dashes)
+                                    val label = labels[i]
+                                    drawText(label, color = ink.on2, topLeft = Offset(labelEnd - label.size.width, y - label.size.height / 2f))
+                                }
+                                for (i in 0 until Bands) {
+                                    val x = column * (i + 0.5f)
+                                    drawLine(ink.fill2, Offset(x, trackTop), Offset(x, trackBottom), trackWidth, StrokeCap.Round)
+                                }
+                                if (on > 0f) drawPath(area, ink.accent, alpha = 0.2f * on)
+                                drawPath(line, accent, style = stroke)
+                                for (i in 0 until Bands) {
+                                    val x = column * (i + 0.5f)
+                                    val y = zero - gains[i] * perDb
+                                    val radius = if (i == held) knob + (knobHeld - knob) * grown else knob
+                                    translate(x, y + shadowDrop) {
+                                        scale(radius / knob, pivot = Offset.Zero) { drawCircle(shadowBrush, shadowReach, Offset.Zero) }
+                                    }
+                                    // The ring keeps the white knob apart from the line and the card.
+                                    drawCircle(accent, radius, Offset(x, y))
+                                    drawCircle(ink.knob, radius - ring, Offset(x, y))
+                                }
+                                if (held >= 0 && grown > 0f) {
+                                    val gain = gains[held]
+                                    val x = column * (held + 0.5f)
+                                    val top = zero - gain * perDb - (knob + (knobHeld - knob) * grown) - bubbleGap - bubble.height
+                                    drawRoundRect(ink.toast, Offset(x - bubble.width / 2, top), bubble, bubbleCorner, alpha = grown)
+                                    val slot = ((gain - EqualiserBands.MIN_DB) * 2f).roundToInt().coerceIn(0, values.lastIndex)
+                                    val words = values[slot]
+                                        ?: resources.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)).also { values[slot] = it }
+                                    val text = measurer.measure(words, bubbleStyle)
+                                    drawText(
+                                        text,
+                                        color = ink.onToast,
+                                        topLeft = Offset(x - text.size.width / 2f, top + (bubble.height - text.size.height) / 2f),
+                                        alpha = grown,
+                                    )
+                                }
                             }
-                            if (held >= 0 && grown > 0f) {
-                                val gain = gains[held]
-                                val x = column * (held + 0.5f)
-                                val top = zero - gain * perDb - (knob + (knobHeld - knob) * grown) - bubbleGap - bubble.height
-                                drawRoundRect(ink.toast, Offset(x - bubble.width / 2, top), bubble, bubbleCorner, alpha = grown)
-                                val slot = ((gain - EqualiserBands.MIN_DB) * 2f).roundToInt().coerceIn(0, values.lastIndex)
-                                val words = values[slot]
-                                    ?: resources.getString(R.string.equaliser_db, EqualiserBands.formatDb(gain)).also { values[slot] = it }
-                                val text = measurer.measure(words, bubbleStyle)
-                                drawText(
-                                    text,
-                                    color = ink.onToast,
-                                    topLeft = Offset(x - text.size.width / 2f, top + (bubble.height - text.size.height) / 2f),
-                                    alpha = grown,
-                                )
-                            }
-                        }
-                    },
-            )
-            // The axis is read out band by band below, not as ten loose labels.
-            Row(Modifier.fillMaxWidth().padding(top = 2.dp).clearAndSetSemantics { }) {
-                val ink = Comfort.colors.on2
-                val style = onest(12f, 16f)
-                for (label in EqualiserBands.labels) {
-                    Text(label, style = style, color = ink, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, modifier = Modifier.weight(1f))
+                        },
+                )
+                // The axis is read out band by band below, not as ten loose labels.
+                Row(Modifier.fillMaxWidth().padding(top = 2.dp).clearAndSetSemantics { }) {
+                    val ink = Comfort.colors.on2
+                    val style = onest(12f, 16f)
+                    for (label in EqualiserBands.labels) {
+                        Text(label, style = style, color = ink, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, modifier = Modifier.weight(1f))
+                    }
                 }
             }
+            BandSemanticsRow(curve, actions, Modifier.matchParentSize())
         }
-        BandSemanticsRow(curve, actions, Modifier.matchParentSize())
     }
 }
 
