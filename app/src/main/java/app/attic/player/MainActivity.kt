@@ -1,5 +1,6 @@
 package app.attic.player
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -80,7 +81,11 @@ class MainActivity : ComponentActivity() {
      * typing (the search field gets its space). It is taken before the screen sees it: once a key
      * press has left touch mode, Compose focuses the first control and would treat Space as a click
      * on it. Enter still activates the focused control.
+     *
+     * This overrides android.app.Activity's public dispatchKeyEvent; androidx.core's ComponentActivity
+     * re-declares it as restricted only for its own key-event helpers, hence the suppression.
      */
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_SPACE && !event.isCtrlPressed && !event.isAltPressed && !typing()) {
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) attic.player.togglePlayPause()
