@@ -263,7 +263,39 @@
           </div>
         </article>
 
-        <article class="feature">
+        <article class="feature" id="mixes">
+          <div class="feature-copy">
+            <p class="new">New in 1.1</p>
+            <h3>Daily mixes from the songs you play</h3>
+            <p>Home has three to five mixes. Each one groups songs you have played or liked that sound alike, and tops them up with songs you rarely play that sound like them. They are rebuilt once a day, at midnight.</p>
+            <ul>
+              <li><b>On repeat</b>: the songs you played most in the last 30 days</li>
+              <li><b>Haven't heard in a while</b>: favourites and old regulars with no play in the last 60 days</li>
+              <li><b>Newly added</b>: files that reached the phone in the last 30 days</li>
+            </ul>
+            <dl class="ledger">
+              <div>
+                <dt>Smart shuffle <span class="value">Playlists and Favourites</span></dt>
+                <dd>Shuffles the collection and plays a similar song from the rest of your library after every second one. The playlist itself never changes.</dd>
+              </div>
+              <div>
+                <dt>Genres and genre radio <span class="value">In Search</span></dt>
+                <dd>Browse by genre, taken from each file's genre tag or, for untagged songs, from how the song sounds. Any genre can start a radio.</dd>
+              </div>
+            </dl>
+            <p class="note">Mixes, and genres for untagged songs, come from song analysis, which runs while the phone charges. After an update from 1.0, they fill in as analysis reaches each song.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-mixes-360.webp 360w, img/screens/expressive-dark-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-mixes-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-home-mixes-360.webp 360w, img/screens/expressive-light-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-home-mixes-360.png" width="360" height="800" alt="Home in the Expressive style: three mixes named after their artists, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature flip">
           <div class="feature-copy">
             <h3>Synced lyrics that work offline</h3>
             <p>The current line is highlighted, and tapping a line jumps to it.</p>
@@ -282,7 +314,7 @@
           </div>
         </article>
 
-        <article class="feature flip">
+        <article class="feature">
           <div class="feature-copy">
             <h3>Recap of your listening</h3>
             <p>Your top songs, artists and listening clock for the week, month, year or all time, counted from the log on your phone. Save or share any of the cards as an image.</p>
@@ -307,13 +339,63 @@
             </ul>
           </div>
           <div>
-            <h3>Backup, sleep timer and first run</h3>
+            <h3>Android Auto</h3>
+            <ul>
+              <li>Home's instant mixes, Playlists, Albums and Artists on the car's screen, with covers</li>
+              <li>Search, or ask by voice: "play Paper Lanterns on Attic"</li>
+              <li>Not yet tested in a car. If you try it, <a href="https://github.com/srivathsanvenkateswaran/attic/issues">say how it went</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Touch and sleep timer</h3>
+            <ul>
+              <li>Swipe a song row towards the end of the line to add it to the queue</li>
+              <li>Light haptics on like, play and pause, reordering and the queue swipe. They follow the phone's touch-feedback setting</li>
+              <li>A sleep timer pauses the music after 15, 30, 45 or 60 minutes, or at the end of the song</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Backup and first run</h3>
             <ul>
               <li>Back up favourites, playlists, listening history, saved lyrics and settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
               <li>Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch</li>
-              <li>A sleep timer pauses the music after 15, 30, 45 or 60 minutes, or at the end of the song</li>
               <li>On first run, pick a style and theme, allow access to your music, and Attic shows the songs it found</li>
             </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="playback" id="playback" aria-labelledby="playback-title">
+      <div class="wrap">
+        <div class="feature flip">
+          <div class="feature-copy">
+            <p class="new">New in 1.1</p>
+            <h2 id="playback-title">Level volume, and a crossfade when you want one</h2>
+            <p>Settings has a Playback section with three rows.</p>
+            <dl class="ledger">
+              <div>
+                <dt>Volume levelling <span class="value">On by default</span></dt>
+                <dd>Plays songs at a similar loudness, from their ReplayGain tags or, without tags, from the loudness Attic measures on the phone. An album played in order shares one level, so its quiet and loud songs keep their balance.</dd>
+              </div>
+              <div>
+                <dt>Crossfade <span class="value">Off, or 2 to 12 seconds</span></dt>
+                <dd>Fades each song into the next. Songs from one album played in order still run straight into each other.</dd>
+              </div>
+              <div>
+                <dt>Equaliser <span class="value">The phone's own</span></dt>
+                <dd>Opens the equaliser already on your phone, applied to Attic's sound. The row shows only when the phone has one.</dd>
+              </div>
+            </dl>
+            <p class="note">Loudness is measured during song analysis, which runs while the phone charges. A song that hasn't been measured plays as it is, so after an update from 1.0, levelling reaches more of the library as analysis goes on.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture>
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-settings-playback-360.webp 360w, img/screens/comfort-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-settings-playback-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-settings-playback-360.webp 360w, img/screens/comfort-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser" loading="lazy" decoding="async">
+            </picture>
           </div>
         </div>
       </div>
@@ -334,6 +416,10 @@
           <div>
             <dt>Copied by Android's backup, if you turn it on</dt>
             <dd>Favourites, playlists, the listening log, downloaded lyrics and settings, encrypted end to end so neither Google nor the developer can read them</dd>
+          </div>
+          <div>
+            <dt>Shown on a car's screen, if you use Android Auto</dt>
+            <dd>The titles, artists, albums and covers of the songs you browse, search for or play there, handed to Android Auto on the phone</dd>
           </div>
           <div>
             <dt>Never uploaded</dt>
@@ -414,12 +500,28 @@
             <p>In any folder Android indexes, including <code>Music</code>, <code>Download</code> and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.</p>
           </details>
           <details>
+            <summary>Is there crossfade?</summary>
+            <p>Yes. Settings &gt; Playback &gt; Crossfade blends songs over 2 to 12 seconds, and is off until you choose a length. Songs from one album played in order still run straight into each other.</p>
+          </details>
+          <details>
+            <summary>Is there an equaliser?</summary>
+            <p>Attic opens your phone's equaliser. Settings &gt; Playback &gt; Equaliser hands Attic's audio to the phone's sound settings or an equaliser app you have installed. The row only appears when the phone has one.</p>
+          </details>
+          <details>
+            <summary>Does it work with Android Auto?</summary>
+            <p>Attic supports Android Auto. In the car you can browse Home, Playlists, Albums and Artists, search, and say "play &hellip; on Attic". It hasn't been tried in a car yet, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from drivers</a> are welcome.</p>
+          </details>
+          <details>
+            <summary>Why do some songs have no genre, or play louder than others?</summary>
+            <p>Songs without a genre tag get one from song analysis, and songs without ReplayGain tags get their loudness measured by it. Analysis runs while the phone charges, so after you add music or update Attic, genres and volume levelling fill in as it reaches each song, and until then a song plays at its own volume. Settings shows how far analysis has got, and "Analyse now without a charger" runs it straight away.</p>
+          </details>
+          <details>
             <summary>Which Android version does it need?</summary>
             <p>Android 13 or newer, on a 64-bit ARM phone. The release build has been tested on one phone so far, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from other phones</a> are welcome.</p>
           </details>
           <details>
             <summary>Why is the APK 58 MB?</summary>
-            <p>It carries the song analysis model and its runtime, which radio uses to compare how songs sound. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
+            <p>It carries the song analysis model and its runtime, which radio, mixes and genres use to compare how songs sound. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
           </details>
         </div>
       </div>

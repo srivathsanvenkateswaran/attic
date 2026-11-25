@@ -30,10 +30,10 @@ DEFAULT_RAW = Path(os.environ.get("STORE_SHOTS_DIR", "/tmp/attic-dev/store-shots
 
 THEMES = ("light", "dark")
 # Screens shown on the page for each style, by the name the store-shot test gives them. The first
-# four fill the style viewer; the rest illustrate one feature each.
+# four fill the style viewer; the rest illustrate one feature or section each.
 SCREENS = {
-    "expressive": ("home", "now-playing", "album", "artist", "queue", "recap"),
-    "comfort": ("home", "now-playing", "album", "artist", "library", "lyrics"),
+    "expressive": ("home", "now-playing", "album", "artist", "queue", "recap", "home-mixes"),
+    "comfort": ("home", "now-playing", "album", "artist", "library", "lyrics", "settings-playback"),
 }
 WIDTHS = (360, 720)
 
