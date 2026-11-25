@@ -34,24 +34,34 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Home, Search and Library tabs, with album, artist and playlist screens
 - A mini player and a full Now Playing screen, tinted from the cover art
 - Shuffle, repeat, and a queue with drag to reorder and swipe to remove
+- Swipe a song row towards the end of the line to add it to the queue
 - Favourites and your own playlists, stored on the device
 - MP3, M4A, FLAC, Ogg, Opus and WAV files
 - Dark and light themes, or match the phone
 - Two styles to pick from in Settings, Expressive and Comfort. The default depends on the phone
+- Light haptics on like, play and pause, reordering and swipe to queue, following the phone's touch-feedback setting
 
 **Finds what to play next, offline**
 - Start radio from any song: Attic keeps ten similar songs in the queue, where you can reorder or remove them as usual
 - Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
+- Mixes on Home: three to five mixes of the songs you play and like, grouped by how they sound and topped up with songs you rarely play that sound like them. They are named after their artists and change once a day
+- "On repeat", "Haven't heard in a while" and "Newly added" shelves on Home, from the listening log and the dates your files arrived
+- Smart shuffle on playlists and Favourites puts one similar song from the rest of the library after every two of the collection's own
+- Genres in Search, from your files' genre tags or the styles the analysis model hears, and radio from any genre
 - Stays in the language you're listening to, with about one song in ten from another language when the match is strong
 - Plays one version of a song, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both
 - Learns from skips, finishes and likes in a listening log kept on the phone
+
+**Plays it the way you set it**
+- Crossfade of 2 to 12 seconds, off by default. Songs from one album played in order still run straight into each other
+- Volume levelling, on by default: songs play at a similar loudness, from their ReplayGain tags or the loudness measured during analysis
+- An Equaliser row in Settings > Playback that opens the phone's equaliser on Attic's audio, when the phone has one
 
 **Keeps playing outside the app**
 - Background playback with notification and lock-screen controls, including shuffle and like
 - Media button support for Bluetooth and headsets, and it pauses when another app takes audio focus
 - A resizable home-screen widget with the current song, controls and five recent albums
-- Android Auto: browse Home, Playlists, Albums and Artists with covers, search, and "play X" by voice ([details](docs/play/ANDROID-AUTO.md))
-
+- Supports Android Auto: browse Home, Playlists, Albums and Artists with covers, search, and "play X on Attic" by voice ([details](docs/play/ANDROID-AUTO.md))
 
 **Shows lyrics, then keeps them**
 - Synced lyrics highlight the current line, and tapping a line jumps to it
@@ -97,13 +107,13 @@ Measured on a POCO M4 Pro 4G running Android 16, with release builds and a libra
 
 The release APK is 58 MB because it carries the analysis model and its runtime, and it only runs on 64-bit ARM phones.
 
-Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging.
+Song analysis takes about 27 seconds per MP3 on that phone, nearly all of it decoding, and runs in the background while charging. Mixes, genres from analysis and measured loudness wait for it, so on a new library, or one analysed before 1.1.0, they fill in as it reaches each song.
 
 Install the release build for everyday use. Compose runs far slower in a debug build.
 
 ## Install
 
-1. Download `attic-v1.0.0.apk` from [Releases](../../releases).
+1. Download `attic-v1.1.0.apk` from [Releases](../../releases).
 2. Open it on your phone and allow the install.
 3. Copy your music onto the phone. Attic finds songs in any folder that Android indexes, including `Music`, `Download` and an SD card. It leaves out ringtones, alarms, notification sounds, recordings, podcasts, audiobooks and chat voice notes.
 4. Open Attic and allow audio access and notifications.
@@ -142,11 +152,15 @@ Worth reading if you open the code:
 - **Shuffle reorders the real playlist** instead of keeping a separate play order, so the queue screen always shows what will actually play. See [`PhysicalShuffle.kt`](app/src/main/java/app/attic/player/playback/PhysicalShuffle.kt).
 - **Saved data points at file paths, not MediaStore IDs**, so likes and playlists survive a media rescan.
 
-## How radio works
+## How radio, mixes and levelling work
 
 Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
 
 The same pass keeps the five Discogs styles the model scores highest for each song, such as "Pop---Bollywood". A song without a genre tag gets its genre from them, which is where Search's Genres come from. Radio started from a genre steers towards the average sound of that genre's songs.
+
+Home's Mixes come from the same numbers. The songs you have played or liked are grouped by k-means into three to five clusters, one more for every 20 such songs, and each cluster of four or more becomes a mix of up to 25 songs, a third of them songs you rarely play that sound like the rest. Smart shuffle and genre radio use the same search as song radio, seeded with the average sound of the playlist or genre.
+
+The pass also measures each song's loudness. Volume levelling brings a song to about -14 LUFS, from its ReplayGain tags when it has them, without raising its loudest peak past -1 dBFS, and an album played in order shares one gain so its quiet and loud tracks keep their balance.
 
 Language comes from the folder or album name, or from Tamil or Devanagari script in saved lyrics. You can correct any song from its menu, and your choice is kept. To label many songs at once, place `language-labels.tsv` in `Android/data/app.attic.player/files/`, with one `Music/path/to/song.m4a<TAB>ta` per line, where the path is relative to the phone's storage or SD card.
 
@@ -171,6 +185,7 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 - Songs with no lyrics in their files depend on what LRCLIB has, which found them for 236 of the 279 MP3s tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
 - Radio doesn't yet match tempo or energy between neighbouring songs.
+- Android Auto support hasn't been tried in a car or on a head unit yet.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
 
 ## Credits and legal
