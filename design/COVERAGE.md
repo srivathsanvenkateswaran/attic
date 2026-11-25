@@ -8,6 +8,15 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 Versions 1.1.0 and 1.2.0 (2026-11-25) add the Equaliser area and its components by hand, from the
 equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generated.
 
+Version 1.3.0 (2026-11-25) adds the Moods section, a proposal for mood mixes, from the moods modules
+(`design/build/<style>/moods.py`). It has its own table under [Proposed: mood mixes](#proposed-mood-mixes).
+
+Version 1.4.0 (2026-11-25) adds the Transitions area for smart transitions
+([smart-transitions.md](../docs/features/smart-transitions.md)), from the transitions modules
+(`design/build/<style>/transitions.py`, then `transitions_landed.py`). Its frames match the code and are
+marked ready for development, except Comfort's Now Playing mark, which was reviewed and not built: its two
+frames keep a `Proposed` annotation and aren't marked ready.
+
 | Area | Screen or state | Expressive | Comfort |
 |---|---|:-:|:-:|
 | Launch and first run | First run: Welcome | ✓ | ✓ |
@@ -110,6 +119,12 @@ equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generate
 | Equaliser | Settings > Equaliser page, full length | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, nothing with its own setting | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, switched off |  | ✓ |
+| Transitions | Settings, Playback with transitions off | ✓ | ✓ |
+| Transitions | Settings, Playback on Crossfade, with Crossfade length | ✓ | ✓ |
+| Transitions | Settings, Playback on Smart, with Crossfade length | ✓ | ✓ |
+| Transitions | Transitions menu (Comfort: pop-over) | ✓ | ✓ |
+| Transitions | Crossfade length menu (Comfort: pop-over) | ✓ | ✓ |
+| Transitions | Now Playing with the next song marked on the seek bar (Comfort: proposed, not built) | ✓ | ✓ |
 | Recap | Recap page | ✓ | ✓ |
 | Recap | Recap page, full length | ✓ | ✓ |
 | Recap | Recap, nothing played | ✓ | ✓ |
@@ -152,6 +167,17 @@ equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generate
 The track-menu frames over Now Playing (from Now Playing, opened with Attic, and the sleep timer ones)
 gained the Equaliser row in 1.1.0, so they no longer match the 1.0.0 reference renders. The Settings
 frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback` draws it from the code.
+
+Since 1.4.0 the Playback section is Volume levelling, Transitions, Crossfade length (while the choice is
+Crossfade or Smart) and Equaliser. The `Transitions / Settings, …` frames draw it in each of the three
+choices, and `Equaliser / Settings, Playback` shows Transitions where its Crossfade row was: Off in
+Expressive, Crossfade with Crossfade length at 6 seconds in Comfort, the states 1.2.0 drew. The reference
+renders are `settings_transitions_off`, `settings_transitions_smart` and, for Expressive's seek bar,
+`now_playing_transition_mark`.
+
+Under Playback the `Transitions / Settings, …` frames follow 1.3.0's `Settings / Moods and interests row`:
+Lyrics, then Moods, then Song radio, the order the code has. `Equaliser / Settings, Playback` predates the
+Moods section and still runs from Lyrics straight to Song radio.
 
 ## Screens beyond the checklist
 
@@ -293,7 +319,7 @@ frames draw those from the code at dffdd29, with invented genres for the demo li
 | Now playing/Title block | Playback | 2 | Lyric | Lyric line, Title, Artist |
 | Queue bar | Playback | 1 |  | Context |
 | Queue row | Playback | 3 | State |  |
-| Seek bar | Playback | 2 | Playing |  |
+| Seek bar | Playback | 2 | Playing | Show next song mark |
 | Seek times | Playback | 1 |  | Elapsed, Total |
 | Transport | Playback | 2 | Playing |  |
 | Wave | Playback | 2 | Playing |  |
@@ -383,7 +409,7 @@ frames draw those from the code at dffdd29, with invented genres for the demo li
 | Lyrics line | Playback | 4 | State | Line |
 | Now playing cover | Playback | 2 | Paused |  |
 | Queue row | Playback | 4 | State |  |
-| Seek bar | Playback | 3 | Progress | Elapsed, Total |
+| Seek bar | Playback | 3 | Progress | Elapsed, Total, Show next song mark (proposed, not built) |
 | Skip button | Playback | 2 | Direction |  |
 | Transport | Playback | 2 | Playing |  |
 | Listening clock | Recap | 2 | Labels | Busiest hour |

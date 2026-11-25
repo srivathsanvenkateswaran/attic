@@ -40,8 +40,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.coroutineContext
 
 /**
- * Works through songs missing only their loudness, unanalysed songs, then songs analysed before their
- * styles were stored ([AnalysisPlan]). Progress is saved per song, so being stopped loses nothing.
+ * Works through songs missing their loudness, unanalysed songs, songs missing only their transitions,
+ * then songs analysed before their styles were stored ([AnalysisPlan]). Progress is saved per song, so being stopped loses nothing.
  */
 class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val notifications = context.getSystemService(NotificationManager::class.java)
@@ -57,8 +57,9 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         val finished = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
         val analyzed = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
         val measured = dao.measuredKeysNow(LOUDNESS_VERSION).toSet()
+        val transitioned = dao.transitionedKeysNow(TRANSITIONS_VERSION).toSet()
         val recent = dao.recentKeys(RECENT_FIRST).withIndex().associate { it.value to it.index }
-        val todo = AnalysisPlan.todo(library.tracks.map { it.key }, finished, analyzed, measured, recent)
+        val todo = AnalysisPlan.todo(library.tracks.map { it.key }, finished, analyzed, measured, transitioned, recent)
             .mapNotNull { (key, need) -> library.trackByKey[key]?.let { it to need } }
         if (todo.isEmpty()) return@withContext Result.success()
 
@@ -89,11 +90,20 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                             val analysis = analyzer.value.analyze(uri)
                             if (analysis.sound == null) Log.w(TAG, "Couldn't analyse ${track.key}")
                             dao.saveAnalysis(track.key, analysis, hadEmbedding = track.key in analyzed)
-                            Log.i(TAG, "Analysed in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
+                            Log.i(
+                                TAG,
+                                "Analysed in ${System.currentTimeMillis() - songStarted} ms " +
+                                    "(transitions ${analysis.transitionNanos / 1_000_000} ms): ${track.key}",
+                            )
                         }
-                        AnalysisNeed.Loudness -> {
-                            dao.saveLoudness(track.key, PcmDecoder.measureLoudness(applicationContext, uri))
-                            Log.i(TAG, "Measured loudness in ${System.currentTimeMillis() - songStarted} ms: ${track.key}")
+                        AnalysisNeed.Measure -> {
+                            val measured = PcmDecoder.measure(applicationContext, uri)
+                            dao.saveMeasured(track.key, measured)
+                            Log.i(
+                                TAG,
+                                "Measured in ${System.currentTimeMillis() - songStarted} ms " +
+                                    "(transitions ${(measured?.transitionNanos ?: 0) / 1_000_000} ms): ${track.key}",
+                            )
                         }
                     }
                     done++
@@ -115,7 +125,8 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
         // Files added during this run didn't get a job of their own, because this one was already going.
         val finishedNow = dao.finishedKeysNow(SongAnalyzer.MODEL_VERSION).toSet()
         val measuredNow = dao.measuredKeysNow(LOUDNESS_VERSION).toSet()
-        if (app.library.await().tracks.any { AnalysisPlan.need(it.key, finishedNow, measuredNow) != null }) enqueueNextChunk()
+        val transitionedNow = dao.transitionedKeysNow(TRANSITIONS_VERSION).toSet()
+        if (app.library.await().tracks.any { AnalysisPlan.need(it.key, finishedNow, measuredNow, transitionedNow) != null }) enqueueNextChunk()
         Result.success()
     }
 
@@ -214,6 +225,11 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 .setConstraints(Constraints.Builder().setRequiresCharging(true).build())
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
+        }
+
+        /** Stops a run and drops the queued one, as the notification's Stop does. */
+        fun cancel(context: Context) {
+            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
         }
 
         /** Asked for from Settings, so it doesn't wait for a charger. */

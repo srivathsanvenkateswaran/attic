@@ -33,8 +33,13 @@ data class PlayerUiState(
     val sleepTimer: SleepTimerStatus = SleepTimerStatus(),
     /** Songs smart shuffle added to this queue from outside the collection. Empty when it is off. */
     val smartPicks: Set<String> = emptySet(),
+    /** Where a Smart transition out of a song will start, for Now Playing's mark. Null when there is none. */
+    val transitionMark: TransitionSession.Mark? = null,
 ) {
     val current: Track? get() = queue.getOrNull(currentIndex)
+
+    /** The planned Smart transition point in the current song, in ms, or null. */
+    val currentTransitionAtMs: Long? get() = transitionMark?.takeIf { it.mediaId == current?.key }?.atMs
 }
 
 /** The UI's handle on playback: a MediaController plus its state as a flow. */
@@ -113,6 +118,7 @@ class PlayerClient(
             contextName = c.playlistMetadata.title?.toString(),
             sleepTimer = SleepTimerSession.statusFrom(c.sessionExtras),
             smartPicks = SmartShuffleSession.picksFrom(c.sessionExtras),
+            transitionMark = TransitionSession.from(c.sessionExtras),
         )
     }
 

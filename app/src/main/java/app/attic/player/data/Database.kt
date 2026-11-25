@@ -176,9 +176,6 @@ data class SongLanguageEntity(
  * what a smart transition and radio's ordering read ([app.attic.player.analysis.SongTransitions]). A null
  * [decodedMs] records a file that couldn't be measured; it isn't tried again until [version] changes.
  * Times are milliseconds from the start of the decoded audio. [key] is 0–11 major, 12–23 minor.
- *
- * Carried verbatim from `feature/smart-transitions`, which owns version 6, so the equaliser's version 7
- * builds on the same schema the owner's phone already has. When the two branches meet, theirs wins.
  */
 @Entity(tableName = "song_transitions")
 class SongTransitionsEntity(
@@ -200,6 +197,18 @@ class SongTransitionsEntity(
     val introEnergy: ByteArray?,
     val outroEnergy: ByteArray?,
     val measuredAt: Long,
+)
+
+/** What radio reads from [SongTransitionsEntity] to order picks: no curves. */
+class FlowTraitsRow(
+    val trackKey: String,
+    val introBpm: Double?,
+    val introBeatConfidence: Float?,
+    val outroBpm: Double?,
+    val outroBeatConfidence: Float?,
+    val energy: Float?,
+    val key: Int?,
+    val keyConfidence: Float?,
 )
 
 /**
@@ -380,7 +389,12 @@ interface MusicDao {
      * null part is left as it was (see [app.attic.player.analysis.saveAnalysis]).
      */
     @Transaction
-    suspend fun saveSongAnalysis(analysis: SongAnalysisEntity?, styles: SongStylesEntity?, loudness: SongLoudnessEntity?) {
+    suspend fun saveSongAnalysis(
+        analysis: SongAnalysisEntity?,
+        styles: SongStylesEntity?,
+        loudness: SongLoudnessEntity?,
+        transitions: SongTransitionsEntity? = null,
+    ) {
         if (analysis != null) {
             saveAnalysis(analysis)
             // A new embedding means new mood scores; the next scoring pass writes them.
@@ -388,7 +402,34 @@ interface MusicDao {
         }
         if (styles != null) saveStyles(styles)
         if (loudness != null) saveLoudness(loudness)
+        if (transitions != null) saveTransitions(transitions)
     }
+
+    /** What a decode with no model run measured: loudness and transitions together. */
+    @Transaction
+    suspend fun saveMeasured(loudness: SongLoudnessEntity, transitions: SongTransitionsEntity) {
+        saveLoudness(loudness)
+        saveTransitions(transitions)
+    }
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveTransitions(entity: SongTransitionsEntity)
+
+    @Query("SELECT trackKey FROM song_transitions WHERE version = :version")
+    suspend fun transitionedKeysNow(version: Int): List<String>
+
+    @Query("SELECT * FROM song_transitions WHERE version = :version AND decodedMs IS NOT NULL")
+    fun transitions(version: Int): Flow<List<SongTransitionsEntity>>
+
+    @Query(
+        "SELECT trackKey, introBpm, introBeatConfidence, outroBpm, outroBeatConfidence, energy, `key`, keyConfidence " +
+            "FROM song_transitions WHERE version = :version AND decodedMs IS NOT NULL",
+    )
+    suspend fun flowTraits(version: Int): List<FlowTraitsRow>
+
+    /** Forgets one song's transitions, so the next analysis run measures it again. Debug builds only. */
+    @Query("DELETE FROM song_transitions WHERE trackKey = :key")
+    suspend fun forgetTransitions(key: String)
 
     @Query("SELECT trackKey, top FROM song_styles WHERE modelVersion = :version")
     fun styles(version: Int): Flow<List<StylesRow>>
@@ -460,16 +501,17 @@ interface MusicDao {
     fun measuredKeys(version: Int): Flow<List<String>>
 
     /**
-     * Songs analysis has nothing left to do for: finished as [finishedKeys] says, and with their loudness
-     * saved. This is the count Settings shows as analysed.
+     * Songs analysis has nothing left to do for: finished as [finishedKeys] says, with their loudness and
+     * transitions saved. This is the count Settings shows as analysed.
      */
     @Query(
         "SELECT a.trackKey FROM song_analysis a " +
             "LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :modelVersion " +
             "JOIN song_loudness l ON l.trackKey = a.trackKey AND l.version = :loudnessVersion " +
+            "JOIN song_transitions t ON t.trackKey = a.trackKey AND t.version = :transitionsVersion " +
             "WHERE a.modelVersion = :modelVersion AND (a.embedding IS NULL OR (s.trackKey IS NOT NULL AND a.embeddingNorm IS NOT NULL))",
     )
-    fun completeKeys(modelVersion: Int, loudnessVersion: Int): Flow<List<String>>
+    fun completeKeys(modelVersion: Int, loudnessVersion: Int, transitionsVersion: Int): Flow<List<String>>
 
     @Query("SELECT * FROM song_loudness WHERE version = :version AND integratedLufs IS NOT NULL")
     fun loudness(version: Int): Flow<List<SongLoudnessEntity>>

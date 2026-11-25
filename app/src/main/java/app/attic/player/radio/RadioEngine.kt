@@ -1,5 +1,7 @@
 package app.attic.player.radio
 
+import app.attic.player.analysis.KeyEstimate
+import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -14,9 +16,58 @@ class RadioSong(
     val affinity: Float = 0f,
     /** Normalized names from the composer tag. Empty when the file has none. */
     val composerKeys: Set<String> = emptySet(),
+    /** Tempo, energy and key from transition analysis, for ordering picks that follow on well. Null until measured. */
+    val flow: FlowTraits? = null,
 ) {
     companion object {
         const val NO_VOCALS = "none"
+    }
+}
+
+/**
+ * What radio reads from a song's transition analysis. Each part is null when it wasn't measured or wasn't
+ * sure: [introBpm] and [outroBpm] are the tempo where the song starts and where it ends, [energy] 0..1 how
+ * busy it is, [key] 0–11 major and 12–23 minor.
+ */
+data class FlowTraits(val introBpm: Double?, val outroBpm: Double?, val energy: Float?, val key: Int?)
+
+/**
+ * How well [next] follows on from [previous], -0.5 to 1: the mean of whichever of tempo, energy and key
+ * both songs have, 0 when they share none. Pure arithmetic, so radio's order stays deterministic.
+ */
+object Flow {
+    fun score(previous: FlowTraits?, next: FlowTraits?): Float {
+        if (previous == null || next == null) return 0f
+        var sum = 0f
+        var parts = 0
+        tempo(previous.outroBpm ?: previous.introBpm, next.introBpm ?: next.outroBpm)?.let { sum += it; parts++ }
+        if (previous.energy != null && next.energy != null) {
+            sum += (1 - 2 * abs(previous.energy - next.energy)).coerceIn(-0.5f, 1f)
+            parts++
+        }
+        if (previous.key != null && next.key != null) {
+            sum += when (KeyEstimate.camelotDistance(previous.key, next.key)) {
+                0, 1 -> 1f
+                2 -> 0f
+                else -> -0.5f
+            }
+            parts++
+        }
+        return if (parts == 0) 0f else sum / parts
+    }
+
+    /** Within 3 % (half and double time allowed) +1, falling to 0 at 8 %, -0.5 beyond. */
+    private fun tempo(a: Double?, b: Double?): Float? {
+        if (a == null || b == null || a <= 0 || b <= 0) return null
+        var ratio = b / a
+        while (ratio > 1.5) ratio /= 2
+        while (ratio < 0.75) ratio *= 2
+        val gap = abs(1 - ratio)
+        return when {
+            gap <= 0.03 -> 1f
+            gap <= 0.08 -> (1 - (gap - 0.03) / 0.05).toFloat()
+            else -> -0.5f
+        }
     }
 }
 
@@ -82,8 +133,9 @@ class RadioState(
 }
 
 /**
- * Picks the next song: nearest in sound to the session so far, then adjusted for composer and taste,
- * filtered to the session's language and to one version of each song.
+ * Picks the next song: nearest in sound to the session so far, then adjusted for composer, taste and how
+ * well it follows on from the last song ([Flow]), filtered to the session's language and to one version
+ * of each song.
  */
 class RadioEngine(
     private val songs: List<RadioSong>,
@@ -106,10 +158,12 @@ class RadioEngine(
         // A collection's own songs count as played for spotting other versions of them.
         val heard = if (state.exclude.isEmpty()) played else played + state.exclude.mapNotNull(byKey::get)
 
+        // The song the pick will follow, for the flow term. A collection's first pick follows nothing.
+        val previous = played.lastOrNull()
         val ranked = songs
             .filter { it.key !in state.playedKeys && it.key !in state.skippedKeys && it.key !in state.exclude }
             .map { Candidate(it, dot(query, it.vector)) }
-            .sortedByDescending { it.scoreFor(seed) }
+            .sortedByDescending { it.scoreFor(seed, previous) }
 
         if (state.sinceCross + 1 >= state.crossEvery) {
             val cross = firstUsable(ranked, heard) { c ->
@@ -136,10 +190,11 @@ class RadioEngine(
     }
 
     private inner class Candidate(val song: RadioSong, val similarity: Float) {
-        fun scoreFor(seed: RadioSong): Float {
+        fun scoreFor(seed: RadioSong, previous: RadioSong?): Float {
             var score = similarity + song.affinity
             if (sameComposer(song, seed)) score += COMPOSER_BOOST
             if (song.language == null) score -= UNLABELLED_PENALTY
+            score += FLOW_WEIGHT * Flow.score(previous?.flow, song.flow)
             return score
         }
     }
@@ -219,6 +274,13 @@ class RadioEngine(
 
         private const val SEED_WEIGHT = 0.5f
         private const val COMPOSER_BOOST = 0.03f
+
+        /**
+         * At most this much for a song whose tempo, energy and key follow on from the last one: under the
+         * composer boost and far under the spread of sound similarity, so it reorders close candidates and
+         * never brings in a song radio wouldn't otherwise play.
+         */
+        const val FLOW_WEIGHT = 0.02f
         private const val UNLABELLED_PENALTY = 0.03f
         private const val CROSS_MIN_SIMILARITY = 0.72f
 

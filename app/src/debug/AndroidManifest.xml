@@ -25,5 +25,10 @@
         <receiver
             android:name=".debug.SystemSurfacesReceiver"
             android:exported="true" />
+
+        <!-- Debug builds only: measures or forgets one song's transition points for a phone test. See the class. -->
+        <receiver
+            android:name=".debug.TransitionProbeReceiver"
+            android:exported="true" />
     </application>
 </manifest>

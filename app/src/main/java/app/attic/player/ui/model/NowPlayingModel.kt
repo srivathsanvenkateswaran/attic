@@ -84,6 +84,8 @@ class NowPlayingState(
      * equaliser is on), for the indicator in the header. Null otherwise.
      */
     val equaliser: EqScope? = null,
+    /** Where a Smart transition into the next song starts, in ms into [track]; null when there is none. */
+    val transitionAtMs: Long? = null,
 )
 
 class NowPlayingActions(
@@ -145,6 +147,7 @@ fun rememberNowPlayingModel(
         lyrics = lyrics.state,
         clock = clock,
         equaliser = rememberEqualiserIndicator(track),
+        transitionAtMs = player.currentTransitionAtMs,
     )
     val actions = NowPlayingActions(
         close = onClose,

@@ -10,8 +10,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Turns one audio file into what radio, genres and volume levelling need: a sound embedding, a melody
- * fingerprint, its top styles and its loudness.
+ * Turns one audio file into what radio, genres, volume levelling and smart transitions need: a sound
+ * embedding, a melody fingerprint, its top styles, its loudness and its transition points.
  */
 class SongAnalyzer(private val context: Context) : Closeable {
     /** [norm] is the embedding's length before it was made unit length ([EffnetModel.Output.norm]). */
@@ -29,10 +29,10 @@ class SongAnalyzer(private val context: Context) : Closeable {
 
     /**
      * The sound embedding, melody fingerprint and top styles (null when the file is too short or can't be
-     * decoded), and the file's loudness, measured in the same decode.
+     * decoded), and the file's loudness and transition points, measured in the same decode.
      */
     fun analyze(uri: Uri): Analysis {
-        val decoded = decode(uri) ?: return Analysis(null, null)
+        val decoded = decode(uri) ?: return Analysis(null, null, null)
         val patches = mel.patches(decoded.mono)
         val sound = if (patches.isEmpty()) {
             null
@@ -40,35 +40,24 @@ class SongAnalyzer(private val context: Context) : Closeable {
             val output = model.run(patches)
             Result(output.embedding, Chroma.frames(decoded.mono), output.styles, output.norm)
         }
-        return Analysis(sound, decoded.loudness)
+        return Analysis(sound, decoded.measured.loudness, decoded.measured.transitions, decoded.measured.transitionNanos)
     }
 
-    class Analysis(val sound: Result?, val loudness: SongLoudness?)
+    class Analysis(
+        val sound: Result?,
+        val loudness: SongLoudness?,
+        val transitions: SongTransitions?,
+        /** Time spent in [TransitionMeter], for the log. */
+        val transitionNanos: Long = 0,
+    )
 
-    private class Decoded(val mono: FloatArray, val loudness: SongLoudness?)
+    private class Decoded(val mono: FloatArray, val measured: PcmDecoder.Measured)
 
-    /** Mono 16 kHz audio of the first twelve minutes for the model, and loudness over the whole file. */
+    /** Mono 16 kHz audio of the first twelve minutes for the model, and loudness and transitions over the whole file. */
     private fun decode(uri: Uri): Decoded? {
         val out = GrowingFloats()
-        var resampler: LinearResampler? = null
-        var meter: LoudnessMeter? = null
-        var channels = 1
-        val decoded = PcmDecoder.decode(
-            context,
-            uri,
-            onFormat = { rate, count ->
-                channels = count
-                resampler = LinearResampler(rate, TARGET_RATE)
-                meter = LoudnessMeter(rate, count)
-            },
-            onSamples = { samples ->
-                meter?.add(samples)
-                if (out.size < MAX_SAMPLES) out.add(resampler!!.push(PcmBuffer.toMono(samples, channels)))
-                true
-            },
-        )
-        if (!decoded) return null
-        return Decoded(out.toArray(), meter?.result())
+        val measured = PcmDecoder.measure(context, uri) { mono -> if (out.size < MAX_SAMPLES) out.add(mono) } ?: return null
+        return Decoded(out.toArray(), measured)
     }
 
     override fun close() = model.close()
@@ -107,8 +96,7 @@ class SongAnalyzer(private val context: Context) : Closeable {
 
         /** How many Discogs styles the model scores: the length of its `activations` output. */
         const val STYLE_COUNT = 400
-        private const val TARGET_RATE = 16_000
-        private const val MAX_SAMPLES = TARGET_RATE * 60 * 12 // A long mix is judged by its first twelve minutes.
+        private const val MAX_SAMPLES = TransitionMeter.SAMPLE_RATE * 60 * 12 // A long mix is judged by its first twelve minutes.
 
         fun toBytes(vector: FloatArray): ByteArray {
             val buffer = ByteBuffer.allocate(vector.size * 4).order(ByteOrder.LITTLE_ENDIAN)

@@ -15,6 +15,7 @@ import app.attic.player.R
 import app.attic.player.analysis.AnalysisProgress
 import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.analysis.LOUDNESS_VERSION
+import app.attic.player.analysis.TRANSITIONS_VERSION
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.attic
 import app.attic.player.data.BulkProgress
@@ -22,7 +23,8 @@ import app.attic.player.data.Library
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.data.backup.RestoreReport
-import app.attic.player.playback.CrossfadePlan
+import app.attic.player.playback.TransitionMode
+import app.attic.player.playback.TransitionPlanner
 import app.attic.player.ui.LocalUi
 import java.time.LocalDate
 
@@ -34,7 +36,9 @@ class SettingsState(
     val autoplay: Boolean,
     /** Songs play at a matched loudness. */
     val volumeLevelling: Boolean,
-    /** Seconds one song fades into the next; 0 is off. One of [crossfadeChoices]. */
+    /** What happens between songs: Off, Crossfade or Smart. */
+    val transitions: TransitionMode,
+    /** The crossfade length in seconds, one of [crossfadeChoices]: Crossfade's fade, and Smart's for songs not analysed yet. */
     val crossfadeSeconds: Int,
     /** The download-all-lyrics run, if one is going or has just finished. */
     val bulkLyrics: BulkProgress,
@@ -48,8 +52,14 @@ class SettingsState(
     /** The Moods and interests row's second line: "Chill, Focus · 3 genres · Tamil, English". */
     val interestsSummary: String = "",
 ) {
-    /** The crossfade lengths offered, in seconds, Off first. */
-    val crossfadeChoices: List<Int> get() = CrossfadePlan.choices
+    /** The transition choices, in the order the picker lists them. */
+    val transitionChoices: List<TransitionMode> get() = TransitionMode.entries
+
+    /** The crossfade lengths offered, in seconds. */
+    val crossfadeChoices: List<Int> get() = TransitionPlanner.lengthChoices
+
+    /** The length row shows only when a transition uses it. */
+    val showsCrossfadeLength: Boolean get() = transitions != TransitionMode.Off
 }
 
 /**
@@ -85,6 +95,7 @@ class SettingsActions(
     val setUiStyle: (UiStyle) -> Unit,
     val setAutoplay: (Boolean) -> Unit,
     val setVolumeLevelling: (Boolean) -> Unit,
+    val setTransitions: (TransitionMode) -> Unit,
     val setCrossfadeSeconds: (Int) -> Unit,
     /** Opens Settings > Playback > Equaliser. */
     val openEqualiserPage: () -> Unit,
@@ -112,13 +123,14 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
     val style by app.settings.uiStyle.collectAsStateWithLifecycle()
     val autoplay by app.settings.autoplay.collectAsStateWithLifecycle()
     val levelling by app.settings.volumeLevelling.collectAsStateWithLifecycle()
+    val transitions by app.settings.transitions.collectAsStateWithLifecycle()
     val crossfade by app.settings.crossfadeSeconds.collectAsStateWithLifecycle()
     val bulk by app.lyrics.bulk.collectAsStateWithLifecycle()
     val saved by app.lyrics.savedKeys().collectAsStateWithLifecycle(emptyList())
     val savedCount = saved.count { it in library.trackByKey }
     // A song counts once the worker has nothing left to do for it: its sound and styles (or found unreadable),
-    // and its loudness. Songs analysed before styles or loudness existed show as still to do.
-    val analyzed by remember { app.database.dao().completeKeys(SongAnalyzer.MODEL_VERSION, LOUDNESS_VERSION) }
+    // its loudness and its transitions. Songs analysed before any of those existed show as still to do.
+    val analyzed by remember { app.database.dao().completeKeys(SongAnalyzer.MODEL_VERSION, LOUDNESS_VERSION, TRANSITIONS_VERSION) }
         .collectAsStateWithLifecycle(emptyList())
     val analyzing by AnalysisWorker.running(app).collectAsStateWithLifecycle(false)
     val analysis = AnalysisProgress(analyzed.count { it in library.trackByKey }, library.tracks.size, analyzing)
@@ -139,6 +151,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         style,
         autoplay,
         levelling,
+        transitions,
         crossfade,
         bulk,
         savedCount,
@@ -157,6 +170,7 @@ fun rememberSettingsModel(library: Library): UiModel<SettingsState, SettingsActi
         },
         setAutoplay = app.settings::setAutoplay,
         setVolumeLevelling = app.settings::setVolumeLevelling,
+        setTransitions = app.settings::setTransitions,
         setCrossfadeSeconds = app.settings::setCrossfadeSeconds,
         openEqualiserPage = { ui.openEqualiser() },
         downloadAllLyrics = { app.lyrics.downloadAll(library.tracks) },

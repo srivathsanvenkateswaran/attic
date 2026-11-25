@@ -2,6 +2,14 @@
 
 All notable changes to Attic are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Playback
+- Settings > Playback > Transitions: Off, Crossfade or Smart. Smart starts the next song as this one winds down, skips silence at both ends, picks the overlap's length from how the two songs' levels move, and lines up the beats when the tempos are close. It never stretches or pitch-shifts the audio. Songs not analysed yet use the crossfade length, now its own row, 6 seconds by default. Songs from one album played in order still run straight into each other
+- In the Expressive style, a dot on Now Playing's seek bar marks where Smart will start the next song
+- Radio and smart shuffle lean slightly towards songs whose tempo, energy and key follow on from the last one
+- Analysis also measures each song's start, end, outro, tempo and key. Songs analysed before this get them on the next charging run, a quick decode each
+
 ## [1.2.0] - 2026-11-25
 
 ### Equaliser
