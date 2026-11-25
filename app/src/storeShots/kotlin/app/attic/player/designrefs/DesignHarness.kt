@@ -57,6 +57,8 @@ import app.attic.player.ui.ArtModel
 import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.LocalUiStyle
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.currentWindowLayout
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.asImage
@@ -80,6 +82,9 @@ import org.robolectric.Shadows.shadowOf
 
 private const val STATUS_BAR_DP = 40
 private const val GESTURE_BAR_DP = 24
+/** A tablet's bars, as the Tablet pages of the design files draw them. */
+private const val TABLET_STATUS_BAR_DP = 24
+private const val TABLET_GESTURE_BAR_DP = 20
 /** A phone keyboard's height with its suggestion strip and the gesture area. */
 private const val KEYBOARD_DP = 300
 
@@ -150,6 +155,9 @@ fun ComposeContentTestRule.shootRef(
     style: UiStyle,
     dark: Boolean,
     height: Int = 2400,
+    width: Int = 1080,
+    /** A tablet's status bar and gesture handle are shorter than a phone's, and its clock sits apart from the icons. */
+    tablet: Boolean = false,
     capture: Capture = Capture.Window,
     settleMs: Long = 3000,
     afterMs: Long = 1500,
@@ -160,19 +168,21 @@ fun ComposeContentTestRule.shootRef(
     content: @Composable () -> Unit,
 ) {
     mainClock.autoAdvance = false
-    activity.window.setLayout(1080, height)
+    activity.window.setLayout(width, height)
+    val statusDp = if (tablet) TABLET_STATUS_BAR_DP else STATUS_BAR_DP
+    val gestureDp = if (tablet) TABLET_GESTURE_BAR_DP else GESTURE_BAR_DP
     WindowCompat.setDecorFitsSystemWindows(activity.window, false)
     install(activity)
     var composeView: View? = null
     var withInsets by mutableStateOf(false)
     setContent {
         composeView = LocalView.current
-        CompositionLocalProvider(LocalUiStyle provides style) {
+        CompositionLocalProvider(LocalUiStyle provides style, LocalWindowLayout provides currentWindowLayout()) {
             AtticTheme(if (dark) ThemeMode.Dark else ThemeMode.Light, style) {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     Spacer(Modifier.windowInsetsPadding(WindowInsets.systemBars))
                     key(withInsets) { if (withInsets) content() }
-                    if (bars) SystemBars(LocalIsDark.current, keyboard = ime)
+                    if (bars) SystemBars(LocalIsDark.current, keyboard = ime, statusDp = statusDp, gestureDp = gestureDp)
                 }
             }
         }
@@ -180,8 +190,8 @@ fun ComposeContentTestRule.shootRef(
     mainClock.advanceTimeBy(100)
     val density = activity.resources.displayMetrics.density
     val insets = WindowInsetsCompat.Builder()
-        .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, (STATUS_BAR_DP * density).toInt(), 0, 0))
-        .setInsets(WindowInsetsCompat.Type.navigationBars(), Insets.of(0, 0, 0, (GESTURE_BAR_DP * density).toInt()))
+        .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, (statusDp * density).toInt(), 0, 0))
+        .setInsets(WindowInsetsCompat.Type.navigationBars(), Insets.of(0, 0, 0, (gestureDp * density).toInt()))
         .apply {
             if (ime) {
                 setInsets(WindowInsetsCompat.Type.ime(), Insets.of(0, 0, 0, (KEYBOARD_DP * density).toInt()))
@@ -221,12 +231,12 @@ fun ComposeContentTestRule.shootRef(
 
 /** A phone's status bar and gesture handle, as storeshots/ShotHarness.kt draws them. */
 @Composable
-internal fun SystemBars(dark: Boolean, keyboard: Boolean = false) {
+internal fun SystemBars(dark: Boolean, keyboard: Boolean = false, statusDp: Int = STATUS_BAR_DP, gestureDp: Int = GESTURE_BAR_DP) {
     val ink = if (dark) Color.White else Color(0xFF1B1B1F)
     Box(Modifier.fillMaxSize()) {
         if (keyboard) Keyboard(dark, Modifier.align(Alignment.BottomCenter))
         Row(
-            Modifier.fillMaxWidth().height(STATUS_BAR_DP.dp).padding(horizontal = 26.dp),
+            Modifier.fillMaxWidth().height(statusDp.dp).padding(horizontal = 26.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("10:24", style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium), color = ink)
@@ -252,7 +262,7 @@ internal fun SystemBars(dark: Boolean, keyboard: Boolean = false) {
         Box(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp)
+                .padding(bottom = if (gestureDp < GESTURE_BAR_DP) 8.dp else 10.dp)
                 .width(108.dp)
                 .height(4.dp)
                 .clip(RoundedCornerShape(2.dp))

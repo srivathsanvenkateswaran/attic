@@ -23,7 +23,9 @@ else
   mkdir -p "$out"
   find "$out" -maxdepth 1 -name '*.png' -delete
   rm -rf "$out/covers" "$out/brand" "$out/colors"
-  tests=(--tests 'app.attic.player.designrefs.*')
+  # Phone references only; the tablet renders have their own script, tablet_refs.sh.
+  tests=()
+  for cls in DesignRefs DesignAssets DesignColors DesignWidgets; do tests+=(--tests "app.attic.player.designrefs.$cls"); done
 fi
 
 # The design refs live beside the store shots in src/storeShots, so they share its switch and its
