@@ -77,6 +77,12 @@ object EqualiserDemo {
     val sheetOff get() = sheet(EqScope.Default, preset(EqPresets.BASS_BOOST), on = false)
     val sheetSavePreset get() = sheet(EqScope.Song, custom, dialog = EqPresetDialog.Save)
 
+    /** The name of the listener's preset that [sheetSavedPreset] has chosen. */
+    const val SAVED_PRESET = "Car speakers"
+
+    /** The default on a preset of the listener's own, whose chip ends in `more_vert`. */
+    val sheetSavedPreset get() = sheet(EqScope.Default, carSpeakers)
+
     val sheetActions = EqualiserSheetActions(editor = editorActions, saveForSong = noop, saveForAlbum = noop, remove = noop, dismiss = noop)
 
     /** The track menu's row, as it reads with the default on Bass boost. */
