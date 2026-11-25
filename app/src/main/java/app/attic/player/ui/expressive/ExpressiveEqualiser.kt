@@ -110,7 +110,6 @@ fun ExpressiveEqualiserSheet(state: EqualiserSheetState, actions: EqualiserSheet
     ExpressiveSheet(onDismiss = actions.dismiss) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
             EqualiserTitle(editor.on, actions.editor.setOn)
-            if (!editor.on) SheetSubtitle(stringResource(R.string.equaliser_off_note), maxLines = 3)
             ListGroup(2) { index ->
                 if (index == 0) {
                     EqualiserScopeCell(
@@ -142,18 +141,22 @@ fun ExpressiveEqualiserSheet(state: EqualiserSheetState, actions: EqualiserSheet
     }
 }
 
-/** The sheet's title with the master switch at its end; the whole row is the switch. */
+/**
+ * The sheet's title with the master switch at its end, and the Off line under it while off. The two are
+ * one switch: the sheet grows upwards when the line appears, so the switch moves up from under the
+ * finger, and a second tap in the same place lands on the line and still switches the equaliser back on.
+ */
 @Composable
 private fun EqualiserTitle(on: Boolean, setOn: (Boolean) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .toggleable(value = on, role = Role.Switch, onValueChange = setOn)
-            .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(stringResource(R.string.equaliser), style = Expressive.type.headlineSmallEmphasized, modifier = Modifier.weight(1f))
-        ExpressiveSwitch(on, onCheckedChange = null)
+    Column(Modifier.fillMaxWidth().toggleable(value = on, role = Role.Switch, onValueChange = setOn)) {
+        Row(
+            Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(stringResource(R.string.equaliser), style = Expressive.type.headlineSmallEmphasized, modifier = Modifier.weight(1f))
+            ExpressiveSwitch(on, onCheckedChange = null)
+        }
+        if (!on) SheetSubtitle(stringResource(R.string.equaliser_off_note), maxLines = 3)
     }
 }
 
