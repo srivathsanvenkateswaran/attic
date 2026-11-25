@@ -8,10 +8,11 @@ files. They are the reference for how each screen looks, and the place to propos
 | `Attic Expressive.figcraft` | Expressive: colour from the phone's wallpaper and the album art, wavy progress, connected button groups, cookie shapes | `app/src/main/java/app/attic/player/ui/expressive/` |
 | `Attic Comfort.figcraft` | Comfort: superellipse cards, the amber Lamplight accent, a bottom dock, the `Tinted(seed, wash)` colours from the album art | `app/src/main/java/app/attic/player/ui/comfort/` |
 
-Both are version 1.2.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
+Both are version 1.3.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
 equaliser (sheet, Now Playing indicator, Settings page), and 1.2.0 is the design review of it as
-built, which the code on `feature/per-song-equaliser` then followed. The code wins: if a file and
-the app disagree, the app is right and the file is out of date.
+built, which the code on `feature/per-song-equaliser` then followed. 1.3.0 adds a proposal, mood mixes
+(the Moods section on the Screens page), whose code lands on `feature/mood-mixes`. The code wins: if a
+file and the app disagree, the app is right and the file is out of date.
 
 ## What each file holds
 
@@ -40,7 +41,7 @@ The pages are the same in both files:
    the missing families.
 3. Open the `.figcraft` file. Present the prototype from the Screens page; its flow starting points
    are named after the flows (First run, Play an album, Search, Settings, Recap story, Sleep timer,
-   Share a song, Backup and restore, Equaliser and others).
+   Share a song, Backup and restore, Equaliser, Mood mixes and others).
 
 ### Figma
 
@@ -93,6 +94,7 @@ original before sharing it.
 | Queue, Lyrics | `ExpressiveQueue.kt`, `ExpressiveLyrics.kt` | `ComfortQueue.kt`, `ComfortLyrics.kt` |
 | Sheets, dialogs, messages | `ExpressiveSheets.kt`, `Surfaces.kt` | `ComfortSheets.kt`, `Overlays.kt` |
 | Equaliser: sheet, indicator, Settings page | `ExpressiveEqualiser.kt`, `BandGraph.kt` | `ComfortEqualiser.kt` |
+| Mood mixes (proposed): mood page, Moods and interests, the Home shelf's tile and card | `ExpressiveMoods.kt` | `ComfortMoods.kt` |
 | Settings, backup and restore, licences | `ExpressiveSettings.kt`, `ExpressiveLicences.kt` | `ComfortSettings.kt`, `ComfortLicences.kt` |
 | Recap, its story and share images | `ExpressiveRecap.kt`, `ExpressiveRecapStory.kt`, `ExpressiveRecapCards.kt` | `ComfortRecap.kt`, `ComfortRecapStory.kt`, `ComfortRecapCards.kt` |
 | First run | `ExpressiveOnboarding.kt` | `ComfortOnboarding.kt` |
@@ -158,3 +160,10 @@ and `build/comfort/equaliser.py`, which open a file, add the equaliser's compone
 and flow, and save it (`python3 -m expressive.equaliser SRC OUT`, from `build/`). Run on the 1.0.0
 file (`git show 7a0a399^:"design/Attic Comfort.figcraft"`), each reproduces 1.2.0 frame for frame.
 They refuse a file that already has the equaliser.
+
+Version 1.3.0's Moods section was added to the saved files by `build/expressive/moods.py` and
+`build/comfort/moods.py` (`python3 -m expressive.moods SRC OUT [--export DIR]`, from `build/`). Each opens
+a file, removes whatever an earlier run of it added, draws the components, frames, links and flow
+again, and saves. It raises the Cover's minor version the first time only, so it also runs on a later
+version of a file. When the code lands, remove the frames' `Proposed` annotations and mark them ready
+for development; the tablet frames are redrawn once `feature/tablet-layouts` brings the shell.

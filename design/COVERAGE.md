@@ -158,6 +158,47 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 - **Expressive:** `handoff_app_permissions`, `handoff_file_picker`, `handoff_style_switch`.
 - **Comfort:** none.
 
+## Proposed: mood mixes
+
+Version 1.3.0 (2026-11-25) adds a Moods section to the Screens page of both files, drawn by
+`design/build/<style>/moods.py`. It is a proposal: the code lands on `feature/mood-mixes`, every frame
+carries a `Proposed` annotation, and none is marked ready for development. Each frame exists in Light
+and Dark.
+
+| Area | Screen or state | Expressive | Comfort |
+|---|---|:-:|:-:|
+| Moods | Home with the Moods shelf, after the taste Mixes | ✓ | ✓ |
+| Moods | Home with the Moods shelf and the card that asks for picks | ✓ | ✓ |
+| Moods | Mood page (Chill) | ✓ | ✓ |
+| Moods | Mood page, playing | ✓ | ✓ |
+| Moods | Search: Browse with the Moods group, scrolled to it | ✓ | ✓ |
+| Moods | Search: Browse with the Moods group, full length | ✓ | ✓ |
+| Moods | Search: results for "chi" with the mood | ✓ | ✓ |
+| Moods | Moods and interests, nothing picked | ✓ | ✓ |
+| Moods | Moods and interests, picked | ✓ | ✓ |
+| Moods | Moods and interests, no genres yet | ✓ | ✓ |
+| Moods | Settings with the Moods section | ✓ | ✓ |
+| Moods | Settings with the Moods section, nothing picked | ✓ | ✓ |
+| Moods | Now Playing from Radio · Chill | ✓ | ✓ |
+| Moods, tablet (In progress) | Home with the Moods shelf, 1440 x 900 and 700 x 900 | ✓ | ✓ |
+| Moods, tablet (In progress) | Mood page, 1440 x 900 and 700 x 900 | ✓ | ✓ |
+| Moods, tablet (In progress) | Moods and interests, picked, 1440 x 900 and 700 x 900 | ✓ | ✓ |
+
+The tablet frames also carry an `In progress` annotation: the rail, side dock and player bar they show
+are on `feature/tablet-layouts`, and are drawn as layout until that branch's components exist here.
+
+The 1.0.0 frames predate the taste Mixes shelf, Browse's Genres group and the genre page. The Moods
+frames draw those from the code at dffdd29, with invented genres for the demo library.
+
+| Component | File | Page | Variants | Properties |
+|---|---|---|--:|---|
+| Mood tile | Expressive | Lists and cards | 1 | Title, Count, Description |
+| Mood picks card | Expressive | Lists and cards | 1 | Title, Body |
+| Collection header, `Kind=Mood` | Expressive | Lists and cards | new variant | Title, Meta, Second meta |
+| Cover, `Kind=Mosaic, Size=208` | Expressive | Lists and cards | new variant |  |
+| Mood tile | Comfort | Lists and cards | 1 | Title, Description, Count |
+| Mood picks card | Comfort | Lists and cards | 1 | Title, Body |
+
 ## Components
 
 ### Expressive
@@ -181,8 +222,8 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Switch | Actions | 2 | Checked |  |
 | Toggle button | Actions | 8 | Checked, Size, Off style | Icon, Icon when on |
 | Browse tile | Lists and cards | 2 | Size | Title, Subtitle |
-| Collection header | Lists and cards | 5 | Kind | Title, Artist, Meta, Second meta |
-| Cover | Lists and cards | 19 | Kind, Size |  |
+| Collection header | Lists and cards | 6 | Kind | Title, Artist, Meta, Second meta |
+| Cover | Lists and cards | 20 | Kind, Size |  |
 | Favourites pill | Lists and cards | 2 | Height | Count, Unit |
 | Gone state | Lists and cards | 3 | Kind | Title |
 | Hero caption | Lists and cards | 1 |  | Title, Subtitle |
