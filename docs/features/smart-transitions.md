@@ -1,6 +1,6 @@
 # Smart transitions
 
-Status: architecture, 2026-11-25. Branch `feature/smart-transitions`, from `tier2-integration` at dffdd29.
+Status: built, 2026-11-25. Where the build differs from the first plan, this note says what was built. Branch `feature/smart-transitions`, from `tier2-integration` at dffdd29.
 
 A tester asked whether Attic crossfades the way the big streaming apps do. It already has a fixed
 crossfade (Off or 2–12 s). This adds a third choice, **Smart**: the next song comes in where the
@@ -47,16 +47,16 @@ A new `TransitionMeter` (`analysis/TransitionMeter.kt`) rides on the existing de
 file up to the decoder's 45-minute cap, not just the model's first 12 minutes. The model's buffer is
 unchanged.
 
-Per 256-sample hop (16 ms) it keeps two numbers, using the existing `PowerSpectrum` on a 512-point
+Per 160-sample hop (10 ms) it keeps two numbers, using the existing `PowerSpectrum` on a 512-point
 Hann frame:
 
-- **level**: the frame's mean square, in dB;
-- **onset strength**: positive log-magnitude spectral flux, summed over bins up to 8 kHz.
+- **level**: the hop's mean square, in dB;
+- **onset strength**: positive spectral flux of `ln(1 + 1000·power)` over 24 log-spaced bands from
+  40 Hz to 8 kHz (bands rather than bins keep the logarithms to 24 a frame).
 
-That is two floats per 16 ms, about 150 KB for a five-minute song, dropped once the result is
-worked out. For a very long file the middle isn't needed, so the meter keeps the first 90 s and a
-ring buffer of the last 90 s of frames, plus running sums for the whole-song figures. Memory stays
-bounded at about 90 KB whatever the length.
+The middle of a song isn't needed, so the meter keeps the first 90 s and a ring buffer of the last
+90 s of frames, a histogram of half-second levels for the reference, and running sums for the
+whole-song figures. Memory stays at about 150 KB whatever the length.
 
 ### What it works out
 
@@ -66,11 +66,11 @@ All times are milliseconds from the start of the decoded audio.
 |---|---|
 | `audioStartMs`, `audioEndMs` | First and last frame above −60 dBFS and within 45 dB of the song's reference level. Everything outside is lead-in or trailing silence. |
 | reference level | The 90th percentile of 0.5 s block levels. A song's "full" level, robust to a quiet intro or a loud peak. |
-| `outroStartMs` | Scanning back from `audioEndMs` over 0.5 s blocks smoothed over 2 s: the last point where the level is within 8 dB of the reference. After it the song only gets quieter: a fade-out or a decaying tail. Equal to `audioEndMs` for a cold ending. |
+| `outroStartMs` | Scanning back from `audioEndMs` over 0.5 s blocks smoothed over 2 s: the last point where the level is within 8 dB of the reference, then further back while the level keeps rising going backwards, to where the decline began (a fade-out crosses −8 dB part way down). After it the song only gets quieter. Equal to `audioEndMs` for a cold ending. |
 | `introEnergy`, `outroEnergy` | Block levels relative to the reference, two per second, quantised to 0.5 dB in a byte (0 = reference, 255 = −127.5 dB). 30 s from `audioStartMs` forward, and 30 s back from `audioEndMs`. 60 bytes each. |
 | `introBpm`, `introBeatMs`, `introBeatConfidence` | Tempo and beat phase over the 20 s after `audioStartMs` (below). |
 | `outroBpm`, `outroBeatMs`, `outroBeatConfidence` | The same over the window `[outroStartMs − 15 s, outroStartMs + 5 s]`, clamped to the audio, since the beat-aligned overlap sits around the outro's start. |
-| `energy` | Mean onset strength over the whole song, scaled 0–1. A loudness-independent "how busy" figure for radio ordering. |
+| `energy` | Mean onset strength above its running half-second mean over the whole song, scaled 0–1: spikes count, steady sound doesn't. A loudness-independent "how busy" figure for radio ordering. |
 | `key`, `keyConfidence` | From the chroma analysis already stores, not from this decode (below). |
 | `decodedMs` | Length of the decoded audio. If it differs from the player's duration by more than 1.5 s the stored positions are not trusted for that song. |
 
@@ -84,8 +84,13 @@ All times are milliseconds from the start of the decoded audio.
    least-squares line through them gives the final period and phase. Over 20 s this pins the period
    to well under 0.5 %, which matters: without time-stretching, a period error turns straight into
    drift across the overlap.
-5. Confidence: the comb's mean onset strength on the beats over the mean off them, mapped to 0–1.
-   Below 0.35 the window counts as having no beat (an ambient intro, a spoken outro, a fade-out).
+5. Confidence: half how periodic the envelope is at that lag, half how much stronger it is on the
+   beats than on average, all scaled by how far the envelope's peaks stand above its median (steady
+   sound only flickers). Below 0.35 the window counts as having no beat (an ambient intro, a spoken
+   outro, a fade-out).
+
+Very fast tempos can read at half time (174 BPM clicks read as 87). The planner folds half and
+double time together, so that grid lines up just as well.
 
 `introBeatMs` is the fitted beat nearest the window's start; `outroBeatMs` the one nearest
 `outroStartMs`. Any other beat in the window is `beatMs + k × 60000 / bpm`.
@@ -195,16 +200,17 @@ exactly as today, including the one-third caps.
 3. **Length and start from the energy curves.** For each candidate length
    L ∈ {1, 1.5, 2, 3, 4, 6, 8, 10, 12} s and each start t from `outroStartMs − 4 s` to
    `audioEndMs − L` in 0.5 s steps, the two curves are mixed through the equal-power ramps and
-   scored. The plan with the lowest cost wins; ties go to the shorter overlap, then the later start.
+   scored on a 250 ms grid over the same stretch for every candidate: from the earliest start to 6 s
+   after the outgoing song's end. The plan with the lowest cost wins; ties go to the shorter overlap,
+   then the later start. The weights are clash 2, lost music 3, dead air 1.5.
    - *Clash*: both songs loud at once. The sum over the overlap of
      `min(P_out(t)·cos², P_in(u)·sin²)`, the power of whichever is quieter at each moment. Two
      full-level songs overlapping for 8 s score badly; a fade-out under a build-up scores near zero.
    - *Lost music*: the outgoing song's power that the fade takes away,
      `P_out(t)·(1 − cos²)`, plus the same for the incoming song's opening under `1 − sin²`. Cutting
      into a loud ending, or fading in over a big first hit, costs.
-   - *Dead air*: time the listener hears only a quiet tail. The outgoing song between `outroStartMs`
-     and the fade start, and the mixed level during the overlap, wherever it sits more than 12 dB
-     under the reference.
+   - *Dead air*: what the listener hears (the outgoing tail before the overlap, the mix during it,
+     the incoming song after it) wherever it sits more than 12 dB under the reference.
 
    Without incoming analysis the incoming curve is taken as full level from its start, which keeps
    overlaps short.
@@ -214,26 +220,28 @@ exactly as today, including the one-third caps.
    right at the end; a cold ending into a quiet intro gets a short overlap and lets the intro play.
 4. **Beat alignment**, only when both the outgoing outro and the incoming intro have a beat
    (confidence ≥ 0.35) and the tempos are within 6 % after allowing for half and double time.
-   - The planned overlap's midpoint is moved onto a beat of each song: the outgoing beat nearest the
-     midpoint, and the incoming beat nearest `incomingStartMs + L/2`. The fade start moves by at
-     most half a beat and the entry point by at most half a beat; neither crosses the audio start
-     or end.
    - Without time-stretching the two grids drift apart by `L × |1 − ratio|`. Aligning at the
-     midpoint halves the worst case. The overlap is shortened until that worst case is at most
-     40 ms (about a twelfth of a beat at 120 BPM). If that leaves under 1.5 s, the plan stays
-     unaligned rather than becoming a stub.
-   - So in practice: within 1 % the energy-chosen length stands; at 3 % an aligned overlap is at
-     most about 2.7 s; at 6 % about 1.3 s, which the 1.5 s floor turns down. The 6 % window is kept
-     as asked, but it is the drift budget that decides.
+     midpoint halves the worst case, and the overlap may be at most as long as keeps that worst case
+     within 40 ms (about a twelfth of a beat at 120 BPM): about 2.7 s at 3 %, 1.6 s at 5 %. Under
+     1.5 s it isn't aligned at all.
+   - If the energy-chosen overlap is longer than that, the search runs again with lengths capped at
+     it, and the shorter overlap is used only if it costs at most 1.3 times the best one plus 0.2.
+     A long fade-out into a slow build keeps its 8 s blend unaligned rather than becoming a 2 s
+     aligned one; a short, punchy handover gets aligned. (The first plan shortened the overlap
+     around its old middle; that entered the next song seconds in and skipped its build-up.)
+   - The overlap's middle is then moved onto a beat of each song: the outgoing beat nearest it, and
+     the incoming beat nearest `incomingStartMs + L/2`. Each end moves by at most half a beat;
+     neither crosses the audio's start or end.
+   - So the 6 % window is kept as asked, but it is the drift budget that decides.
 
    Downbeats (bar lines) are not detected; beats line up, bars may not.
 5. The plan obeys today's caps: the overlap is at most a third of either song, and the incoming
    song must have `incomingStartMs + L` of audio.
 
-Planning is arithmetic on a few hundred bytes: about 9 × 60 candidates × up to 24 samples, under a
-millisecond. It runs on the main thread when the current or next song changes, like today's
-`fadeMs`. It is timed in a unit test and in the debug log on the phone, and it never touches the
-database.
+Planning is arithmetic on a few hundred bytes, with the level curves turned into lookup tables
+once per plan: 120–320 µs on the JVM. It runs on the main thread when the current or next song
+changes, like the old `fadeMs`. It is timed in a unit test and logged on the phone, and it never
+touches the database.
 
 ### Getting the analysis to the player
 
@@ -321,11 +329,11 @@ Designed first (FigCraft, both styles, Light and Dark), then built. The brief to
   this one winds down, skips silence, and lines up the beats when the tempos match. Songs not
   analysed yet use the crossfade length." Copy follows `BRIEF.md` and the unslop contract; the
   designer refines it.
-- **Now Playing hint**, optional and quiet: at most a small mark on the progress track where the
-  next song will start coming in, shown only while a Smart plan exists for the current song.
-  The service publishes the planned point in the session extras, the way the sleep timer's status
-  goes out (`SleepTimerSession`), so the UI never reads the analysis itself. The designer may
-  decide it isn't worth having.
+- **Now Playing hint**: Expressive's seek bar draws a 4dp dot where a Smart transition will start,
+  until the handle reaches it. The service publishes the planned point in the session extras
+  (`TransitionSession`), the way the sleep timer's status goes out, so the UI never reads the
+  analysis itself. The design files also drew a notch for Comfort; under its total time it said
+  little, so it wasn't built.
 
 `CURRENT-UI.md` and both `KIT.md` files are updated with the code.
 

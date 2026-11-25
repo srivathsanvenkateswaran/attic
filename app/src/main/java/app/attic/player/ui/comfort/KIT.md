@@ -180,7 +180,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.np-title` | `NowPlayingTitle(title, artist, modifier, onArtistClick)` | |
 | `.np-lyric` | `NowPlayingLyric(line, modifier, onClick)` | |
 | `.deck` | `Deck { SeekBar(…); Transport(…); Toggles { … } }` | |
-| `.seek` | `SeekBar(progress = { f }, elapsed, total, onSeek, modifier, onScrub, contentDescription)` | tap or drag; `onScrub(fraction)` while dragging, `null` on release; fill never under 64dp |
+| `.seek` | `SeekBar(progress = { f }, elapsed, total, onSeek, modifier, onScrub, contentDescription)` | tap or drag; `onScrub(fraction)` while dragging, `null` on release; fill never under 64dp; no Smart transition mark (the design file's notch was reviewed and not built: under the total time it said little) |
 | `.transport`, `.tp` | `Transport(playing, onPrevious, onPlayPause, onNext)`, `SkipButton(symbol, cd, onClick)` | |
 | `.toggles` | `Toggles { TonalIconButton(…, large = true); HeartButton(…, tonal = true) }` | shuffle, repeat, favourite, queue |
 | `.lyrics-card`, `.ln`, `.ln.cur`, `.ln.clip`, message | `LyricsCard(modifier, title) { LyricsLine(text, current, plain); LyricsMessage(text) }` | give a button or `Spinner(small = true)` inside `Modifier.padding(top = 14.dp)` |
@@ -198,7 +198,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.radio` | `ComfortRadio(selected, onClick, modifier)` | |
 | `.progress`, `.thick` | `ComfortProgress(progress = { f }, modifier, thick)` | |
 | `.spinner`, `.sm` | `Spinner(modifier, small)` | turns |
-| `.set-row`, `.lead-ctl`, `.val` | `SetRow(title, modifier, summary, value, onClick, leading, trailing)`, `SetSwitchRow(title, checked, onCheckedChange, modifier, summary, enabled)`, `SetRadioRow(title, selected, onClick, modifier, summary)` | put in a `Group` |
+| `.set-row`, `.lead-ctl`, `.val` | `SetRow(title, modifier, summary, value, onClick, leading, trailing)`, `SetSwitchRow(title, checked, onCheckedChange, modifier, summary, enabled)`, `SetRadioRow(title, selected, onClick, modifier, summary)` | put in a `Group`; a row whose value is one of a few choices (Settings' Transitions and Crossfade length) is `PickerRow` in ComfortSettings.kt: a `SetRow` with the choice as its value, opening a `ComfortMenu` captioned with the row's title over the row, toward the value |
 | `.set-block` | `SetBlock(afterRow) { SetBlockText(…); ComfortProgress(…, SetBlockProgressPadding); SetBlockSmall(…); ComfortButton(style = Text, Modifier.padding(top = 12.dp).offset(x = (-12).dp)) }` | |
 | `.stats`, `.stat` | `Group { item { Stats(listOf(value to label, …)) } }` | |
 | `.empty`, `.empty.fill` | `EmptyState(title, modifier, body, symbol, art, fill, action)` | |

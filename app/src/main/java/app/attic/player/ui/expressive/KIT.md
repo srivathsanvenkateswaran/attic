@@ -113,7 +113,8 @@ FontFamily for other combinations; each style already sets an optical size near 
 
 `SymbolIcon(Symbol.QueueMusic, size = 24.dp, filled = false, tint = LocalContentColor.current)`.
 Material Symbols Rounded, subset to the 88 names the pixel/ and oneui/ sheets use, plus `file_save` and
-`file_open` for Settings' backup rows and `transition_fade` and `equalizer` for its Playback rows; `Symbol` is an
+`file_open` for Settings' backup rows and `transition_fade`, `schedule` and `equalizer` for its Playback rows
+(Transitions, Crossfade length, Equaliser); `Symbol` is an
 enum named after the ligature in CamelCase (`queue_music` → `Symbol.QueueMusic`,
 `Symbol.named("queue_music")`). Filled is the selected state and the transport glyphs. Sizes 18–40.
 `weight = 300` for Comfort. A name not in the enum is not in the font: add it (see the enum's doc
@@ -144,7 +145,7 @@ house until they are redrawn.
 | `.pp`, `.pp.l`, `.pp.xl`, `.pp.ring`, `.pp.tonal` | `PlayButton(playing, onClick, modifier, size = Small/Large/ExtraLarge, tonal, progress = { fraction })` | ring only when `progress` is given; describes itself "Play"/"Pause" |
 | `.skip`, `.transport` | `SkipButton(symbol, contentDescription, onClick)`, `Transport(playing, onPrevious, onPlayPause, onNext)` | |
 | `.wave` / `.wave.still` | `NowPlayingWave(playing)` | 20×10dp |
-| `.seek`, `.seek.paused`, `.seek-times` | `SeekBar(progress, playing, onSeek, contentDescription, onScrub)`, `SeekTimes(elapsed, total)` | tap or drag; `onSeek(fraction)` on release; `onScrub(fraction)` while dragging and `onScrub(null)` on release, so the elapsed time can follow the finger; flat while paused or dragging |
+| `.seek`, `.seek.paused`, `.seek-times` | `SeekBar(progress, playing, onSeek, contentDescription, onScrub, mark)`, `SeekTimes(elapsed, total)` | tap or drag; `onSeek(fraction)` on release; `onScrub(fraction)` while dragging and `onScrub(null)` on release, so the elapsed time can follow the finger; flat while paused or dragging; `mark` (a fraction, or null) draws a 4dp `onSurfaceVariant` dot on the rest of the track where a Smart transition starts, at the handle's own mapping, only while the handle is more than 2dp short of it (the rule `StoryProgress` uses for its stops) |
 | `.story .seek` + `.st-stops` | `StoryProgress(progress = { fraction }, stops, running)` | the seek bar's drawing, not draggable, with a 4dp dot at each stop still ahead; flat while not running (the story held) |
 | `.nav` | `ExpressiveNavigationBar(items: List<NavItem>, selectedIndex, onSelect)` | Material ShortNavigationBar; pads for the gesture bar itself |
 | `.appbar.root` (+ `.scrolled`) | `RootAppBar(title, modifier, scrolled = 0f..1f, titleLeading, actions)` | `scrolled = listState.scrolledFraction()`; Home passes the mark as `titleLeading`; settings is the last action |
