@@ -227,10 +227,13 @@ frames draw those from the code at dffdd29, with invented genres for the demo li
 
 ## Tablet (proposed)
 
-Added by hand on 2026-11-25 with version 1.1.0 of both files; `coverage.py` does not write this section. The
-`Tablet` page draws [the tablet layout spec](../docs/design/2026-11-25-tablet/SPEC.md). None of it is in the code
-yet, so every frame carries a `Proposed` annotation and no ready-for-development status. Frames are Landscape
-(1152 × 720), Portrait (720 × 1152) and Large landscape (1440 × 900), each in Light and Dark.
+## Tablet
+
+Added by hand on 2026-11-25 with version 1.1.0 of both files and updated with 1.1.1; `coverage.py` does not write
+this section. The `Tablet` page draws [the tablet layout spec](../docs/design/2026-11-25-tablet/SPEC.md). The
+layouts are in the code on `feature/tablet-layouts`: since 1.1.1 every frame matches it, carries its `Source`
+annotation and is marked ready for development. Frames are Landscape (1152 × 720), Portrait (720 × 1152) and
+Large landscape (1440 × 900), each in Light and Dark.
 
 | Area | Screen | Landscape | Portrait | Large landscape | Expressive | Comfort |
 |---|---|:-:|:-:|:-:|:-:|:-:|
@@ -248,7 +251,7 @@ yet, so every frame carries a `Proposed` annotation and no ready-for-development
 | Overlays | New playlist over the Library | ✓ | | | ✓ | ✓ |
 | First run | First run, Look | ✓ | ✓ | | ✓ | ✓ |
 
-Components added for the tablet layouts, proposed like the frames:
+Components added for the tablet layouts:
 
 | File | Component | Page | Variants |
 |---|---|---|---|
@@ -258,6 +261,7 @@ Components added for the tablet layouts, proposed like the frames:
 | Comfort | Side dock | Navigation | Selected |
 | Comfort | Side dock/Tab | Navigation | Selected |
 | Comfort | Player bar | Navigation | State |
+| Comfort | Now playing/Side panel | Playback | Selected |
 | Comfort | Now playing/Side panel | Playback | Selected |
 
 Not drawn: Settings' Playback group (added to the code after 4fe4dab) and every screen outside the table above.

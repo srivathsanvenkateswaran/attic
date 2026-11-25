@@ -8,12 +8,14 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens. Nothing here is in the code yet, so each frame carries a `Proposed` annotation and no ready-for-development
-status. Running it again deletes the Tablet page and the components below and draws them again.
+Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
+each frame carries its Source annotation and is marked ready for development; where the code and the first drawing
+disagreed, the frames follow the code (the 1.1.1 changelog entry lists what moved). Running it again deletes the
+Tablet page and the components below and draws them again.
 
 Components / Navigation
   Navigation rail        ExpressiveNavigationRail (ExpressiveRail.kt)  Selected=Home|Search|Library. The Headroom mark
-                         and three Navigation item instances, 96 wide on surface.
+                         and three Navigation item instances, 96 wide on surface, 63 from one to the next.
   Player bar             ExpressivePlayerBar (ExpressivePlayerBar.kt)  State=Playing|Paused.  Cover mode.
                          Props: Title, Artist, Elapsed, Total.  Drawn 1056 wide; a frame sets the Controls width.
 Components / Playback
@@ -38,7 +40,8 @@ from expressive.components_overlays import set_nested_text
 SRC = "ui/expressive/"
 RAIL_W = 96
 BAR_H = 80                       # the player bar's row; its surface runs on behind the gesture inset
-MINI_W, MINI_H = 560, 64
+MINI_W, MINI_H = 576, 64        # MiniPlayerMaxWidthDp: the floating mini player, and Now Playing's upright column
+RAIL_ITEM_H = 63                 # the pill's 6dp inset, the 32dp pill, 4, the 15dp label, 6: 12 from a label to the next pill
 EXTRA = tk.MARGIN - 16           # what a destination adds to the 16 its components carry
 
 ADDED = {
@@ -119,15 +122,16 @@ def build_components(d: Doc, ctx: dict):
         spacer(d, c, "Mark spacing", w=1, h=28)
         for dest in DESTS:
             i = inst(d, "Navigation item", c, name=f"Item {dest}", Destination=dest, Selected=str(dest == vp["Selected"]))
-            d.set(i, width=RAIL_W)
+            d.set(i, width=RAIL_W, height=RAIL_ITEM_H)
         return c, {}
 
     S.make("Navigation rail", "Navigation rail",
            "Material 3 Expressive's collapsed navigation rail, on medium and expanded windows in place of the navigation "
            "bar: 96dp wide on surface with no divider, from under the status bar to the bottom edge. The Headroom mark "
            "(32dp, primary) is centred on the top bar's title line, 20dp below the status bar. Home, Search and Library "
-           "follow 28dp below it as Navigation item instances 96 wide: the 56 x 32 indicator pill, the label 4dp under "
-           "it, 12dp between one label and the next pill. Proposed; not in the code yet.",
+           "follow as Navigation item instances 96 wide, the first pill 34dp below the mark (the item starts 28dp below "
+           "it and its pill sits 6dp in): the 56 x 32 indicator pill, the label 4dp under it, 12dp between one label "
+           "and the next pill, so the items are 63dp apart.",
            "ExpressiveRail.kt", "ExpressiveNavigationRail", [dict(Selected=s) for s in DESTS], rail, preview_wrap=600)
 
     def player_bar(vp):
@@ -175,8 +179,7 @@ def build_components(d: Doc, ctx: dict):
            "large play button at 48dp, without a ring since the seek bar shows progress) and next, over the elapsed "
            "time, a wavy progress bar and the length. End: favourite, queue, lyrics. The centre group is 36 % of the "
            "bar's width, at least 320 and at most 480dp (384 on the Pad sideways); the start and end groups share the "
-           "rest equally, so it sits in the middle. Tapping the cover or the titles opens Now Playing. Proposed; not in "
-           "the code yet.",
+           "rest equally, so it sits in the middle. Tapping the cover or the titles opens Now Playing.",
            "ExpressivePlayerBar.kt", "ExpressivePlayerBar", [dict(State=s) for s in ("Playing", "Paused")], player_bar,
            cover=True,
            props=[("Title", "text", "t", None, None), ("Artist", "text", "a", None, None),
@@ -200,7 +203,7 @@ def build_components(d: Doc, ctx: dict):
     S.make("Now playing/Side panel", "Now Playing side panel switch",
            "The switch at the top of Now Playing's end half on an expanded landscape window: a two-option connected "
            "button group, Up next (the queue list) and Lyrics (the synced lyrics), 320dp wide, the selected segment in "
-           "primary. Proposed; not in the code yet.",
+           "primary.",
            "ExpressiveNowPlayingWide.kt", "ExpressiveNowPlayingWide", [dict(Selected=s) for s in ("Up next", "Lyrics")],
            side_switch, cover=True, preview_wrap=760)
     # The new cards take the width of the cards already on their page, as tidy_doc_pages gave those.
@@ -226,6 +229,7 @@ class Screen:
         self.cw = self.W - RAIL_W
         self.expanded = self.W >= 840           # Material's expanded width: the player bar; below it the mini player
         self.notes: list[str] = []
+        self.shell_src: str | None = None       # set by shell(): the frame shows the rail and the player
 
     # the content area's bottom inset, as LocalBottomPadding gives it to a destination
     @property
@@ -247,6 +251,8 @@ class Screen:
     def shell(self, *, player=True, rail=True, links=True):
         d, f, W, H = self.d, self.f, self.W, self.H
         L = self.B.links if links else []
+        if player or rail:
+            self.shell_src = SRC + "ExpressiveWideShell.kt · ExpressiveWideShell"
         if player and self.expanded:
             b = inst(d, "Player bar", f, name="Player bar", State="Playing", x=self.x0, y=H - BAR_H - GESTURE_H)
             d.set(b, width=self.cw)
@@ -277,7 +283,7 @@ class Screen:
         d.set(s, width=W, height=STATUS_H)
 
     def done(self):
-        self.fr.annotate(self.key, *self.notes)
+        self.fr.annotate(self.key, *self.notes, shell=self.shell_src)
 
 
 class Builder:
@@ -353,10 +359,19 @@ class Builder:
 
 
 # ───────────────────────────────────────────────────────────────── Home
+# The carousel's items as the code lays them out, read off the reference renders (scripts/store_shots/tablet_refs.sh):
+# {carousel width: (large items, large width, medium width, small width)}, 8dp apart. Material's arrangement keeps
+# the small item at its 40dp minimum and gives the large ones what is left.
+HERO_ARRANGEMENTS = {960: (3, 252.8, 129.6, 40), 528: (1, 318.4, 153.6, 40), 1248: (3, 336.5, 166.5, 40)}
+
+
 def hero_sizes(available: float, preferred: float) -> list[tuple[str, float]]:
-    """Material's multi-browse arrangement for a carousel `available` wide, 8dp spacing and a small item of 56: as
-    many large items as keep their width nearest `preferred`, then one medium (halfway between large and small) and
-    one small."""
+    """Material's multi-browse arrangement for a carousel `available` wide with 8dp spacing. The three frame sizes
+    take the widths the code gives them (HERO_ARRANGEMENTS). Any other width gets an estimate: as many large items
+    as keep their width nearest `preferred`, then one medium (halfway between large and small) and one small of 56."""
+    if round(available) in HERO_ARRANGEMENTS:
+        n, large, medium, small = HERO_ARRANGEMENTS[round(available)]
+        return [("Large", large)] * n + [("Medium", medium), ("Small", small)]
     best = None
     for n in (1, 2, 3, 4):
         small = 56
@@ -473,7 +488,8 @@ def build_home(B: Builder):
                         "at most 480dp wide. The carousel's large items are near 260dp in a window under 840dp tall and "
                         "near 360dp, 280dp tall, in a taller one; shelves run on to the end edge and show more. On "
                         "expanded widths the Recap card sits beside Instant mixes, whose pills take three equal columns, "
-                        "and Start listening takes two columns.")
+                        "and Start listening takes two columns. Upright, a medium width, the phone's mini player floats "
+                        "over the page, 576dp wide and centred in the content area.")
     src = SRC + "ExpressiveHome.kt · ExpressiveHome"
     demo = ("Mixes, On repeat, Haven't heard in a while and Newly added are empty in the demo state; the frame fills "
             "them from the demo library so the layout shows them.")
@@ -567,8 +583,10 @@ def header_texts(d: Doc, parent, spec: dict) -> int:
     return col
 
 
-def header_actions(d: Doc, parent, spec: dict, *, fill=True) -> int:
-    """Play (squared and reading Pause while this collection plays), shuffle and add to playlist, in one row."""
+def header_actions(d: Doc, parent, spec: dict, *, fill=True, menu=False) -> int:
+    """Play (squared and reading Pause while this collection plays), shuffle and add to playlist, in one row. `menu`:
+    the header has no bar over it (beside the Library's list), so a playlist's or Favourites' menu button sits at
+    the end of the row, after the buttons where Play fills the row and at the row's end edge where it doesn't."""
     row = d.frame(parent, name="Actions", layout="h", gap=8, cross="center", sizing=("fill", "hug"))
     playing = spec["playing"]
     p = inst(d, "Button", row, name="Play", Style="Filled", Size="Medium", Icon="Leading", State="Enabled",
@@ -580,10 +598,15 @@ def header_actions(d: Doc, parent, spec: dict, *, fill=True) -> int:
     inst(d, "Toggle button", row, name="Shuffle", Checked="False", Size="Medium", Off_style="Tonal")
     add = inst(d, "Icon button", row, name="Add to playlist", Style="Tonal", Size="Medium", Width="Default", State="Enabled")
     swap_icon(d, add, "playlist_add")
+    if menu:
+        if not fill:
+            spacer(d, row, "Space", w=1, h=1, fill_h=True)
+        m = inst(d, "Icon button", row, name="Options", Style="Standard", Size="Default", Width="Default", State="Enabled")
+        swap_icon(d, m, "more_vert")
     return row
 
 
-def header_card(B: "Builder", parent, spec: dict, *, x, y, w, h) -> int:
+def header_card(B: "Builder", parent, spec: dict, *, x, y, w, h, menu=False) -> int:
     """The two-pane header: a card on the cover scheme's surface container holding the cover, the titles and the
     actions. Drawn here from the header's parts, since the phone's Collection header stacks them the other way."""
     d = B.d
@@ -595,12 +618,12 @@ def header_card(B: "Builder", parent, spec: dict, *, x, y, w, h) -> int:
     spacer(d, card, "Cover spacing", w=1, h=16)
     header_texts(d, card, spec)
     spacer(d, card, "Actions spacing", w=1, h=16)
-    header_actions(d, card, spec)
+    header_actions(d, card, spec, menu=menu)
     sb.album_mode(d, card, spec["seed"])
     return card
 
 
-def header_row(B: "Builder", parent, spec: dict) -> int:
+def header_row(B: "Builder", parent, spec: dict, menu=False) -> int:
     """The header in a pane under 760dp: the cover at 200dp with the titles and the actions beside it."""
     d = B.d
     wrap = d.frame(parent, name="Header row", layout="v", pad=[0, 16, 0, 16], sizing=("fill", "hug"))
@@ -610,7 +633,7 @@ def header_row(B: "Builder", parent, spec: dict) -> int:
     header_cover(d, card, spec, 200)
     side = d.frame(card, name="Details", layout="v", h=200, main="spaceBetween", sizing=("fill", "fixed"))
     header_texts(d, side, spec)
-    header_actions(d, side, spec, fill=False)
+    header_actions(d, side, spec, fill=False, menu=menu)
     sb.album_mode(d, card, spec["seed"])
     return wrap
 
@@ -618,14 +641,15 @@ def header_row(B: "Builder", parent, spec: dict) -> int:
 def collection(B: "Builder", s: "Screen", spec: dict, *, pane_x: float, pane_w: float, lead: float, own: bool):
     """A collection in a pane from `pane_x`, `pane_w` wide. `lead` is the margin before its header (24 as its own
     screen, 8 beside the Library list). `own`: it is its own screen, so the bar with back (and a playlist's menu)
-    sits above the songs."""
+    sits above the songs. Beside the list there is no bar, and the menu moves to the end of the header's buttons."""
     d, P = B.d, B.P
     two = pane_w >= 760
+    menu = spec["options"] and not own
     top = STATUS_H + 8
     end = pane_x + pane_w - EXTRA
     if two:
         start = 360 if pane_w >= 1000 else 320
-        header_card(B, s.f, spec, x=pane_x + lead, y=top, w=start - lead - 16, h=s.H - top - s.bottom - 8)
+        header_card(B, s.f, spec, x=pane_x + lead, y=top, w=start - lead - 16, h=s.H - top - s.bottom - 8, menu=menu)
         col_x = pane_x + start - 8
     else:
         col_x = pane_x + lead - 16
@@ -642,7 +666,7 @@ def collection(B: "Builder", s: "Screen", spec: dict, *, pane_x: float, pane_w: 
     else:
         spacer(d, col, "Status bar inset", w=1, h=top)
     if not two:
-        header_row(B, col, spec)
+        header_row(B, col, spec, menu=menu)
         spacer(d, col, "Header spacing", w=1, h=4)
     if spec.get("tools"):
         tools = d.frame(col, name="Tools", layout="h", gap=8, pad=[0 if two and own else 12, 16, 12, 16], sizing=("fill", "hug"))
@@ -753,8 +777,10 @@ def build_library(B: "Builder"):
     fr = tk.Frames(d, B.ctx, "Library", "library",
                    note="Expanded and landscape: list and detail. The list keeps its bar and chips in a 400dp start pane, "
                         "the selected row on secondary container; the album it opened fills the rest and lays itself "
-                        "out for that width (a header row at 656dp, two panes at 944dp). Upright, the list has the "
-                        "window and a row opens its own screen.")
+                        "out for that width (a header row at 656dp, two panes at 944dp). The detail has no bar: a "
+                        "playlist's or Favourites' menu button sits at the end of its header's buttons (drawn in "
+                        "Overlays, New playlist over the Library). Upright, the list has the window and a row opens its "
+                        "own screen.")
     for size in ("landscape", "large"):
         s = Screen(B, fr, f"library_{size}", "Library", size, "ui/LibraryPanes.kt · LibraryListDetail", tab="Library")
         library_landscape(B, s)
@@ -824,14 +850,25 @@ def build_search(B: "Builder"):
 NPW = SRC + "ExpressiveNowPlayingWide.kt · ExpressiveNowPlayingWide"
 
 
-def cover_pager(d: Doc, parent, side: float, peek: float = 72):
+def cover_pager(d: Doc, parent, side: float, peek: float = 72, width: float | None = None):
     """The cover with the next song's cover peeking after it. The phone's Now playing/Cover pager is 411 wide with a
-    323dp cover and can't be laid out again inside an instance, so the pager is drawn here from Cover instances."""
+    323dp cover and can't be laid out again inside an instance, so the pager is drawn here from Cover instances.
+    `width` is the page's width where the pager gives it more than the cover's height (the upright column): the
+    cover fills the page, as it fills a carousel slot."""
     row = d.frame(parent, name="Cover pager", layout="h", gap=8, sizing=("hug", "hug"))
-    cv = inst(d, "Cover", row, name="Cover", Kind="Album", Size="208")
-    d.set(cv, width=side, height=side)
-    bind_dim(d, cv, "cornerRadius", "radius/extra-large")
-    set_cover(d, cv, 0)
+    if width is None or width == side:
+        cv = inst(d, "Cover", row, name="Cover", Kind="Album", Size="208")
+        d.set(cv, width=side, height=side)
+        bind_dim(d, cv, "cornerRadius", "radius/extra-large")
+        set_cover(d, cv, 0)
+    else:
+        page = d.frame(row, name="Cover", w=width, h=side, clip=True, fill="Color/surface-container-highest")
+        bind_dim(d, page, "cornerRadius", "radius/extra-large")
+        big = max(width, side)
+        cv = inst(d, "Cover", page, name="Cover art", Kind="Album", Size="208", x=round((width - big) / 2, 1),
+                  y=round((side - big) / 2, 1))
+        d.set(cv, width=big, height=big, cornerRadius=0)
+        set_cover(d, cv, 0)
     nx = d.frame(row, name="Next cover", w=peek, h=side, clip=True, fill="Color/surface-container-highest")
     bind_dim(d, nx, "cornerRadius", "radius/large-increased")
     art = inst(d, "Cover", nx, name="Next cover art", Kind="Album", Size="208", x=round((peek - side) / 2, 1), y=0)
@@ -840,13 +877,16 @@ def cover_pager(d: Doc, parent, side: float, peek: float = 72):
     return row
 
 
-def player_column(B: "Builder", parent, *, x, y, col_w, side, lyric: bool, compact: bool, context="Paper Lanterns"):
+def player_column(B: "Builder", parent, *, x, y, col_w, side, lyric: bool, compact: bool, context="Paper Lanterns",
+                  page_w: float | None = None, inset: float = 24):
     """Cover, title block, seek bar, times, transport and tools, as the phone's player stacks them. `compact` (a 720dp
-    window) takes the inline lyric out and tightens the gaps so all of it stays above the gesture area."""
+    window) takes the inline lyric out and tightens the gaps so all of it stays above the gesture area. `inset` is
+    the pager's margin in the column and `page_w` its page's width, where they aren't the 24dp margin and the cover's
+    side (the upright column)."""
     d = B.d
     col = d.frame(parent, name="Player", layout="v", x=x - 24, y=y, w=col_w + 48, sizing=("fixed", "hug"))
-    pbox = d.frame(col, name="Cover pager box", layout="v", pad=[0 if compact else 4, 24, 0, 24], sizing=("fill", "hug"))
-    cover_pager(d, pbox, side, peek=col_w - side - 8)
+    pbox = d.frame(col, name="Cover pager box", layout="v", pad=[0 if compact else 4, inset, 0, inset], sizing=("fill", "hug"))
+    cover_pager(d, pbox, side, peek=col_w + 48 - 2 * inset - (page_w or side) - 8, width=page_w)
     tb = inst(d, "Now playing/Title block", col, name="Title block", Lyric=str(lyric))
     d.set(tb, sizingH="fill")
     if lyric:
@@ -963,7 +1003,7 @@ def build_now_playing(B: "Builder"):
                    note="Now Playing covers the window, on the cover's scheme (Color mode Cover). Expanded and landscape: "
                         "the player in the start half, the cover as large as the height allows with the next cover "
                         "after it, and a panel in the end half that switches between Up next and Lyrics. Upright: the "
-                        "phone's player in a centred column 560dp wide.")
+                        "phone's player in a centred column 576dp wide.")
     for size in ("landscape", "large"):
         s = Screen(B, fr, f"now_playing_up_next_{size}", "Now Playing, Up next", size, NPW)
         now_playing_wide(B, s, "Up next")
@@ -979,21 +1019,26 @@ def build_now_playing(B: "Builder"):
     # Upright: the phone layout in a centred column.
     s = Screen(B, fr, "now_playing_portrait", "Now Playing", "portrait", SRC + "ExpressiveNowPlaying.kt · ExpressiveNowPlaying")
     d.set_mode(s.f, "Color", "Cover")
-    col_w = 560
+    # The column is MiniPlayerMaxWidthDp wide (576) with the player's 24dp margins inside it. The pager sits 20dp in:
+    # its page takes what the 8dp gap and the next cover's 40dp leave (488), and the cover is 480 tall, its maximum.
+    col_w = MINI_W - 48
     x = round((s.W - col_w) / 2)
     hd = inst(d, "Now playing header", s.f, name="Header", x=x - 24, y=STATUS_H)
     d.set(hd, width=col_w + 48)
     setp(d, hd, Context="Paper Lanterns")
     B.links.append((s.key, d.child(hd, "Close"), None, "back"))
-    pl = player_column(B, s.f, x=x, y=STATUS_H + 64, col_w=col_w, side=480, lyric=True, compact=False)
-    below = d.frame(s.f, name="Below the player", layout="v", x=x - 8, y=STATUS_H + 64 + d.get(pl)["height"], w=col_w + 16,
+    pl = player_column(B, s.f, x=x, y=STATUS_H + 64, col_w=col_w, side=480, lyric=True, compact=False,
+                       page_w=MINI_W - 40 - 8 - 40, inset=20)
+    below = d.frame(s.f, name="Below the player", layout="v", x=x - 24, y=STATUS_H + 64 + d.get(pl)["height"], w=col_w + 48,
                     gap=12, pad=[0, 16, 0, 16], sizing=("fixed", "hug"))
     lc = inst(d, "Lyrics/Card", below, name="Lyrics card", State="Synced")
     d.set(lc, sizingH="fill")
     # As in the shell on a medium window, the gesture inset is a band of the page colour.
     d.rect(s.f, name="Gesture inset", w=s.W, h=GESTURE_H, x=0, y=s.H - GESTURE_H, fill="Color/surface")
     s.bars()
-    s.notes.append("The cover is 480dp with the next cover after it; the lyrics card, About the artist and Credits "
+    s.notes.append("The column is 576dp wide, the title, seek bar and tools 528. The cover's page is 488dp wide and "
+                   "480 tall: the pager sits 20dp in from the column's edges and keeps 8dp and the next cover's 40dp "
+                   "after the page, and the cover's height stops at 480. The lyrics card, About the artist and Credits "
                    "follow below as on the phone.")
     s.done()
     fr.close()
@@ -1003,8 +1048,9 @@ def build_now_playing(B: "Builder"):
 def build_lyrics(B: "Builder"):
     d = B.d
     fr = tk.Frames(d, B.ctx, "Lyrics", "lyrics",
-                   note="Full-screen lyrics on an expanded landscape window: a 360dp start pane with the cover, title, "
-                        "artist, seek bar and transport, and the lines in the rest in a column 640dp wide.")
+                   note="Full-screen lyrics on an expanded landscape window: a 360dp start pane with one card holding "
+                        "close, the cover, title, artist, seek bar and previous, play or pause and next, and the lines "
+                        "in the rest in a column 640dp wide.")
     s = Screen(B, fr, "lyrics_landscape", "Lyrics", "landscape", SRC + "ExpressiveLyrics.kt · ExpressiveLyrics")
     d.set_mode(s.f, "Color", "Cover")
     top = STATUS_H + 8
@@ -1045,6 +1091,15 @@ def build_lyrics(B: "Builder"):
 
 
 # ───────────────────────────────────────────────────────────────── Settings
+def dark_theme(d: Doc, themes: list[tuple[str, int]]):
+    """The Dark renders are made with the theme set to Dark: the Dark copies select Dark in the theme group, as the
+    Dark phone frames do. `themes` is [(frame key, the Light frame's theme group)]; run it once the section is closed."""
+    for key, layer in themes:
+        dl = d.screens[key]["map"].get(layer)
+        if dl:
+            setp(d, dl, Selected="2")
+
+
 def settings_screen(B: "Builder", s: "Screen"):
     d = B.d
     col = s.content()
@@ -1055,7 +1110,7 @@ def settings_screen(B: "Builder", s: "Screen"):
     d.set(d.child(bar, "Status bar inset"), height=STATUS_H)
     w = min(s.inner, 720 + 32)
     holder = d.frame(col, name="Settings column", layout="h", main="center", sizing=("fill", "hug"))
-    lst, _ = ss.settings_content(d, B.ctx, holder, 0)
+    lst, made = ss.settings_content(d, B.ctx, holder, 0)
     d.set(lst, width=w)
     kids = [n["id"] for n in d.get(lst, depth=1).get("children", [])]
     d.set(kids, sizingH="fill")
@@ -1063,7 +1118,7 @@ def settings_screen(B: "Builder", s: "Screen"):
     for name in ("Theme cell",):
         row = d.child(d.child(lst, name), "Row")
         d.set(row, sizingH="fill")
-    return col
+    return col, made["theme"]
 
 
 def build_settings(B: "Builder"):
@@ -1072,14 +1127,16 @@ def build_settings(B: "Builder"):
                    note="Settings keeps the rail and the player. Its bar with back spans the content area; the list is a "
                         "centred column at most 720dp wide.")
     src = SRC + "ExpressiveSettings.kt · ExpressiveSettings"
+    themes = []
     for size in ("landscape", "portrait"):
         s = Screen(B, fr, f"settings_{size}", "Settings", size, src)
-        settings_screen(B, s)
+        themes.append((s.key, settings_screen(B, s)[1]))
         s.shell()
-        s.notes.append("The list is the one on the Screens page (ui-redesign at 4fe4dab). The Playback section this "
-                       "branch adds is not in the design file yet.")
+        s.notes.append("The list is the one on the Screens page (ui-redesign at 4fe4dab), so the Playback group the "
+                       "code has since gained is missing here as it is there.")
         s.done()
     fr.close()
+    dark_theme(d, themes)
 
 
 # ───────────────────────────────────────────────────────────────── overlays
@@ -1162,6 +1219,7 @@ def build_first_run(B: "Builder"):
                         "two look cards stay side by side and share its width, and the button sits at the column's "
                         "width above the gesture area.")
     src = SRC + "ExpressiveOnboarding.kt · ExpressiveOnboarding"
+    themes = []
     for size in ("landscape", "portrait"):
         s = Screen(B, fr, f"first_run_look_{size}", "First run, Look", size, src)
         cw = 560
@@ -1183,6 +1241,7 @@ def build_first_run(B: "Builder"):
         d.set(sec, sizingH="fill")
         th = inst(d, "Connected button group", col, name="Theme", Options="3", Selected="3", On_cell="False")
         d.set(th, sizingH="fill")
+        themes.append((s.key, th))
         bb = d.frame(s.f, name="Bottom button", layout="h", pad=[8, 16, 24, 16], w=cw, x=x, y=s.H - GESTURE_H - 24 - 56 - 8,
                      sizing=("fixed", "hug"))
         b = inst(d, "Button", bb, name="Continue", Style="Filled", Size="Medium", Icon="None", State="Enabled", Squared="False")
@@ -1191,24 +1250,45 @@ def build_first_run(B: "Builder"):
         s.bars()
         s.done()
     fr.close()
+    dark_theme(d, themes)
 
 
 # ───────────────────────────────────────────────────────────────── Cover and Changelog
-VERSION, UPDATED = "1.1.0", "2026-11-25"
-CHANGES = ("Tablet layouts, proposed. Nothing in this entry is in the code yet; the frames are the drawing the "
-           "layouts will be built to (docs/design/2026-11-25-tablet/SPEC.md).\n"
-           "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
-           "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
-           "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
-           "lyrics, Settings, the track menu, the New playlist dialog and the first run's look step. Each frame carries "
-           "a Proposed annotation and no ready-for-development status.\n"
-           "• Components / Navigation: Navigation rail and Player bar.\n"
-           "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
-           "The phone screens are unchanged and still match ui-redesign at 4fe4dab.")
+VERSION, UPDATED = "1.1.1", "2026-11-25"
+CHANGES_1_1_0 = ("Tablet layouts, proposed. Nothing in this entry is in the code yet; the frames are the drawing the "
+                 "layouts will be built to (docs/design/2026-11-25-tablet/SPEC.md).\n"
+                 "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
+                 "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
+                 "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
+                 "lyrics, Settings, the track menu, the New playlist dialog and the first run's look step. Each frame carries "
+                 "a Proposed annotation and no ready-for-development status.\n"
+                 "• Components / Navigation: Navigation rail and Player bar.\n"
+                 "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
+                 "The phone screens are unchanged and still match ui-redesign at 4fe4dab.")
+CHANGES = ("The tablet layouts are in the code on feature/tablet-layouts, and the Tablet page now matches it. Where the "
+           "code and the 1.1.0 drawing disagreed, the frames follow the code.\n"
+           "• Every Tablet frame, Light and Dark: the Proposed annotation is gone and the frame is marked ready for "
+           "development. Frames that show the rail and the player carry a second Source line for ExpressiveWideShell.\n"
+           "• Portrait frames (a medium width): the floating mini player is 576dp wide, not 560.\n"
+           "• Now Playing / Portrait: the column is 576dp wide, not 608. The title, seek bar and tools are 528dp; the "
+           "cover's page is 488 by 480 with 40dp of the next cover after it.\n"
+           "• New playlist over the Library: the playlist's menu button sits at the end of its header's buttons, since "
+           "the detail beside the list has no bar. The same holds for Favourites.\n"
+           "• Navigation rail: the items are 63dp apart, not 64, so a label and the next pill are 12dp apart as in the "
+           "code.\n"
+           "• Home: the carousel's items take the widths the code gives them (three of 253dp, then 130 and 40, on the "
+           "Pad sideways).\n"
+           "• Settings and First run, Dark: the theme group selects Dark, as the Dark phone frames do.\n"
+           "• Navigation rail, Player bar and Now playing/Side panel: the descriptions no longer say Proposed.\n"
+           "Left as drawn because the difference is demo data: Home's shelves that are empty in the demo state, the "
+           "Playback group in Settings, and which line of the lyrics is being sung.")
+# Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
+ENTRIES = [("1.1.0", "2026-11-25", CHANGES_1_1_0), (VERSION, UPDATED, CHANGES)]
 
 
 def build_cover_changelog(d: Doc, ctx: dict):
-    """Version 1.1.0 on the Cover and at the top of the Changelog. An entry an earlier run added is replaced."""
+    """The version on the Cover and its entry at the top of the Changelog. The current version's entry is replaced if
+    an earlier run added it; an older entry is added only where the file lacks it."""
     d.page("Cover")
     for i in d.find(d.pages["Cover"], name="Chip · ", limit=20):
         nm = d.get(i).get("name", "")
@@ -1220,16 +1300,20 @@ def build_cover_changelog(d: Doc, ctx: dict):
             d.set(i, name=f"Chip · Last updated {UPDATED}")
     d.page("Changelog")
     col = [n["id"] for n in d.get(d.pages["Changelog"], depth=1).get("children", []) if n.get("name") == "Entries"][0]
-    for n in d.get(col, depth=1).get("children", []):
-        if n.get("name") == f"Entry · {VERSION}":
-            d.cmd("edit.delete", ids=[n["id"]])
     before = d.get(col)["height"]
-    e = d.instance("Changelog entry", col, name=f"Entry · {VERSION}")
     frames = sum(1 for s in d.screens.values() if s.get("page") == tk.PAGE)
-    d.cmd("instance.setProperties", ids=[e], properties={
-        "Version": VERSION, "Date": UPDATED, "Author": "Attic maintainers", "Changes": CHANGES.format(frames=frames)})
-    d.set(e, sizingH="fixed", width=1400)
-    d.cmd("node.reorder", id=e, index=0)
+    e = None
+    for version, date, changes in ENTRIES:
+        have = [n["id"] for n in d.get(col, depth=1).get("children", []) if n.get("name") == f"Entry · {version}"]
+        if have and version != VERSION:
+            continue
+        if have:
+            d.cmd("edit.delete", ids=have)
+        e = d.instance("Changelog entry", col, name=f"Entry · {version}")
+        d.cmd("instance.setProperties", ids=[e], properties={
+            "Version": version, "Date": date, "Author": "Attic maintainers", "Changes": changes.format(frames=frames)})
+        d.set(e, sizingH="fixed", width=1400)
+        d.cmd("node.reorder", id=e, index=0)
     # The card under the entries moves down by what the column grew.
     grew = d.get(col)["height"] - before
     cy = d.get(col)["y"]
@@ -1237,6 +1321,7 @@ def build_cover_changelog(d: Doc, ctx: dict):
         if n["id"] != col and n.get("y", 0) > cy + before - 1 and n.get("x", 0) < 1500:
             d.set(n["id"], y=n["y"] + grew)
     ctx["exports"]["changelog-entry"] = e
+    ctx["exports"]["changelog"] = col
     ctx["exports"]["cover"] = [n["id"] for n in d.get(d.pages["Cover"], depth=1).get("children", [])][0]
 
 

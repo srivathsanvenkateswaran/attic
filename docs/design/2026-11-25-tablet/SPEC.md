@@ -53,8 +53,8 @@ Each frame starts with a status bar across its full width (24 dp on a tablet) an
 gesture handle (20 dp), both from the style's system-bar components, stretched.
 
 The screen margin is 24 dp on medium and expanded windows. The phone components carry 16 dp, so a
-destination adds 8 dp at each side. Shelves that scroll sideways start at the margin and run on to the
-window's end edge.
+destination adds 8 dp at each side. Shelves that scroll sideways start at the margin. Expressive's run on
+to the window's end edge; Comfort's stop where the page's column does, 8 dp before it.
 
 ## The shell
 
@@ -99,7 +99,7 @@ no separate seek line: the played-so-far fill across the card is its progress, a
 another scale read as a mistake.
 
 On medium widths the mini player is the phone's, at most 576 dp wide (so on the Pad upright it lines up
-with the 24 dp margins of the 624 dp content area; the frames draw 560), centred in the content area,
+with the 24 dp margins of the 624 dp content area), centred in the content area,
 12 dp above the gesture inset. Expressive draws the gesture inset in the page colour so the page does
 not show under the handle; Comfort puts the mini player in its dock card over the dock's fade.
 
@@ -121,7 +121,8 @@ simply show more items. Everything that is a single full-width block on a phone 
   under 280 dp;
 - Instant mixes take three equal columns (Expressive on medium and expanded; Comfort three on
   expanded and two on medium, where three truncate the titles). Four columns truncate "Platform Ettu"
-  at 1152 dp. Mixes stays a shelf, as the code builds it;
+  at 1152 dp. Comfort's columns are cards of song rows, filled top to bottom. Mixes stays a shelf, as
+  the code builds it;
 - Start listening takes two columns on expanded widths, one on medium;
 - album, artist and folder grids (the filter chips) use adaptive columns, a cell at least 160 dp wide;
 - Expressive's filter is at most 480 dp wide, at the start, and its "More from" block at most 720 dp;
@@ -136,7 +137,8 @@ simply show more items. Everything that is a single full-width block on a phone 
 is expanded and wider than it is tall (the Pad in landscape) the Library is list and detail: the list
 in a 400 dp pane at the start, and the album, artist or playlist it opened in the pane beside it, the
 first item selected on arrival. The pane is 400 rather than 360 dp because the filter chips need
-372 dp with one of them on. The selected row takes the colours a playing song's row has. The detail
+372 dp with one of them on. The selected row takes the colours a playing song's row has; in Comfort's
+grid view the open tile sits on the same bed, reaching 6 dp past the tile. The detail
 pane is about 650 dp wide on the Pad, so the detail takes its header-row layout; at 1440 dp it is wide
 enough for two panes. The detail has no back button, since the list is beside it. Comfort's list pane
 uses the collapsed bar instead of the hero, which would leave four rows at 720 dp. Narrower or
@@ -155,8 +157,10 @@ least 180 dp wide. Results keep their sections; song and album rows sit in adapt
   least 360 dp wide (two columns at 1440 dp), filled top to bottom. An artist's end pane holds Top
   songs, then Albums in adaptive columns. A playlist's Add songs and Reorder songs sit above its songs.
   Expressive draws the header as a card on the cover's scheme (32 dp corners, hugging its content,
-  the cover 288 dp in a 360 dp pane) and puts back and the menu above the songs. Comfort's bar spans
-  the pane with back at the start edge, because back above the songs sat mid-screen.
+  the cover 288 dp in a 360 dp pane) and puts back and the menu above the songs; beside the Library's
+  list, where the detail has no bar, a playlist's or Favourites' menu button sits at the end of the
+  header's buttons. Comfort's bar spans the pane with back at the start edge, because back above the
+  songs sat mid-screen. It never shows the collection's name, since the header stays in view.
 - Pane narrower than 760 dp: one column, the header as a row (cover 200 dp at the start, title,
   details and buttons beside it) instead of stacked, then the songs.
 

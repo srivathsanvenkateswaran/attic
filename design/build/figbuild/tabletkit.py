@@ -1,6 +1,7 @@
 """What the two styles' tablet modules share: the frame sizes of docs/design/2026-11-25-tablet/SPEC.md,
-the Tablet page, the Light-over-Dark sections, the annotations every proposed frame carries, removal
-of what an earlier run added (so a module can run twice), and the layer hygiene check.
+the Tablet page, the Light-over-Dark sections, the annotations and the ready-for-development status every
+frame carries now that the layouts are in the code, removal of what an earlier run added (so a module can run
+twice), and the layer hygiene check.
 
 Lengths are dp. A frame is one window: 1152 x 720 (Landscape, the Pad 6 sideways), 720 x 1152 (Portrait,
 the Pad 6 upright, a medium width) or 1440 x 900 (Large landscape).
@@ -18,8 +19,6 @@ SIZES = {
     "large": (1440, 900, "Large landscape"),        # a smaller display size, or a bigger tablet
 }
 EXPORT_SCALE = 2.5               # the Pad 6's density
-PROPOSED = ("Proposed: tablet layout from docs/design/2026-11-25-tablet/SPEC.md. It is not in the code yet, so "
-            "this frame is not marked ready for development.")
 DEFAULT_NAMES = ("Frame", "Rectangle", "Group", "Ellipse", "Vector", "Text", "Line", "Polygon", "Star", "Section",
                  "Component", "Instance", "Image")
 
@@ -72,22 +71,29 @@ class Frames:
         w, h0, label = SIZES[size]
         h = h or h0
         kw = {"fill": fill} if fill is not None else {}
-        fid = self.area.screen(key, name=f"{screen} / {label}{suffix}", source=source, w=w, h=h, status="proposed", **kw)
+        fid = self.area.screen(key, name=f"{screen} / {label}{suffix}", source=source, w=w, h=h, status="ready", **kw)
         s = self.d.screens[key]
         s["area"], s["size"] = self.key, size
         return fid, w, h
 
-    def annotate(self, key: str, *notes: str):
-        """Source and Proposed on a finished Light frame (the Dark copy takes them with it), plus Content notes."""
+    def annotate(self, key: str, *notes: str, shell: str | None = None):
+        """Source on a finished Light frame (the Dark copy takes it with it), plus Content notes. `shell` is a second
+        Source line for a frame that shows the wide shell around its destination."""
         d = self.d
         s = d.screens[key]
         d.annotate(s["light"], f"Compose: {s['source']}", "Source")
-        d.annotate(s["light"], PROPOSED, "Proposed")
+        if shell:
+            d.annotate(s["light"], f"Shell: {shell}", "Source")
         for n in notes:
             d.annotate(s["light"], n, "Content")
 
     def close(self) -> int:
-        return self.area.close()
+        """Dark copies under the Light row, then every frame of the section marked ready for development: the
+        layouts are in the code (feature/tablet-layouts)."""
+        sec = self.area.close()
+        d = self.d
+        d.ready_for_dev([d.screens[k][t] for k in self.area.keys for t in ("light", "dark") if d.screens[k].get(t)])
+        return sec
 
 
 def hygiene(d: Doc, roots: dict[str, int]) -> dict:

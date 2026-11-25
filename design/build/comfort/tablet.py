@@ -8,9 +8,10 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens. Nothing here is in the code yet, so each frame carries a
-`Proposed` annotation and no ready-for-development status. Running it again deletes the Tablet page, the components
-below and the 1.1.0 changelog entry, and draws them again.
+Light above Dark, on a page named Tablet after Screens. The layouts are in the code on feature/tablet-layouts, so
+each frame carries its Source annotation and is marked ready for development; where the code and the first drawing
+disagreed, the frames follow the code (the 1.1.1 changelog entry lists what moved). Running it again deletes the
+Tablet page, the components below and the current version's changelog entry, and draws them again.
 
 Components / Navigation
   Side dock/Tab          one tab of ComfortSideDock (SideDock.kt)  Selected=False|True.  props Label, Icon (swap).
@@ -30,7 +31,7 @@ Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyric
 Geometry (dp). The side dock is 80 wide, 12 from the start edge, 12 under the status bar and 12 over the gesture
 inset. A destination's column starts at 100 and stops 8 before the end edge; Comfort's components carry the phone's
 16dp card margin, so cards run from 116 (24 after the dock) to 24 before the end edge. Shelves start 8 further in, as
-on the phone, and run on to the end edge.
+on the phone, and stop where the column does, 8 before the end edge.
 """
 from __future__ import annotations
 
@@ -46,13 +47,13 @@ from comfort.components_states import setp, inst, group, row
 from comfort.foundations import _modes
 
 SRC = "ui/comfort/"
-VERSION, UPDATED = "1.1.0", "2026-11-25"
+VERSION, UPDATED = "1.1.1", "2026-11-25"
 DOCK_X, DOCK_W, DOCK_GAP = 12, 80, 12
 X0 = 100                         # a destination's column: 8 after the dock's end edge
 END = 8                          # and 8 before the window's end edge
 BAR_H = 76                       # the player bar's card
 BAR_GAP = 12                     # over the gesture inset
-MINI_W = 560
+MINI_W = 576                     # MiniPlayerMaxWidthDp: the floating mini player's widest
 FRACTION = 78.5 / 232            # the demo song at 1:18.5 of 3:52
 WASH = "Tinted wash"
 
@@ -128,7 +129,7 @@ def build_components(d: Doc, ctx: dict):
     sb = SetBuilder(cc, "Side dock/Tab", "SideDock.kt · ComfortSideDock", "ComfortSideDock",
                     "One tab of the side dock: a 64 x 56 cell, the icon over its 12/15 label, 2dp apart, centred. "
                     "Selected: accent-soft (the selection fill of the bottom dock's tabs) with the control radius, a "
-                    "filled icon and a bold label in on-accent-soft; else on-2. Proposed; not in the code yet.")
+                    "filled icon and a bold label in on-accent-soft; else on-2.")
     for sel in (False, True):
         c = sb.variant({"Selected": str(sel)}, layout="v", w=64, h=56, gap=2, main="center", cross="center",
                        fill="Color/accent-soft" if sel else None, sizing=("fixed", "fixed"))
@@ -146,7 +147,7 @@ def build_components(d: Doc, ctx: dict):
                     "bar and 12 over the gesture inset, so it is as tall as the window allows (652 at 720). The mark "
                     "(30dp) is 20dp from the top; Home, Search and Library follow 20dp under it as Side dock/Tab cells, "
                     "4dp apart. The player is not in it: expanded windows show the Player bar, medium ones the mini "
-                    "player. Proposed; not in the code yet.")
+                    "player.")
     for tab, _ in TABS:
         c = sb.variant({"Selected": tab}, layout="v", w=DOCK_W, h=652, pad=[20, 8, 16, 8], gap=4, cross="center",
                        fill="Color/raised", stroke="Color/edge", stroke_w=1, strokeAlign="inside", clip=True,
@@ -171,7 +172,7 @@ def build_components(d: Doc, ctx: dict):
                     "Start: the cover at 52dp, title over artist. Centre: the elapsed time, previous, play or pause and "
                     "next (30, 36 and 30dp glyphs in on, 48dp targets), the length. End: favourite, queue, lyrics. The "
                     "start and end groups share the width equally, so the centre group sits in the middle. Tapping the "
-                    "cover or the titles opens Now Playing. Proposed; not in the code yet.")
+                    "cover or the titles opens Now Playing.")
     for playing in (True, False):
         w = 1012
         c = sb.variant({"State": "Playing" if playing else "Paused"}, layout="h", w=w, h=BAR_H, pad=[0, 12, 0, 12], gap=16,
@@ -219,7 +220,7 @@ def build_components(d: Doc, ctx: dict):
     sb = SetBuilder(cc, "Now playing/Side panel", "ComfortNowPlayingWide.kt · ComfortNowPlayingWide", "ComfortNowPlayingWide",
                     "The switch at the top of Now Playing's end half on an expanded landscape window: two sub-tabs, Up "
                     "next (the queue) and Lyrics (the synced lyrics), the selected one bold with the accent underline. "
-                    "Proposed; not in the code yet.")
+                    "It starts 8dp into the half, in a 60dp row under the status bar whose last 6dp are empty.")
     for sel in ("Up next", "Lyrics"):
         c = sb.variant({"Selected": sel}, layout="h", gap=2, sizing=("hug", "hug"))
         for lab in ("Up next", "Lyrics"):
@@ -243,6 +244,7 @@ class Screen:
         self.expanded = self.W >= 840           # Material's expanded width: the player bar; below it the mini player
         self.cw = self.W - X0 - END             # the column's width: a phone screen this wide
         self.notes: list[str] = []
+        self.shell_src: str | None = None       # set by shell(): the frame shows the dock and the player
         if wash:
             self.d.set_mode(self.f, "Color", WASH)
 
@@ -263,6 +265,8 @@ class Screen:
     def shell(self, *, player=True, dock=True, bars=True):
         d, f, W, H = self.d, self.f, self.W, self.H
         T = self.T
+        if player or dock:
+            self.shell_src = SRC + "ComfortShellWide.kt · ComfortWideShell"
         if player and self.expanded:
             # Content fades to the ground over the 36dp above the bar, as it does above the phone's dock.
             top = H - GESTURE_H - BAR_GAP - BAR_H
@@ -306,7 +310,7 @@ class Screen:
         d.set(s, width=W, height=STATUS_H)
 
     def done(self):
-        self.fr.annotate(self.key, *self.notes)
+        self.fr.annotate(self.key, *self.notes, shell=self.shell_src)
 
 
 class Tablet:
@@ -359,9 +363,10 @@ class Tablet:
         return self.d.frame(col, name=name or f"Space {h}", w=10, h=h)
 
     def shelf(self, col, makers, width, name="Shelf", pad=24):
-        """A shelf that scrolls sideways: it starts 24 in and runs on past the column to the window's end edge."""
+        """A shelf that scrolls sideways: it starts 24 in and is cut where the column ends, 8 before the window's end
+        edge (the code's shelves are rows of the destination's column and don't bleed past it)."""
         d = self.d
-        s = d.frame(col, name=name, layout="h", gap=14, pad=[0, 0, 0, pad], w=width, clip=False, sizing=("fixed", "hug"),
+        s = d.frame(col, name=name, layout="h", gap=14, pad=[0, 0, 0, pad], w=width, clip=True, sizing=("fixed", "hug"),
                     cross="min")
         for m in makers:
             m(s)
@@ -474,9 +479,11 @@ def build_home(T: Tablet):
     d = T.d
     fr = tk.Frames(d, T.ctx, "Home", "home",
                    note="Home on a tablet. The dock carries the mark, so the hero is the title alone, the short one in a "
-                        "window under 840dp tall. The shortcuts tray is six across. Instant mixes shows its pager's pages "
-                        "side by side as three equal columns (two on a medium width); the Recap entry stays a row across the page. Shelves run on "
-                        "to the end edge and show more. Start listening takes two columns on expanded widths.")
+                        "window under 840dp tall. The shortcuts tray is six across. Instant mixes sits in three equal "
+                        "cards (two on a medium width), filled top to bottom, so the first songs head the first card; the "
+                        "Recap entry stays a row across the page. Shelves show more and stop where the page's column "
+                        "does, 8dp before the end edge. Start listening takes two columns on expanded widths. Upright, "
+                        "a medium width, the mini player floats in the dock's card, 576dp wide.")
     src = SRC + "ComfortHome.kt · ComfortHome"
     for size in ("landscape", "portrait", "large"):
         s = Screen(T, fr, f"home_{size}", "Home", size, src)
@@ -568,8 +575,10 @@ def build_library(T: Tablet):
     fr = tk.Frames(d, T.ctx, "Library", "library",
                    note="Library on a tablet. Sideways it is list and detail: the list in a 400dp pane under the collapsed "
                         "bar (the hero would leave four rows at 720dp), the open album beside it, laid out for the width "
-                        "of that pane, and the open row on the bed a playing song has. Upright it is the phone's page, "
-                        "its rows in one column because two would be under 360dp each.")
+                        "of that pane, and the open row on the bed a playing song has. In the pane's grid view the open "
+                        "tile gets a bed too, accent-soft reaching 6dp past the tile on every side with the control "
+                        "radius; no frame shows that view. Upright it is the phone's page, its rows in one column "
+                        "because two would be under 360dp each.")
     for size in ("landscape", "large"):
         s = Screen(T, fr, f"library_{size}", "Library", size, "ui/LibraryPanes.kt · LibraryListDetail", tab="Library")
         library_list_pane(T, s, X0, LIB_PANE)
@@ -577,6 +586,9 @@ def build_library(T: Tablet):
         s.shell()
         s.notes.append("Albums chip on; Paper Lanterns, the first album, is selected on arrival and open beside the "
                        "list. The detail has no back: the list is beside it.")
+        s.notes.append("The list pane is ui/comfort/ComfortLibraryPanes.kt · ComfortLibraryListPane. Its open row sits on "
+                       "selectedBed(). With the grid view on, the open tile sits on selectedTileBed(): accent-soft, 6dp "
+                       "past the tile on every side, the control radius.")
         s.done()
     s = Screen(T, fr, "library_portrait", "Library", "portrait", SRC + "ComfortLibrary.kt · ComfortLibrary", tab="Library")
     col = s.column()
@@ -592,7 +604,7 @@ def build_library(T: Tablet):
 
 
 # ───────────────────────────────────────────────────────────────── Collections
-COLL = SRC + "ComfortCollectionPanes.kt · ComfortCollectionPanes"
+COLL = {kind: SRC + f"ComfortCollectionPanes.kt · Comfort{kind.capitalize()}Panes" for kind in ("album", "artist", "playlist")}
 TWO_PANE = 760
 
 
@@ -723,14 +735,16 @@ def build_collections(T: Tablet):
                    note="Album, artist and playlist on a tablet. A pane 760dp or wider is two panes under one bar: the "
                         "header (cover up to 296, name, details, the Play row) in a start pane of 360, or 320 under "
                         "1000, and the songs beside it in columns at least 360 wide. A narrower pane, a tablet held upright, "
-                        "puts the header in a row: the cover at 200, the name, details and Play row beside it.")
+                        "puts the header in a row: the cover at 200, the name, details and Play row beside it. The bar "
+                        "holds back and, for a playlist or Favourites, the menu. It never shows the collection's name: "
+                        "over two panes the header stays in view, and it doesn't lift when the songs scroll.")
     for size in ("landscape", "portrait", "large"):
-        s = Screen(T, fr, f"album_{size}", "Album", size, COLL, tab="Library")
+        s = Screen(T, fr, f"album_{size}", "Album", size, COLL["album"], tab="Library")
         collection(T, s, X0, s.cw, "album")
         s.shell()
         s.done()
     for kind, name in (("artist", "Artist"), ("playlist", "Playlist")):
-        s = Screen(T, fr, f"{kind}_landscape", name, "landscape", COLL, tab="Home" if kind == "artist" else "Library")
+        s = Screen(T, fr, f"{kind}_landscape", name, "landscape", COLL[kind], tab="Home" if kind == "artist" else "Library")
         collection(T, s, X0, s.cw, kind, more=kind == "playlist")
         s.shell()
         s.done()
@@ -749,7 +763,7 @@ def build_search(T: Tablet):
         s = Screen(T, fr, f"search_{size}", "Search, results", size, src, tab="Search")
         col = s.column(y=STATUS_H + 56 + 64)
         sh = cb._result_shelf(b, col, res)
-        d.set(sh, width=s.cw, clip=False, paddingRight=0)
+        d.set(sh, width=s.cw, clip=True, paddingRight=0)
         T.label(col, "Songs", s.cw)
         card = s.card
         cols = song_columns(card)
@@ -797,25 +811,30 @@ def np_player(T: Tablet, s: Screen, x: float, width: float, cover: float, *, hea
               spread=False):
     """Now Playing's first page in a column `width` wide (cover + 60, as the phone's 411 is 351 + 60) starting at x:
     the header, the cover, the title, and the deck at the bottom over the gesture inset. `spread` puts the cover and
-    title halfway between the header and the deck, where a tall window leaves room."""
+    title halfway between the header and the deck, where a tall window leaves room: the code puts one weighted space
+    over the cover and one under the line being sung, counts the deck's 16dp margin with the deck, and drops the 4dp
+    the cover otherwise has over it."""
     d, ps = T.d, T.ps
     f = s.f
     hd = ps.inst("Now playing header", f, x=x if header_x is None else header_x, y=STATUS_H, name="Header",
                  props={"Context": "Paper Lanterns"}, w=header_w or width)
     deck_y = s.H - GESTURE_H - 16 - DECK_H
     top = STATUS_H + 60
+    lead = 4
     if spread:
-        top += round((deck_y - top - (4 + cover + 74 + (30 if lyric else 0))) / 2)
-    cv = d.instance("Cover/Album", f, name="Cover", x=x + 30, y=top + 4)
+        top += round((deck_y - 16 - top - (cover + 74 + (28 if lyric else 0))) / 2)
+        lead = 0
+    cv = d.instance("Cover/Album", f, name="Cover", x=x + 30, y=top + lead)
     T.b.art(cv, [0], cover)
-    tt = ps.inst("Now playing title", f, x=x, y=top + 4 + cover, name="Title", w=width)
+    tt = ps.inst("Now playing title", f, x=x, y=top + lead + cover, name="Title", w=width)
     if lyric:
-        ps.inst("Now playing lyric", f, x=x, y=top + 4 + cover + 74, name="Lyric", w=width)
+        ps.inst("Now playing lyric", f, x=x, y=top + lead + cover + 74, name="Lyric", w=width)
     deck(T, f, x + 16, deck_y, width - 32)
 
 
 def np_switch(T: Tablet, s: Screen, x: float, selected: str):
-    sw = T.d.instance("Now playing/Side panel", s.f, name="Side panel switch", x=x + 18, y=STATUS_H + 6)
+    """The switch in the panel's 60dp head: 8dp into the half, centred in the 54dp the head's 6dp bottom padding leaves."""
+    sw = T.d.instance("Now playing/Side panel", s.f, name="Side panel switch", x=x + 8, y=STATUS_H + 3)
     T.d.cmd("instance.setProperties", ids=[sw], properties={"Selected": selected})
     return sw
 
@@ -873,7 +892,7 @@ def np_lyrics(T: Tablet, s: Screen, x: float, width: float):
     lyric_lines(T, clip, 16, 20, width - 32)
     T.fade(f, x=x, y=top, w=s.W - x, h=56, top_clear=False, name="Fade under the switch")
     T.fade(f, x=x, y=s.H - GESTURE_H - 96, w=s.W - x, h=96 + GESTURE_H, stop=96 / (96 + GESTURE_H), name="Fade at the end")
-    ob = T.ps.inst("Icon button", f, x=x + width - 16 - 48, y=STATUS_H + 6, name="Open full screen")
+    ob = T.ps.inst("Icon button", f, x=x + width - 8 - 48, y=STATUS_H + 3, name="Open full screen")
     T.b.swap_icon(ob, "Icon/open_in_full")
 
 
@@ -884,7 +903,8 @@ def build_now_playing(T: Tablet):
                         "halves: the player at the start, its cover as large as the height leaves (280 at 720dp, 440 at "
                         "900), and at the end a panel that switches between Up next and Lyrics. The line sung over the "
                         "title is left out there, since Lyrics is one tap away. Upright it is the phone's page in a "
-                        "column 540 wide, the cover at 480, halfway between the header and the deck.")
+                        "column 540 wide (it may be up to 576; the cover stops at 480 and the column is the cover plus "
+                        "60), the cover and title halfway between the header and the deck.")
     for size, cover in (("landscape", 280), ("large", 440)):
         s = Screen(T, fr, f"now_playing_up_next_{size}", "Now Playing, Up next", size, NP_WIDE, wash=True)
         half = s.W / 2
@@ -914,10 +934,10 @@ def build_now_playing(T: Tablet):
 def build_lyrics(T: Tablet):
     d, ps, b = T.d, T.ps, T.b
     fr = tk.Frames(d, T.ctx, "Lyrics", "lyrics",
-                   note="Full-screen lyrics sideways: a 360dp start pane with the cover, the title, the seek bar and the "
-                        "play controls in one card, and the lines beside it in a column 640 wide. The phone's mini player "
-                        "row at the bottom is not needed: the start pane has the controls.")
-    s = Screen(T, fr, "lyrics_landscape", "Lyrics", "landscape", SRC + "ComfortLyrics.kt · ComfortLyrics", wash=True)
+                   note="Full-screen lyrics sideways: a 360dp start pane with the bar, the cover, the title, and the seek "
+                        "bar over previous, play or pause and next in one card, and the lines beside it in a column 640 "
+                        "wide. The phone's mini player row at the bottom is not needed: the start pane has the controls.")
+    s = Screen(T, fr, "lyrics_landscape", "Lyrics", "landscape", SRC + "ComfortLyricsWide.kt · ComfortLyricsWide", wash=True)
     f, pane = s.f, 360
     rest = s.W - pane
     lw = min(640, rest - 48)
@@ -968,8 +988,8 @@ def build_settings(T: Tablet):
             elif abs(w - 411) < 1:
                 d.set(c["id"], width=colw)
         s.shell()
-        s.notes.append("Drawn from the phone frame's list (ui-redesign at 4fe4dab); the Playback group this branch adds "
-                       "to Settings is not in it.")
+        s.notes.append("Drawn from the phone frame's list (ui-redesign at 4fe4dab), so the Playback group the code has "
+                       "since gained is missing here as it is there.")
         s.done()
     fr.close()
     ss.dark_theme(keys)
@@ -1015,12 +1035,13 @@ def build_overlays(T: Tablet):
     sbar = d.instance("Status bar", s.f, name="Status bar", x=0, y=0)
     d.set(sbar, width=s.W, height=STATUS_H)
     ps.inst("Scrim", s.f, name="Scrim", w=s.W, h=s.H)
-    dl = cp._dialog(d, ps, s.f, content="Field", title="New playlist")
+    dl = cp._dialog(d, ps, s.f, content="Field", confirm="Disabled", title="New playlist")
     d.set(dl, width=400)
     d.set(dl, x=(s.W - 400) / 2, y=round((s.H - d.get(dl)["height"]) / 2))
     g = d.instance("Gesture bar", s.f, name="Gesture bar", x=0, y=s.H - GESTURE_H)
     d.set(g, width=s.W, height=GESTURE_H)
-    s.notes.append("On the phone Comfort's dialog sits at the bottom edge; on a tablet it is in the middle of the window.")
+    s.notes.append("On the phone Comfort's dialog sits at the bottom edge; on a tablet it is in the middle of the window. "
+                   "Create stays disabled until there is a name.")
     s.done()
     fr.close()
     cp._dark_sheet_fix(d, ps, "sheet_track_menu_landscape")
@@ -1101,7 +1122,7 @@ def build_first_run(T: Tablet):
 
 
 # ───────────────────────────────────────────────────────────────── cover, changelog, links, hygiene
-CHANGES = [
+CHANGES_1_1_0 = [
     "Tablet page: Home, Library, Search, album, artist, playlist, Now Playing, lyrics, Settings, a sheet, a dialog and "
     "the first run's look step, at 1152 x 720 (a tablet sideways), 720 x 1152 (upright) and 1440 x 900, Light and Dark.",
     "Components: Side dock and Side dock/Tab, Player bar (Components / Navigation); Now playing/Side panel "
@@ -1109,10 +1130,33 @@ CHANGES = [
     "All of it is proposed from docs/design/2026-11-25-tablet/SPEC.md and is not in the code yet: the frames carry a "
     "Proposed annotation and are not marked ready for development.",
 ]
+CHANGES = [
+    "The tablet layouts are in the code on feature/tablet-layouts, and the Tablet page now matches it. Every Tablet "
+    "frame, Light and Dark, loses its Proposed annotation and is marked ready for development. Frames that show the "
+    "dock and the player carry a second Source line for ComfortWideShell.",
+    "Source annotations name the composables the code has: ComfortAlbumPanes, ComfortArtistPanes and "
+    "ComfortPlaylistPanes for the collections, ComfortLyricsWide for full-screen lyrics.",
+    "Portrait frames (a medium width): the floating mini player is 576dp wide, not 560.",
+    "Home and Search: shelves stop where the page's column does, 8dp before the window's end edge. They used to run "
+    "on to the edge.",
+    "Now Playing: upright, the cover and title sit 9dp higher, halfway between the header and the deck's margin. "
+    "Sideways, the Up next and Lyrics switch starts 8dp into the end half and sits 3dp higher, and the full-screen "
+    "button ends 16dp before the end edge.",
+    "New playlist over the Library: Create is disabled until there is a name.",
+    "Notes now record what no frame shows: in the Library's list pane the open tile of the grid view sits on a "
+    "selection bed, and a collection's bar never shows its name. Instant mixes fill their cards top to bottom, as "
+    "they were drawn.",
+    "Side dock, Side dock/Tab, Player bar and Now playing/Side panel: the descriptions no longer say Proposed.",
+    "Left as drawn because the difference is demo data: Home's shelves that are empty in the demo state, the Playback "
+    "group in Settings, and which line of the lyrics is being sung.",
+]
+# Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
+ENTRIES = [("1.1.0", "2026-11-25", CHANGES_1_1_0), (VERSION, UPDATED, CHANGES)]
 
 
 def build_cover(d: Doc, ctx: dict):
-    """Version 1.1.0 on the Cover and at the top of the Changelog; a second run replaces the entry."""
+    """The version on the Cover and its entry at the top of the Changelog. The current version's entry is replaced if
+    an earlier run added it; an older entry is added only where the file lacks it."""
     d.page("Cover")
     cover = next(c["id"] for c in top_children(d, "Cover") if c.get("name") == "Cover")
     for label, value in (("Version", VERSION), ("Last updated", UPDATED)):
@@ -1129,7 +1173,7 @@ def build_cover(d: Doc, ctx: dict):
         names = [c.get("name") for c in d.get(tbl, depth=1).get("children", [])]
         r = d.frame(tbl, name="Page: Tablet", layout="h", gap=24, sizing=("fill", "hug"))
         d.text(r, "Tablet", style="Doc/Label", color="Canvas/label", name="Page", width=220, textAutoResize="height")
-        t = d.text(r, "The screens on medium and expanded windows, Light row above Dark row. Proposed; not in the code yet.",
+        t = d.text(r, "The screens on medium and expanded windows (tablets), Light row above Dark row.",
                    style="Doc/Body", color="Canvas/label", name="What", textAutoResize="height")
         d.set(t, sizingH="fill")
         if "Page: Screens" in names:
@@ -1137,23 +1181,28 @@ def build_cover(d: Doc, ctx: dict):
     d.page("Changelog")
     kids = {c.get("name"): c["id"] for c in top_children(d, "Changelog")}
     col, howto = kids["Entries"], kids.get("How to add an entry")
-    for c in d.get(col, depth=1).get("children", []):
-        if c.get("name") == f"Entry {VERSION}":
-            d.cmd("edit.delete", ids=[c["id"]])
-    i = d.instance("Doc/Changelog entry", col, name=f"Entry {VERSION}")
-    d.cmd("instance.setProperties", ids=[i], properties={"Version": VERSION, "Date": UPDATED, "Author": "Attic maintainers",
-                                                          "Changes": "\n".join(CHANGES)})
-    d.set(i, sizingH="fill")
-    d.set(d.child(i, "Changes"), listStyle="bulleted", paragraphSpacing=10)
-    # Newest on top: the column lists its layers bottom first, so the top entry is the last index.
-    first = d.get(col, depth=1)["children"][0]["id"]
-    if d.get(first)["y"] <= d.get(i)["y"] and first != i:
-        d.cmd("node.reorder", id=i, index=0)
-        if d.get(i)["y"] > 1:
-            d.cmd("node.reorder", id=i, index=len(d.get(col, depth=1)["children"]) - 1)
+    for version, date, changes in ENTRIES:
+        have = [c["id"] for c in d.get(col, depth=1).get("children", []) if c.get("name") == f"Entry {version}"]
+        if have and version != VERSION:
+            continue
+        if have:
+            d.cmd("edit.delete", ids=have)
+        i = d.instance("Doc/Changelog entry", col, name=f"Entry {version}")
+        d.cmd("instance.setProperties", ids=[i], properties={"Version": version, "Date": date, "Author": "Attic maintainers",
+                                                              "Changes": "\n".join(changes)})
+        d.set(i, sizingH="fill")
+        d.set(d.child(i, "Changes"), listStyle="bulleted", paragraphSpacing=10)
+        # Newest on top: the column lists its layers bottom first, so the top entry is the last index.
+        first = d.get(col, depth=1)["children"][0]["id"]
+        if d.get(first)["y"] <= d.get(i)["y"] and first != i:
+            d.cmd("node.reorder", id=i, index=0)
+            if d.get(i)["y"] > 1:
+                d.cmd("node.reorder", id=i, index=len(d.get(col, depth=1)["children"]) - 1)
     if howto:
         g = d.get(col)
         d.set(howto, y=g["y"] + g["height"] + 80)
+    ctx["exports"]["changelog"] = col
+    ctx["exports"]["cover"] = cover
 
 
 def build_links(T: Tablet):
