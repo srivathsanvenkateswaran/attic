@@ -54,11 +54,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.CoverToFit
 import app.attic.player.ui.adaptive.LocalWindowLayout
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import app.attic.player.data.LrcParser
@@ -378,38 +378,60 @@ private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions,
             .pointerInput(Unit) { detectTapGestures { } }
             .padding(top = status + 8.dp),
     ) {
-        Column(
+        BoxWithConstraints(
             Modifier
                 .width(LyricsPaneWidth)
                 .fillMaxHeight()
-                .padding(start = 24.dp, end = 8.dp, bottom = nav + 8.dp)
-                .clip(RoundedCornerShape(ExpressiveShapes.ExtraLarge))
-                .background(colors.surfaceContainer)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(start = 24.dp, end = 8.dp, bottom = nav + 8.dp),
         ) {
-            ExpressiveIconButton(Symbol.KeyboardArrowDown, stringResource(R.string.lyrics_close_cd), actions.close)
-            Spacer(Modifier.height(4.dp))
-            Cover(Art.of(track.mediaId), Modifier.fillMaxWidth().aspectRatio(1f), shape = RoundedCornerShape(ExpressiveShapes.ExtraLarge))
-            Column(Modifier.padding(top = 16.dp)) {
-                Text(
-                    track.title,
-                    style = Expressive.type.titleLargeEmphasized,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    track.artist,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = colors.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            val paneHeight = maxHeight
+            val paneWidth = maxWidth
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(ExpressiveShapes.ExtraLarge))
+                    .background(colors.surfaceContainer)
+                    .verticalScroll(rememberScrollState())
+                    .padding(PaneCardPadding),
+            ) {
+                // The cover is as wide as the card, unless the window is too short for that and the
+                // controls: then it narrows, centred, and under 96dp it is left out.
+                CoverToFit(
+                    height = paneHeight - PaneCardPadding * 2,
+                    maxCover = paneWidth - PaneCardPadding * 2,
+                    minCover = MinPaneCover,
+                    orNone = true,
+                ) { cover ->
+                    ExpressiveIconButton(Symbol.KeyboardArrowDown, stringResource(R.string.lyrics_close_cd), actions.close)
+                    Spacer(Modifier.height(4.dp))
+                    if (cover > 0.dp) {
+                        Cover(
+                            Art.of(track.mediaId),
+                            Modifier.size(cover).align(Alignment.CenterHorizontally),
+                            shape = RoundedCornerShape(ExpressiveShapes.ExtraLarge),
+                        )
+                    }
+                    Column(Modifier.padding(top = 16.dp)) {
+                        Text(
+                            track.title,
+                            style = Expressive.type.titleLargeEmphasized,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            track.artist,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    PaneSeek(state, actions, track)
+                    Spacer(Modifier.height(16.dp))
+                    Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
+                }
             }
-            Spacer(Modifier.height(8.dp))
-            PaneSeek(state, actions, track)
-            Spacer(Modifier.height(16.dp))
-            Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
         }
         Box(Modifier.weight(1f).fillMaxHeight().padding(bottom = nav).fadeEdges()) {
             LyricsBody(
@@ -425,6 +447,10 @@ private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions,
 }
 
 private val LyricsPaneWidth = 360.dp
+
+/** The start pane card's padding, and the smallest its cover gets on a short window before it is left out. */
+private val PaneCardPadding = 16.dp
+private val MinPaneCover = 96.dp
 
 /** The seek bar and the times in the start pane. The elapsed time follows a drag. */
 @Composable

@@ -36,14 +36,20 @@ import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.formatDuration
 import app.attic.player.ui.model.LyricsScreenActions
 import app.attic.player.ui.model.LyricsScreenState
+import app.attic.player.ui.adaptive.CoverToFit
 import app.attic.player.ui.rememberPosition
 
 /** The start pane of full-screen lyrics beside the lines. */
 private val LyricsPane = 360.dp
 
+/** The start pane's cover, and the smallest it gets on a short window before it is left out. */
+private val PaneCover = 264.dp
+private val MinPaneCover = 96.dp
+
 /**
  * Full-screen lyrics on an expanded window wider than it is tall (docs/design/2026-11-25-tablet/SPEC.md,
- * Full-screen lyrics). A 360dp start pane holds the bar, the cover (264dp), the title and artist, and
+ * Full-screen lyrics). A 360dp start pane holds the bar, the cover (264dp, smaller on a short window),
+ * the title and artist, and
  * at its foot the seek bar and the play button in one card, so the phone's mini player row is not
  * needed. The lines take the rest, in a column at most 640dp wide in its middle.
  */
@@ -66,9 +72,14 @@ internal fun ComfortLyricsWide(state: LyricsScreenState, actions: LyricsScreenAc
                 backSymbol = Symbol.ExpandMore,
                 backDescription = stringResource(R.string.lyrics_close_cd),
             )
-            Cover(Art.of(track.mediaId), Modifier.padding(start = 30.dp, top = 8.dp), size = 264.dp)
-            NowPlayingTitle(track.title, track.artist)
-            Spacer(Modifier.weight(1f))
+            // The cover gives way on a short window (and goes under 96dp), so the controls stay in view.
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                CoverToFit(height = maxHeight, maxCover = PaneCover, minCover = MinPaneCover, orNone = true) { cover ->
+                    Spacer(Modifier.height(8.dp))
+                    if (cover > 0.dp) Cover(Art.of(track.mediaId), Modifier.padding(start = 30.dp), size = cover)
+                    NowPlayingTitle(track.title, track.artist)
+                }
+            }
             LyricsControls(state, actions, track)
             Spacer(Modifier.height(16.dp))
             Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
