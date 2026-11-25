@@ -3,7 +3,10 @@ package app.attic.player.radio
 import android.util.Log
 import app.attic.player.AtticApp
 import app.attic.player.R
+import app.attic.player.analysis.BeatTracker
 import app.attic.player.analysis.MelodyMatch
+import app.attic.player.analysis.TRANSITIONS_VERSION
+import app.attic.player.data.FlowTraitsRow
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.analysis.saveAnalysis
 import app.attic.player.data.LanguageLabels
@@ -333,6 +336,7 @@ class RadioController(private val app: AtticApp) {
         val lyrics = dao.lyricsTexts().associateBy { it.trackKey }
         val liked = app.userData.likedSet.value
         val outcomes = dao.outcomeCounts().groupBy { it.trackKey }
+        val flow = dao.flowTraits(TRANSITIONS_VERSION).associate { it.trackKey to it.toFlowTraits() }
         return dao.embeddings(SongAnalyzer.MODEL_VERSION).mapNotNull { row ->
             val track = library.trackByKey[row.trackKey] ?: return@mapNotNull null
             val text = lyrics[track.key]
@@ -345,6 +349,7 @@ class RadioController(private val app: AtticApp) {
                 artistKey = track.artistKeys.firstOrNull(),
                 albumKey = track.albumKey,
                 composerKeys = track.composer?.let { TitleCleaner.splitCredits(it) }.orEmpty().map(TitleCleaner::normalize).toSet(),
+                flow = flow[track.key],
                 affinity = RadioTaste.affinity(
                     liked = track.key in liked,
                     finished = counts.filter { it.outcome == ListenTracker.FINISHED }.sumOf { it.total },
@@ -353,6 +358,14 @@ class RadioController(private val app: AtticApp) {
             )
         }
     }
+
+    /** Only what transition analysis was sure of: beats under the tracker's threshold, keys under 0.1, are left out. */
+    private fun FlowTraitsRow.toFlowTraits() = FlowTraits(
+        introBpm = introBpm?.takeIf { (introBeatConfidence ?: 0f) >= BeatTracker.MIN_CONFIDENCE },
+        outroBpm = outroBpm?.takeIf { (outroBeatConfidence ?: 0f) >= BeatTracker.MIN_CONFIDENCE },
+        energy = energy,
+        key = key?.takeIf { (keyConfidence ?: 0f) >= MIN_KEY_CONFIDENCE },
+    )
 
     /** Analyses the seed now if the background work hasn't reached it yet. */
     private suspend fun ensureAnalyzed(key: String): Boolean {
@@ -393,6 +406,7 @@ class RadioController(private val app: AtticApp) {
 
     private companion object {
         const val CONTEXT_PREFIX = "Radio · "
+        const val MIN_KEY_CONFIDENCE = 0.1f
         const val RECENT_TO_AVOID = 30
         const val CHROMA_CACHE = 64
         const val SPEED_DIAL_SIZE = 9
