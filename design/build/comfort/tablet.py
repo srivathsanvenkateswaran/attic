@@ -8,16 +8,17 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes and the equaliser, which
-the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
+Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes, the equaliser and the
+Transitions pop-over, which the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
 Source annotation and is marked ready for development; where the code and a frame disagree, the code is right. It
-runs on the 1.3.0 file (the equaliser and mood mixes) and gives 1.4.0: the Cover's version, a Tablet row in its Read
-me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page, the
-components below, that row and that entry, and draws them again.
+runs on the 1.4.0 file (the equaliser, mood mixes and smart transitions) and gives 1.5.0: the Cover's version, a
+Tablet row in its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the
+Tablet page, the components below, that row and that entry, and draws them again.
 
 On the Screens page it does one thing: it deletes the Moods section's tablet frames marked In progress, which
 comfort/moods.py drew as layout before the components below existed (figbuild.tabletkit.retire_placeholders). Run
-comfort/moods.py with --no-tablet from now on, or it draws them again. It changes no other page.
+comfort/moods.py with --no-tablet from now on, or it draws them again. The Transitions section under Moods moves up
+by what the Moods section shrank. It changes no other page.
 
 Components / Navigation
   Side dock/Tab          one tab of ComfortSideDock (SideDock.kt)  Selected=False|True.  props Label, Icon (swap).
@@ -33,8 +34,9 @@ Components / Playback
 
 Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run,
 moods (Home scrolled to the Moods shelf, the mood page sideways and upright, Search's Browse with the Moods group,
-Moods and interests) and equaliser (the sheet over Now Playing, Settings > Equaliser). `components`, `retire` and
-`cover` are also keys: a run with --only that leaves them out keeps what the input file has.
+Moods and interests), equaliser (the sheet over Now Playing, Settings > Equaliser) and transitions (Settings >
+Playback with the Transitions pop-over open, on comfort/transitions.py's rows and pop-over). `components`, `retire`
+and `cover` are also keys: a run with --only that leaves them out keeps what the input file has.
 
 Geometry (dp). The side dock is 80 wide, 12 from the start edge, 12 under the status bar and 12 over the gesture
 inset. A destination's column starts at 100 and stops 8 before the end edge; Comfort's components carry the phone's
@@ -52,15 +54,17 @@ from comfort import screens_playback as cp
 from comfort import screens_settings as cs
 from comfort import equaliser as ceq
 from comfort import moods as cm
+from comfort import transitions as ctr
 from comfort.components_core import K, SetBuilder, Components, COVER, cover_image, glyph_drop, _set_text_prop, _swap_icon
 from comfort.components_states import setp, inst, group, row
 from comfort.foundations import _modes
 
 SRC = "ui/comfort/"
-# 1.4.0 is the Tablet page and its components on top of 1.3.0 (the equaliser, then mood mixes), with frames for both.
-# The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0, on feature/tablet-layouts
-# before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers and 1.3.0 the mood mixes'.
-VERSION, UPDATED = "1.4.0", "2026-11-25"
+# 1.5.0 is the Tablet page and its components on top of 1.4.0 (the equaliser, mood mixes, then smart transitions),
+# with frames for all three. The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0 and
+# on 1.3.0 as 1.4.0, on feature/tablet-layouts before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers,
+# 1.3.0 the mood mixes' and 1.4.0 smart transitions'.
+VERSION, UPDATED = "1.5.0", "2026-11-25"
 DOCK_X, DOCK_W, DOCK_GAP = 12, 80, 12
 X0 = 100                         # a destination's column: 8 after the dock's end edge
 END = 8                          # and 8 before the window's end edge
@@ -1441,11 +1445,76 @@ def build_equaliser(T: Tablet):
         d.override(dark, "Container", fill="Color/fill-2")
 
 
+# ───────────────────────────────────────────────────────────────── Transitions (smart transitions, 1.4.0)
+def build_transitions(T: Tablet):
+    """Settings > Playback with the Transitions pop-over open (PickerRow in ComfortSettings.kt), transitions on
+    Smart. The Playback group is the one comfort/transitions.py draws on the phone frames, on the same Settings row,
+    Menu, Menu caption and Menu row components, after Style, where the code has it.
+
+    No render shows this frame yet: at 720dp tall the row is under the fold, so the list has to scroll first. It is
+    drawn scrolled until the row clears the fade over the player bar, which takes the hero away and brings RootPage's
+    bar. ComfortMenu keeps its phone width and hangs from the row's bottom edge, its start 214dp before the row's
+    end; with no room under the row it opens upward, its bottom on the row's bottom, as PickerRow's comment says."""
+    d = T.d
+    S = ctr.S
+    fr = tk.Frames(d, T.ctx, "Transitions", "transitions",
+                   note="Settings > Playback on a tablet. The rows fill the centred column, at most 720dp wide. The "
+                        "Transitions pop-over keeps its phone width and opens beside its row, inside the column.")
+    ss = cs.S(d, T.ctx)
+    s = Screen(T, fr, "menu_transitions_landscape", "Settings, Transitions pop-over", "landscape",
+               SRC + "ComfortSettings.kt · ComfortSettings (PickerRow)")
+    colw = min(720 + 32, s.cw)
+    col = s.column(x=X0 + round((s.cw - colw) / 2, 1), w=colw)
+    cs._settings_content(ss, col)
+    setp(d, d.child(col, "Hero"), Short=str(s.wh < 840))
+    at = [c.get("name") for c in d.get(col, depth=1)["children"]].index("Label: Lyrics")
+    label = ss.label(col, S["playback"])
+    d.cmd("node.reorder", id=label, index=at)
+    g, _ = group(d, col, "Playback")
+    d.cmd("node.reorder", id=g, index=at + 1)
+    mode = S["smart"]
+    row(d, g, "Settings row", "Volume levelling", Control="Switch on", Title=S["volume"], Summary=S["volume_body"],
+        **{"Show summary": True})
+    anchor = row(d, g, "Settings row", "Transitions", Control="Value", Title=S["transitions"], Value=mode,
+                 Summary=ctr.summary(mode), **{"Show summary": True, "Show hairline": True})
+    row(d, g, "Settings row", "Crossfade length", Control="Value", Title=S["length"], Value=ctr.seconds(ctr.LENGTH),
+        Summary=S["length_smart_body"], **{"Show summary": True, "Show hairline": True})
+    row(d, g, "Settings row", "Equaliser", Control="Value and chevron", Title=S["equaliser"], Value=S["equaliser_value"],
+        Summary=S["equaliser_own"], **{"Show summary": True, "Show hairline": True})
+    for c in d.get(col, depth=1).get("children", []):
+        w = d.get(c["id"]).get("width", 0)
+        if abs(w - 379) < 1:
+            d.set(c["id"], width=colw - 32)
+        elif abs(w - 411) < 1:
+            d.set(c["id"], width=colw)
+    fb, ab = d.get(s.f)["absoluteBounds"], d.get(anchor)["absoluteBounds"]
+    clear = s.H - GESTURE_H - BAR_GAP - BAR_H - 36          # where the fade over the player bar starts
+    d.set(col, y=round(STATUS_H - (ab["y"] + ab["height"] - fb["y"] - clear), 1))
+    d.rect(s.f, name="Bar ground", w=s.cw + END, h=STATUS_H + 56, x=X0, y=0, fill="Color/ground")
+    bar = T.b.inst("Top bar", s.f, name="Bar", props={"Back": "Arrow", "Lift": "True", "Count": "False",
+                                                     "Title": "Settings", "Show action 1": False, "Show action 2": False})
+    d.set(bar, x=X0, y=STATUS_H, width=s.cw)
+    s.shell()
+    m = ctr._popover(d, s.f, anchor, "Transitions pop-over", S["transitions"], ctr.MODES, mode)["menu"]
+    d.set(m, y=round(clear - d.get(m)["height"], 2))
+    s.notes.append("The pop-over is a window over the app: it keeps its phone width, starts 214dp before the row's end "
+                   "and hangs from the row's bottom edge. Here it has no room underneath, so it opens upward and covers "
+                   "the row.")
+    s.notes.append("Drawn from the code: there is no render of this state yet. The row is under the fold when Settings "
+                   "opens at this size, so the list is shown scrolled until the row clears the player bar, with the "
+                   "hero gone and the title in the bar.")
+    s.notes.append("Playback is drawn where the code has it, after Style, with transitions on Smart. The groups under "
+                   "it are the phone frame's list (ui-redesign at 4fe4dab), from Lyrics on.")
+    s.done()
+    fr.close()
+    ss.dark_theme([s.key])
+
+
 # ───────────────────────────────────────────────────────────────── cover, changelog, links, hygiene
 CHANGES = [
-    "The tablet layouts: the Tablet page and its components, put back on 1.3.0, with frames for mood mixes and the "
-    "equaliser. Every Tablet frame, Light and Dark, matches the code on feature/tablet-layouts and is marked ready for "
-    "development.",
+    "The tablet layouts: the Tablet page and its components, put back on 1.4.0 (smart transitions), with frames for "
+    "mood mixes, the equaliser and the Transitions pop-over. Every Tablet frame, Light and Dark, matches the code on "
+    "feature/tablet-layouts and is marked ready for development.",
     "Tablet page, after Screens: Home, Library, Search, album, artist, playlist, Now Playing, lyrics, Settings, a sheet, "
     "a dialog and the first run's look step, at 1152 x 720 (a tablet sideways), 720 x 1152 (upright) and 1440 x 900, "
     "Light and Dark.",
@@ -1453,6 +1522,9 @@ CHANGES = [
     "header as a row, Search's Browse with the Moods group, and Moods and interests as a column at most 720dp wide.",
     "The equaliser on the Tablet page: the sheet over Now Playing, 640dp wide, and Settings > Equaliser as a column at "
     "most 720dp wide. Band sliders is the phone's component, resized.",
+    "Smart transitions on the Tablet page: Settings > Playback with the Transitions pop-over open. The pop-over keeps "
+    "its phone width, starts 214dp before the row's end and opens upward over its row, inside the 720dp column. The "
+    "frame is drawn from the code, with the list scrolled until the row clears the player bar; no render shows it yet.",
     "Components: Side dock and Side dock/Tab, Player bar (Components / Navigation); Now playing/Side panel "
     "(Components / Playback).",
     "Each frame carries its Source annotation: ComfortAlbumPanes, ComfortArtistPanes, ComfortPlaylistPanes and "
@@ -1460,12 +1532,14 @@ CHANGES = [
     "player carry a second Source line for ComfortWideShell.",
     "Screens page: the Moods section's 12 tablet frames marked In progress (Home, the mood page and the picker at "
     "1440 x 900 and 700 x 900, drawn as layout before the side dock and the player bar were components) are deleted. "
-    "The Tablet page has those screens, and the section's note says so.",
+    "The Tablet page has those screens, and the section's note says so. The Transitions section moves up to sit "
+    "under Moods again.",
     "Notes record what no frame shows: in the Library's list pane the open tile of the grid view sits on a selection "
     "bed, and a collection's bar never shows its name.",
     "Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
     "state, the Playback group in Settings, and which line of the lyrics is being sung.",
-    "The phone screens, the equaliser's and the mood mixes' are unchanged from 1.3.0.",
+    "The phone screens, the equaliser's, the mood mixes' and the Screens page's Transitions frames are unchanged "
+    "from 1.4.0.",
 ]
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
 ENTRIES = [(VERSION, UPDATED, CHANGES)]
@@ -1474,7 +1548,7 @@ ENTRIES = [(VERSION, UPDATED, CHANGES)]
 def build_cover(d: Doc, ctx: dict):
     """The version on the Cover, the Tablet row in its Read me and the version's entry at the top of the Changelog.
     The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, 1.1.0 and 1.2.0 for the
-    equaliser, 1.3.0 for mood mixes) are left alone."""
+    equaliser, 1.3.0 for mood mixes, 1.4.0 for smart transitions) are left alone."""
     d.page("Cover")
     cover = next(c["id"] for c in top_children(d, "Cover") if c.get("name") == "Cover")
     for label, value in (("Version", VERSION), ("Last updated", UPDATED)):
@@ -1565,7 +1639,8 @@ COMPONENT_NAMED = {"Line": "Response curve's stroke, inside each Band sliders in
 
 AREAS = {"home": build_home, "library": build_library, "search": build_search, "collections": build_collections,
          "now_playing": build_now_playing, "lyrics": build_lyrics, "settings": build_settings, "overlays": build_overlays,
-         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser}
+         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser,
+         "transitions": build_transitions}
 
 
 def build(d: Doc, ctx: dict):

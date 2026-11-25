@@ -8,16 +8,17 @@ Run on a saved file, never as part of a regeneration (it is not in MODULES):
 
 It draws docs/design/2026-11-25-tablet/SPEC.md: every frame of the table "Frames to draw" at Landscape (1152 x 720,
 the Pad 6 sideways), Portrait (720 x 1152, the Pad 6 upright, a medium width) and Large landscape (1440 x 900),
-Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes and the equaliser, which
-the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
+Light above Dark, on a page named Tablet after Screens, and the tablet layouts of mood mixes, the equaliser and the
+Transitions menu, which the code gained after the spec. The layouts are in the code on feature/tablet-layouts, so each frame carries its
 Source annotation and is marked ready for development; where the code and a frame disagree, the code is right. It
-runs on the 1.3.0 file (the equaliser and mood mixes) and gives 1.4.0: the Cover's version and counts, a Tablet row
-in its Read me and one Changelog entry on top of the entries the file has. Running it again deletes the Tablet page,
-the components below, that row and that entry, and draws them again.
+runs on the 1.4.0 file (the equaliser, mood mixes and smart transitions) and gives 1.5.0: the Cover's version and
+counts, a Tablet row in its Read me and one Changelog entry on top of the entries the file has. Running it again
+deletes the Tablet page, the components below, that row and that entry, and draws them again.
 
 On the Screens page it does one thing: it deletes the Moods section's tablet frames marked In progress, which
 expressive/moods.py drew as layout before the components below existed (figbuild.tabletkit.retire_placeholders). Run
-expressive/moods.py with --no-tablet from now on, or it draws them again. It changes no other page.
+expressive/moods.py with --no-tablet from now on, or it draws them again. The Transitions section under Moods moves
+up by what the Moods section shrank. It changes no other page.
 
 Components / Navigation
   Navigation rail        ExpressiveNavigationRail (ExpressiveRail.kt)  Selected=Home|Search|Library. The Headroom mark
@@ -30,7 +31,8 @@ Components / Playback
 
 Areas (ctx["only"] keys): home, library, search, collections, now_playing, lyrics, settings, overlays, first_run,
 moods (Home scrolled to the Moods shelf, the mood page sideways and upright, Search's Browse with the Moods group,
-Moods and interests) and equaliser (the sheet over Now Playing, Settings > Equaliser). `components`, `retire` and
+Moods and interests), equaliser (the sheet over Now Playing, Settings > Equaliser) and transitions (Settings >
+Playback with the Transitions menu open, on expressive/transitions.py's rows and menu). `components`, `retire` and
 `cover` are keys too: a run with --only that leaves them out keeps what the input file has.
 
 The equaliser frames draw the band graph themselves, at the width of their cell (band_graph): Equaliser/Band graph
@@ -54,6 +56,7 @@ from expressive import screens_settings as ss
 from expressive.components_overlays import set_nested_text
 from expressive import equaliser as eq
 from expressive import moods as mm
+from expressive import transitions as tr
 
 SRC = "ui/expressive/"
 RAIL_W = 96
@@ -1666,14 +1669,61 @@ def build_equaliser(B: "Builder"):
     fr.close()
 
 
+# ───────────────────────────────────────────────────────────────── Transitions (smart transitions, 1.4.0)
+def build_transitions(B: "Builder"):
+    """Settings > Playback with the Transitions menu open, as TabletRefs renders `menu_transitions`: transitions on
+    Smart, the list not scrolled. The Playback group is the one expressive/transitions.py draws on the phone frames
+    (its row, cell and menu helpers, on the same components), after Appearance, where the code has it. ExpressiveMenu
+    keeps its phone width. The row sits low in the window, so the menu has no room under it and opens above it, its
+    start edge on the row's."""
+    d = B.d
+    fr = tk.Frames(d, B.ctx, "Transitions", "transitions",
+                   note="Settings > Playback on a tablet. The rows fill the centred column, at most 720dp wide. The "
+                        "Transitions menu keeps its phone width and opens beside its row, inside the column.")
+    src = SRC + "ExpressiveSettings.kt · ExpressiveSettings (TransitionsRow)"
+    s = Screen(B, fr, "menu_transitions_landscape", "Settings, Transitions menu", "landscape", src)
+    col, theme = settings_screen(B, s)
+    lst = d.find(col, name="Settings list", limit=1)[0]
+    ts = object.__new__(tr.Screens)             # its helpers only: making one the usual way opens a Screens section
+    ts.d, ts.ctx, ts.C = d, B.ctx, B.ctx["components"]
+    at = [k["name"] for k in d.get(lst, depth=1)["children"]].index("Section Lyrics")
+    sec = d.instance("Settings section", lst, name="Section Playback")
+    setp(d, sec, Label=tr.S["playback"])
+    d.set(sec, sizingH="fill")
+    d.cmd("node.reorder", id=sec, index=at)
+    g = frame(d, lst, "Playback group", layout="v", gap=2, pad=[0, 16, 0, 16], sizing=("fill", "hug"))
+    d.cmd("node.reorder", id=g, index=at + 1)
+    mode = tr.S["smart"]
+    ts.row(g, "Top", "Volume levelling", title=tr.S["volume"], icon="volume_up", summary=tr.S["volume_body"],
+           trailing="Switch on")
+    cell, _ = ts.row(g, "Middle", "Transitions", title=tr.S["transitions"], icon="transition_fade", summary=mode,
+                     status=tr.status(mode))
+    ts.row(g, "Middle", "Crossfade length", title=tr.S["length"], icon="schedule", summary=tr.seconds(tr.LENGTH),
+           status=tr.S["length_smart_body"])
+    ts.row(g, "Bottom", "Equaliser", title=tr.S["equaliser"], icon="equalizer", summary=tr.S["equaliser_value"],
+           status=tr.S["equaliser_own"])
+    s.shell()
+    m = ts.menu(s.f, cell, "Transitions menu", tr.MODES, mode)["menu"]
+    fb, cb = d.get(s.f)["absoluteBounds"], d.get(cell)["absoluteBounds"]
+    d.set(m, y=round(cb["y"] - fb["y"] - d.get(m)["height"], 2))
+    s.notes.append("The menu is a window over the app: it keeps its phone width, starts on the row's start edge and "
+                   "opens above the row, because the window has no room for it underneath.")
+    s.notes.append("Playback is drawn where the code has it, after Appearance, with transitions on Smart. The groups "
+                   "under it are the Screens page's list (ui-redesign at 4fe4dab), from Lyrics on.")
+    s.done()
+    fr.close()
+    dark_theme(d, [(s.key, theme)])
+
+
 # ───────────────────────────────────────────────────────────────── Cover and Changelog
-# 1.4.0 is the Tablet page and its components on top of 1.3.0 (the equaliser, then mood mixes), with frames for both.
-# The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0, on feature/tablet-layouts
-# before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers and 1.3.0 the mood mixes'.
-VERSION, UPDATED = "1.4.0", "2026-11-25"
-CHANGES = ("The tablet layouts: the Tablet page and its components, put back on 1.3.0, with frames for mood mixes and "
-           "the equaliser. Every frame on the page matches the code on feature/tablet-layouts and is marked ready for "
-           "development.\n"
+# 1.5.0 is the Tablet page and its components on top of 1.4.0 (the equaliser, mood mixes, then smart transitions),
+# with frames for all three. The Tablet page was first drawn on 1.0.0 as 1.1.0 and 1.1.1, then on 1.2.0 as 1.3.0 and
+# on 1.3.0 as 1.4.0, on feature/tablet-layouts before each rebase; 1.1.0 and 1.2.0 are now the equaliser's numbers,
+# 1.3.0 the mood mixes' and 1.4.0 smart transitions'.
+VERSION, UPDATED = "1.5.0", "2026-11-25"
+CHANGES = ("The tablet layouts: the Tablet page and its components, put back on 1.4.0 (smart transitions), with frames "
+           "for mood mixes, the equaliser and the Transitions menu. Every frame on the page matches the code on "
+           "feature/tablet-layouts and is marked ready for development.\n"
            "• Tablet page, after Screens: {frames} frames in Light and Dark at Landscape (1152 × 720, the Pad sideways), "
            "Portrait (720 × 1152) and Large landscape (1440 × 900): Home, Library as list and detail, Search results, "
            "album, artist and playlist in two panes, Now Playing with Up next or Lyrics beside the player, full-screen "
@@ -1684,16 +1734,20 @@ CHANGES = ("The tablet layouts: the Tablet page and its components, put back on 
            "• The equaliser on the Tablet page: the sheet over Now Playing, 640dp wide, and Settings > Equaliser as a "
            "column at most 720dp wide. Both draw the band graph at the width of its cell, because Equaliser/Band graph "
            "is 379dp wide.\n"
+           "• Smart transitions on the Tablet page: Settings > Playback with the Transitions menu open. The menu keeps "
+           "its phone width and opens above its row, on the row's start edge, inside the 720dp column.\n"
            "• Each frame carries its Source annotation. Frames that show the rail and the player carry a second Source "
            "line for ExpressiveWideShell.\n"
            "• Components / Navigation: Navigation rail and Player bar.\n"
            "• Components / Playback: Now playing/Side panel, the Up next and Lyrics switch.\n"
            "• Screens page: the Moods section's 12 tablet frames marked In progress (Home, the mood page and the picker at "
            "1440 × 900 and 700 × 900, drawn as layout before the rail and the player bar were components) are deleted. "
-           "The Tablet page has those screens, and the section's note says so.\n"
+           "The Tablet page has those screens, and the section's note says so. The Transitions section moves up to sit under "
+           "Moods again.\n"
            "• Left as drawn where the difference from the renders is demo data: Home's shelves that are empty in the demo "
            "state, the Playback group in Settings, and which line of the lyrics is being sung.\n"
-           "The phone screens, the equaliser's and the mood mixes' are unchanged from 1.3.0.")
+           "The phone screens, the equaliser's, the mood mixes' and the Screens page's Transitions frames are unchanged "
+           "from 1.4.0.")
 # Oldest first. An entry already in the file stays as it is unless it is the current version, which is written again.
 ENTRIES = [(VERSION, UPDATED, CHANGES)]
 README_ROW = ("Tablet", "the screens on medium and expanded windows (tablets), in Light and Dark.")
@@ -1722,7 +1776,7 @@ def readme_row(d: Doc):
 def build_cover_changelog(d: Doc, ctx: dict):
     """The version on the Cover, the Tablet row and the counts in its Read me and the version's entry at the top of
     the Changelog. The entry is replaced if an earlier run added it; the entries the file came with (1.0.0, 1.1.0 and
-    1.2.0 for the equaliser, 1.3.0 for mood mixes) are left alone."""
+    1.2.0 for the equaliser, 1.3.0 for mood mixes, 1.4.0 for smart transitions) are left alone."""
     d.page("Cover")
     for i in d.find(d.pages["Cover"], name="Chip · ", limit=20):
         nm = d.get(i).get("name", "")
@@ -1771,7 +1825,8 @@ def build_cover_changelog(d: Doc, ctx: dict):
 
 AREAS = {"home": build_home, "library": build_library, "search": build_search, "collections": build_collections,
          "now_playing": build_now_playing, "lyrics": build_lyrics, "settings": build_settings, "overlays": build_overlays,
-         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser}
+         "first_run": build_first_run, "moods": build_moods, "equaliser": build_equaliser,
+         "transitions": build_transitions}
 
 
 class _Identity(dict):

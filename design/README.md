@@ -8,12 +8,14 @@ files. They are the reference for how each screen looks, and the place to propos
 | `Attic Expressive.figcraft` | Expressive: colour from the phone's wallpaper and the album art, wavy progress, connected button groups, cookie shapes | `app/src/main/java/app/attic/player/ui/expressive/` |
 | `Attic Comfort.figcraft` | Comfort: superellipse cards, the amber Lamplight accent, a bottom dock, the `Tinted(seed, wash)` colours from the album art | `app/src/main/java/app/attic/player/ui/comfort/` |
 
-Both are version 1.4.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
+Both are version 1.5.0. Version 1.0.0 matched the code on `ui-redesign` at 4fe4dab; 1.1.0 added the
 equaliser (sheet, Now Playing indicator, Settings page), and 1.2.0 is the design review of it as
 built, which the code on `feature/per-song-equaliser` then followed. 1.3.0 adds a proposal, mood mixes
 (the Moods section on the Screens page), whose code lands on `feature/mood-mixes`. 1.4.0 adds smart
 transitions as they landed on `feature/smart-transitions`: the Transitions section of the Screens page
-(see [docs/features/smart-transitions.md](../docs/features/smart-transitions.md)). One proposal in it
+(see [docs/features/smart-transitions.md](../docs/features/smart-transitions.md)). 1.5.0 puts the Tablet
+page and its components back on the 1.4.0 files, as the code on `feature/tablet-layouts` has them, and
+adds Settings › Playback with the Transitions menu open on a tablet. One proposal in 1.4.0
 was reviewed and not built: Comfort's mark on the Now Playing seek bar, which said little under the
 total time. Its two frames and the Comfort seek bar's `Show next song mark` property stay in the file
 with a `Proposed` annotation. Everywhere else the code wins: if a file and the app disagree, the app is
@@ -32,7 +34,7 @@ The pages are the same in both files:
   - **Icons:** the 90 Material Symbols Rounded glyphs the app ships, as components.
 - **Components** (Actions, Lists and cards, Navigation, Playback, Overlays, States, Recap, System): main components with variants and properties, auto layout and bound colours. Every page ends with a Dark preview.
 - **Screens**: every screen and state, 411 × 914, in Light and Dark, grouped in one section per area, with the prototype wired. [COVERAGE.md](COVERAGE.md) is the checklist.
-- **Tablet**: the medium and expanded layouts in [docs/design/2026-11-25-tablet/SPEC.md](../docs/design/2026-11-25-tablet/SPEC.md), at the Xiaomi Pad 6's 1152 × 720 dp (landscape) and 720 × 1152 dp (portrait) and at 1440 × 900 dp, in Light and Dark: the navigation rail or side dock, the player bar, list and detail, two-pane collections and Now Playing beside its queue or lyrics, then mood mixes (Home's Moods shelf, the mood page, Browse, Moods and interests) and the equaliser (its sheet and its Settings page) on the Pad 6. `design/build/<style>/tablet.py` added it to the 1.3.0 files (`python3 -m figbuild.edit`); `scripts/store_shots/tablet_refs.sh` renders the code at the same sizes.
+- **Tablet**: the medium and expanded layouts in [docs/design/2026-11-25-tablet/SPEC.md](../docs/design/2026-11-25-tablet/SPEC.md), at the Xiaomi Pad 6's 1152 × 720 dp (landscape) and 720 × 1152 dp (portrait) and at 1440 × 900 dp, in Light and Dark: the navigation rail or side dock, the player bar, list and detail, two-pane collections and Now Playing beside its queue or lyrics, then mood mixes (Home's Moods shelf, the mood page, Browse, Moods and interests) the equaliser (its sheet and its Settings page) and Settings › Playback with the Transitions menu open, on the Pad 6 sideways. `design/build/<style>/tablet.py` added it to the 1.4.0 files (`python3 -m figbuild.edit`); `scripts/store_shots/tablet_refs.sh` renders the code at the same sizes.
 - **Flow overview**: the user-flow diagram, with labelled arrows.
 - **System surfaces**: the widget sizes on a home screen, the notification shade, the lock screen, the splash and the launcher icon with its monochrome layer.
 
@@ -112,6 +114,7 @@ original before sharing it.
 | Tablet: Now Playing and lyrics side by side | `ExpressiveNowPlayingWide.kt`, `ExpressiveLyrics.kt` | `ComfortNowPlayingWide.kt`, `ComfortLyricsWide.kt` |
 | Tablet: mood page, Moods and interests | `ExpressiveMoods.kt` (`ExpressiveMood` through `CollectionFrame`, `ExpressiveInterests`) | `ComfortCollectionPanes.kt` (`ComfortMoodPanes`), `ComfortMoods.kt` (`ComfortInterests`) |
 | Tablet: equaliser sheet and Settings page | `ExpressiveEqualiser.kt` | `ComfortEqualiser.kt` |
+| Tablet: Transitions menu in Settings › Playback | `ExpressiveSettings.kt` (`TransitionsRow`) | `ComfortSettings.kt` (`PickerRow`) |
 
 Each style's `KIT.md`, next to its code, explains the kit classes the components mirror.
 
@@ -160,9 +163,10 @@ score (0 means identical).
 - **Recap cards:** scaled Recap cards (story thumbnails, share images, the first-run look previews) are drawn as scaled instances, as the code scales them. Their inner texts lose their text-style links.
 - **Text ranges:** FigCraft can't bind a colour variable to part of a text. A few bold spans keep the paragraph's colour; the component descriptions say where.
 - **Comfort's Recap Summary card:** on ui-redesign at 4fe4dab it throws on render (`ComfortRecapCards.kt`, `FitText` inside a `Row` with `IntrinsicSize.Min`). The file draws it from the code, with a `Known issue` annotation.
-- **Tablet page, demo content:** the Home frames fill Mixes and the listening shelves, which are empty in the demo state the renders use. The Settings frames reuse the phone frames' list, which predates the Playback group. The line of the lyrics being sung sits a little higher or lower than in the renders.
+- **Tablet page, demo content:** the Home frames fill Mixes and the listening shelves, which are empty in the demo state the renders use. The two Settings frames reuse the phone frames' list, which predates the Playback group; the Transitions frame adds the group after Appearance (Comfort: after Style). The line of the lyrics being sung sits a little higher or lower than in the renders.
 - **Tablet page, the equaliser sheet:** the frame is 20 dp taller than the render, which gives a sheet's window no navigation inset. The frame carries a `Reference render differs` annotation.
 - **Tablet page, Expressive's band graph:** `Equaliser/Band graph` is 379 dp wide and FigCraft can't move a layer inside an instance, so the two equaliser frames draw the graph themselves at 608 and 720 dp, from the same parts and maths. Comfort's `Band sliders` follows its width, and its frames use it.
+- **Tablet page, Comfort's Transitions pop-over:** drawn from `ComfortSettings.kt`, because no render shows it yet. At 720 dp tall the row is under the fold, so the frame shows the list scrolled until the row clears the player bar, and the pop-over opening upward over the row.
 - **Tablet page, Comfort's Now Playing sideways at 720 dp tall:** the frame draws the deck 16 dp above the gesture area, as `ComfortNowPlayingWide.kt` intends. The render has it about 8 dp lower, because the column's parts add up to more than a 720 dp window gives them.
 
 ## How these files were made
@@ -182,7 +186,8 @@ Version 1.3.0's Moods section was added to the saved files by `build/expressive/
 a file, removes whatever an earlier run of it added, draws the components, frames, links and flow
 again, and saves. It raises the Cover's minor version the first time only, so it also runs on a later
 version of a file. When the code lands, remove the frames' `Proposed` annotations and mark them ready
-for development; the tablet frames are redrawn once `feature/tablet-layouts` brings the shell.
+for development. Run it with `--no-tablet`: the tablet frames it drew as layout are deleted by the tablet
+modules, which draw those screens on the Tablet page.
 
 Smart transitions (1.4.0) were added to the 1.3.0 files the same way, in two steps. `transitions.py` in
 each folder draws them as a proposal: the Transitions section under Moods, the mark on the seek bar, the

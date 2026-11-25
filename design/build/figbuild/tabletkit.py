@@ -66,11 +66,14 @@ PLACEHOLDER_NOTE = ("The tablet frames at the end wait for the shell on feature/
 def retire_placeholders(d: Doc, page: str = "Screens", section: str = "Moods") -> int:
     """Delete the tablet frames the moods modules drew before the tablet components existed (their names hold
     "· In progress ·") from the Moods section of the Screens page: the Tablet page draws those screens now. The
-    section shrinks back to its phone rows and its note says where the tablet frames are. Nothing else on the page is
-    touched. Returns how many frames went: 0 on a file that has none, so a second run changes nothing."""
+    section shrinks back to its phone rows and its note says where the tablet frames are. Whatever sits under the
+    section on the page (the Transitions section, since 1.4.0) moves up by what the section shrank, so the page keeps
+    its 200 between sections; nothing inside those layers changes. Returns how many frames went: 0 on a file that
+    has none, so a second run changes nothing."""
     pid = d.page(page)
     gone: list[int] = []
-    for sec in d.get(pid, depth=2).get("children", []):
+    tops = d.get(pid, depth=2).get("children", [])
+    for sec in tops:
         if sec.get("type") != "SECTION" or sec.get("name") != section:
             continue
         kids = sec.get("children", [])
@@ -80,6 +83,10 @@ def retire_placeholders(d: Doc, page: str = "Screens", section: str = "Moods") -
             keep = [k for k in kids if k.get("type") == "FRAME" and k["id"] not in gone]
             d.set(sec["id"], width=max(k["x"] + k["width"] for k in keep) + Area.PAD,
                   height=max(k["y"] + k["height"] for k in keep) + Area.PAD)
+            shrank = sec["height"] - d.get(sec["id"])["height"]
+            for below in tops:
+                if shrank > 0 and below["id"] != sec["id"] and below.get("y", 0) >= sec["y"] + sec["height"] - 1:
+                    d.set(below["id"], y=below["y"] - shrank)
         for k in kids:
             if k.get("type") == "TEXT" and k.get("name") == "Note":
                 chars = d.get(k["id"]).get("characters", "")

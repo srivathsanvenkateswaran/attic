@@ -17,6 +17,10 @@ Version 1.4.0 (2026-11-25) adds the Transitions area for smart transitions
 marked ready for development, except Comfort's Now Playing mark, which was reviewed and not built: its two
 frames keep a `Proposed` annotation and aren't marked ready.
 
+Version 1.5.0 (2026-11-25) puts the Tablet page and its components back on the 1.4.0 files, from the
+tablet modules (`design/build/<style>/tablet.py`), and adds one tablet frame for the Transitions menu. Its
+table is under [Tablet](#tablet).
+
 | Area | Screen or state | Expressive | Comfort |
 |---|---|:-:|:-:|
 | Launch and first run | First run: Welcome | ✓ | ✓ |
@@ -208,7 +212,7 @@ and Dark.
 | Moods | Now Playing from Radio · Chill | ✓ | ✓ |
 
 Version 1.3.0 also drew Home, the mood page and Moods and interests at 1440 x 900 and 700 x 900 as
-`In progress` frames, with the rail, side dock and player bar as layout. Version 1.4.0 deleted them:
+`In progress` frames, with the rail, side dock and player bar as layout. Version 1.5.0 deleted them:
 the [Tablet](#tablet) page has those screens, drawn from the tablet components.
 
 The 1.0.0 frames predate the taste Mixes shelf, Browse's Genres group and the genre page. The Moods
@@ -225,13 +229,13 @@ frames draw those from the code at dffdd29, with invented genres for the demo li
 
 ## Tablet
 
-Added on 2026-11-25 with version 1.4.0 of both files, by the tablet modules
+Added on 2026-11-25 with version 1.5.0 of both files, by the tablet modules
 (`design/build/<style>/tablet.py`); `coverage.py` does not write this section. The `Tablet` page draws
 [the tablet layout spec](../docs/design/2026-11-25-tablet/SPEC.md), and the tablet layouts of mood
-mixes and the equaliser, which the code gained after the spec. The layouts are in the code on
+mixes, the equaliser and the Transitions menu, which the code gained after the spec. The layouts are in the code on
 `feature/tablet-layouts`: every frame matches it, carries its `Source` annotation and is marked ready for
 development. Frames are Landscape (1152 × 720), Portrait (720 × 1152) and
-Large landscape (1440 × 900), each in Light and Dark: 32 frames in each theme, in each file.
+Large landscape (1440 × 900), each in Light and Dark: 33 frames in each theme, in each file.
 
 | Area | Screen | Landscape | Portrait | Large landscape | Expressive | Comfort |
 |---|---|:-:|:-:|:-:|:-:|:-:|
@@ -254,6 +258,7 @@ Large landscape (1440 × 900), each in Light and Dark: 32 frames in each theme, 
 | Mood mixes | Moods and interests, picked | ✓ | | | ✓ | ✓ |
 | Equaliser | Equaliser sheet over Now Playing, the default | ✓ | | | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page | ✓ | | | ✓ | ✓ |
+| Transitions | Settings > Playback on Smart, the Transitions menu open (Comfort: pop-over) | ✓ | | | ✓ | ✓ (from the code, no render yet) |
 
 Components added for the tablet layouts:
 
@@ -267,14 +272,14 @@ Components added for the tablet layouts:
 | Comfort | Player bar | Navigation | State |
 | Comfort | Now playing/Side panel | Playback | Selected |
 
-The mood and equaliser frames use the components the phone frames use (Mood tile, Browse tile, Collection
-header's parts, Filter chip or Chip, the equaliser's sheet and page parts) with the tablet components
-around them. Expressive's two equaliser frames draw the band graph themselves, at 608 and 720 dp:
+The mood, equaliser and Transitions frames use the components the phone frames use (Mood tile, Browse tile,
+Collection header's parts, Filter chip or Chip, the equaliser's sheet and page parts, the Playback rows and
+the menu or pop-over) with the tablet components around them. Expressive's two equaliser frames draw the band graph themselves, at 608 and 720 dp:
 `Equaliser/Band graph` is 379 dp wide and can't be re-spaced inside an instance.
 
-Not drawn: Settings' Playback group (added to the code after 4fe4dab), Settings with its Moods
-section, Now Playing with the equaliser's indicator, the Save as preset dialog, and every screen
-outside the table above. `scripts/store_shots/tablet_refs.sh` renders those too.
+The two Settings frames leave out the Playback group (added to the code after 4fe4dab); the Transitions
+frame draws it. Not drawn: the Crossfade length menu, Settings with its Moods section, Now Playing with
+the equaliser's indicator, the Save as preset dialog, and every screen outside the table above. `scripts/store_shots/tablet_refs.sh` renders those too.
 
 ## Components
 
