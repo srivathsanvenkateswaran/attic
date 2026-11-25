@@ -394,7 +394,8 @@ class CrossfadeController(
                 tailPosition.reset()
                 aligning.nudgeUntil = 0
                 aligning.normalSpeedSince = now
-                aligning.settleUntil = now + SETTLE_MS
+                // No seek, so nothing jumps: just long enough for the speed change to come out of the audio.
+                aligning.settleUntil = now + AFTER_NUDGE_MS
                 alignment.remeasure()
             }
         } else if (!aligning.aligned && tail.isPlaying && now >= aligning.settleUntil) {
@@ -579,6 +580,9 @@ class CrossfadeController(
         const val NORMAL_SPEED_BEFORE_FADE_MS = 1_000L
         const val FADE_TICK_MS = 30L
         const val TAG = "AtticTransition"
+        /** After a nudge there is no seek, only the speed change to work through the buffered audio. */
+        const val AFTER_NUDGE_MS = 500L
+
         /** Join readings start once positions have settled after the main player's move (see [SETTLE_MS]). */
         const val JOIN_FROM_MS = 700L
         const val JOIN_UNTIL_MS = 1_500L

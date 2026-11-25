@@ -87,11 +87,10 @@ object CrossfadePlan {
 class TailAlignment(
     private val toleranceMs: Long = 20,
     /**
-     * On the owner's phone, readings taken 50 ms apart flipped between the true offset and outliers
-     * about 270 ms to one side, and up to a third of them were outliers. A median of fifteen (750 ms of
-     * readings) follows the true offset; a median of five often landed on the outliers.
+     * Readings come from [SmoothedPosition], which takes out the players' held positions; the median of
+     * nine (450 ms of readings) also rides out a stray one.
      */
-    private val readingsNeeded: Int = 15,
+    private val readingsNeeded: Int = 9,
 ) {
     /** How far ahead of the main player's position to seek the tail. Learned as it goes. */
     var leadMs: Long = 80
@@ -146,7 +145,7 @@ class TailAlignment(
             // A tail ahead (positive) plays slow to let the main player catch up; one behind plays fast.
             else -> Verdict.Nudge(
                 speed = if (median > 0) 1f - NUDGE_RATE else 1f + NUDGE_RATE,
-                forMs = (abs(median) / NUDGE_RATE).toLong(),
+                forMs = (abs(median) / NUDGE_RATE * NUDGE_GAIN).toLong(),
             )
         }
     }
@@ -159,5 +158,13 @@ class TailAlignment(
 
         /** Further out than this a nudge would take more than five seconds, so the tail seeks instead. */
         const val MAX_NUDGE_MS = 400L
+
+        /**
+         * A nudge gains a little more than its length says, as the speed change takes effect and then
+         * unwinds through the audio already buffered: 18 % more on the owner's phone (333 ms planned,
+         * 392 ms gained). Nudging for 85 % of the time lands short rather than past, and the next reading
+         * finishes the job.
+         */
+        const val NUDGE_GAIN = 0.85f
     }
 }
