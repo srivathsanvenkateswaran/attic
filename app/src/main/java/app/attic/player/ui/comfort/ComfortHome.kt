@@ -153,6 +153,21 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
             }
         }
     }
+    if (state.moods.isNotEmpty()) {
+        item(key = "moodsLabel") {
+            Label(stringResource(R.string.home_moods), small = stringResource(R.string.home_moods_overline))
+        }
+        if (state.askForMoods) {
+            item(key = "moodsAsk") {
+                MoodPicksCard(onChoose = actions.openInterests, onDismiss = actions.dismissMoodPrompt, modifier = Modifier.padding(bottom = 12.dp))
+            }
+        }
+        item(key = "moods") {
+            Shelf {
+                items(state.moods, key = { it.mood.id }) { tile -> MoodTile(tile, onClick = { actions.openMood(tile) }) }
+            }
+        }
+    }
     songShelf("recent", R.string.home_recently_played, state.recentTracks, state) { actions.playRecent(it) }
     songShelf("onRepeat", R.string.home_on_repeat, state.onRepeat, state) { actions.playShelf(HomeShelf.OnRepeat, it) }
     songShelf("notLately", R.string.home_not_lately, state.notLately, state) { actions.playShelf(HomeShelf.NotLately, it) }

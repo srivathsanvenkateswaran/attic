@@ -254,6 +254,8 @@ private fun AppNavHost(nav: NavHostController, library: Library, transitions: Na
         composable("genre/{key}") { entry ->
             GenreScreen(Uri.decode(entry.arguments?.getString("key").orEmpty()))
         }
+        composable("mood/{id}") { entry -> MoodScreen(library, Uri.decode(entry.arguments?.getString("id").orEmpty())) }
+        composable("interests") { InterestsScreen(library) }
         composable("liked") { LikedScreen(library) }
         composable("settings") { SettingsScreen(library) }
         composable("wrapped") { WrappedScreen(library) }

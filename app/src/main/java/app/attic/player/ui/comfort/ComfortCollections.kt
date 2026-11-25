@@ -95,7 +95,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
  */
 
 /** The cover's size in the header: the sheet draws 176 so the third row stays clear of the dock. */
-private val HeaderArt = 176.dp
+internal val HeaderArt = 176.dp
 
 // ── Album ────────────────────────────────────────────────────────────────────
 
@@ -355,7 +355,7 @@ private fun SmartShuffleRow(controls: PlayControlsState, onToggle: () -> Unit) {
     )
 }
 
-private fun LazyListScope.songRows(
+internal fun LazyListScope.songRows(
     tracks: List<Track>,
     currentKey: String?,
     isPlaying: Boolean,
@@ -589,7 +589,7 @@ private fun ReorderMode(state: PlaylistState, actions: PlaylistActions) {
  * has scrolled under it; then it lifts and shows [title].
  */
 @Composable
-private fun CollectionFrame(
+internal fun CollectionFrame(
     title: String,
     onBack: () -> Unit,
     titleTop: Dp,
@@ -626,7 +626,16 @@ private fun CollectionFrame(
  * genre, adds a fourth button between shuffle and add to playlist.
  */
 @Composable
-private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControlsActions, radio: (() -> Unit)? = null) {
+internal fun PlayRow(
+    name: String,
+    state: PlayControlsState,
+    actions: PlayControlsActions,
+    radio: (() -> Unit)? = null,
+    /** What the radio button says to accessibility services; "Start radio from …" by default. */
+    radioLabel: String? = null,
+    /** False on a mood's page, whose mix changes daily. */
+    addToPlaylist: Boolean = true,
+) {
     val colors = Comfort.colors
     val container = if (colors.dark) colors.fill else colors.card
     CollectionActions {
@@ -643,21 +652,23 @@ private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControl
         if (radio != null) {
             TonalIconButton(
                 Symbol.Sensors,
-                stringResource(R.string.collection_radio_cd, name),
+                radioLabel ?: stringResource(R.string.collection_radio_cd, name),
                 radio,
                 large = true,
                 enabled = state.enabled,
                 container = container,
             )
         }
-        TonalIconButton(
-            Symbol.PlaylistAdd,
-            stringResource(R.string.collection_add_to_playlist_cd, name),
-            actions.addToPlaylist,
-            large = true,
-            enabled = state.enabled,
-            container = container,
-        )
+        if (addToPlaylist) {
+            TonalIconButton(
+                Symbol.PlaylistAdd,
+                stringResource(R.string.collection_add_to_playlist_cd, name),
+                actions.addToPlaylist,
+                large = true,
+                enabled = state.enabled,
+                container = container,
+            )
+        }
     }
 }
 
@@ -665,7 +676,7 @@ private fun PlayRow(name: String, state: PlayControlsState, actions: PlayControl
 
 /** An album, artist or playlist that has gone (sheet 08 frame E): the message centred, and a plain Back under it. */
 @Composable
-private fun GoneState(@StringRes title: Int, symbol: Symbol, onBack: () -> Unit) {
+internal fun GoneState(@StringRes title: Int, symbol: Symbol, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().background(Comfort.colors.ground)) {
         Bar("", onBack = onBack)
         EmptyState(
