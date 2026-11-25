@@ -264,6 +264,8 @@ fun SeekBar(
     contentDescription: String,
     modifier: Modifier = Modifier,
     onScrub: (Float?) -> Unit = {},
+    /** Where the next song starts coming in, as a fraction, drawn as a dot while the handle is short of it. */
+    mark: Float? = null,
 ) {
     val colors = MaterialTheme.colorScheme
     var dragging by remember { mutableStateOf(false) }
@@ -333,6 +335,11 @@ fun SeekBar(
         val offStart = thumbX + thumbWidth / 2 + gap
         if (offStart < size.width - track / 2) {
             drawLine(colors.outlineVariant, Offset(offStart, cy), Offset(size.width - track / 2, cy), track, StrokeCap.Round)
+        }
+        if (mark != null) {
+            // The handle's own mapping, so the handle lands on the dot when the transition starts.
+            val markX = (track / 2 + gap + thumbWidth / 2) + (size.width - track - 2 * gap - thumbWidth) * mark.coerceIn(0f, 1f)
+            if (markX > offStart + 2.dp.toPx()) drawCircle(colors.onSurfaceVariant, 2.dp.toPx(), Offset(markX, cy))
         }
         drawRoundRect(
             colors.primary,

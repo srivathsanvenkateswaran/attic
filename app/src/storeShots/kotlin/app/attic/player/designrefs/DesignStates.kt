@@ -277,6 +277,16 @@ object DesignStates {
         )
     }
 
+    /** Now Playing with a Smart transition planned 11 s before the song's end, as the design files draw it. */
+    val nowPlayingTransitionMark: NowPlayingState get() {
+        val n = s.nowPlaying
+        return NowPlayingState(
+            track = n.track, contextName = n.contextName, contextKind = n.contextKind, isPlaying = n.isPlaying, shuffle = n.shuffle,
+            repeatMode = n.repeatMode, queue = n.queue, currentIndex = n.currentIndex, liked = n.liked, artist = n.artist,
+            lyrics = n.lyrics, clock = n.clock, transitionAtMs = n.track?.let { it.durationMs - 11_000 },
+        )
+    }
+
     /** A voice note opened from a file manager: not in the library, so no cover, no artist page, no lyrics. */
     val openWithTrack = Track(
         key = ExternalTrack.keyFor("content://com.android.externalstorage.documents/document/primary%3ARecordings%2Fband-practice.m4a"),

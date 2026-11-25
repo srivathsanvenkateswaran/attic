@@ -1,5 +1,6 @@
 package app.attic.player.designrefs
 
+import app.attic.player.playback.TransitionMode
 import app.attic.player.ui.comfort.ComfortInterests
 import app.attic.player.ui.comfort.ComfortMood
 import app.attic.player.ui.expressive.ExpressiveInterests
@@ -203,7 +204,7 @@ class Ref(
             "search_browse", "search_typing", "search_results", "search_no_results",
             "library_list", "library_grid", "library_songs", "library_playlists", "library_albums", "library_artists",
             "album", "album_collapsed", "artist", "playlist", "playlist_reorder", "folder", "favourites", "item_missing",
-            "now_playing", "now_playing_full", "now_playing_paused_radio", "open_with",
+            "now_playing", "now_playing_full", "now_playing_paused_radio", "now_playing_transition_mark", "open_with",
             "queue", "queue_radio", "queue_empty",
             "lyrics_synced", "lyrics_plain", "lyrics_none", "lyrics_not_downloaded", "lyrics_instrumental", "lyrics_downloading",
             "sheet_track_menu", "sheet_track_menu_playlist", "sheet_track_menu_now_playing", "sheet_track_menu_open_with",
@@ -213,7 +214,7 @@ class Ref(
             "now_playing_equaliser", "settings_equaliser", "settings_equaliser_empty", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
             "dialog_new_playlist", "dialog_name_playlist", "dialog_rename_playlist", "dialog_delete_playlist", "menu_playlist_overflow",
             "snackbar", "snackbar_over_player",
-            "settings", "settings_analysis", "settings_lyrics_download", "settings_backup",
+            "settings", "settings_transitions_off", "settings_transitions_smart", "settings_analysis", "settings_lyrics_download", "settings_backup",
             "dialog_restore_confirm", "dialog_restore_result", "dialog_restore_problem", "licences", "licence_text",
             "recap",
             "moods_home", "moods_home_ask", "mood_page", "mood_page_playing", "moods_browse", "moods_results",
@@ -285,11 +286,16 @@ class Ref(
                 backup: app.attic.player.ui.model.BackupUiState? = null,
                 capture: Capture = Capture.Window,
                 prepare: (ComposeContentTestRule.() -> Unit)? = null,
+                transitions: TransitionMode? = null,
             ) = Ref(
                 {
                     InShell(style, Tab.Home) {
                         val dark = LocalIsDark.current
-                        val state = if (backup == null) d.settings(style, dark, analysing, lyrics) else d.settings(style, dark, backup = backup)
+                        val state = when {
+                            transitions != null -> d.settings(style, dark, transitions = transitions)
+                            backup == null -> d.settings(style, dark, analysing, lyrics)
+                            else -> d.settings(style, dark, backup = backup)
+                        }
                         if (e) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions)
                     }
                 },
@@ -403,6 +409,7 @@ class Ref(
                 "now_playing" -> overlayRef()
                 "now_playing_full" -> Ref(overlayRef().content, stitch = true)
                 "now_playing_paused_radio" -> overlayRef(nowPlaying = d.nowPlayingPausedRadio)
+                "now_playing_transition_mark" -> overlayRef(nowPlaying = d.nowPlayingTransitionMark)
                 "open_with" -> overlayRef(nowPlaying = d.nowPlayingOpenWith)
 
                 "queue" -> overlayRef(queue = s.queueState)
@@ -535,6 +542,8 @@ class Ref(
                     prepare = { scrollMain(if (e) 1700f else 2200f) },
                 )
                 "settings" -> settings()
+                "settings_transitions_off" -> settings(transitions = TransitionMode.Off)
+                "settings_transitions_smart" -> settings(transitions = TransitionMode.Smart)
                 "settings_full" -> settings(height = FULL_HEIGHT)
                 "settings_analysis" -> Ref(settings(analysing = true).content, prepare = { scrollMain(6000f) })
                 "settings_lyrics_download" -> Ref(settings(lyrics = true).content, prepare = { scrollMain(900f) })

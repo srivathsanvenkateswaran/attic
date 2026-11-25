@@ -500,6 +500,7 @@ private fun SeekSection(state: NowPlayingState, track: Track, seekTo: (Long) -> 
         contentDescription = stringResource(R.string.now_playing_seek_cd, track.title),
         modifier = Modifier.padding(start = SideMargin, end = SideMargin, top = 10.dp),
         onScrub = { scrub = it },
+        mark = state.transitionAtMs?.let { (it.toFloat() / duration).coerceIn(0f, 1f) },
     )
     SeekTimes(formatDuration(shownPosition), formatDuration(track.durationMs), Modifier.padding(horizontal = SideMargin))
 }
