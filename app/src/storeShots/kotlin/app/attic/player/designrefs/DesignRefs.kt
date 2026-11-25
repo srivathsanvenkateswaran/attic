@@ -1,5 +1,9 @@
 package app.attic.player.designrefs
 
+import app.attic.player.ui.comfort.ComfortInterests
+import app.attic.player.ui.comfort.ComfortMood
+import app.attic.player.ui.expressive.ExpressiveInterests
+import app.attic.player.ui.expressive.ExpressiveMood
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
@@ -212,6 +216,8 @@ class Ref(
             "settings", "settings_analysis", "settings_lyrics_download", "settings_backup",
             "dialog_restore_confirm", "dialog_restore_result", "dialog_restore_problem", "licences", "licence_text",
             "recap",
+            "moods_home", "moods_home_ask", "mood_page", "mood_page_playing", "moods_browse", "moods_results",
+            "moods_picker_empty", "moods_picker", "moods_picker_no_genres", "moods_settings",
         ) + RecapCards.map { "recap_story_${cardKey(it)}" } + RecapCards.map { "recap_share_${cardKey(it)}" } + listOf(
             "permission", "permission_refused", "loading", "empty_library",
             "mini_player_paused", "mini_player_open_with",
@@ -499,6 +505,35 @@ class Ref(
                 )
                 "snackbar_over_player" -> overlayRef(message = R.string.message_playing_next)
 
+                // Mood mixes (docs/features/mood-mixes.md), the Moods section of both design files.
+                "moods_home" -> Ref(shell(Tab.Home) { MoodHome(e, ask = false) }.content, prepare = { scrollMain(if (e) 1500f else 1200f) })
+                "moods_home_ask" -> Ref(shell(Tab.Home) { MoodHome(e, ask = true) }.content, prepare = { scrollMain(if (e) 1500f else 1200f) })
+                "mood_page" -> shell(Tab.Home) {
+                    if (e) ExpressiveMood(MoodStates.page(false), MoodStates.pageActions) else ComfortMood(MoodStates.page(false), MoodStates.pageActions)
+                }
+                "mood_page_playing" -> shell(Tab.Home) {
+                    if (e) ExpressiveMood(MoodStates.page(true), MoodStates.pageActions) else ComfortMood(MoodStates.page(true), MoodStates.pageActions)
+                }
+                "moods_browse" -> Ref(
+                    shell(Tab.Search) { if (e) ExpressiveSearch(MoodStates.browse, s.searchActions) else ComfortSearch(MoodStates.browse, s.searchActions) }.content,
+                    prepare = { scrollMain(if (e) 900f else 1200f) },
+                )
+                "moods_results" -> shell(Tab.Search) {
+                    val state = MoodStates.results("chi")
+                    if (e) ExpressiveSearch(state, s.searchActions) else ComfortSearch(state, s.searchActions)
+                }
+                "moods_picker_empty" -> Ref({ MoodPicker(e, MoodStates.interests(picked = false)) })
+                "moods_picker" -> Ref({ MoodPicker(e, MoodStates.interests(picked = true)) })
+                "moods_picker_no_genres" -> Ref({ MoodPicker(e, MoodStates.interests(picked = false, genres = false)) })
+                "moods_settings" -> Ref(
+                    {
+                        InShell(style, Tab.Home) {
+                            val state = MoodStates.settings(style, LocalIsDark.current, picked = true)
+                            if (e) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions)
+                        }
+                    },
+                    prepare = { scrollMain(if (e) 1700f else 2200f) },
+                )
                 "settings" -> settings()
                 "settings_full" -> settings(height = FULL_HEIGHT)
                 "settings_analysis" -> Ref(settings(analysing = true).content, prepare = { scrollMain(6000f) })
@@ -682,4 +717,15 @@ private fun TrackMenu(style: UiStyle, state: TrackMenuState, overPlayer: Boolean
         state.pickingSleepTimer && e -> inScheme { ExpressiveSleepTimerPicker(state, d.trackMenuActions) }
         else -> inScheme { if (e) ExpressiveTrackMenu(state, d.trackMenuActions) else ComfortTrackMenu(state, d.trackMenuActions) }
     }
+}
+
+@androidx.compose.runtime.Composable
+private fun MoodHome(expressive: Boolean, ask: Boolean) {
+    val state = MoodStates.home(ask)
+    if (expressive) ExpressiveHome(state, DemoStates.homeActions) else ComfortHome(state, DemoStates.homeActions)
+}
+
+@androidx.compose.runtime.Composable
+private fun MoodPicker(expressive: Boolean, state: app.attic.player.ui.model.InterestsState) {
+    if (expressive) ExpressiveInterests(state, MoodStates.interestsActions) else ComfortInterests(state, MoodStates.interestsActions)
 }
