@@ -227,6 +227,11 @@ class AnalysisWorker(context: Context, params: WorkerParameters) : CoroutineWork
             WorkManager.getInstance(context).enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, request)
         }
 
+        /** Stops a run and drops the queued one, as the notification's Stop does. */
+        fun cancel(context: Context) {
+            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        }
+
         /** Asked for from Settings, so it doesn't wait for a charger. */
         fun startNow(context: Context) {
             val request = OneTimeWorkRequestBuilder<AnalysisWorker>()

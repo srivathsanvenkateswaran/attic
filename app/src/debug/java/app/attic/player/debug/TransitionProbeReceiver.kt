@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Process
 import android.os.SystemClock
 import android.util.Log
+import app.attic.player.analysis.AnalysisWorker
 import app.attic.player.analysis.KeyEstimate
 import app.attic.player.analysis.PcmDecoder
 import app.attic.player.analysis.SongAnalyzer
@@ -14,6 +15,7 @@ import app.attic.player.analysis.transitionsEntity
 import app.attic.player.attic
 import app.attic.player.data.LibraryRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -26,12 +28,30 @@ import kotlinx.coroutines.withContext
  * - "forget" --es key <track key>: deletes that row again.
  * - "cost" --es key <track key>: a full analysis of the song (model included), saving nothing, and logs
  *   how long it took and the transition meter's share.
+ * - "hold-analysis": drops the analysis run the app queues while charging, until the app next starts, so
+ *   a test on a phone that is charging doesn't analyse the library.
  *
  * adb shell am broadcast -n app.attic.player/.debug.TransitionProbeReceiver -a measure --es key "Music/…/song.m4a"
  */
 class TransitionProbeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val app = context.applicationContext
+        if (intent.action == "hold-analysis") {
+            // The library's first load queues a run while charging; this drops it once that has happened.
+            val pending = goAsync()
+            app.attic.scope.launch {
+                try {
+                    AnalysisWorker.cancel(app)
+                    app.attic.library.await()
+                    delay(3_000)
+                    AnalysisWorker.cancel(app)
+                    Log.i(TAG, "Analysis held until the app next starts")
+                } finally {
+                    pending.finish()
+                }
+            }
+            return
+        }
         val key = intent.getStringExtra("key") ?: return
         val pending = goAsync()
         app.attic.scope.launch {
