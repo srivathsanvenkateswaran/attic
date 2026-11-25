@@ -184,6 +184,19 @@ configurations.matching { it.name.endsWith("UnitTestRuntimeClasspath") }.configu
     exclude(group = "com.microsoft.onnxruntime", module = "onnxruntime-android")
 }
 
+// DesignTokensTest compares docs/design-system with the token code and colors.xml, so editing either
+// reruns it. scripts/design_tokens.sh passes -PwriteDesignTokens to rewrite tokens.json from the code.
+val writeDesignTokens = providers.gradleProperty("writeDesignTokens").isPresent
+tasks.withType<Test>().configureEach {
+    inputs.files(rootProject.fileTree("docs/design-system"), fileTree("src/main/res") { include("values*/colors.xml") })
+        .withPropertyName("designSystemDocs")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    if (writeDesignTokens) {
+        systemProperty("designTokens.write", "true")
+        outputs.upToDateWhen { false }
+    }
+}
+
 if (storeShots) {
     tasks.withType<Test>().configureEach {
         // Roborazzi only writes images in record mode.
