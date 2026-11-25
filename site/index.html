@@ -264,6 +264,7 @@
             <ul>
               <li>Learns from skips, finishes and likes, in a listening log kept on the phone</li>
               <li>Stays in the language you're listening to, with about one song in ten from another language when the match is strong</li>
+              <li>Leans slightly towards songs whose tempo, energy and key follow on from the one before</li>
               <li>Spots the same song in another language and plays one version, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both</li>
               <li>Nine instant mixes on Home, from your favourites and unplayed songs that sound like them, changing daily</li>
             </ul>
@@ -517,37 +518,41 @@
 
         <article class="feature">
           <div class="feature-copy">
-            <p class="new">New in 1.1</p>
-            <h3>Level volume, and a crossfade when you want one</h3>
-            <p>Settings has a Playback section with three rows.</p>
+            <p class="new">New in 1.3</p>
+            <h3>Smart transitions that start where a song winds down</h3>
+            <p>Settings &gt; Playback &gt; Transitions is Off, Crossfade or Smart. Crossfade fades each song into the next over a fixed length. Smart starts the next song where this one's ending begins, skips silence at both ends, and picks an overlap of 1 to 12 seconds from how the two songs' levels move. Songs from one album played in order still run straight into each other.</p>
             <dl class="ledger">
+              <div>
+                <dt>Beats <span class="value">When the tempos are close</span></dt>
+                <dd>When two songs' tempos are within 6% of each other, counting half and double time, Smart lines up a beat of each in the middle of the overlap. Otherwise it just fades. It never stretches or pitch-shifts the audio.</dd>
+              </div>
+              <div>
+                <dt>Crossfade length <span class="value">2 to 12 seconds, 6 by default</span></dt>
+                <dd>The length of every Crossfade, and of Smart's fade into or out of a song that hasn't been analysed yet.</dd>
+              </div>
               <div>
                 <dt>Volume levelling <span class="value">On by default</span></dt>
                 <dd>Plays songs at a similar loudness, from their ReplayGain tags or, without tags, from the loudness Attic measures on the phone. An album played in order shares one level, so its quiet and loud songs keep their balance.</dd>
-              </div>
-              <div>
-                <dt>Crossfade <span class="value">Off, or 2 to 12 seconds</span></dt>
-                <dd>Fades each song into the next. Songs from one album played in order still run straight into each other.</dd>
               </div>
               <div>
                 <dt>Equaliser <span class="value">Off by default</span></dt>
                 <dd>Opens a page with the default curve, which every song without its own setting plays with, and the songs and albums that have one. A Phone equaliser row there opens the phone's own equaliser, and shows only when the phone has one.</dd>
               </div>
             </dl>
-            <p class="note">Loudness is measured during song analysis, which runs while the phone charges. A song that hasn't been measured plays as it is, so after an update from 1.0, levelling reaches more of the library as analysis goes on.</p>
+            <p class="note">Smart's readings of each song's start, end and tempo, and the loudness that levelling uses, come from song analysis, which runs while the phone charges. After an update, Smart and levelling reach more of the library as analysis goes on, and until then a song plays as it is. Transitions are off on a new install, and a crossfade set in an earlier version carries over.</p>
           </div>
           <div class="phone feature-phone">
             <picture class="only-expressive">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-settings-playback-360.webp 360w, img/screens/expressive-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-settings-playback-360.webp 360w, img/screens/expressive-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
+              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Transitions set to Smart, Crossfade length 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
             <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-settings-playback-360.webp 360w, img/screens/comfort-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-settings-playback-360.webp 360w, img/screens/comfort-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
+              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Transitions set to Smart, Crossfade length 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
@@ -655,7 +660,7 @@
           </details>
           <details>
             <summary>Is there crossfade?</summary>
-            <p>Yes. Settings &gt; Playback &gt; Crossfade blends songs over 2 to 12 seconds, and is off until you choose a length. Songs from one album played in order still run straight into each other.</p>
+            <p>Yes. Settings &gt; Playback &gt; Transitions has Crossfade, which blends songs over a fixed 2 to 12 seconds, and Smart, which starts the next song where the current one winds down, skips silence, and lines up a beat of each when their tempos are within 6%. Smart needs song analysis, which runs while the phone charges, and fades for the crossfade length into and out of songs that haven't been analysed yet. Transitions are off on a new install, and songs from one album played in order still run straight into each other.</p>
           </details>
           <details>
             <summary>Is there an equaliser?</summary>
