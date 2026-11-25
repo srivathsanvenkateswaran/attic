@@ -31,7 +31,7 @@ styles take turns, dark screens sit on terracotta and light ones on cream.
 | # | 10-inch | 7-inch |
 |---|---|---|
 | 1 | Home, Expressive, dark | Home, Expressive, dark |
-| 2 | Library beside an open album, Comfort, light | Library beside an open album, Comfort, light |
+| 2 | Library beside an open album, Comfort, light | Library albums in two columns, Comfort, light |
 | 3 | Now Playing beside the queue, Expressive, dark | Now Playing beside the queue, Expressive, dark |
 | 4 | Now Playing beside lyrics, Comfort, dark | Album in two panes, Comfort, dark |
 | 5 | Album in two panes, Expressive, light | Now Playing beside lyrics, Expressive, light |

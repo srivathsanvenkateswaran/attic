@@ -36,7 +36,7 @@ TEN = [
 # Pause button, so those two screens come from the other style.
 SEVEN = [
     ("expressive-dark-home", "terracotta", "A rail at the side, the player along the bottom", "Turn the tablet either way and Attic keeps your place."),
-    ("comfort-light-library_albums", "cream", "The Library beside the album you open", "Pick an album and its songs appear next to the list."),
+    ("comfort-light-library_albums", "cream", "Your whole library at a glance", "Albums, artists and playlists in two columns."),
     ("expressive-dark-now_playing", "terracotta", "Now Playing beside the queue", "See what plays next without leaving the song."),
     ("comfort-dark-album", "terracotta", "Albums in two panes", "The cover and buttons stay put while the songs scroll."),
     ("expressive-light-now_playing_lyrics", "cream", "Synced lyrics beside the player", "Download them once, then read them offline."),
