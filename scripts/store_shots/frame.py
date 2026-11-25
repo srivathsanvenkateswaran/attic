@@ -32,7 +32,7 @@ PLAY = [
     (["expressive-dark-now-playing"], "terracotta", "Shuffle, repeat and favourites on one screen", "The line being sung sits under the title."),
     (["comfort-dark-lyrics"], "terracotta", "Synced lyrics that follow the song", "Download them once, then read them offline."),
     (["expressive-light-queue"], "cream", "Drag to reorder the queue", "Swipe a song away to remove it."),
-    (["comfort-light-artist"], "cream", "A page for every artist", "Top songs first, then the rest."),
+    (["comfort-light-home-mixes"], "cream", "Mixes made from what you play", "Grouped by how the songs sound, new each day."),
     (["expressive-light-home", "comfort-light-home"], "cream", "Two styles to pick from", "Expressive and Comfort, switched in Settings."),
     (["comfort-dark-recap"], "terracotta", "A recap of your year", "Made on the phone from what you played."),
 ]
