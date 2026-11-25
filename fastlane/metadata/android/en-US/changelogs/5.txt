@@ -1,0 +1,9 @@
+Mood mixes: a Moods shelf on Home with a mix a day for moods like Chill, Focus and Party, worked out on the phone from how your songs sound.
+
+- Pick the moods, genres and languages you like in Settings > Moods
+- Each mood page has Play, shuffle and Mood radio
+- Moods in Search too
+
+Romantic fills in after the phone charges with Attic analysing.
+<!-- TODO: smart transitions -->
+<!-- TODO: tablets -->

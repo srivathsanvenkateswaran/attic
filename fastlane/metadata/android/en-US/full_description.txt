@@ -1,6 +1,6 @@
 Attic plays the songs already on your phone: MP3, M4A, FLAC, Ogg, Opus and WAV files. There is no account, no streaming and no ads, and it plays in airplane mode.
 
-Copy your music onto the phone, in Music, Download or any other folder, and Attic builds albums and artists from it.
+Copy your music into any folder on the phone and Attic builds albums and artists from it.
 
 PLAYS YOUR LIBRARY
 - Home, Search and Library tabs, with album, artist and playlist screens
@@ -13,16 +13,16 @@ PLAYS YOUR LIBRARY
 
 FINDS WHAT TO PLAY NEXT, OFFLINE
 - Start radio from any song: Attic keeps ten similar songs in the queue
-- Instant mixes on Home: nine tiles of your favourites and unplayed songs that sound like them, changing daily
-- Mixes on Home: the songs you play and like, grouped by how they sound, with new mixes each day
+- Mixes on Home, new each day: nine instant mixes from your favourites, and mixes of the songs you play, grouped by how they sound
+- Mood mixes: a mix a day for Chill, Focus, Party and four more moods, from how your songs sound and the moods, genres and languages you pick. Each has its own radio
 - On repeat, Haven't heard in a while and Newly added shelves on Home
-- Smart shuffle for playlists and Favourites, which adds similar songs from the rest of your library
+- Smart shuffle for playlists and Favourites, adding similar songs from the rest of your library
 - Genres from your files' tags or from analysis, and radio from any genre
 - Stays in the language you're listening to, with about one song in ten from another language when the match is strong
-- Plays one version of a song when it exists in more than one language
+- Plays one version of a song that exists in more than one language
 - Learns from skips, finishes and likes in a listening log kept on the phone
 
-Radio, mixes and genres work by analysing each song's sound on the phone. Nothing is uploaded. Analysis runs in the background while the phone is charging.
+Radio, mixes, moods and genres come from analysing each song's sound on the phone. Nothing is uploaded. Analysis runs while the phone charges.
 
 PLAYBACK
 - A ten-band equaliser with eleven presets and your own. A song or an album can keep its own setting, which comes back whenever it plays
@@ -44,7 +44,7 @@ CLEANS UP MESSY TAGS
 Downloaded files often have no album tag and an uploader's name where the artist should be. Attic works out what the tags meant: "Artist - Song (Lyrics)" shows as Song by Artist, and three spellings of one artist become one artist page. Nothing is written back to your files.
 
 RECAP
-See your top songs, artists and listening clock for the week, month, year or all time, and share any of the cards as an image.
+See your top songs, artists and listening clock for the week, month, year or all time, and share any card as an image.
 
 PRIVACY
 Attic has no account, analytics or ads, and playback and song analysis never touch the network. The one exception is lyrics: when you download them, Attic sends the song's title, artist, album and length to lrclib.net. Your music files are never uploaded.
