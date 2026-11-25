@@ -55,22 +55,22 @@ class CrossfadePlanTest {
     fun unknownLengthMeansNoFade() = assertEquals(0L, fade(duration = 0))
 
     @Test
-    fun waitsUntilFiveSecondsBeforeTheFade() {
-        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:49.
-        assertEquals(CrossfadePlan.Step.Wait(229_000 - 100_000), CrossfadePlan.step(100_000, 240_000, 6_000))
+    fun waitsUntilTenSecondsBeforeTheFade() {
+        // A 4:00 song with a 6 s fade fades at 3:54, so the tail starts at 3:44.
+        assertEquals(CrossfadePlan.Step.Wait(224_000 - 100_000), CrossfadePlan.step(100_000, 234_000))
     }
 
     @Test
     fun armsInsideTheLead() {
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(230_000, 240_000, 6_000))
-        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 240_000, 6_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(225_000, 234_000))
+        assertEquals(CrossfadePlan.Step.Arm, CrossfadePlan.step(232_500, 234_000))
     }
 
     /** Seeking to just before the end leaves no time to line up, so that song ends without a fade. */
     @Test
     fun seekingCloseToTheEndSkipsTheFade() {
-        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(233_000, 240_000, 6_000))
-        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(239_000, 240_000, 6_000))
+        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(233_000, 234_000))
+        assertEquals(CrossfadePlan.Step.TooLate, CrossfadePlan.step(239_000, 234_000))
     }
 
     @Test
@@ -87,17 +87,17 @@ class CrossfadePlanTest {
     }
 
     @Test
-    fun choicesAreOffThenTwoToTwelveSeconds() {
-        assertEquals(0, CrossfadePlan.choices.first())
-        assertTrue(CrossfadePlan.choices.drop(1).all { it in 2..12 })
+    fun lengthsAreTwoToTwelveSecondsWithSixTheDefault() {
+        assertEquals(listOf(2, 4, 6, 8, 10, 12), TransitionPlanner.lengthChoices)
+        assertTrue(TransitionPlanner.DEFAULT_LENGTH_SECONDS in TransitionPlanner.lengthChoices)
     }
 }
 
 class TailAlignmentTest {
     @Test
-    fun waitsForFiveReadings() {
+    fun waitsForNineReadings() {
         val a = TailAlignment()
-        repeat(4) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(5)) }
+        repeat(8) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(5)) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(5))
     }
 
@@ -105,25 +105,55 @@ class TailAlignmentTest {
     fun oneWildReadingDoesNotDecide() {
         val a = TailAlignment()
         listOf(3L, -4L, 250L, 6L).forEach { a.record(it) }
+        repeat(4) { a.record(1) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(2))
     }
 
+    /** Readings from the owner's phone, seek 4 of a failed line-up: the true offset near 25 ms with a third of them about 270 ms out. */
     @Test
-    fun aLateTailSeeksFurtherAheadNextTime() {
+    fun aThirdOfTheReadingsBeingOutliersDoesNotDecide() {
+        val a = TailAlignment(toleranceMs = 30, readingsNeeded = 15)
+        val readings = listOf(73L, 14, 9, 9, 240, 318, 35, 25, 25, 25, 329, 61, 26, 26, 26)
+        readings.dropLast(1).forEach { assertEquals(TailAlignment.Verdict.NeedMore, a.record(it)) }
+        assertEquals(TailAlignment.Verdict.Aligned, a.record(readings.last()))
+    }
+
+    @Test
+    fun aLateTailPlaysFastAndTheNextSeekGoesFurtherAhead() {
         val a = TailAlignment()
         val before = a.leadMs
-        repeat(4) { a.record(-60) }
-        assertEquals(TailAlignment.Verdict.Reseek, a.record(-60))
+        repeat(8) { a.record(-60) }
+        val verdict = a.record(-60)
+        assertEquals(TailAlignment.Verdict.Nudge(1f + TailAlignment.NUDGE_RATE, 637), verdict)
         assertEquals(before + 60, a.leadMs)
         assertEquals(1_000 + before + 60, a.seekTarget(1_000))
     }
 
     @Test
-    fun anEarlyTailSeeksLessFarAhead() {
+    fun anEarlyTailPlaysSlowAndTheNextSeekGoesLessFarAhead() {
         val a = TailAlignment()
         val before = a.leadMs
-        repeat(5) { a.record(45) }
-        assertEquals(before - 45, a.leadMs)
+        repeat(8) { a.record(200) }
+        assertEquals(TailAlignment.Verdict.Nudge(1f - TailAlignment.NUDGE_RATE, 2_125), a.record(200))
+        assertEquals(before - 200, a.leadMs)
+    }
+
+    @Test
+    fun aReadingAfterANudgeDoesNotChangeTheLead() {
+        val a = TailAlignment()
+        repeat(9) { a.record(100) }
+        val lead = a.leadMs
+        a.remeasure()
+        repeat(8) { a.record(30) }
+        assertEquals(TailAlignment.Verdict.Nudge(1f - TailAlignment.NUDGE_RATE, 318), a.record(30))
+        assertEquals(lead, a.leadMs)
+    }
+
+    @Test
+    fun farOutSeeksAgain() {
+        val a = TailAlignment()
+        repeat(8) { a.record(-900) }
+        assertEquals(TailAlignment.Verdict.Reseek, a.record(-900))
     }
 
     @Test
@@ -131,7 +161,7 @@ class TailAlignmentTest {
         val a = TailAlignment()
         repeat(3) { a.record(500) }
         a.reset()
-        repeat(4) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(0)) }
+        repeat(8) { assertEquals(TailAlignment.Verdict.NeedMore, a.record(0)) }
         assertEquals(TailAlignment.Verdict.Aligned, a.record(0))
     }
 }

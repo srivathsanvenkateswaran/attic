@@ -26,6 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.crossfadeLengthBody
+import app.attic.player.ui.crossfadeLengthLabel
+import app.attic.player.ui.transitionBody
+import app.attic.player.ui.transitionLabel
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
 import app.attic.player.ui.expressive.Symbol
@@ -52,8 +56,15 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
     val listState = rememberLazyListState()
     val format = NumberFormat.getIntegerInstance()
     val title = stringResource(R.string.settings_title)
-    RootPage(title = title, listState = listState, onBack = actions.back) {
-        item(key = "hero") { Hero(title) }
+    val short = shortHeroOnTablet()
+    RootPage(
+        title = title,
+        listState = listState,
+        onBack = actions.back,
+        heroHeight = if (short) ShortHeroHeight else HeroHeight,
+        inset = readableColumnInset(),
+    ) {
+        item(key = "hero") { Hero(title, short = short) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), actions.back) }
         }
@@ -96,7 +107,26 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
                         summary = stringResource(R.string.settings_volume_levelling_body),
                     )
                 }
-                item { CrossfadeRow(state, actions) }
+                item {
+                    PickerRow(
+                        title = stringResource(R.string.settings_transitions),
+                        summary = transitionBody(state.transitions),
+                        labels = state.transitionChoices.map { transitionLabel(it) },
+                        selected = state.transitionChoices.indexOf(state.transitions),
+                        onPick = { actions.setTransitions(state.transitionChoices[it]) },
+                    )
+                }
+                if (state.showsCrossfadeLength) {
+                    item {
+                        PickerRow(
+                            title = stringResource(R.string.settings_crossfade_length),
+                            summary = crossfadeLengthBody(state.transitions),
+                            labels = state.crossfadeChoices.map { crossfadeLengthLabel(it) },
+                            selected = state.crossfadeChoices.indexOf(state.crossfadeSeconds),
+                            onPick = { actions.setCrossfadeSeconds(state.crossfadeChoices[it]) },
+                        )
+                    }
+                }
                 item { EqualiserRow(state, actions) }
             }
         }
@@ -145,6 +175,17 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
             val analysis = state.analysis
             val done = format.format(analysis.done)
             val total = format.format(analysis.total)
+            Label(stringResource(R.string.settings_moods))
+            Group {
+                item {
+                    SetRow(
+                        stringResource(R.string.settings_interests),
+                        summary = state.interestsSummary,
+                        onClick = actions.openInterests,
+                        trailing = { ComfortIcon(Symbol.ChevronRight, tint = Comfort.colors.on3) },
+                    )
+                }
+            }
             Label(stringResource(R.string.settings_song_radio))
             Group {
                 item {
@@ -235,23 +276,24 @@ fun ComfortSettings(state: SettingsState, actions: SettingsActions) {
 private val Bold = SpanStyle(fontWeight = FontWeight.SemiBold)
 
 /**
- * "Crossfade" with its length as the row's value, opening the kit's pop-over over its row toward the
- * value, the way the track menu's sleep timer does: a caption, then the lengths with the current one ticked.
+ * A row whose value is one of a few choices, shown in accent ink, opening the kit's pop-over over the
+ * row toward the value, the way the track menu's sleep timer does: [title] as a caption, then the
+ * choices with the current one ticked. "Transitions" and "Crossfade length" use it.
  *
- * The menu hangs from a zero-height anchor on the row's bottom edge. The row sits low in Settings, so
+ * The menu hangs from a zero-height anchor on the row's bottom edge. The rows sit low in Settings, so
  * the menu usually has no room below and opens upward, its bottom on the row's bottom, covering the
  * row. Material applies a y offset the same way in both directions, so an offset that covers the row
  * opening downward leaves a row-high gap opening upward; the anchor needs none.
  */
 @Composable
-private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
+private fun PickerRow(title: String, summary: String?, labels: List<String>, selected: Int, onPick: (Int) -> Unit) {
     var picking by remember { mutableStateOf(false) }
     BoxWithConstraints {
         val menuX = maxWidth - 214.dp
         SetRow(
-            stringResource(R.string.settings_crossfade),
-            summary = stringResource(R.string.settings_crossfade_body),
-            value = crossfadeLabel(state.crossfadeSeconds),
+            title,
+            summary = summary,
+            value = labels.getOrNull(selected),
             onClick = { picking = true },
         )
         Box(Modifier.align(Alignment.BottomStart)) {
@@ -260,16 +302,16 @@ private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
                 onDismiss = { picking = false },
                 offset = DpOffset(menuX, 0.dp),
             ) {
-                MenuCaption(stringResource(R.string.settings_crossfade))
-                for (seconds in state.crossfadeChoices) {
+                MenuCaption(title)
+                labels.forEachIndexed { index, label ->
                     MenuRow(
                         null,
-                        crossfadeLabel(seconds),
+                        label,
                         {
                             picking = false
-                            actions.setCrossfadeSeconds(seconds)
+                            onPick(index)
                         },
-                        selected = seconds == state.crossfadeSeconds,
+                        selected = index == selected,
                         check = true,
                     )
                 }
@@ -279,7 +321,7 @@ private fun CrossfadeRow(state: SettingsState, actions: SettingsActions) {
 }
 
 /**
- * "Equaliser", which opens its page. Its value is its state, as "Crossfade" shows its length: "Off" or
+ * "Equaliser", which opens its page. Its value is its state, as "Transitions" shows its choice: "Off" or
  * the default's preset. The line under the title counts what has a setting of its own, or describes
  * the feature while nothing has.
  */
@@ -304,10 +346,6 @@ private fun EqualiserRow(state: SettingsState, actions: SettingsActions) {
         },
     )
 }
-
-@Composable
-private fun crossfadeLabel(seconds: Int): String =
-    if (seconds <= 0) stringResource(R.string.settings_crossfade_off) else pluralStringResource(R.plurals.settings_crossfade_seconds, seconds, seconds)
 
 /** The question before a restore, then its result or why the file couldn't be used. */
 @Composable

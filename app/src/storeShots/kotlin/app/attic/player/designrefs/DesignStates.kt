@@ -1,5 +1,6 @@
 package app.attic.player.designrefs
 
+import app.attic.player.playback.TransitionMode
 import android.content.Context
 import androidx.media3.common.Player
 import app.attic.player.analysis.AnalysisProgress
@@ -276,6 +277,16 @@ object DesignStates {
         )
     }
 
+    /** Now Playing with a Smart transition planned 11 s before the song's end, as the design files draw it. */
+    val nowPlayingTransitionMark: NowPlayingState get() {
+        val n = s.nowPlaying
+        return NowPlayingState(
+            track = n.track, contextName = n.contextName, contextKind = n.contextKind, isPlaying = n.isPlaying, shuffle = n.shuffle,
+            repeatMode = n.repeatMode, queue = n.queue, currentIndex = n.currentIndex, liked = n.liked, artist = n.artist,
+            lyrics = n.lyrics, clock = n.clock, transitionAtMs = n.track?.let { it.durationMs - 11_000 },
+        )
+    }
+
     /** A voice note opened from a file manager: not in the library, so no cover, no artist page, no lyrics. */
     val openWithTrack = Track(
         key = ExternalTrack.keyFor("content://com.android.externalstorage.documents/document/primary%3ARecordings%2Fband-practice.m4a"),
@@ -334,6 +345,7 @@ object DesignStates {
         analysing: Boolean = false,
         downloadingLyrics: Boolean = false,
         backup: BackupUiState = base(style, dark).backup,
+        transitions: TransitionMode = base(style, dark).transitions,
     ): SettingsState {
         val base = s.settings(style, dark)
         val total = lib.tracks.size
@@ -347,6 +359,7 @@ object DesignStates {
             analysis = if (analysing) AnalysisProgress(done = 41, total = total, running = true) else base.analysis,
             backup = backup,
             volumeLevelling = base.volumeLevelling,
+            transitions = transitions,
             crossfadeSeconds = base.crossfadeSeconds,
             equaliser = base.equaliser,
         )

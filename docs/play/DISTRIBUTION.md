@@ -46,7 +46,8 @@ Practical notes:
 - `docs/play/CONSOLE.md` has the answers for the Console forms.
 
 Store assets are in `fastlane/metadata/android/en-US/`, and `fastlane supply` can upload them. The
-phone screenshots still have to be captured; see the README in `images/phoneScreenshots/`.
+phone, 7-inch and 10-inch tablet screenshots are under `images/`; the READMEs in
+`images/phoneScreenshots/` and `images/tenInchScreenshots/` say how they are made.
 
 ## F-Droid (main repository)
 
@@ -134,7 +135,7 @@ is a poor fit for Attic today.
   code has been written with AI coding agents, so under this policy a request would most likely be
   rejected, and it must not be submitted without saying so.
 - **Size.** IzzyOnDroid "usually reserves up to 30 megabytes per app", which is also the limit for
-  a single APK. Attic's release APK is 53 MB, nearly all of it the model and its runtime.
+  a single APK. Attic's release APK is 64 MB, nearly all of it the analysis model, its runtime and the mood classifiers.
 
 If you still want to ask, request inclusion at
 [IzzyOnDroid/repodata issues](https://codeberg.org/IzzyOnDroid/repodata/issues), state how the code

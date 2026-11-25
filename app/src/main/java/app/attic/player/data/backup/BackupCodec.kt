@@ -33,7 +33,8 @@ class BackupReadException(val reason: Reason, cause: Throwable? = null) : Except
  * ```
  * { "format": "attic-backup", "schemaVersion": 1, "createdAt": 1795000000000, "appVersion": "1.0.0",
  *   "settings": {…}, "likes": […], "playlists": […], "plays": […], "listens": […], "lyrics": […],
- *   "languages": […], "queue": {…}, "equaliser": { "songs": […], "albums": […], "presets": […] } }
+ *   "languages": […], "queue": {…}, "equaliser": { "songs": […], "albums": […], "presets": […] },
+ *   "interests": { "moods": […], "genres": […], "languages": […], "updatedAt": 0 } }
  * ```
  *
  * A reader accepts any schema up to [SCHEMA_VERSION] and ignores fields it doesn't know, so a later
@@ -46,8 +47,11 @@ object BackupCodec {
      * 2 added the equaliser. An older reader would skip it without a word and restore the rest, losing
      * every song's curve, so version 1 readers are made to refuse the file instead. Version 1 files
      * still read: they simply have no equaliser section.
+     *
+     * 3 added the mood-mix picks (`interests`), for the same reason: a version 2 reader would drop them
+     * without a word. Version 1 and 2 files still read: they have no picks.
      */
-    const val SCHEMA_VERSION = 2
+    const val SCHEMA_VERSION = 3
 
     /** Refused above this. Real backups are a few megabytes. */
     const val MAX_BYTES = 64 * 1024 * 1024
@@ -136,6 +140,16 @@ object BackupCodec {
                     array(backup.equaliserPresets) { JSONObject().put("name", it.name).put("gains", it.gains).put("createdAt", it.createdAt) },
                 ),
         )
+        backup.interests?.let { i ->
+            put(
+                "interests",
+                JSONObject()
+                    .put("moods", strings(i.moods))
+                    .put("genres", strings(i.genres))
+                    .put("languages", strings(i.languages))
+                    .put("updatedAt", i.updatedAt),
+            )
+        }
     }.toString()
 
     fun gzip(text: String): ByteArray {
@@ -235,6 +249,14 @@ object BackupCodec {
         equaliserSongs = equaliser?.objects("songs") { BackupEqualiser(it.string("song"), it.string("gains"), it.long("savedAt")) }.orEmpty(),
         equaliserAlbums = equaliser?.objects("albums") { BackupEqualiser(it.string("album"), it.string("gains"), it.long("savedAt")) }.orEmpty(),
         equaliserPresets = equaliser?.objects("presets") { BackupEqualiserPreset(it.string("name"), it.string("gains"), it.long("createdAt")) }.orEmpty(),
+        interests = root.objectOrNull("interests")?.let {
+            BackupInterests(
+                moods = it.optionalStrings("moods"),
+                genres = it.optionalStrings("genres"),
+                languages = it.optionalStrings("languages"),
+                updatedAt = (it.opt("updatedAt") as? Number)?.toLong() ?: 0L,
+            )
+        },
         )
     }
 
@@ -288,6 +310,9 @@ object BackupCodec {
         val array = opt(name) as? JSONArray ?: damaged(name)
         return List(array.length()) { array.opt(it) as? String ?: damaged(name) }
     }
+
+    private fun JSONObject.optionalStrings(name: String): List<String> =
+        if (opt(name) == null || isNull(name)) emptyList() else stringList(name)
 
     /** A missing list is an empty one, so a later schema can drop a section an older one wrote. */
     private fun <T> JSONObject.objects(name: String, read: (JSONObject) -> T): List<T> {

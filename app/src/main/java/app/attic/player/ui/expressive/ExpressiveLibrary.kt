@@ -43,6 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.WindowLayout
+import app.attic.player.ui.adaptive.ListDetailSelection
+import app.attic.player.ui.adaptive.LocalListDetailSelection
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.model.LibraryActions
 import app.attic.player.ui.model.LibraryFilter
@@ -62,6 +66,7 @@ import java.text.NumberFormat
  */
 @Composable
 fun ExpressiveLibrary(state: LibraryState, actions: LibraryActions) {
+    val wide = libraryWide(LocalWindowLayout.current, LocalListDetailSelection.current)
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val songs = state.filter == LibraryFilter.Downloaded
@@ -78,7 +83,7 @@ fun ExpressiveLibrary(state: LibraryState, actions: LibraryActions) {
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            RootAppBar(stringResource(R.string.library_title), scrolled = scrolled) {
+            RootAppBar(stringResource(R.string.library_title), scrolled = scrolled, titleInset = if (wide != null) WideExtraMargin else 0.dp) {
                 ExpressiveIconButton(Symbol.Search, stringResource(R.string.library_search_cd), actions.openSearch)
                 ExpressiveToggleButton(
                     Symbol.GridView,
@@ -90,7 +95,7 @@ fun ExpressiveLibrary(state: LibraryState, actions: LibraryActions) {
                 ExpressiveIconButton(Symbol.Settings, stringResource(R.string.settings), actions.openSettings)
             }
             Box(Modifier.fillMaxWidth().background(pinned).padding(bottom = 12.dp)) {
-                ChipRow(Modifier.horizontalScroll(rememberScrollState())) {
+                ChipRow(Modifier.horizontalScroll(rememberScrollState()).then(if (wide != null) Modifier.padding(start = WideExtraMargin) else Modifier)) {
                     LibraryFilter.entries.forEach { option ->
                         ExpressiveFilterChip(option.title(), option == state.filter, { actions.toggleFilter(option) })
                     }
@@ -98,8 +103,15 @@ fun ExpressiveLibrary(state: LibraryState, actions: LibraryActions) {
             }
             val end = bottom + if (showFab) 72.dp else 0.dp
             when {
-                songs -> SongList(state, actions, listState, end)
-                grid -> CollectionGrid(state, actions, gridState, end)
+                songs -> SongList(state, actions, listState, end, wide)
+                grid -> CollectionGrid(state, actions, gridState, end, wide)
+                wide != null -> LazyColumn(
+                    Modifier.fillMaxSize(),
+                    state = listState,
+                    contentPadding = PaddingValues(start = WideExtraMargin, end = wide.endInset, bottom = end),
+                ) {
+                    collectionRows(state, actions, wide)
+                }
                 else -> LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = end)) {
                     collectionRows(state, actions)
                 }
@@ -107,7 +119,7 @@ fun ExpressiveLibrary(state: LibraryState, actions: LibraryActions) {
         }
         AnimatedVisibility(
             visible = showFab,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = bottom - 12.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = wide?.fabEnd ?: 16.dp, bottom = bottom - 12.dp),
             enter = scaleIn(ExpressiveMotion.fastSpatial()) + fadeIn(ExpressiveMotion.fastEffects()),
             exit = scaleOut(ExpressiveMotion.fastSpatial()) + fadeOut(ExpressiveMotion.fastEffects()),
         ) {
@@ -154,13 +166,24 @@ private fun sections(state: LibraryState): List<Section> {
     )
 }
 
-private fun LazyListScope.collectionRows(state: LibraryState, actions: LibraryActions) {
+private fun LazyListScope.collectionRows(state: LibraryState, actions: LibraryActions, wide: LibraryWide? = null) {
     sections(state).forEachIndexed { index, section ->
         if (section.label != null) {
             item(key = "label:${section.label}") { ListLabel(stringResource(section.label)) }
         } else if (index > 0) {
             item(key = "gap:$index") { Box(Modifier.padding(top = ExpressiveShapes.GroupSpacing)) }
         }
+        if (wide != null) {
+            columnGroupItems(section.items, wide.rowColumns, key = { it.id }) { _, item ->
+                CollectionRow(
+                    title = item.displayTitle(),
+                    subtitle = item.displaySubtitle(),
+                    lead = { ItemArt(item, size = 56.dp) },
+                    onClick = { actions.open(item) },
+                    selected = item.id == wide.selectedId,
+                )
+            }
+        } else {
         groupItems(section.items, key = { it.id }) { _, item ->
             CollectionRow(
                 title = item.displayTitle(),
@@ -169,17 +192,19 @@ private fun LazyListScope.collectionRows(state: LibraryState, actions: LibraryAc
                 onClick = { actions.open(item) },
             )
         }
+        }
     }
 }
 
 @Composable
-private fun CollectionGrid(state: LibraryState, actions: LibraryActions, gridState: LazyGridState, bottom: Dp) {
+private fun CollectionGrid(state: LibraryState, actions: LibraryActions, gridState: LazyGridState, bottom: Dp, wide: LibraryWide? = null) {
     val sections = sections(state)
+    val side = if (wide != null) 16.dp + WideExtraMargin else 16.dp
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        columns = if (wide != null) GridCells.Adaptive(TileColumnMinDp.dp) else GridCells.Fixed(3),
         state = gridState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = bottom),
+        contentPadding = PaddingValues(start = side, end = side, bottom = bottom),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -238,8 +263,10 @@ private fun SongList(
     actions: LibraryActions,
     listState: LazyListState,
     bottom: Dp,
+    wide: LibraryWide? = null,
 ) {
-    LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = bottom)) {
+    val side = if (wide != null) WideExtraMargin else 0.dp
+    LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(start = side, end = wide?.endInset ?: 0.dp, bottom = bottom)) {
         item(key = "shuffle") {
             ExpressiveButton(
                 stringResource(R.string.library_shuffle_all_cd),
@@ -264,7 +291,7 @@ private fun SongList(
                 SortButton(state.sort, actions)
             }
         }
-        groupItems(state.songs, key = { it.key }) { _, track ->
+        columnGroupItems(state.songs, wide?.rowColumns ?: 1, key = { it.key }) { _, track ->
             SongRow(
                 title = track.title,
                 subtitle = track.artist,
@@ -316,4 +343,25 @@ private fun LazyGridState.scrolledFraction(range: Float = 120f): Float {
         }
     }
     return fraction
+}
+
+// ── Tablets ──────────────────────────────────────────────────────────────────
+
+/**
+ * The Library on a medium or expanded window (SPEC.md, Library): the 24dp margins, rows in columns at
+ * least 360dp wide (one in the list pane beside an open item), the grid in cells at least 160dp wide.
+ * [selectedId] is the row open beside the list. Null on a phone.
+ */
+private class LibraryWide(val rowColumns: Int, val selectedId: String?, val fabEnd: Dp) {
+    /** The list pane's end edge meets the detail, so only the window's end edge takes the margin. */
+    val endInset: Dp get() = if (selectedId != null) 0.dp else WideExtraMargin
+}
+
+private fun libraryWide(window: WindowLayout, selection: ListDetailSelection?): LibraryWide? {
+    if (!window.wide) return null
+    return if (selection != null) {
+        LibraryWide(rowColumns = 1, selectedId = selection.itemId, fabEnd = 16.dp)
+    } else {
+        LibraryWide(rowColumns = rowColumns(window.contentWidthDp), selectedId = null, fabEnd = 16.dp + WideExtraMargin)
+    }
 }

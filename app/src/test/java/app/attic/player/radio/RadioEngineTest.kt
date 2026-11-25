@@ -18,9 +18,81 @@ class RadioEngineTest {
         album: String? = key,
         affinity: Float = 0f,
         composers: Set<String> = emptySet(),
+        flow: FlowTraits? = null,
     ): RadioSong {
         val r = Math.toRadians(degrees)
-        return RadioSong(key, floatArrayOf(cos(r).toFloat(), sin(r).toFloat()), language, artist, album, affinity, composers)
+        return RadioSong(key, floatArrayOf(cos(r).toFloat(), sin(r).toFloat()), language, artist, album, affinity, composers, flow)
+    }
+
+    private fun traits(bpm: Double?, energy: Float? = null, key: Int? = null) = FlowTraits(bpm, bpm, energy, key)
+
+    // ---- flow ----
+
+    @Test
+    fun ofTwoEquallyCloseSongsTheOneThatFlowsComesFirst() {
+        val seed = traits(124.0, 0.6f, key = 9) // A major
+        val e = engine(
+            song("seed", 0.0, flow = seed),
+            song("clash", -20.0, flow = traits(97.0, 0.1f, key = 3)), // D# major, slow and calm
+            song("flows", 20.0, flow = traits(125.0, 0.65f, key = 4)), // E major, a fifth up
+        )
+        assertEquals(listOf("flows", "clash"), e.chain("seed", 2))
+        // Mirrored, so it isn't the angle's sign that decides.
+        val mirrored = engine(
+            song("seed", 0.0, flow = seed),
+            song("clash", 20.0, flow = traits(97.0, 0.1f, key = 3)),
+            song("flows", -20.0, flow = traits(125.0, 0.65f, key = 4)),
+        )
+        assertEquals(listOf("flows", "clash"), mirrored.chain("seed", 2))
+    }
+
+    @Test
+    fun flowNeverOutweighsAClearlyCloserSound() {
+        val e = engine(
+            song("seed", 0.0, flow = traits(124.0, 0.6f, key = 9)),
+            song("closer", 10.0, flow = traits(80.0, 0.0f, key = 3)),
+            song("flows", 20.0, flow = traits(124.0, 0.6f, key = 9)),
+        )
+        assertEquals("closer", e.chain("seed", 1).single())
+    }
+
+    @Test
+    fun followsTheLastSongNotTheSeed() {
+        // After "a" (fast), the fast candidate flows better even though the seed was slow. The session then
+        // steers about 4° toward "a", which leaves "slow" a touch closer in sound than "fast".
+        val e = engine(
+            song("seed", 0.0, flow = traits(80.0)),
+            song("a", -11.0, flow = traits(150.0)),
+            song("slow", 20.0, flow = traits(80.0)),
+            song("fast", -28.0, flow = traits(151.0)),
+        )
+        assertEquals(listOf("a", "fast", "slow"), e.chain("seed", 3))
+    }
+
+    @Test
+    fun songsWithoutTraitsRankAsBefore() {
+        val e = engine(song("seed", 0.0), song("far", 40.0, flow = traits(120.0)), song("near", 10.0))
+        assertEquals(listOf("near", "far"), e.chain("seed", 2))
+    }
+
+    @Test
+    fun theSameSessionGivesTheSameOrder() {
+        val songs = (0 until 30).map { i ->
+            song("s$i", (i * 37 % 60 - 30).toDouble(), flow = traits(90.0 + i * 3 % 50, (i % 7) / 7f, key = i % 24))
+        }
+        val first = engine(song("seed", 0.0, flow = traits(110.0, 0.5f, 0)), *songs.toTypedArray()).chain("seed", 12)
+        repeat(3) {
+            assertEquals(first, engine(song("seed", 0.0, flow = traits(110.0, 0.5f, 0)), *songs.toTypedArray()).chain("seed", 12))
+        }
+    }
+
+    @Test
+    fun flowScores() {
+        assertEquals(1f, Flow.score(traits(120.0, 0.5f, 0), traits(121.0, 0.5f, 7)), 1e-6f)
+        assertEquals(1f, Flow.score(traits(87.0), traits(174.0)), 1e-6f) // half time
+        assertEquals(-0.5f, Flow.score(traits(120.0), traits(140.0)), 1e-6f)
+        assertEquals(0f, Flow.score(traits(null), traits(null)), 0f)
+        assertEquals(0f, Flow.score(null, traits(120.0)), 0f)
     }
 
     private fun engine(vararg songs: RadioSong, sameSong: (RadioSong, RadioSong) -> Boolean = { _, _ -> false }) =

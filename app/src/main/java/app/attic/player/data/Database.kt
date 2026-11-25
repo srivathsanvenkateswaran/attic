@@ -110,7 +110,11 @@ data class ListeningEventEntity(
     val radioCross: Boolean,
 )
 
-/** What analysis learned from a file. A null [embedding] records a file that couldn't be read. */
+/**
+ * What analysis learned from a file. A null [embedding] records a file that couldn't be read.
+ * [embeddingNorm] is the embedding's length before it was made unit length, which the mood heads
+ * need: null for a song analysed before it was stored, 0 when a decode to find it failed.
+ */
 @Entity(tableName = "song_analysis")
 class SongAnalysisEntity(
     @PrimaryKey val trackKey: String,
@@ -118,6 +122,7 @@ class SongAnalysisEntity(
     val embedding: ByteArray?,
     val chroma: ByteArray?,
     val analyzedAt: Long,
+    @ColumnInfo(defaultValue = "NULL") val embeddingNorm: Float? = null,
 )
 
 /**
@@ -145,6 +150,19 @@ data class SongLoudnessEntity(
     val measuredAt: Long,
 )
 
+/**
+ * A song's mood scores from the classifier heads, as [app.attic.player.analysis.MoodSignals] stores
+ * them. [exact] is false for scores worked out without the embedding's length, which lack the
+ * moodtheme tags and engagement (docs/features/mood-mixes.md).
+ */
+@Entity(tableName = "song_moods")
+class SongMoodsEntity(
+    @PrimaryKey val trackKey: String,
+    val version: Int,
+    val exact: Boolean,
+    val scores: ByteArray,
+)
+
 /** A language from your own correction or an imported file. Everything else is worked out on load. */
 @Entity(tableName = "song_language")
 data class SongLanguageEntity(
@@ -158,9 +176,6 @@ data class SongLanguageEntity(
  * what a smart transition and radio's ordering read ([app.attic.player.analysis.SongTransitions]). A null
  * [decodedMs] records a file that couldn't be measured; it isn't tried again until [version] changes.
  * Times are milliseconds from the start of the decoded audio. [key] is 0–11 major, 12–23 minor.
- *
- * Carried verbatim from `feature/smart-transitions`, which owns version 6, so the equaliser's version 7
- * builds on the same schema the owner's phone already has. When the two branches meet, theirs wins.
  */
 @Entity(tableName = "song_transitions")
 class SongTransitionsEntity(
@@ -182,6 +197,18 @@ class SongTransitionsEntity(
     val introEnergy: ByteArray?,
     val outroEnergy: ByteArray?,
     val measuredAt: Long,
+)
+
+/** What radio reads from [SongTransitionsEntity] to order picks: no curves. */
+class FlowTraitsRow(
+    val trackKey: String,
+    val introBpm: Double?,
+    val introBeatConfidence: Float?,
+    val outroBpm: Double?,
+    val outroBeatConfidence: Float?,
+    val energy: Float?,
+    val key: Int?,
+    val keyConfidence: Float?,
 )
 
 /**
@@ -210,6 +237,11 @@ data class EqPresetEntity(
 )
 
 class EmbeddingRow(val trackKey: String, val embedding: ByteArray)
+
+/** An embedding to score for moods, with its length when known (see [SongAnalysisEntity.embeddingNorm]). */
+class MoodInputRow(val trackKey: String, val embedding: ByteArray, val embeddingNorm: Float?)
+
+class MoodRow(val trackKey: String, val exact: Boolean, val scores: ByteArray)
 
 class StylesRow(val trackKey: String, val top: ByteArray)
 
@@ -357,30 +389,104 @@ interface MusicDao {
      * null part is left as it was (see [app.attic.player.analysis.saveAnalysis]).
      */
     @Transaction
-    suspend fun saveSongAnalysis(analysis: SongAnalysisEntity?, styles: SongStylesEntity?, loudness: SongLoudnessEntity?) {
-        if (analysis != null) saveAnalysis(analysis)
+    suspend fun saveSongAnalysis(
+        analysis: SongAnalysisEntity?,
+        styles: SongStylesEntity?,
+        loudness: SongLoudnessEntity?,
+        transitions: SongTransitionsEntity? = null,
+    ) {
+        if (analysis != null) {
+            saveAnalysis(analysis)
+            // A new embedding means new mood scores; the next scoring pass writes them.
+            deleteMoods(analysis.trackKey)
+        }
         if (styles != null) saveStyles(styles)
         if (loudness != null) saveLoudness(loudness)
+        if (transitions != null) saveTransitions(transitions)
     }
+
+    /** What a decode with no model run measured: loudness and transitions together. */
+    @Transaction
+    suspend fun saveMeasured(loudness: SongLoudnessEntity, transitions: SongTransitionsEntity) {
+        saveLoudness(loudness)
+        saveTransitions(transitions)
+    }
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveTransitions(entity: SongTransitionsEntity)
+
+    @Query("SELECT trackKey FROM song_transitions WHERE version = :version")
+    suspend fun transitionedKeysNow(version: Int): List<String>
+
+    @Query("SELECT * FROM song_transitions WHERE version = :version AND decodedMs IS NOT NULL")
+    fun transitions(version: Int): Flow<List<SongTransitionsEntity>>
+
+    @Query(
+        "SELECT trackKey, introBpm, introBeatConfidence, outroBpm, outroBeatConfidence, energy, `key`, keyConfidence " +
+            "FROM song_transitions WHERE version = :version AND decodedMs IS NOT NULL",
+    )
+    suspend fun flowTraits(version: Int): List<FlowTraitsRow>
+
+    /** Forgets one song's transitions, so the next analysis run measures it again. Debug builds only. */
+    @Query("DELETE FROM song_transitions WHERE trackKey = :key")
+    suspend fun forgetTransitions(key: String)
 
     @Query("SELECT trackKey, top FROM song_styles WHERE modelVersion = :version")
     fun styles(version: Int): Flow<List<StylesRow>>
 
+    @Query("SELECT trackKey, top FROM song_styles WHERE modelVersion = :version")
+    suspend fun stylesNow(version: Int): List<StylesRow>
+
     /**
-     * Songs analysis has finished with: read with their styles, or found unreadable. A song analysed
-     * before styles were stored is not finished until its styles are.
+     * Songs analysis has finished with: read with their styles and their embedding's length, or found
+     * unreadable. A song analysed before styles or lengths were stored is not finished until they are.
      */
     @Query(
         "SELECT a.trackKey FROM song_analysis a LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :version " +
-            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR (s.trackKey IS NOT NULL AND a.embeddingNorm IS NOT NULL))",
     )
     fun finishedKeys(version: Int): Flow<List<String>>
 
     @Query(
         "SELECT a.trackKey FROM song_analysis a LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :version " +
-            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+            "WHERE a.modelVersion = :version AND (a.embedding IS NULL OR (s.trackKey IS NOT NULL AND a.embeddingNorm IS NOT NULL))",
     )
     suspend fun finishedKeysNow(version: Int): List<String>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM song_styles WHERE trackKey = :key AND modelVersion = :version)")
+    suspend fun hasStyles(key: String, version: Int): Boolean
+
+    /** For a song whose file couldn't be read again: its length stays unknown, and it isn't retried. */
+    @Query("UPDATE song_analysis SET embeddingNorm = 0 WHERE trackKey = :key AND embeddingNorm IS NULL")
+    suspend fun markNormUnknown(key: String)
+
+    /**
+     * Embeddings whose mood scores are missing, from another [version], or approximate while the
+     * length is now known. At most [limit], so a backfill goes a batch at a time.
+     */
+    @Query(
+        "SELECT a.trackKey, a.embedding, a.embeddingNorm FROM song_analysis a " +
+            "LEFT JOIN song_moods m ON m.trackKey = a.trackKey " +
+            "WHERE a.modelVersion = :modelVersion AND a.embedding IS NOT NULL " +
+            "AND (m.trackKey IS NULL OR m.version != :version OR (m.exact = 0 AND a.embeddingNorm > 0)) " +
+            "ORDER BY a.trackKey LIMIT :limit",
+    )
+    suspend fun moodInputs(modelVersion: Int, version: Int, limit: Int): List<MoodInputRow>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveMoods(entities: List<SongMoodsEntity>)
+
+    @Query("DELETE FROM song_moods WHERE trackKey = :key")
+    suspend fun deleteMoods(key: String)
+
+    @Query("SELECT trackKey, exact, scores FROM song_moods WHERE version = :version")
+    suspend fun moods(version: Int): List<MoodRow>
+
+    @Query("SELECT COUNT(*) FROM song_moods WHERE version = :version")
+    suspend fun moodCount(version: Int): Int
+
+    @Query("SELECT trackKey, embedding FROM song_analysis WHERE modelVersion = :version AND embedding IS NOT NULL AND trackKey IN (:keys)")
+    suspend fun embeddingsFor(version: Int, keys: List<String>): List<EmbeddingRow>
 
     @Query("SELECT chroma FROM song_analysis WHERE trackKey = :key")
     suspend fun chroma(key: String): ByteArray?
@@ -395,16 +501,17 @@ interface MusicDao {
     fun measuredKeys(version: Int): Flow<List<String>>
 
     /**
-     * Songs analysis has nothing left to do for: finished as [finishedKeys] says, and with their loudness
-     * saved. This is the count Settings shows as analysed.
+     * Songs analysis has nothing left to do for: finished as [finishedKeys] says, with their loudness and
+     * transitions saved. This is the count Settings shows as analysed.
      */
     @Query(
         "SELECT a.trackKey FROM song_analysis a " +
             "LEFT JOIN song_styles s ON s.trackKey = a.trackKey AND s.modelVersion = :modelVersion " +
             "JOIN song_loudness l ON l.trackKey = a.trackKey AND l.version = :loudnessVersion " +
-            "WHERE a.modelVersion = :modelVersion AND (a.embedding IS NULL OR s.trackKey IS NOT NULL)",
+            "JOIN song_transitions t ON t.trackKey = a.trackKey AND t.version = :transitionsVersion " +
+            "WHERE a.modelVersion = :modelVersion AND (a.embedding IS NULL OR (s.trackKey IS NOT NULL AND a.embeddingNorm IS NOT NULL))",
     )
-    fun completeKeys(modelVersion: Int, loudnessVersion: Int): Flow<List<String>>
+    fun completeKeys(modelVersion: Int, loudnessVersion: Int, transitionsVersion: Int): Flow<List<String>>
 
     @Query("SELECT * FROM song_loudness WHERE version = :version AND integratedLufs IS NOT NULL")
     fun loudness(version: Int): Flow<List<SongLoudnessEntity>>
@@ -547,8 +654,9 @@ object PlaylistOrder {
         SongTransitionsEntity::class,
         EqSettingEntity::class,
         EqPresetEntity::class,
+        SongMoodsEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 1, to = 2), AutoMigration(from = 2, to = 3)],
 )
@@ -563,6 +671,7 @@ abstract class AtticDatabase : RoomDatabase() {
                     DatabaseMigrations.FROM_4_TO_5,
                     DatabaseMigrations.FROM_5_TO_6,
                     DatabaseMigrations.FROM_6_TO_7,
+                    DatabaseMigrations.FROM_7_TO_8,
                 )
                 .build()
     }
@@ -609,6 +718,17 @@ object DatabaseMigrations {
             "`gains` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
     )
 
+    /**
+     * Adds the embedding's length to `song_analysis` and the `song_moods` table for mood mixes. Every
+     * saved row carries over; songs analysed before have a null length and get approximate mood scores
+     * until analysis decodes them again (docs/features/mood-mixes.md).
+     */
+    val SQL_7_TO_8 = listOf(
+        "ALTER TABLE `song_analysis` ADD COLUMN `embeddingNorm` REAL DEFAULT NULL",
+        "CREATE TABLE IF NOT EXISTS `song_moods` (`trackKey` TEXT NOT NULL, `version` INTEGER NOT NULL, " +
+            "`exact` INTEGER NOT NULL, `scores` BLOB NOT NULL, PRIMARY KEY(`trackKey`))",
+    )
+
     val FROM_3_TO_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_3_TO_4.forEach(db::execSQL)
     }
@@ -623,5 +743,9 @@ object DatabaseMigrations {
 
     val FROM_6_TO_7 = object : Migration(6, 7) {
         override fun migrate(db: SupportSQLiteDatabase) = SQL_6_TO_7.forEach(db::execSQL)
+    }
+
+    val FROM_7_TO_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) = SQL_7_TO_8.forEach(db::execSQL)
     }
 }

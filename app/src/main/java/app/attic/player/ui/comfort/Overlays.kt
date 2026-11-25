@@ -60,6 +60,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import app.attic.player.ui.expressive.Symbol
+import app.attic.player.ui.adaptive.DialogMaxWidthDp
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 
 /**
  * `.sheet`: Material's ModalBottomSheet in the kit's dress: raised, 30dp top corners, a 40×4 grab
@@ -234,6 +237,9 @@ fun ComfortDialog(
     danger: Boolean = false,
     content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
+    // On a tablet the dialog sits in the middle of the window, at most 560dp wide, or 400 with a field
+    // (docs/design/2026-11-25-tablet/SPEC.md, Sheets and dialogs); on a phone it floats at the bottom.
+    val tablet = LocalWindowLayout.current.widthClass != WidthClass.Compact
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val window = (LocalView.current.parent as? DialogWindowProvider)?.window
         SideEffect { window?.setDimAmount(0f) }
@@ -243,16 +249,23 @@ fun ComfortDialog(
                 .fillMaxSize()
                 .background(colors.scrim)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
-            contentAlignment = Alignment.BottomCenter,
+            contentAlignment = if (tablet) Alignment.Center else Alignment.BottomCenter,
         ) {
             DialogCard(
                 title, body, confirmText, onConfirm, dismissText, onDismiss, confirmEnabled, danger,
-                modifier.navigationBarsPadding().imePadding().padding(start = 12.dp, end = 12.dp, bottom = 22.dp),
+                if (tablet) {
+                    modifier.imePadding().padding(24.dp).widthIn(max = if (content != null) OneFieldDialogWidth else DialogMaxWidthDp.dp)
+                } else {
+                    modifier.navigationBarsPadding().imePadding().padding(start = 12.dp, end = 12.dp, bottom = 22.dp)
+                },
                 content,
             )
         }
     }
 }
+
+/** A dialog holding one field (New playlist, Rename) on a tablet. */
+private val OneFieldDialogWidth = 400.dp
 
 /**
  * The dialog's card on its own, for a preview or the gallery. [ComfortDialog] places it in a window,

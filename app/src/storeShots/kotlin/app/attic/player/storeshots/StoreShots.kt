@@ -6,6 +6,12 @@ import app.attic.player.ui.comfort.TintedCover
 import app.attic.player.ui.expressive.ExpressiveEqualiserPage
 import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
 import app.attic.player.ui.expressive.FromCover
+import app.attic.player.designrefs.MoodStates
+import app.attic.player.playback.TransitionMode
+import app.attic.player.ui.comfort.ComfortInterests
+import app.attic.player.ui.comfort.ComfortMood
+import app.attic.player.ui.expressive.ExpressiveInterests
+import app.attic.player.ui.expressive.ExpressiveMood
 import android.app.Application
 import androidx.compose.runtime.Composable
 import app.attic.player.data.UiStyle
@@ -87,11 +93,12 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
     @Test
     fun shot() {
         val name = "${style.name.lowercase()}-${if (dark) "dark" else "light"}-$screen"
-        // Home from "Mixes" down, and Settings from "Playback" down, each heading just below the bar
-        // that stays pinned at the top (Comfort's Home keeps its tabs there too).
+        // Home from "Mixes" or "Moods" down, and Settings from "Playback" down, each heading just below
+        // the bar that stays pinned at the top (Comfort's Home keeps its tabs there too).
         val expressive = style == UiStyle.Expressive
         val heading = when (screen) {
             "home-mixes" -> R.string.home_mixes to if (expressive) 150f else 175f
+            "home-moods" -> R.string.home_moods to if (expressive) 150f else 175f
             "settings-playback" -> R.string.settings_playback to 125f
             else -> null
         }
@@ -106,7 +113,7 @@ class StoreShots(private val style: UiStyle, private val dark: Boolean, private 
     companion object {
         val Screens = listOf(
             "home", "home-mixes", "album", "artist", "now-playing", "lyrics", "queue", "library", "search", "search-browse", "settings",
-            "settings-playback", "recap", "equaliser", "equaliser-settings",
+            "settings-playback", "recap", "equaliser", "equaliser-settings", "home-moods", "mood", "interests",
         )
 
         /** Screens with a sheet over them, captured with every window. */
@@ -148,7 +155,9 @@ private fun Screen(style: UiStyle, screen: String) {
         "search-browse" ->
             InShell(style, Tab.Search) { if (expressive) ExpressiveSearch(s.searchBrowse, s.searchActions) else ComfortSearch(s.searchBrowse, s.searchActions) }
         "settings", "settings-playback" -> {
-            val state = s.settings(style, LocalIsDark.current)
+            // Playback shows Smart, the 1.3 transition; the full Settings shot keeps the default demo.
+            val transitions = if (screen == "settings-playback") TransitionMode.Smart else TransitionMode.Crossfade
+            val state = s.settings(style, LocalIsDark.current, transitions)
             InShell(style, Tab.Home) { if (expressive) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions) }
         }
         "recap" ->
@@ -165,6 +174,19 @@ private fun Screen(style: UiStyle, screen: String) {
         "equaliser-settings" -> InShell(style, Tab.Home) {
             val page = EqualiserDemo.page()
             if (expressive) ExpressiveEqualiserPage(page, EqualiserDemo.pageActions) else ComfortEqualiserPage(page, EqualiserDemo.pageActions)
+        }
+        // Mood mixes: Home with the Moods shelf, Chill's page, and the picks page with picks saved.
+        "home-moods" -> {
+            val state = MoodStates.home(ask = false)
+            InShell(style, Tab.Home) { if (expressive) ExpressiveHome(state, s.homeActions) else ComfortHome(state, s.homeActions) }
+        }
+        "mood" -> {
+            val state = MoodStates.page(playing = false)
+            InShell(style, Tab.Home) { if (expressive) ExpressiveMood(state, MoodStates.pageActions) else ComfortMood(state, MoodStates.pageActions) }
+        }
+        "interests" -> {
+            val state = MoodStates.interests(picked = true)
+            if (expressive) ExpressiveInterests(state, MoodStates.interestsActions) else ComfortInterests(state, MoodStates.interestsActions)
         }
         else -> error("Unknown screen $screen")
     }

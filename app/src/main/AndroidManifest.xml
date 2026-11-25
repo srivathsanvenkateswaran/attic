@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!--
-        The main activity asks for portrait, which on its own makes Play treat a portrait screen as
-        required and hide Attic from tablets, desktops and XR headsets. Large screens ignore the
-        orientation request from Android 16 on, so portrait is optional here.
+        Phones are kept in portrait at runtime (MainActivity), and large screens turn freely. Saying
+        portrait is optional keeps Play from listing a portrait screen as required, which would hide
+        Attic from desktops and XR headsets that have none.
     -->
     <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
 
@@ -55,13 +55,19 @@
             android:name="com.google.android.gms.car.application.theme"
             android:resource="@style/Theme.Attic.Car" />
 
+        <!--
+            No orientation in the manifest: tablets turn freely, and MainActivity keeps phones in portrait
+            at runtime (ui/adaptive/AdaptiveLayout.kt, locksToPortrait). Rotating, resizing and split
+            screen are handled in place by Compose rather than by recreating the activity, so the player
+            connection, the open overlay and every scroll position stay as they were.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

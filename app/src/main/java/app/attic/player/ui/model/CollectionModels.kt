@@ -57,7 +57,7 @@ class PlayControlsActions(
     val toggleSmartShuffle: () -> Unit = {},
 )
 
-private fun playControls(
+internal fun playControls(
     app: AtticApp,
     ui: UiActions,
     haptics: Haptics,

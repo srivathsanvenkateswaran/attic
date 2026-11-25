@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.attic.player.attic
 import app.attic.player.data.Album
@@ -30,19 +31,23 @@ class SearchResults(
     val albums: List<Album>,
     val folders: List<FolderPlaylist>,
     val genres: List<Genre> = emptyList(),
+    /** Moods whose name matches, as their Browse tiles. */
+    val moods: List<BrowseTile> = emptyList(),
 ) {
-    val isEmpty get() = tracks.isEmpty() && artists.isEmpty() && albums.isEmpty() && folders.isEmpty() && genres.isEmpty()
+    val isEmpty get() = tracks.isEmpty() && artists.isEmpty() && albums.isEmpty() && folders.isEmpty() && genres.isEmpty() && moods.isEmpty()
 }
 
 /** Accent and case insensitive, with name-prefix matches ranked first. */
-private fun search(library: Library, genres: List<Genre>, query: String): SearchResults {
+private fun search(library: Library, genres: List<Genre>, moods: List<BrowseTile>, query: String): SearchResults {
     val found = LibrarySearch.find(library, query)
+    val searchable = TitleCleaner.searchable(query)
     return SearchResults(
         tracks = found.tracks,
         artists = found.artists.take(5),
         albums = found.albums.take(10),
         folders = found.folders,
-        genres = with(LibrarySearch) { genres.matching(TitleCleaner.searchable(query), { it.name }) }.take(3),
+        genres = with(LibrarySearch) { genres.matching(searchable, { it.name }) }.take(3),
+        moods = with(LibrarySearch) { moods.matching(searchable, { it.title }) }.take(3),
     )
 }
 
@@ -71,6 +76,8 @@ class SearchState(
     val isPlaying: Boolean,
     /** Browse's "Genres": one tile per genre, biggest first. Empty until there are genres to show. */
     val genres: List<BrowseTile> = emptyList(),
+    /** Browse's "Moods": every mood with a mix today, picked or not, in the moods' order. */
+    val moods: List<BrowseTile> = emptyList(),
 )
 
 class SearchActions(
@@ -91,7 +98,14 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
     var query by rememberSaveable { mutableStateOf("") }
     val genres by app.genres.genres.collectAsStateWithLifecycle()
     val genreList = genres.orEmpty()
-    val results = remember(query, library, genreList) { query.takeIf { it.isNotBlank() }?.let { search(library, genreList, it) } }
+    val feed by app.homeFeed.feed.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
+    val moodTiles = remember(feed.moodMixes, library) {
+        moodTiles(feed.moodMixes, library, resources).map { m ->
+            BrowseTile(m.name, m.tracks.first().mediaId, Destination.Mood(m.mood.id), m.tracks.size, mosaicIds = m.mosaicIds, artist = m.description)
+        }
+    }
+    val results = remember(query, library, genreList, moodTiles) { query.takeIf { it.isNotBlank() }?.let { search(library, genreList, moodTiles, it) } }
     val tiles = remember(library) {
         library.folders.map { f ->
             BrowseTile(f.name, f.tracks.first().mediaId, Destination.Folder(f.name), f.tracks.size, mosaicIds = mosaicIds(f.tracks))
@@ -107,7 +121,7 @@ fun rememberSearchModel(library: Library): UiModel<SearchState, SearchActions> {
         }
     }
 
-    val state = SearchState(query, results, tiles, player.current?.key, player.isPlaying, genreTiles)
+    val state = SearchState(query, results, tiles, player.current?.key, player.isPlaying, genreTiles, moodTiles)
     val actions = SearchActions(
         setQuery = { query = it },
         openSettings = ui::openSettings,

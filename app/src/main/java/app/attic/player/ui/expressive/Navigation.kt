@@ -50,6 +50,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
@@ -117,7 +118,8 @@ fun LazyListState.scrolledFraction(range: Float = 120f): Float {
 /**
  * A tab root's app bar (`.appbar.root`): one row, a large rounded title (36/44) and trailing actions,
  * settings last. As [scrolled] goes from 0 to 1 the title shrinks to 22/28 and the bar takes the
- * surface container colour, running under the status bar. [titleLeading] holds Home's mark.
+ * surface container colour, running under the status bar. [titleLeading] holds Home's mark. [titleInset]
+ * moves the title in by the page's extra margin on a tablet.
  */
 @Composable
 fun RootAppBar(
@@ -126,6 +128,7 @@ fun RootAppBar(
     scrolled: Float = 0f,
     titleLeading: (@Composable () -> Unit)? = null,
     windowInsets: WindowInsets = WindowInsets.statusBars,
+    titleInset: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -147,7 +150,7 @@ fun RootAppBar(
     )
     Box(modifier.fillMaxWidth().background(container).windowInsetsPadding(windowInsets)) {
         Row(
-            Modifier.fillMaxWidth().height(lerp(72.dp, 64.dp, fraction)).padding(start = 16.dp, end = 8.dp),
+            Modifier.fillMaxWidth().height(lerp(72.dp, 64.dp, fraction)).padding(start = 16.dp + titleInset, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
@@ -169,6 +172,7 @@ enum class AppBarSurface { Plain, Scrolled, OverArt }
  * A detail app bar (`.appbar`): back, a 22/28 title, actions. [surface] Scrolled gives it the
  * container colour under the status bar (`.appbar.scrolled`); OverArt leaves it transparent with
  * scrims behind the buttons (`.appbar.over`) and hides the title until the header has scrolled away.
+ * [contentInset] moves the buttons in by a tablet's extra margin.
  */
 @Composable
 fun DetailAppBar(
@@ -177,6 +181,7 @@ fun DetailAppBar(
     modifier: Modifier = Modifier,
     surface: AppBarSurface = AppBarSurface.Plain,
     windowInsets: WindowInsets = WindowInsets.statusBars,
+    contentInset: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -187,7 +192,7 @@ fun DetailAppBar(
     )
     val over = surface == AppBarSurface.OverArt
     Box(modifier.fillMaxWidth().background(container).windowInsetsPadding(windowInsets)) {
-        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp + contentInset), verticalAlignment = Alignment.CenterVertically) {
             OverArtScrim(over) {
                 ExpressiveIconButton(Symbol.ArrowBack, stringResource(R.string.back), onBack, tint = if (over) colors.onSurface else Color.Unspecified)
             }

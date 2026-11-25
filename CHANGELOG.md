@@ -2,6 +2,38 @@
 
 All notable changes to Attic are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-11-25
+
+### Mood mixes
+- A Moods shelf on Home, after Mixes: one mix a day for each of Chill, Happy, Energetic, Focus, Party, Melancholy and Romantic that has enough songs, up to 25 songs each
+- Each song's moods are worked out on the phone from the song analysis already stored, by nine small classifiers that ship with the app. No audio is decoded for this and nothing goes over the network
+- A mix is built from those scores, the genres and languages you picked, your likes and skips, and how recently you played each song. It is the same all day and changes the next, or when you change your picks
+- "Moods and interests" lets you pick the moods, genres and languages you like. Open it from the card at the start of the Moods shelf, or from Settings > Moods. With moods picked, Home shows those moods in your order; with none, every mood that has a mix
+- A mood's page has Play, shuffle and Mood radio, which steers towards the middle of the day's mix and only picks songs that fit the mood. When a mood mix ends, autoplay carries on in the same mood without repeating the mix
+- Search's Browse has a Moods group above Genres, and typing a mood's name ("chill") finds it
+
+### Playback
+- Settings > Playback > Transitions: Off, Crossfade or Smart. Smart starts the next song as this one winds down, skips silence at both ends, picks an overlap of 1 to 12 seconds from how the two songs' levels move, and lines up a beat of each when their tempos are within 6% (half and double time count). It never stretches or pitch-shifts the audio. Songs not analysed yet use the crossfade length, now its own row, 6 seconds by default. Songs from one album played in order still run straight into each other. Transitions are off for a new install, and an existing crossfade setting carries over as Crossfade
+- The crossfade lines up the two songs reliably: it used to read a position that stood still for about a quarter of a second and then jumped, so the join was down to luck and the volume moved in steps
+- In the Expressive style, a dot on Now Playing's seek bar marks where Smart will start the next song
+- Radio and smart shuffle lean slightly towards songs whose tempo, energy and key follow on from the last one
+- Analysis also measures each song's start, end, outro, tempo and key
+
+### Tablets
+- Laid out for tablets and other large windows, in both styles, light and dark. A navigation rail (Expressive) or a side dock (Comfort) replaces the bottom bar, and a player bar runs along the bottom of the screen
+- The Library shows the album, artist or playlist you open beside its list when the tablet is sideways; albums, artists and playlists put their cover and buttons beside the songs
+- Now Playing sits beside the queue or the lyrics when the tablet is sideways, and full-screen lyrics keep the cover and controls beside them
+- Home, Search and the Library spread into columns; Settings, the queue and the Recap page stay a readable width; sheets and dialogs no longer stretch across the screen
+- Tablets turn freely and keep the screen, the open player and your place in a list when rotated or resized, including in split screen and floating windows. Phones stay in portrait
+- With a keyboard, Space plays and pauses and Esc closes what is open; with a mouse, a right click on a song opens its menu
+
+### Backup
+- Backups carry your moods, genres and languages. A backup file made by 1.3.0 can't be restored by an older Attic. Files from 1.0, 1.1 and 1.2 still restore
+
+### Upgrading from 1.2.0
+- Songs already analysed get mood scores the first time Home opens, from what analysis stored. Romantic and Smart transitions need one more decode of each song, so analysis runs once more while the phone charges, and until it has, Settings shows analysis as not finished, Romantic has no mix and Smart uses the crossfade length for those songs
+- The APK grows by about 6.5 MB, for the mood classifiers
+
 ## [1.2.0] - 2026-11-25
 
 ### Equaliser

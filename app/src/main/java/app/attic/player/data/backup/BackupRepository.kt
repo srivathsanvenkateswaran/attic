@@ -81,6 +81,9 @@ class BackupRepository(
             equaliserSongs = equaliser[EQ_SCOPE_SONG].orEmpty(),
             equaliserAlbums = equaliser[EQ_SCOPE_ALBUM].orEmpty(),
             equaliserPresets = dao.allEqPresets().map { BackupEqualiserPreset(it.name, it.gains, it.createdAt) },
+            interests = settings.interests.value.takeUnless { it.isUnset }?.let {
+                BackupInterests(it.moods, it.genres, it.languages, it.updatedAt)
+            },
         )
     }
 
@@ -137,7 +140,10 @@ class BackupRepository(
                 plan
             }
             if (applySettings) backup.settings?.let(::applySettings)
-            plan.report
+            // The picks are settings, but nothing on the phone is replaced: they fill in only where there are none.
+            val interests = RestorePlanner.interests(backup.interests, settings.interests.value)
+            interests?.let(settings::setInterests)
+            plan.report.copy(interestsAdded = interests != null)
         }
     }
 

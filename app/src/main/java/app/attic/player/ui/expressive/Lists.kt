@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.onSecondaryClick
 import app.attic.player.ui.SwipeToQueue
 
 /** The colour a group's cells take. Sheets raise it to surface container high. */
@@ -211,6 +213,8 @@ private fun SongRowBody(
     trailing: (@Composable () -> Unit)?,
 ) {
     val colors = MaterialTheme.colorScheme
+    // A right click opens the song's menu, as a long press does; only where a mouse is expected.
+    val rightClick = onLongClick != null && LocalWindowLayout.current.wide
     val fill by animateColorAsState(
         when {
             lifted -> colors.surfaceContainerHighest
@@ -228,6 +232,7 @@ private fun SongRowBody(
             .then(if (lifted) Modifier.shadow(6.dp, liftShape) else Modifier)
             .clip(liftShape)
             .background(fill)
+            .then(if (rightClick && onLongClick != null) Modifier.onSecondaryClick(true, onLongClick) else Modifier)
             .then(
                 if (onClick != null || onLongClick != null) {
                     Modifier.combinedClickable(
@@ -383,7 +388,8 @@ fun RowDragHandle(title: String, modifier: Modifier = Modifier) {
 /**
  * A collection row (`.row.coll`): a 56dp lead whose shape says what it is (cover, mosaic, cookie,
  * Favourites heart), then title and subtitle. 72dp minimum. A null [onClick] leaves the row itself
- * inert, for a list whose only action is a button in [trailing] (the equaliser's albums).
+ * inert, for a list whose only action is a button in [trailing] (the equaliser's albums). [selected] is the row open
+ * beside the Library's list on a tablet: it takes the colours a playing song's row has.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -395,10 +401,13 @@ fun CollectionRow(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
+    selected: Boolean = false,
 ) {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier
             .fillMaxWidth()
+            .then(if (selected) Modifier.background(colors.secondaryContainer) else Modifier)
             .then(
                 if (onClick != null || onLongClick != null) {
                     Modifier.combinedClickable(interactionSource = null, indication = ripple(), onClick = onClick ?: {}, onLongClick = onLongClick)
@@ -414,7 +423,13 @@ fun CollectionRow(
         Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) { lead() }
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, lineHeight = 22.sp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (selected) colors.onSecondaryContainer else colors.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         if (trailing != null) trailing() else Spacer(Modifier.width(8.dp))
     }

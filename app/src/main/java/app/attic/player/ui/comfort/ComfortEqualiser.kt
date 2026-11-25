@@ -311,7 +311,8 @@ fun ComfortEqualiserPage(state: EqualiserPageState, actions: EqualiserPageAction
     val songs = remember(state.songs) { state.songs }
     val phone = state.phoneEqualiserAvailable
     val title = stringResource(R.string.equaliser)
-    RootPage(title = title, listState = rememberLazyListState(), heroHeight = ShortHeroHeight, onBack = { calls.value.back() }) {
+    // On a tablet, a centred column, as Settings is (SPEC.md).
+    RootPage(title = title, listState = rememberLazyListState(), heroHeight = ShortHeroHeight, onBack = { calls.value.back() }, inset = readableColumnInset()) {
         item(key = "hero") { Hero(title, short = true) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), { calls.value.back() }) }
@@ -355,8 +356,6 @@ fun ComfortEqualiserPage(state: EqualiserPageState, actions: EqualiserPageAction
     state.editor.dialog?.let { PresetDialog(it, state.editor, actions.editor) }
 }
 
-/** The short hero's height under the status bar (`.hero.short`), for the bar to take over at the right moment. */
-private val ShortHeroHeight = 150.dp
 
 @Composable
 private fun UseEqualiserCard(editor: State<EqualiserEditorState>, calls: State<EqualiserEditorActions>) {

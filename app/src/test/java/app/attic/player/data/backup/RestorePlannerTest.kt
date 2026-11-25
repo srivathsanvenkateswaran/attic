@@ -3,6 +3,7 @@ package app.attic.player.data.backup
 import app.attic.player.data.EQ_SCOPE_ALBUM
 import app.attic.player.data.EQ_SCOPE_SONG
 import app.attic.player.data.HistoryEntity
+import app.attic.player.data.Interests
 import app.attic.player.data.LikedEntity
 import app.attic.player.data.PlaylistOrder
 import org.junit.Assert.assertEquals
@@ -227,5 +228,23 @@ class RestorePlannerTest {
         val plan = RestorePlanner.plan(backup, ExistingData(equaliserPresetNames = setOf("Car")), emptySet())
         assertEquals(listOf("Night"), plan.equaliserPresets.map { it.name })
         assertEquals("2,2,2,2,2,2,2,2,2,2", plan.equaliserPresets.single().gains)
+    }
+
+    @Test
+    fun picksFillAPhoneThatNeverHadAny() {
+        val saved = BackupInterests(listOf("chill", "chill", "focus"), listOf("pop"), listOf("ta"), 1_795_000_000_000)
+        assertEquals(Interests(listOf("chill", "focus"), listOf("pop"), listOf("ta"), 1_795_000_000_000), RestorePlanner.interests(saved, Interests()))
+        // A file from before the update time was written still counts as saved once restored.
+        assertEquals(1L, RestorePlanner.interests(saved.copy(updatedAt = 0), Interests())!!.updatedAt)
+    }
+
+    @Test
+    fun picksOnThePhoneStay() {
+        val saved = BackupInterests(listOf("party"), emptyList(), emptyList(), 9)
+        assertNull(RestorePlanner.interests(saved, Interests(moods = listOf("chill"), updatedAt = 5)))
+        // Saved once as nothing at all: a choice too, so it stays.
+        assertNull(RestorePlanner.interests(saved, Interests(updatedAt = 5)))
+        assertNull(RestorePlanner.interests(null, Interests()))
+        assertNull(RestorePlanner.interests(BackupInterests(emptyList(), emptyList(), emptyList(), 3), Interests()))
     }
 }

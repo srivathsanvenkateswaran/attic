@@ -1,5 +1,10 @@
 package app.attic.player.designrefs
 
+import app.attic.player.playback.TransitionMode
+import app.attic.player.ui.comfort.ComfortInterests
+import app.attic.player.ui.comfort.ComfortMood
+import app.attic.player.ui.expressive.ExpressiveInterests
+import app.attic.player.ui.expressive.ExpressiveMood
 import android.app.Application
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
@@ -22,6 +27,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -40,7 +47,16 @@ import app.attic.player.ui.expressive.ExpressiveEqualiserSheet
 import app.attic.player.ui.model.EqualiserBands
 import app.attic.player.ui.model.EqualiserSheetState
 import app.attic.player.ui.LocalIsDark
+import app.attic.player.ui.LibraryListDetail
+import app.attic.player.ui.libraryShowsListDetail
 import app.attic.player.ui.ShellSlots
+import app.attic.player.ui.adaptive.LocalInitialPlayerPanel
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.PlayerPanel
+import app.attic.player.ui.comfort.ComfortNowPlayingWide
+import app.attic.player.ui.expressive.ExpressiveNowPlayingWide
+import app.attic.player.ui.model.Destination
+import androidx.compose.runtime.CompositionLocalProvider
 import app.attic.player.ui.Tab
 import app.attic.player.ui.comfort.ComfortAddSongs
 import app.attic.player.ui.comfort.ComfortAlbum
@@ -199,7 +215,7 @@ class Ref(
             "search_browse", "search_typing", "search_results", "search_no_results",
             "library_list", "library_grid", "library_songs", "library_playlists", "library_albums", "library_artists",
             "album", "album_collapsed", "artist", "playlist", "playlist_reorder", "folder", "favourites", "item_missing",
-            "now_playing", "now_playing_full", "now_playing_paused_radio", "open_with",
+            "now_playing", "now_playing_full", "now_playing_paused_radio", "now_playing_transition_mark", "open_with",
             "queue", "queue_radio", "queue_empty",
             "lyrics_synced", "lyrics_plain", "lyrics_none", "lyrics_not_downloaded", "lyrics_instrumental", "lyrics_downloading",
             "sheet_track_menu", "sheet_track_menu_playlist", "sheet_track_menu_now_playing", "sheet_track_menu_open_with",
@@ -209,9 +225,11 @@ class Ref(
             "now_playing_equaliser", "settings_equaliser", "settings_equaliser_empty", "sheet_playlist_picker", "sheet_language_picker", "sheet_add_songs",
             "dialog_new_playlist", "dialog_name_playlist", "dialog_rename_playlist", "dialog_delete_playlist", "menu_playlist_overflow",
             "snackbar", "snackbar_over_player",
-            "settings", "settings_analysis", "settings_lyrics_download", "settings_backup",
+            "settings", "settings_transitions_off", "settings_transitions_smart", "settings_analysis", "settings_lyrics_download", "settings_backup",
             "dialog_restore_confirm", "dialog_restore_result", "dialog_restore_problem", "licences", "licence_text",
             "recap",
+            "moods_home", "moods_home_ask", "mood_page", "mood_page_playing", "moods_browse", "moods_results",
+            "moods_picker_empty", "moods_picker", "moods_picker_no_genres", "moods_settings",
         ) + RecapCards.map { "recap_story_${cardKey(it)}" } + RecapCards.map { "recap_share_${cardKey(it)}" } + listOf(
             "permission", "permission_refused", "loading", "empty_library",
             "mini_player_paused", "mini_player_open_with",
@@ -265,8 +283,7 @@ class Ref(
                 if (e) ExpressiveHome(d.home(filter), s.homeActions) else ComfortHome(d.home(filter), s.homeActions)
             }
             fun library(filter: LibraryFilter?, grid: Boolean = false) = shell(Tab.Library) {
-                val state = d.library(filter, grid)
-                if (e) ExpressiveLibrary(state, s.libraryActions) else ComfortLibrary(state, s.libraryActions)
+                LibraryRef(style, d.library(filter, grid))
             }
             fun search(query: String) = shell(Tab.Search) {
                 val state = s.search(query)
@@ -279,11 +296,16 @@ class Ref(
                 backup: app.attic.player.ui.model.BackupUiState? = null,
                 capture: Capture = Capture.Window,
                 prepare: (ComposeContentTestRule.() -> Unit)? = null,
+                transitions: TransitionMode? = null,
             ) = Ref(
                 {
                     InShell(style, Tab.Home) {
                         val dark = LocalIsDark.current
-                        val state = if (backup == null) d.settings(style, dark, analysing, lyrics) else d.settings(style, dark, backup = backup)
+                        val state = when {
+                            transitions != null -> d.settings(style, dark, transitions = transitions)
+                            backup == null -> d.settings(style, dark, analysing, lyrics)
+                            else -> d.settings(style, dark, backup = backup)
+                        }
                         if (e) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions)
                     }
                 },
@@ -395,8 +417,11 @@ class Ref(
                 }
 
                 "now_playing" -> overlayRef()
+                // Tablet only: Now Playing beside its lyrics rather than its queue.
+                "now_playing_lyrics" -> Ref({ CompositionLocalProvider(LocalInitialPlayerPanel provides PlayerPanel.Lyrics) { overlayRef().content() } })
                 "now_playing_full" -> Ref(overlayRef().content, stitch = true)
                 "now_playing_paused_radio" -> overlayRef(nowPlaying = d.nowPlayingPausedRadio)
+                "now_playing_transition_mark" -> overlayRef(nowPlaying = d.nowPlayingTransitionMark)
                 "open_with" -> overlayRef(nowPlaying = d.nowPlayingOpenWith)
 
                 "queue" -> overlayRef(queue = s.queueState)
@@ -411,6 +436,26 @@ class Ref(
                 "lyrics_downloading" -> lyricsOver(d.lyricsDownloading)
 
                 "sheet_track_menu" -> overHome(menu(d.trackMenu()))
+                // Tablet only: the menu over the album it opened from, as the Tablet page draws it.
+                "sheet_track_menu_album" -> Ref(
+                    {
+                        InShell(style, Tab.Home) {
+                            val state = s.album("Paper Lanterns")
+                            if (e) ExpressiveAlbum(state, s.albumActions) else ComfortAlbum(state, s.albumActions)
+                        }
+                        TrackMenu(style, d.trackMenu(DemoLibrary.track("Porch Light")), overPlayer = false)
+                    },
+                    capture = Capture.Screen,
+                )
+                // Tablet only: Library's New playlist, over the Library's playlists.
+                "dialog_new_playlist_library" -> Ref(
+                    {
+                        InShell(style, Tab.Library) { LibraryRef(style, d.library(LibraryFilter.Playlists, false)) }
+                        val state = d.nameDialog(stringResource(R.string.dialog_new_playlist_title), stringResource(R.string.create), "")
+                        if (e) ExpressivePlaylistNameDialog(state, d.nameActions) else ComfortPlaylistNameDialog(state, d.nameActions)
+                    },
+                    capture = Capture.Screen,
+                )
                 "sheet_track_menu_playlist" -> overPlaylist(menu(d.trackMenu(DemoLibrary.track("Iravu Rail"), inPlaylist = true)))
                 "sheet_track_menu_now_playing" ->
                     overlayRef(Capture.Screen, sheet = menu(d.trackMenu(DemoLibrary.nowPlaying, fromNowPlaying = true), overPlayer = true))
@@ -499,7 +544,49 @@ class Ref(
                 )
                 "snackbar_over_player" -> overlayRef(message = R.string.message_playing_next)
 
+                // Mood mixes (docs/features/mood-mixes.md), the Moods section of both design files.
+                "moods_home" -> Ref(shell(Tab.Home) { MoodHome(e, ask = false) }.content, prepare = { scrollMain(if (e) 1500f else 1200f) })
+                "moods_home_ask" -> Ref(shell(Tab.Home) { MoodHome(e, ask = true) }.content, prepare = { scrollMain(if (e) 1500f else 1200f) })
+                "mood_page" -> shell(Tab.Home) {
+                    if (e) ExpressiveMood(MoodStates.page(false), MoodStates.pageActions) else ComfortMood(MoodStates.page(false), MoodStates.pageActions)
+                }
+                "mood_page_playing" -> shell(Tab.Home) {
+                    if (e) ExpressiveMood(MoodStates.page(true), MoodStates.pageActions) else ComfortMood(MoodStates.page(true), MoodStates.pageActions)
+                }
+                "moods_browse" -> Ref(
+                    shell(Tab.Search) { if (e) ExpressiveSearch(MoodStates.browse, s.searchActions) else ComfortSearch(MoodStates.browse, s.searchActions) }.content,
+                    prepare = { scrollMain(if (e) 900f else 1200f) },
+                )
+                "moods_results" -> shell(Tab.Search) {
+                    val state = MoodStates.results("chi")
+                    if (e) ExpressiveSearch(state, s.searchActions) else ComfortSearch(state, s.searchActions)
+                }
+                "moods_picker_empty" -> Ref({ MoodPicker(e, MoodStates.interests(picked = false)) })
+                "moods_picker" -> Ref({ MoodPicker(e, MoodStates.interests(picked = true)) })
+                "moods_picker_no_genres" -> Ref({ MoodPicker(e, MoodStates.interests(picked = false, genres = false)) })
+                "moods_settings" -> Ref(
+                    {
+                        InShell(style, Tab.Home) {
+                            val state = MoodStates.settings(style, LocalIsDark.current, picked = true)
+                            if (e) ExpressiveSettings(state, s.settingsActions) else ComfortSettings(state, s.settingsActions)
+                        }
+                    },
+                    prepare = { scrollMain(if (e) 1700f else 2200f) },
+                )
                 "settings" -> settings()
+                "settings_transitions_off" -> settings(transitions = TransitionMode.Off)
+                "settings_transitions_smart" -> settings(transitions = TransitionMode.Smart)
+                // Tablet only: the Transitions menu open beside its row. Expressive only: opening Comfort's
+                // pop-over this way stalls the render (it is the phone's PickerRow, unchanged on tablets).
+                "menu_transitions" -> if (!e) null else settings(
+                    transitions = TransitionMode.Smart,
+                    capture = Capture.Screen,
+                    prepare = {
+                        // The row may not be composed yet in a lazy list, so the list scrolls to it first.
+                        onAllNodes(hasScrollToNodeAction())[0].performScrollToNode(hasText("Transitions"))
+                        onNode(hasText("Transitions")).performClick()
+                    },
+                )
                 "settings_full" -> settings(height = FULL_HEIGHT)
                 "settings_analysis" -> Ref(settings(analysing = true).content, prepare = { scrollMain(6000f) })
                 "settings_lyrics_download" -> Ref(settings(lyrics = true).content, prepare = { scrollMain(900f) })
@@ -636,7 +723,21 @@ private fun InShell(
     val slots = ShellSlots(
         content = { content() },
         miniPlayer = { if (mini != null) { if (e) ExpressiveMiniPlayer(mini, s.miniActions) else ComfortMiniPlayer(mini, s.miniActions) } },
-        nowPlaying = { if (nowPlaying != null) { if (e) ExpressiveNowPlaying(nowPlaying, s.nowPlayingActions) else ComfortNowPlaying(nowPlaying, s.nowPlayingActions) } },
+        nowPlaying = {
+            if (nowPlaying != null) {
+                if (LocalWindowLayout.current.playerSideBySide) {
+                    // As ui/NowPlaying.kt does: the queue and the lyrics beside the player.
+                    val lyricsScreen = DesignStates.lyricsScreen(s.lyrics)
+                    if (e) {
+                        ExpressiveNowPlayingWide(nowPlaying, s.nowPlayingActions, s.queueState, s.queueActions, lyricsScreen, s.lyricsScreenActions)
+                    } else {
+                        ComfortNowPlayingWide(nowPlaying, s.nowPlayingActions, s.queueState, s.queueActions, lyricsScreen, s.lyricsScreenActions)
+                    }
+                } else {
+                    if (e) ExpressiveNowPlaying(nowPlaying, s.nowPlayingActions) else ComfortNowPlaying(nowPlaying, s.nowPlayingActions)
+                }
+            }
+        },
         queue = { if (queue != null) { if (e) ExpressiveQueue(queue, s.queueActions) else ComfortQueue(queue, s.queueActions) } },
         lyrics = {
             if (lyrics != null) {
@@ -655,6 +756,43 @@ private fun EqSheet(style: UiStyle, state: EqualiserSheetState) {
         FromCover(DemoLibrary.nowPlaying.mediaId) { ExpressiveEqualiserSheet(state, EqualiserDemo.sheetActions) }
     } else {
         TintedCover(DemoLibrary.nowPlaying.mediaId, wash = true) { ComfortEqualiserSheet(state, EqualiserDemo.sheetActions) }
+    }
+}
+
+/**
+ * The Library as ui/LibraryScreen.kt draws it: list and detail when the window calls for it, the open
+ * item drawn from the demo library.
+ */
+@Composable
+private fun LibraryRef(style: UiStyle, state: app.attic.player.ui.model.LibraryState) {
+    val s = DemoStates
+    val d = DesignStates
+    val e = style == UiStyle.Expressive
+    val list: @Composable (app.attic.player.ui.model.LibraryState, app.attic.player.ui.model.LibraryActions) -> Unit = { st, a ->
+        if (e) ExpressiveLibrary(st, a) else ComfortLibrary(st, a)
+    }
+    if (!libraryShowsListDetail()) {
+        list(state, s.libraryActions)
+        return
+    }
+    LibraryListDetail(state, s.libraryActions, list) { destination ->
+        when (destination) {
+            is Destination.Album -> {
+                val album = s.album(DemoLibrary.library.albums.first { it.key == destination.key }.name)
+                if (e) ExpressiveAlbum(album, s.albumActions) else ComfortAlbum(album, s.albumActions)
+            }
+            is Destination.Artist -> {
+                val artist = s.artist(DemoLibrary.library.artists.first { it.key == destination.key }.name)
+                if (e) ExpressiveArtist(artist, s.artistActions) else ComfortArtist(artist, s.artistActions)
+            }
+            is Destination.Folder -> {
+                val folder = d.folder(destination.name)
+                if (e) ExpressiveFolder(folder, d.folderActions) else ComfortFolder(folder, d.folderActions)
+            }
+            Destination.Liked -> if (e) ExpressiveFavourites(d.favourites, d.likedActions) else ComfortFavourites(d.favourites, d.likedActions)
+            // The demo library has one playlist state; genres never appear in the Library's list.
+            else -> if (e) ExpressivePlaylist(d.playlist(), d.playlistActions) else ComfortPlaylist(d.playlist(), d.playlistActions)
+        }
     }
 }
 
@@ -682,4 +820,15 @@ private fun TrackMenu(style: UiStyle, state: TrackMenuState, overPlayer: Boolean
         state.pickingSleepTimer && e -> inScheme { ExpressiveSleepTimerPicker(state, d.trackMenuActions) }
         else -> inScheme { if (e) ExpressiveTrackMenu(state, d.trackMenuActions) else ComfortTrackMenu(state, d.trackMenuActions) }
     }
+}
+
+@androidx.compose.runtime.Composable
+private fun MoodHome(expressive: Boolean, ask: Boolean) {
+    val state = MoodStates.home(ask)
+    if (expressive) ExpressiveHome(state, DemoStates.homeActions) else ComfortHome(state, DemoStates.homeActions)
+}
+
+@androidx.compose.runtime.Composable
+private fun MoodPicker(expressive: Boolean, state: app.attic.player.ui.model.InterestsState) {
+    if (expressive) ExpressiveInterests(state, MoodStates.interestsActions) else ComfortInterests(state, MoodStates.interestsActions)
 }

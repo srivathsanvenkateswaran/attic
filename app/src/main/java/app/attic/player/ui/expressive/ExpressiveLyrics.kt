@@ -54,6 +54,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.CoverToFit
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import app.attic.player.data.LrcParser
 import app.attic.player.data.Track
 import app.attic.player.ui.formatDuration
@@ -70,10 +77,18 @@ import kotlin.math.roundToInt
  * line to seek to it. Plain text is one block; with nothing saved, the download action.
  */
 @Composable
-fun ExpressiveLyrics(state: LyricsScreenState, actions: LyricsScreenActions) {
+fun ExpressiveLyrics(
+    state: LyricsScreenState,
+    actions: LyricsScreenActions,
+) {
     val track = state.track ?: return
+    val window = LocalWindowLayout.current
     FromCover(track.mediaId) {
-        LyricsPage(state, actions, track)
+        when {
+            window.playerSideBySide -> LyricsBeside(state, actions, track)
+            window.wide -> LyricsPage(state, actions, track, column = LyricsColumnMax)
+            else -> LyricsPage(state, actions, track)
+        }
     }
 }
 
@@ -82,7 +97,7 @@ private val BottomBarHeight = 88.dp
 private val TopBarHeight = 64.dp
 
 @Composable
-private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, track: Track) {
+private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, column: Dp? = null) {
     val colors = MaterialTheme.colorScheme
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + TopBarHeight
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + BottomBarHeight
@@ -95,6 +110,7 @@ private fun LyricsPage(state: LyricsScreenState, actions: LyricsScreenActions, t
             .pointerInput(Unit) { detectTapGestures { } },
     ) {
         when {
+            column != null -> LyricsBody(state, actions, track, top, bottom, Modifier.align(Alignment.TopCenter).widthIn(max = column))
             lyrics.hasLyrics && lyrics.lines.isNotEmpty() -> SyncedLyrics(state, actions, track, top, bottom)
             lyrics.hasLyrics -> PlainLyrics(lyrics.plain.orEmpty(), top, bottom)
             else -> NoLyrics(state, actions, top)
@@ -186,14 +202,14 @@ private enum class LineState { Sung, Current, Upcoming }
  * on the default spatial spring and the new line grows while the old one settles back.
  */
 @Composable
-private fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, top: Dp, bottom: Dp) {
+private fun SyncedLyrics(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, top: Dp, bottom: Dp, modifier: Modifier = Modifier) {
     val lines = state.lyrics.lines
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 200)
     val current = LrcParser.lineAt(lines, position)
     val listState = remember(track.key) { LazyListState() }
     val blank = stringResource(R.string.lyric_blank_line)
     val density = LocalDensity.current
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier.fillMaxSize()) {
         val anchor = constraints.maxHeight / 3
         LaunchedEffect(listState, current, anchor) {
             if (current < 0) return@LaunchedEffect
@@ -267,11 +283,11 @@ private fun SyncedLine(text: String, state: LineState, onClick: () -> Unit) {
 
 /** Lyrics saved without timing: the paragraphs in on-surface, nothing highlighted, no auto-scroll. */
 @Composable
-private fun PlainLyrics(text: String, top: Dp, bottom: Dp) {
+private fun PlainLyrics(text: String, top: Dp, bottom: Dp, modifier: Modifier = Modifier) {
     val paragraphs = remember(text) { text.trim().split(Regex("\\n\\s*\\n")).map { it.trim() }.filter { it.isNotEmpty() } }
     val style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium, lineBreak = LineBreak.Heading)
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(start = 24.dp, end = 24.dp, top = top + 22.dp, bottom = bottom + 24.dp),
@@ -287,7 +303,7 @@ private fun PlainLyrics(text: String, top: Dp, bottom: Dp) {
  * filled the first time, outlined as a retry, the loading indicator while it runs.
  */
 @Composable
-private fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top: Dp) {
+private fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top: Dp, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     val lyrics = state.lyrics
     val retry = lyrics.checked
@@ -297,7 +313,7 @@ private fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top
         else -> R.string.lyrics_not_downloaded
     }
     Column(
-        Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = top + 120.dp),
+        modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = top + 120.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.size(128.dp).clip(CloverShape).background(colors.secondaryContainer), contentAlignment = Alignment.Center) {
@@ -323,4 +339,132 @@ private fun NoLyrics(state: LyricsScreenState, actions: LyricsScreenActions, top
             )
         }
     }
+}
+
+// ── Tablets ──────────────────────────────────────────────────────────────────
+
+/** The lyrics' column on a tablet (SPEC.md, Full-screen lyrics). */
+private val LyricsColumnMax = 640.dp
+
+/**
+ * The words as the full screen shows them, synced, plain or the download action, with [top] and
+ * [bottom] of room for whatever sits over them. Now Playing's side panel shows them too.
+ */
+@Composable
+internal fun LyricsBody(state: LyricsScreenState, actions: LyricsScreenActions, track: Track, top: Dp, bottom: Dp, modifier: Modifier = Modifier) {
+    val lyrics = state.lyrics
+    when {
+        lyrics.hasLyrics && lyrics.lines.isNotEmpty() -> SyncedLyrics(state, actions, track, top, bottom, modifier)
+        lyrics.hasLyrics -> PlainLyrics(lyrics.plain.orEmpty(), top, bottom, modifier)
+        else -> NoLyrics(state, actions, top, modifier)
+    }
+}
+
+/**
+ * Full-screen lyrics on an expanded landscape window: a 360dp start pane holding one card on the
+ * cover scheme's container (close, the cover, title and artist, the seek bar and the play controls),
+ * and the lines in the rest of the window in a centred column at most 640dp wide.
+ */
+@Composable
+private fun LyricsBeside(state: LyricsScreenState, actions: LyricsScreenActions, track: Track) {
+    val colors = MaterialTheme.colorScheme
+    val status = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val nav = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    Row(
+        Modifier
+            .fillMaxSize()
+            .background(colors.surface)
+            // Swallows taps so they don't reach the player underneath.
+            .pointerInput(Unit) { detectTapGestures { } }
+            .padding(top = status + 8.dp),
+    ) {
+        BoxWithConstraints(
+            Modifier
+                .width(LyricsPaneWidth)
+                .fillMaxHeight()
+                .padding(start = 24.dp, end = 8.dp, bottom = nav + 8.dp),
+        ) {
+            val paneHeight = maxHeight
+            val paneWidth = maxWidth
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(ExpressiveShapes.ExtraLarge))
+                    .background(colors.surfaceContainer)
+                    .verticalScroll(rememberScrollState())
+                    .padding(PaneCardPadding),
+            ) {
+                // The cover is as wide as the card, unless the window is too short for that and the
+                // controls: then it narrows, centred, and under 96dp it is left out.
+                CoverToFit(
+                    height = paneHeight - PaneCardPadding * 2,
+                    maxCover = paneWidth - PaneCardPadding * 2,
+                    minCover = MinPaneCover,
+                    orNone = true,
+                ) { cover ->
+                    ExpressiveIconButton(Symbol.KeyboardArrowDown, stringResource(R.string.lyrics_close_cd), actions.close)
+                    Spacer(Modifier.height(4.dp))
+                    if (cover > 0.dp) {
+                        Cover(
+                            Art.of(track.mediaId),
+                            Modifier.size(cover).align(Alignment.CenterHorizontally),
+                            shape = RoundedCornerShape(ExpressiveShapes.ExtraLarge),
+                        )
+                    }
+                    Column(Modifier.padding(top = 16.dp)) {
+                        Text(
+                            track.title,
+                            style = Expressive.type.titleLargeEmphasized,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            track.artist,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = colors.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    PaneSeek(state, actions, track)
+                    Spacer(Modifier.height(16.dp))
+                    Transport(state.isPlaying, actions.previous, actions.togglePlayPause, actions.next)
+                }
+            }
+        }
+        Box(Modifier.weight(1f).fillMaxHeight().padding(bottom = nav).fadeEdges()) {
+            LyricsBody(
+                state,
+                actions,
+                track,
+                top = 0.dp,
+                bottom = 0.dp,
+                modifier = Modifier.align(Alignment.TopCenter).widthIn(max = LyricsColumnMax + 48.dp),
+            )
+        }
+    }
+}
+
+private val LyricsPaneWidth = 360.dp
+
+/** The start pane card's padding, and the smallest its cover gets on a short window before it is left out. */
+private val PaneCardPadding = 16.dp
+private val MinPaneCover = 96.dp
+
+/** The seek bar and the times in the start pane. The elapsed time follows a drag. */
+@Composable
+private fun PaneSeek(state: LyricsScreenState, actions: LyricsScreenActions, track: Track) {
+    val position = rememberPosition(state.clock, track.key, state.isPlaying, 250)
+    val duration = track.durationMs.coerceAtLeast(1)
+    var scrub by remember { mutableStateOf<Float?>(null) }
+    val shown = scrub?.let { (it * duration).toLong() } ?: position
+    SeekBar(
+        progress = (shown.toFloat() / duration).coerceIn(0f, 1f),
+        playing = state.isPlaying,
+        onSeek = { actions.seekTo((it * duration).toLong()) },
+        contentDescription = stringResource(R.string.now_playing_seek_cd, track.title),
+        onScrub = { scrub = it },
+    )
+    SeekTimes(formatDuration(shown), formatDuration(track.durationMs))
 }

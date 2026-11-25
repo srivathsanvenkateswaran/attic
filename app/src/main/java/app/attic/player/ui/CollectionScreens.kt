@@ -17,12 +17,27 @@ import app.attic.player.ui.expressive.ExpressiveFavourites
 import app.attic.player.ui.expressive.ExpressiveFolder
 import app.attic.player.ui.expressive.ExpressiveGenre
 import app.attic.player.ui.expressive.ExpressivePlaylist
+import app.attic.player.ui.model.Destination
 import app.attic.player.ui.model.rememberAlbumModel
 import app.attic.player.ui.model.rememberArtistModel
 import app.attic.player.ui.model.rememberFolderModel
 import app.attic.player.ui.model.rememberGenreModel
 import app.attic.player.ui.model.rememberLikedModel
 import app.attic.player.ui.model.rememberPlaylistModel
+
+/** The screen a [Destination] leads to, for the detail pane beside the Library's list. */
+@Composable
+fun DestinationScreen(library: Library, destination: Destination) {
+    when (destination) {
+        is Destination.Album -> AlbumScreen(library, destination.key)
+        is Destination.Artist -> ArtistScreen(library, destination.key)
+        is Destination.Folder -> FolderScreen(library, destination.name)
+        is Destination.Playlist -> PlaylistScreen(library, destination.id)
+        is Destination.Genre -> GenreScreen(destination.key)
+        is Destination.Mood -> MoodScreen(library, destination.id)
+        Destination.Liked -> LikedScreen(library)
+    }
+}
 
 @Composable
 fun AlbumScreen(library: Library, key: String) {

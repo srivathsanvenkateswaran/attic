@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -47,6 +48,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.data.OnboardingStep
 import app.attic.player.data.ThemeMode
 import app.attic.player.data.UiStyle
@@ -67,14 +70,22 @@ import java.text.NumberFormat
 @Composable
 fun ComfortOnboarding(state: OnboardingState, actions: OnboardingActions) {
     val colors = Comfort.colors
+    // A tablet keeps the steps in a centred column 560dp wide; sideways, the look step puts the cards
+    // beside the Theme list in a block 840 wide (docs/design/2026-11-25-tablet/SPEC.md, First run).
+    val window = LocalWindowLayout.current
+    val tablet = window.widthClass != WidthClass.Compact
+    val sideways = tablet && window.landscape
+    val column = if (tablet) Modifier.widthIn(max = OnboardingColumn) else Modifier
+    val block = if (sideways) Modifier.widthIn(max = OnboardingBlock) else column
     Column(
         Modifier
             .fillMaxSize()
             .background(colors.ground)
             .statusBarsPadding()
             .navigationBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(block.fillMaxWidth().height(64.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (state.step.previous() != null) {
                 ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), actions.back)
             } else {
@@ -99,19 +110,43 @@ fun ComfortOnboarding(state: OnboardingState, actions: OnboardingActions) {
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(bottom = 24.dp),
                     verticalArrangement = if (centred) Arrangement.Center else Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    when (step) {
-                        OnboardingStep.Welcome -> WelcomeStep()
-                        OnboardingStep.Look -> LookStep(state, actions)
-                        OnboardingStep.Access -> AccessStep(state, actions)
-                        OnboardingStep.Library -> LibraryStep(state, actions)
+                    if (tablet) {
+                        Column(if (step == OnboardingStep.Look) block else column) {
+                            when (step) {
+                                OnboardingStep.Welcome -> WelcomeStep()
+                                OnboardingStep.Look -> if (sideways) LookStepSideways(state, actions) else LookStep(state, actions, TabletLookScale)
+                                OnboardingStep.Access -> AccessStep(state, actions)
+                                OnboardingStep.Library -> LibraryStep(state, actions)
+                            }
+                        }
+                    } else {
+                        when (step) {
+                            OnboardingStep.Welcome -> WelcomeStep()
+                            OnboardingStep.Look -> LookStep(state, actions)
+                            OnboardingStep.Access -> AccessStep(state, actions)
+                            OnboardingStep.Library -> LibraryStep(state, actions)
+                        }
                     }
                 }
             }
         }
-        Box(Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp)) { BottomButton(state, actions) }
+        Box(column.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 32.dp)) { BottomButton(state, actions) }
     }
 }
+
+/** The steps' column on a tablet, and the look step's block on one held sideways. */
+private val OnboardingColumn = 560.dp
+private val OnboardingBlock = 840.dp
+
+/**
+ * The look card's preview draws a phone's Home (the phone card's picture is 167dp at 0.42, so about
+ * 398dp wide) scaled to the card: two cards in the 560dp column, or in half the 840dp block.
+ */
+private const val PreviewPhoneWidth = 398f
+private const val TabletLookScale = ((560f - 32f - 12f) / 2f - 16f) / PreviewPhoneWidth
+private const val SidewaysLookScale = (((840f - 32f - 24f) / 2f - 12f) / 2f - 16f) / PreviewPhoneWidth
 
 @Composable
 private fun BottomButton(state: OnboardingState, actions: OnboardingActions) {
@@ -172,7 +207,7 @@ private fun ColumnScope.WelcomeStep() {
 }
 
 @Composable
-private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActions) {
+private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActions, scale: Float = 0.42f) {
     Title(stringResource(R.string.onboarding_look_title), Modifier.padding(top = 16.dp))
     Body(stringResource(R.string.onboarding_look_body))
     Row(
@@ -180,7 +215,7 @@ private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActi
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         UiStyle.choices.forEach { style ->
-            LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f))
+            LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f), scale)
         }
     }
     Label(stringResource(R.string.onboarding_theme))
@@ -195,9 +230,41 @@ private fun ColumnScope.LookStep(state: OnboardingState, actions: OnboardingActi
     }
 }
 
+/**
+ * The look step on a tablet held sideways: its 720dp height can't hold the cards over the Theme list,
+ * so the two sit side by side under the title, the cards level with the list's card.
+ */
+@Composable
+private fun ColumnScope.LookStepSideways(state: OnboardingState, actions: OnboardingActions) {
+    Title(stringResource(R.string.onboarding_look_title), Modifier.padding(top = 16.dp))
+    Body(stringResource(R.string.onboarding_look_body))
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+        Row(
+            Modifier.weight(1f).padding(top = 51.dp).selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            UiStyle.choices.forEach { style ->
+                LookCard(style, state.themeMode, selected = state.uiStyle == style, onSelect = { actions.setUiStyle(style) }, Modifier.weight(1f), SidewaysLookScale)
+            }
+        }
+        Column(Modifier.weight(1f)) {
+            Label(stringResource(R.string.onboarding_theme))
+            Group(margin = 0.dp) {
+                listOf(
+                    ThemeMode.System to R.string.settings_theme_system,
+                    ThemeMode.Dark to R.string.settings_theme_dark,
+                    ThemeMode.Light to R.string.settings_theme_light,
+                ).forEach { (mode, label) ->
+                    item { SetRadioRow(stringResource(label), state.themeMode == mode, { actions.setThemeMode(mode) }) }
+                }
+            }
+        }
+    }
+}
+
 /** A look as a selectable card: the live picture, then the kit's radio and the name. Selected is ringed in amber. */
 @Composable
-private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier) {
+private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelect: () -> Unit, modifier: Modifier = Modifier, scale: Float = 0.42f) {
     val colors = Comfort.colors
     val edge by animateColorAsState(if (selected) colors.accent else Color.Transparent, tween(160), label = "lookEdge")
     Column(
@@ -208,7 +275,7 @@ private fun LookCard(style: UiStyle, mode: ThemeMode, selected: Boolean, onSelec
             .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
             .padding(8.dp),
     ) {
-        LookPreview(style, mode, Modifier.fillMaxWidth().clip(ComfortShapes.Control), scale = 0.42f)
+        LookPreview(style, mode, Modifier.fillMaxWidth().clip(ComfortShapes.Control), scale = scale)
         Row(
             Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(start = 8.dp, top = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -1,5 +1,6 @@
 package app.attic.player.storeshots
 
+import app.attic.player.playback.TransitionMode
 import androidx.compose.material3.SnackbarHostState
 import androidx.media3.common.Player
 import app.attic.player.analysis.AnalysisProgress
@@ -317,11 +318,13 @@ object DemoStates {
 
     // Settings
 
-    fun settings(style: UiStyle, dark: Boolean) = SettingsState(
+    /** [transitions] is Crossfade, as the design files draw Settings; the store shot of Playback shows Smart. */
+    fun settings(style: UiStyle, dark: Boolean, transitions: TransitionMode = TransitionMode.Crossfade) = SettingsState(
         themeMode = if (dark) ThemeMode.Dark else ThemeMode.Light,
         uiStyle = style,
         autoplay = true,
         volumeLevelling = true,
+        transitions = transitions,
         crossfadeSeconds = 6,
         bulkLyrics = BulkProgress(done = 0, total = 0, found = 0, running = false),
         savedLyricsCount = 51,
@@ -337,6 +340,7 @@ object DemoStates {
         setUiStyle = {},
         setAutoplay = {},
         setVolumeLevelling = {},
+        setTransitions = {},
         setCrossfadeSeconds = {},
         openEqualiserPage = noop,
         downloadAllLyrics = noop,

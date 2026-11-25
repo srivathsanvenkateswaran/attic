@@ -166,6 +166,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.grid2/3/4`, `.tray` | `TileGrid(count, columns, modifier, tray) { i -> Tile(…, width = null) }`; tray tiles: `artSize = trayArt(columns), centered = true` | not lazy; put a tray in `Group(pad = true)` |
 | `.pager` | `Pager(pageCount) { page -> item { SongRow(…) } }` | 312dp cards, 10dp apart |
 | `.browse` (`.tinted.wash`) | `BrowseTile(title, onClick, art = { m -> Mosaic(…, m) }, modifier, subtitle, seed)` | art gets 56dp; a seed washes the card |
+| Mood tile, Mood picks card (design) | `MoodTile(tile, onClick)`, `MoodPicksCard(onChoose, onDismiss)` in `ComfortMoods.kt` | Home's Moods shelf: the browse card at 200 by 133, mosaic top left, count top right; the card is `--card` with a filled and a text button |
 | `.c-head`, `.c-head.person` | `CollectionHeader(title, art = { m -> Cover(art, m) }, modifier, byline, onBylineClick, meta, person, artSize)` | art gets 196dp (148 for a person) unless `artSize`; sheet 04 draws 176 |
 | `.c-actions` | `CollectionActions { CollectionPlayButton(playing, onClick, Modifier.weight(1f), enabled); TonalIconButton(…, large = true) }` | Play reads Pause while this collection plays; `enabled = false` is `.off` |
 | `.btn` (`.filled .tonal .plain .text`, `.lg .sm .block .danger .off`) | `ComfortButton(text, onClick, modifier, style, size = Small/Medium/Large, leading, leadingFilled, block, danger, enabled)` | |
@@ -179,7 +180,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.np-title` | `NowPlayingTitle(title, artist, modifier, onArtistClick)` | |
 | `.np-lyric` | `NowPlayingLyric(line, modifier, onClick)` | |
 | `.deck` | `Deck { SeekBar(…); Transport(…); Toggles { … } }` | |
-| `.seek` | `SeekBar(progress = { f }, elapsed, total, onSeek, modifier, onScrub, contentDescription)` | tap or drag; `onScrub(fraction)` while dragging, `null` on release; fill never under 64dp |
+| `.seek` | `SeekBar(progress = { f }, elapsed, total, onSeek, modifier, onScrub, contentDescription)` | tap or drag; `onScrub(fraction)` while dragging, `null` on release; fill never under 64dp; no Smart transition mark (the design file's notch was reviewed and not built: under the total time it said little) |
 | `.transport`, `.tp` | `Transport(playing, onPrevious, onPlayPause, onNext)`, `SkipButton(symbol, cd, onClick)` | |
 | `.toggles` | `Toggles { TonalIconButton(…, large = true); HeartButton(…, tonal = true) }` | shuffle, repeat, favourite, queue |
 | `.lyrics-card`, `.ln`, `.ln.cur`, `.ln.clip`, message | `LyricsCard(modifier, title) { LyricsLine(text, current, plain); LyricsMessage(text) }` | give a button or `Spinner(small = true)` inside `Modifier.padding(top = 14.dp)` |
@@ -197,7 +198,7 @@ search field to take `fill` on a card, and song rows to indent in a sheet; `Grou
 | `.radio` | `ComfortRadio(selected, onClick, modifier)` | |
 | `.progress`, `.thick` | `ComfortProgress(progress = { f }, modifier, thick)` | |
 | `.spinner`, `.sm` | `Spinner(modifier, small)` | turns |
-| `.set-row`, `.lead-ctl`, `.val` | `SetRow(title, modifier, summary, value, onClick, leading, trailing)`, `SetSwitchRow(title, checked, onCheckedChange, modifier, summary, enabled)`, `SetRadioRow(title, selected, onClick, modifier, summary)` | put in a `Group` |
+| `.set-row`, `.lead-ctl`, `.val` | `SetRow(title, modifier, summary, value, onClick, leading, trailing)`, `SetSwitchRow(title, checked, onCheckedChange, modifier, summary, enabled)`, `SetRadioRow(title, selected, onClick, modifier, summary)` | put in a `Group`; a row whose value is one of a few choices (Settings' Transitions and Crossfade length) is `PickerRow` in ComfortSettings.kt: a `SetRow` with the choice as its value, opening a `ComfortMenu` captioned with the row's title over the row, toward the value |
 | `.set-block` | `SetBlock(afterRow) { SetBlockText(…); ComfortProgress(…, SetBlockProgressPadding); SetBlockSmall(…); ComfortButton(style = Text, Modifier.padding(top = 12.dp).offset(x = (-12).dp)) }` | |
 | `.stats`, `.stat` | `Group { item { Stats(listOf(value to label, …)) } }` | |
 | `.empty`, `.empty.fill` | `EmptyState(title, modifier, body, symbol, art, fill, action)` | |
@@ -322,3 +323,44 @@ How it stays cheap, which is a rule for anything added to it:
   knob. No blur, no layer.
 - Everything that moves is a 200 ms or 100 ms tween started by an event. Nothing loops, and nothing
   runs once the sheet or the page has left the screen.
+
+## Tablet (medium and expanded windows)
+
+The rules are docs/design/2026-11-25-tablet/SPEC.md; the design file's Tablet page draws them. Every
+branch reads `LocalWindowLayout` (ui/adaptive/AdaptiveLayout.kt) once, at the top of a screen, and a
+compact window takes the phone code path unchanged.
+
+**How the shell switches.** `ComfortShell` hands over to `ComfortWideShell` (ComfortShellWide.kt) when
+`LocalWindowLayout.current.nav == Rail`: a window at least 600dp wide and 480dp tall. The same
+`ShellSlots` are placed in either, so a resize keeps the NavHost and the overlays. The destination's
+column runs from 8dp after the side dock (`SideDockContentStart`, 100dp) to 8dp before the end
+edge, so the phone's 16dp group margins put cards 24dp from the dock and from the edge. The song
+floats over the content's bottom on the dock's 36dp fade: `player == Bar` (expanded) sets
+`LocalPlayerBar`, and the mini player slot then draws `ComfortPlayerBar` instead of the mini player;
+`player == Floating` (medium) puts the phone's mini player in the dock's raised card, at most
+`MiniPlayerMaxWidthDp` (576) wide and centred. Destinations get the player's room as
+`LocalBottomPadding`. Overlays still cover the whole window; the toast sits above the player.
+
+| Part | Call | Size |
+|---|---|---|
+| Side dock | `ComfortSideDock(items, selectedIndex, onSelect, modifier)` (SideDock.kt) | 80dp wide, 12 from the start edge, the status bar and the gesture area; raised, radius 30, floating shadow and edge; the mark (30) 20 from its top, 16 above the tabs; tabs 64 × 56, icon over a 12/15 label 2dp apart, 4 apart, the selected one on accent-soft with the control radius |
+| Player bar | `ComfortPlayerBar(state, actions, bar)` (ComfortPlayerBar.kt) | 76dp card, radius 30, floating shadow and edge, tinted from the cover, its played part filled (mini-fill over mini-base) as its only progress; cover 52, title over artist; elapsed, previous, play or pause, next (30, 36, 30dp glyphs in 48 targets, 8 apart), length; heart, queue, lyrics. The start and end groups share the width, so the transport sits in the middle |
+| Now Playing's side panel switch | `SubTabs([Up next, Lyrics])` at the top of the end half (ComfortNowPlayingWide.kt) | under the status bar in a 60dp row; Lyrics adds the open-full-screen button at the row's end |
+
+| Screen | File | On a tablet |
+|---|---|---|
+| Home | ComfortHome.kt | hero without the mark (the dock has it), short (150) under 840dp tall; shortcut and folder trays six across, art 112 (expanded) or 72 (medium); Instant mixes in three cards (two on medium) filled top to bottom; Start listening in two cards on expanded; filter grids in columns ≥ 160dp |
+| Library | ComfortLibrary.kt, ComfortLibraryPanes.kt | rows in cards ≥ 360dp side by side, grids in columns ≥ 160; beside the open item (`LocalListDetailSelection`) the list pane takes the bar from the start, then the chips, the open row on `selectedBed()` (`selectedTileBed()` in the grid) |
+| Search | ComfortSearch.kt | field at most 720dp at the start, Browse in columns ≥ 180, songs in cards ≥ 360 |
+| Album, artist, playlist, folder, genre, Favourites | ComfortCollectionPanes.kt | `collectionLayout(pane width)` from a `BoxWithConstraints` (non-compact only): two panes from 760dp (header pane 360, or 320 under 1000; cover up to 296, an artist 200, smaller on a short window so the Play row stays above the player bar: `CoverToFit`), the header as a row from 600 (cover 200), else the phone screen (`LocalStackedCollection`); songs in `columnGroupItems` cards ≥ 360 filled top to bottom; an artist's and a genre's albums as a grid; no back beside the Library's list (`LocalDetailPane`) |
+| Now Playing | ComfortNowPlayingWide.kt, ComfortNowPlaying.kt | sideways: the player in the start half (cover as large as the height leaves, ≤ 440; no sung line; the column never narrower than the Pad's 334dp, so the title and transport keep their room) beside Up next (the queue's own `QueuePage`) or Lyrics (`SyncedLyrics`); upright: the phone page in a centred column, cover ≤ 480, the cover and title halfway between header and deck |
+| Full-screen lyrics | ComfortLyricsWide.kt, ComfortLyrics.kt | sideways: a 360dp start pane (bar, cover 264, title, seek and play in one card) and the lines in a column ≤ 640; upright: the lines in a centred column ≤ 640 |
+| Queue, Settings, licences, Recap page | ComfortQueue.kt, ComfortSettings.kt, ComfortLicences.kt, ComfortRecap.kt | the list in a centred column of cards ≤ 720 (`readableColumnInset()`); the bar spans the window |
+| Recap story | ComfortRecapStory.kt | a phone's proportions (411 by 914), as tall as the window allows, centred on the scrim |
+| Dialogs | Overlays.kt `ComfortDialog` | centred in the window, ≤ 560dp, 400 with a field; sheets keep Material's 640 maximum |
+| First run | ComfortOnboarding.kt | a centred column ≤ 560; sideways, the look step puts the cards beside the Theme list in an 840dp block |
+
+Song rows open the track menu on a right click (`onSecondaryClick`, non-compact windows only). Every
+tablet part is a ripple clickable or selectable, so it shows hover and keyboard focus and takes Tab and
+Enter; the side dock comes first in the tree (dock, content, player), drawn above the content by
+`zIndex` so its shadow falls on it.

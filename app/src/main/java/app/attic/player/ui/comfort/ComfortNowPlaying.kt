@@ -57,6 +57,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.media3.common.Player
@@ -74,6 +75,9 @@ import app.attic.player.ui.model.NowPlayingActions
 import app.attic.player.ui.model.NowPlayingState
 import app.attic.player.ui.model.PlaybackClock
 import app.attic.player.ui.rememberArtColor
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.MiniPlayerMaxWidthDp
+import app.attic.player.ui.adaptive.WidthClass
 import app.attic.player.ui.rememberPosition
 import java.text.NumberFormat
 import kotlin.math.abs
@@ -94,13 +98,26 @@ import kotlinx.coroutines.launch
 fun ComfortNowPlaying(state: NowPlayingState, actions: NowPlayingActions) {
     val track = state.track ?: return
     val seed = rememberArtColor(track.mediaId, fallback = Color.Unspecified, deepen = false)
+    // A tablet upright (or any window too narrow for the side-by-side layout) keeps this page in a
+    // centred column, the cover at most 480dp (docs/design/2026-11-25-tablet/SPEC.md, Now Playing).
+    val column = if (LocalWindowLayout.current.widthClass == WidthClass.Compact) null else MiniPlayerMaxWidthDp.dp
     Tinted(seed, wash = true) {
-        NowPlayingPage(state, actions, track)
+        NowPlayingPage(state, actions, track, column)
     }
 }
 
+/** The cover's largest side in a tablet's column. */
+/** The narrowest Now Playing column on a tablet, whatever the window's height leaves the cover. */
+private val ShortColumnMin = 400.dp
+
+private val ColumnCoverMax = 480.dp
+
+/**
+ * [column], on a tablet, is the widest the page's content may be: it is centred, the cover at most
+ * [ColumnCoverMax], with the cover and title halfway between the header and the deck.
+ */
 @Composable
-private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, track: Track) {
+private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, track: Track, column: Dp? = null) {
     val colors = Comfort.colors
     val scope = rememberCoroutineScope()
     val onClose by rememberUpdatedState(actions.close)
@@ -161,12 +178,19 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
         // whatever height is left over goes above the deck, keeping the controls low.
         val hasLine = state.lyrics.hasLyrics && state.lyrics.lines.isNotEmpty()
         val fixed = insets + HeaderHeight + 4.dp + TitleHeight + (if (hasLine) 30.dp else 0.dp) + DeckHeight + 16.dp
-        val side = min(maxWidth - 60.dp, pageHeight - fixed).coerceAtLeast(120.dp)
+        val side = if (column == null) {
+            min(maxWidth - 60.dp, pageHeight - fixed).coerceAtLeast(120.dp)
+        } else {
+            min(min(min(maxWidth, column) - 60.dp, pageHeight - fixed), ColumnCoverMax).coerceAtLeast(120.dp)
+        }
         // Taken out of the state here so the header's slot changes only when the indicator does.
         val equaliser = state.equaliser
         val openEqualiser = actions.openEqualiser
-        Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
-            Column(Modifier.fillMaxWidth().height(pageHeight)) {
+        // On a tablet the column is the cover's width plus its margins, but never narrower than 400dp,
+        // so a short floating window keeps a readable title and a full deck under a smaller cover.
+        val columnWidth = if (column == null) Modifier.fillMaxWidth() else Modifier.width(maxOf(side + 60.dp, minOf(maxWidth, column, ShortColumnMin)))
+        Column(Modifier.fillMaxSize().verticalScroll(scroll), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(columnWidth.height(pageHeight)) {
                 NowPlayingHeader(
                     context = contextLabel(state.contextName, state.contextKind),
                     onClose = actions.close,
@@ -174,6 +198,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                     moreDescription = stringResource(R.string.more_options_for_cd, track.title),
                     trailing = { EqualiserIndicator(equaliser, openEqualiser) },
                 )
+                if (column != null) Spacer(Modifier.weight(1f))
                 CoverPager(state, actions, side)
                 NowPlayingTitle(track.title, track.artist, onArtistClick = actions.openTrackArtist)
                 InlineLyric(state.lyrics, state.clock, track, state.isPlaying)
@@ -208,7 +233,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                 Spacer(Modifier.height(16.dp))
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
-            Column(Modifier.navigationBarsPadding().padding(top = 12.dp, bottom = 28.dp)) {
+            Column(columnWidth.navigationBarsPadding().padding(top = 12.dp, bottom = 28.dp)) {
                 LyricsSection(state.lyrics, actions.lyrics, state.clock, track, state.isPlaying, actions.openLyrics)
                 state.artist?.let { AboutArtist(it, actions.openArtist) }
                 Credits(track)
@@ -243,7 +268,7 @@ private val PlayCentreInDeck = 16.dp + 14.dp + 48.dp + 14.dp + 38.dp
  * page jumps to that song without changing whether it plays. Paused, the cover steps back to 86%.
  */
 @Composable
-private fun CoverPager(state: NowPlayingState, actions: NowPlayingActions, side: androidx.compose.ui.unit.Dp) {
+internal fun CoverPager(state: NowPlayingState, actions: NowPlayingActions, side: androidx.compose.ui.unit.Dp) {
     val skipTo by rememberUpdatedState(actions.skipTo)
     val pager = rememberPagerState(initialPage = state.currentIndex.coerceAtLeast(0)) { state.queue.size }
     val index by rememberUpdatedState(state.currentIndex)
@@ -297,7 +322,7 @@ private fun InlineLyric(lyrics: LyricsState, clock: PlaybackClock, track: Track,
 
 /** The seek bar; the elapsed time inside its fill follows a drag. */
 @Composable
-private fun Seek(state: NowPlayingState, track: Track, seekTo: (Long) -> Unit) {
+internal fun Seek(state: NowPlayingState, track: Track, seekTo: (Long) -> Unit) {
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 250)
     val duration = track.durationMs.coerceAtLeast(1)
     var scrub by remember { mutableStateOf<Float?>(null) }

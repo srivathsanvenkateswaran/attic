@@ -81,6 +81,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import app.attic.player.R
+import androidx.compose.ui.unit.Dp
+import app.attic.player.ui.adaptive.MiniPlayerMaxWidthDp
+import androidx.compose.foundation.layout.widthIn
 import app.attic.player.data.Artist
 import app.attic.player.data.LrcParser
 import app.attic.player.data.Track
@@ -111,8 +114,10 @@ import kotlinx.coroutines.launch
 fun ExpressiveNowPlaying(state: NowPlayingState, actions: NowPlayingActions) {
     val track = state.track ?: return
     val seed = rememberArtColor(track.mediaId, fallback = Color.Unspecified)
+    // On a tablet that isn't side by side, the phone's player in a centred column (SPEC.md, Now Playing).
+    val column = if (isWideWindow()) MiniPlayerMaxWidthDp.dp else null
     FromArt(seed) {
-        NowPlayingPage(state, actions, track)
+        NowPlayingPage(state, actions, track, column)
     }
 }
 
@@ -122,7 +127,7 @@ private val Peek = 36.dp
 private val SideMargin = 24.dp
 
 @Composable
-private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, track: Track) {
+private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, track: Track, column: Dp? = null) {
     val colors = MaterialTheme.colorScheme
     val scope = rememberCoroutineScope()
     val onClose by rememberUpdatedState(actions.close)
@@ -176,18 +181,26 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
             .pointerInput(Unit) { detectTapGestures { } }
             .nestedScroll(dismissDrag),
     ) {
-        val cover = (maxWidth - 88.dp).coerceAtLeast(160.dp)
+        val cover = if (column == null) (maxWidth - 88.dp).coerceAtLeast(160.dp) else (minOf(maxWidth, column) - 88.dp).coerceIn(160.dp, 480.dp)
         val pageHeight = maxHeight - Peek
-        Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
+        // A tablet's column: at most [column] wide, centred, the page scrolling from anywhere across it.
+        val centred = if (column == null) Modifier else Modifier.widthIn(max = column)
+        Column(
+            Modifier.fillMaxSize().verticalScroll(scroll),
+            horizontalAlignment = if (column == null) Alignment.Start else Alignment.CenterHorizontally,
+        ) {
             Column(
-                Modifier
+                centred
                     .fillMaxWidth()
-                    .heightIn(min = pageHeight)
+                    // A tablet's tall window would spread the player out; there it keeps its gaps, as drawn.
+                    .then(if (column == null) Modifier.heightIn(min = pageHeight) else Modifier)
                     .statusBarsPadding(),
-                verticalArrangement = Arrangement.SpaceBetween,
+                verticalArrangement = if (column == null) Arrangement.SpaceBetween else Arrangement.Top,
             ) {
                 Header(state, actions, track)
-                CoverPager(state, actions, cover, Modifier.padding(top = 4.dp))
+                // On a tablet the cover stops at 480dp, so the pager is as wide as one square page, its
+                // insets and the next cover's sliver (88dp), not the whole column.
+                CoverPager(state, actions, cover, Modifier.padding(top = 4.dp).then(if (column == null) Modifier else Modifier.width(cover + 88.dp)))
                 Column(Modifier.onPlaced { controlsTop = it.positionInParent().y.roundToInt() }) {
                     TitleBlock(
                         state,
@@ -207,7 +220,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
                 }
             }
             Column(
-                Modifier
+                centred
                     .padding(horizontal = 16.dp)
                     .navigationBarsPadding()
                     .padding(bottom = 28.dp),
@@ -221,7 +234,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
         // Positions are below the status bar, as the header's 72dp are. The page is too short to scroll the
         // transport away, so the header follows the title: it carries the title once that has gone.
         val handover = with(density) { 72.dp.toPx() }
-        CompactHeader(state, actions, track, visible = scroll.value > controlsTop + titleEnd - handover)
+        CompactHeader(state, actions, track, visible = scroll.value > controlsTop + titleEnd - handover, column = column)
     }
 }
 
@@ -229,7 +242,7 @@ private fun NowPlayingPage(state: NowPlayingState, actions: NowPlayingActions, t
 
 /** Close, "Playing from" over the context with a glyph for its kind, and the track menu (`.np-top`). */
 @Composable
-private fun Header(state: NowPlayingState, actions: NowPlayingActions, track: Track) {
+internal fun Header(state: NowPlayingState, actions: NowPlayingActions, track: Track) {
     val colors = MaterialTheme.colorScheme
     Row(
         Modifier
@@ -341,7 +354,14 @@ private val PausedCorner = 48.dp
  * page slides in, the sliver widens into the cover.
  */
 @Composable
-private fun CoverPager(state: NowPlayingState, actions: NowPlayingActions, cover: androidx.compose.ui.unit.Dp, modifier: Modifier = Modifier) {
+internal fun CoverPager(
+    state: NowPlayingState,
+    actions: NowPlayingActions,
+    cover: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+    inset: Dp = 20.dp,
+    sliver: Dp = SliverWidth,
+) {
     val skipTo by rememberUpdatedState(actions.skipTo)
     val pager = rememberPagerState(initialPage = state.currentIndex.coerceAtLeast(0)) { state.queue.size }
     val index by rememberUpdatedState(state.currentIndex)
@@ -364,14 +384,14 @@ private fun CoverPager(state: NowPlayingState, actions: NowPlayingActions, cover
     val playing by animateFloatAsState(if (state.isPlaying) 1f else 0f, ExpressiveMotion.fastSpatial(), label = "coverPlaying")
     val density = LocalDensity.current
     val geometry = remember(density) {
-        with(density) { SliverGeometry(SliverWidth.toPx(), SliverCorner.toPx(), PlayingCorner.toPx(), PausedCorner.toPx() * PausedScale) }
+        with(density) { SliverGeometry(sliver.toPx(), SliverCorner.toPx(), PlayingCorner.toPx(), PausedCorner.toPx() * PausedScale) }
     }
     HorizontalPager(
         state = pager,
         // Inset 20 each side and clipped there, so the song before stays out of sight and the next one
         // shows exactly its sliver.
-        modifier = modifier.fillMaxWidth().padding(horizontal = 20.dp).height(cover),
-        contentPadding = PaddingValues(end = 8.dp + SliverWidth),
+        modifier = modifier.fillMaxWidth().padding(horizontal = inset).height(cover),
+        contentPadding = PaddingValues(end = 8.dp + sliver),
         pageSpacing = 8.dp,
         beyondViewportPageCount = 1,
         key = { "$it:${state.queue[it].key}" },
@@ -430,10 +450,17 @@ private fun lerp(start: Float, stop: Float, fraction: Float) = start + (stop - s
 
 /** The current lyric line (only with synced lyrics), the title, and the artist, which opens the artist. */
 @Composable
-private fun TitleBlock(state: NowPlayingState, actions: NowPlayingActions, track: Track, modifier: Modifier = Modifier) {
+internal fun TitleBlock(
+    state: NowPlayingState,
+    actions: NowPlayingActions,
+    track: Track,
+    modifier: Modifier = Modifier,
+    top: Dp = 26.dp,
+    lyric: Boolean = true,
+) {
     val colors = MaterialTheme.colorScheme
-    Column(modifier.fillMaxWidth().padding(start = SideMargin, end = SideMargin, top = 26.dp)) {
-        InlineLyric(state.lyrics, state.clock, track, state.isPlaying)
+    Column(modifier.fillMaxWidth().padding(start = SideMargin, end = SideMargin, top = top)) {
+        if (lyric) InlineLyric(state.lyrics, state.clock, track, state.isPlaying)
         NarrowingText(
             track.title,
             style = Expressive.type.headlineLargeEmphasized.copy(letterSpacing = (-0.3).sp),
@@ -480,7 +507,7 @@ private fun InlineLyric(lyrics: LyricsState, clock: PlaybackClock, track: Track,
 
 /** The wavy seek bar and the times under it. The elapsed time follows a drag. */
 @Composable
-private fun SeekSection(state: NowPlayingState, track: Track, seekTo: (Long) -> Unit) {
+internal fun SeekSection(state: NowPlayingState, track: Track, seekTo: (Long) -> Unit, top: Dp = 10.dp) {
     val position = rememberPosition(state.clock, track.key, state.isPlaying, 250)
     val duration = track.durationMs.coerceAtLeast(1)
     var scrub by remember { mutableStateOf<Float?>(null) }
@@ -498,15 +525,16 @@ private fun SeekSection(state: NowPlayingState, track: Track, seekTo: (Long) -> 
             seekTo(target)
         },
         contentDescription = stringResource(R.string.now_playing_seek_cd, track.title),
-        modifier = Modifier.padding(start = SideMargin, end = SideMargin, top = 10.dp),
+        modifier = Modifier.padding(start = SideMargin, end = SideMargin, top = top),
         onScrub = { scrub = it },
+        mark = state.transitionAtMs?.let { (it.toFloat() / duration).coerceIn(0f, 1f) },
     )
     SeekTimes(formatDuration(shownPosition), formatDuration(track.durationMs), Modifier.padding(horizontal = SideMargin))
 }
 
 /** Shuffle, repeat, favourite and queue on one container (`.np-tools`). On toggles square off and fill. */
 @Composable
-private fun Tools(state: NowPlayingState, actions: NowPlayingActions, modifier: Modifier = Modifier) {
+internal fun Tools(state: NowPlayingState, actions: NowPlayingActions, modifier: Modifier = Modifier) {
     Row(
         modifier
             .fillMaxWidth()
@@ -656,7 +684,7 @@ private fun CreditsCard(track: Track) {
  * its progress ring, on the high container with rounded bottom corners. It covers the status bar.
  */
 @Composable
-private fun CompactHeader(state: NowPlayingState, actions: NowPlayingActions, track: Track, visible: Boolean) {
+private fun CompactHeader(state: NowPlayingState, actions: NowPlayingActions, track: Track, visible: Boolean, column: Dp? = null) {
     AnimatedVisibility(
         visible,
         enter = slideInVertically(ExpressiveMotion.defaultSpatial()) { -it } + fadeIn(ExpressiveMotion.defaultEffects()),
@@ -674,7 +702,7 @@ private fun CompactHeader(state: NowPlayingState, actions: NowPlayingActions, tr
                 .statusBarsPadding(),
         ) {
             Row(
-                Modifier
+                (if (column == null) Modifier else Modifier.align(Alignment.TopCenter).widthIn(max = column))
                     .fillMaxWidth()
                     .height(72.dp)
                     .padding(start = 24.dp, end = 10.dp),

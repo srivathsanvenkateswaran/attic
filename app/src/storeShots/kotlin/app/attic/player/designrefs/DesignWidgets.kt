@@ -32,8 +32,19 @@ import org.robolectric.annotation.GraphicsMode
 class DesignWidgets {
     private val context: Context get() = ApplicationProvider.getApplicationContext()
 
-    /** Launcher sizes, in dp: a 2 x 2, a 4 x 1 and a 4 x 2 cell block on a Pixel. */
-    private val sizes = mapOf("Small" to (170 to 170), "Wide" to (352 to 96), "Large" to (352 to 200))
+    /**
+     * Launcher sizes, in dp, keyed by file name with the layout each one gets: a 2 x 2, a 4 x 1 and a 4 x 2
+     * cell block on a Pixel, then the same blocks on a tablet's launcher, whose cells are about 1.6 times
+     * as wide and 1.5 times as tall (the Pad 6 sideways, a 6 by 4 grid).
+     */
+    private val sizes = listOf(
+        Triple("small", "Small", 170 to 170),
+        Triple("wide", "Wide", 352 to 96),
+        Triple("large", "Large", 352 to 200),
+        Triple("tablet_small", "Small", 280 to 260),
+        Triple("tablet_wide", "Wide", 560 to 130),
+        Triple("tablet_large", "Large", 560 to 300),
+    )
 
     @Test
     fun widgets() {
@@ -71,11 +82,11 @@ class DesignWidgets {
                         (if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
                 }
                 val themed = context.createConfigurationContext(config)
-                for ((layoutName, size) in sizes) {
+                for ((name, layoutName, size) in sizes) {
                     val layout = layoutCls.enumConstants.first { (it as Enum<*>).name == layoutName }
                     val cases = buildList {
-                        add(layoutName.lowercase() to playing)
-                        if (layoutName == "Large") add("large_empty" to idle)
+                        add(name to playing)
+                        if (name == "large") add("large_empty" to idle)
                     }
                     for ((key, state) in cases) {
                         val hasSong = state.mediaId != null

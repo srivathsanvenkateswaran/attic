@@ -40,6 +40,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.ReadableWidthDp
+import androidx.compose.foundation.layout.widthIn
 import app.attic.player.ui.model.QueueActions
 import app.attic.player.ui.model.QueueState
 import app.attic.player.ui.model.UpNextRow
@@ -62,8 +64,33 @@ fun ExpressiveQueue(state: QueueState, actions: QueueActions) {
 
 @Composable
 private fun QueuePage(state: QueueState, actions: QueueActions) {
-    val haptics = rememberHaptics()
     val colors = MaterialTheme.colorScheme
+    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 40.dp
+    val wide = isWideWindow()
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(colors.surface)
+            // Swallows taps so they don't reach the player underneath.
+            .pointerInput(Unit) { detectTapGestures { } }
+            .statusBarsPadding(),
+    ) {
+        // On a tablet the bar and the list are a centred column at most 720dp wide (SPEC.md, Queue).
+        val centred = if (wide) Modifier.align(Alignment.CenterHorizontally).widthIn(max = ReadableWidthDp.dp) else Modifier
+        QueueBar(state, actions, centred)
+        QueueList(state, actions, centred.fillMaxSize(), PaddingValues(bottom = bottom))
+    }
+}
+
+/**
+ * The queue's list: the song playing, then Up next with Clear and the rows. Rows move by their
+ * handle, go with a swipe either way and open the track menu on a long press. Now Playing's side
+ * panel shows it beside the player on a tablet.
+ */
+@Composable
+internal fun QueueList(state: QueueState, actions: QueueActions, modifier: Modifier, contentPadding: PaddingValues) {
+    val haptics = rememberHaptics()
     val current = state.current
 
     // The rows follow the queue, except mid-drag, when they hold the order being dragged.
@@ -82,91 +109,79 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
         val toIndex = rows.indexOfFirst { it.id == to.key }
         if (fromIndex >= 0 && toIndex >= 0) rows.add(toIndex, rows.removeAt(fromIndex))
     }
-    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 40.dp
-
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(colors.surface)
-            // Swallows taps so they don't reach the player underneath.
-            .pointerInput(Unit) { detectTapGestures { } }
-            .statusBarsPadding(),
-    ) {
-        QueueBar(state, actions)
-        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = bottom)) {
-            if (current != null) {
-                item(key = "nowLabel") { ListLabel(stringResource(R.string.queue_now_playing)) }
-                item(key = "nowRow") {
-                    Box(Modifier.fillMaxWidth().groupCell(0, 1, groupCellColor())) {
-                        // The song that is playing does nothing on a tap; its menu is on the button and a long press.
-                        SongRow(
-                            title = current.title,
-                            subtitle = current.artist,
-                            lead = RowLead.Cover(Art.of(current.mediaId)),
-                            current = true,
-                            playing = state.isPlaying,
-                            onLongClick = { actions.showMenu(current) },
-                            trailing = {
-                                if (state.currentSmartPick) RowSmartPickMark()
-                                RowMoreButton(current.title) { actions.showMenu(current) }
-                            },
-                        )
-                    }
-                }
-            }
-            if (rows.isEmpty()) {
-                item(key = "empty") {
-                    EmptyState(
-                        title = stringResource(R.string.queue_nothing_up_next),
-                        body = null,
-                        modifier = Modifier.padding(top = 48.dp),
-                        symbol = Symbol.QueueMusic,
-                        clover = true,
+    LazyColumn(modifier, state = listState, contentPadding = contentPadding) {
+        if (current != null) {
+            item(key = "nowLabel") { ListLabel(stringResource(R.string.queue_now_playing)) }
+            item(key = "nowRow") {
+                Box(Modifier.fillMaxWidth().groupCell(0, 1, groupCellColor())) {
+                    // The song that is playing does nothing on a tap; its menu is on the button and a long press.
+                    SongRow(
+                        title = current.title,
+                        subtitle = current.artist,
+                        lead = RowLead.Cover(Art.of(current.mediaId)),
+                        current = true,
+                        playing = state.isPlaying,
+                        onLongClick = { actions.showMenu(current) },
+                        trailing = {
+                            if (state.currentSmartPick) RowSmartPickMark()
+                            RowMoreButton(current.title) { actions.showMenu(current) }
+                        },
                     )
                 }
-            } else {
-                item(key = "nextHead") {
-                    Row(Modifier.fillMaxWidth().padding(end = 20.dp), verticalAlignment = Alignment.Bottom) {
-                        val n = rows.size
-                        ListLabel(
-                            pluralStringResource(R.plurals.queue_up_next, n, NumberFormat.getIntegerInstance().format(n)),
-                            Modifier.weight(1f),
-                        )
-                        ExpressiveButton(stringResource(R.string.queue_clear), onClick = actions.clearUpNext, variant = ButtonVariant.Text)
-                    }
+            }
+        }
+        if (rows.isEmpty()) {
+            item(key = "empty") {
+                EmptyState(
+                    title = stringResource(R.string.queue_nothing_up_next),
+                    body = null,
+                    modifier = Modifier.padding(top = 48.dp),
+                    symbol = Symbol.QueueMusic,
+                    clover = true,
+                )
+            }
+        } else {
+            item(key = "nextHead") {
+                Row(Modifier.fillMaxWidth().padding(end = 20.dp), verticalAlignment = Alignment.Bottom) {
+                    val n = rows.size
+                    ListLabel(
+                        pluralStringResource(R.plurals.queue_up_next, n, NumberFormat.getIntegerInstance().format(n)),
+                        Modifier.weight(1f),
+                    )
+                    ExpressiveButton(stringResource(R.string.queue_clear), onClick = actions.clearUpNext, variant = ButtonVariant.Text)
                 }
-                itemsIndexed(rows, key = { _, row -> row.id }) { index, row ->
-                    ReorderableItem(reorderState, key = row.id) { isDragging ->
-                        Box(Modifier.fillMaxWidth().liftableCell(index, rows.size, isDragging)) {
-                            SwipeToRemove(onRemove = { actions.remove(row.queueIndex) }, resetKey = state.upNext) {
-                                SongRow(
-                                    title = row.track.title,
-                                    subtitle = row.track.artist,
-                                    lead = RowLead.Cover(Art.of(row.track.mediaId)),
-                                    lifted = isDragging,
-                                    onClick = { actions.jumpTo(row.queueIndex) },
-                                    onLongClick = { actions.showMenu(row.track) },
-                                    trailing = {
-                                        if (row.smartPick) RowSmartPickMark()
-                                        RowDragHandle(
-                                            row.track.title,
-                                            Modifier.draggableHandle(
-                                                onDragStarted = {
-                                                    haptics.perform(Haptic.PickUp)
-                                                    dragging = true
-                                                    dragFrom = row.queueIndex
-                                                },
-                                                onDragStopped = {
-                                                    haptics.perform(Haptic.Drop)
-                                                    actions.move(dragFrom, rows.indexOfFirst { it.id == row.id })
-                                                    dragFrom = -1
-                                                    dragging = false
-                                                },
-                                            ),
-                                        )
-                                    },
-                                )
-                            }
+            }
+            itemsIndexed(rows, key = { _, row -> row.id }) { index, row ->
+                ReorderableItem(reorderState, key = row.id) { isDragging ->
+                    Box(Modifier.fillMaxWidth().liftableCell(index, rows.size, isDragging)) {
+                        SwipeToRemove(onRemove = { actions.remove(row.queueIndex) }, resetKey = state.upNext) {
+                            SongRow(
+                                title = row.track.title,
+                                subtitle = row.track.artist,
+                                lead = RowLead.Cover(Art.of(row.track.mediaId)),
+                                lifted = isDragging,
+                                onClick = { actions.jumpTo(row.queueIndex) },
+                                onLongClick = { actions.showMenu(row.track) },
+                                trailing = {
+                                    if (row.smartPick) RowSmartPickMark()
+                                    RowDragHandle(
+                                        row.track.title,
+                                        Modifier.draggableHandle(
+                                            onDragStarted = {
+                                                haptics.perform(Haptic.PickUp)
+                                                dragging = true
+                                                dragFrom = row.queueIndex
+                                            },
+                                            onDragStopped = {
+                                                haptics.perform(Haptic.Drop)
+                                                actions.move(dragFrom, rows.indexOfFirst { it.id == row.id })
+                                                dragFrom = -1
+                                                dragging = false
+                                            },
+                                        ),
+                                    )
+                                },
+                            )
                         }
                     }
                 }
@@ -177,10 +192,10 @@ private fun QueuePage(state: QueueState, actions: QueueActions) {
 
 /** Close, "Queue", and under it what the songs come from with the glyph for its kind (`.obar`). */
 @Composable
-private fun QueueBar(state: QueueState, actions: QueueActions) {
+private fun QueueBar(state: QueueState, actions: QueueActions, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     Row(
-        Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 8.dp),
+        modifier.fillMaxWidth().height(64.dp).padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

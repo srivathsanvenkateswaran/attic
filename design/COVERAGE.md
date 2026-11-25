@@ -8,6 +8,19 @@ ui-redesign 4fe4dab. Every ticked screen exists in Light and Dark in that file u
 Versions 1.1.0 and 1.2.0 (2026-11-25) add the Equaliser area and its components by hand, from the
 equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generated.
 
+Version 1.3.0 (2026-11-25) adds the Moods section, a proposal for mood mixes, from the moods modules
+(`design/build/<style>/moods.py`). It has its own table under [Proposed: mood mixes](#proposed-mood-mixes).
+
+Version 1.4.0 (2026-11-25) adds the Transitions area for smart transitions
+([smart-transitions.md](../docs/features/smart-transitions.md)), from the transitions modules
+(`design/build/<style>/transitions.py`, then `transitions_landed.py`). Its frames match the code and are
+marked ready for development, except Comfort's Now Playing mark, which was reviewed and not built: its two
+frames keep a `Proposed` annotation and aren't marked ready.
+
+Version 1.5.0 (2026-11-25) puts the Tablet page and its components back on the 1.4.0 files, from the
+tablet modules (`design/build/<style>/tablet.py`), and adds one tablet frame for the Transitions menu. Its
+table is under [Tablet](#tablet).
+
 | Area | Screen or state | Expressive | Comfort |
 |---|---|:-:|:-:|
 | Launch and first run | First run: Welcome | ✓ | ✓ |
@@ -110,6 +123,12 @@ equaliser modules (`design/build/<style>/equaliser.py`); the rest is as generate
 | Equaliser | Settings > Equaliser page, full length | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, nothing with its own setting | ✓ | ✓ |
 | Equaliser | Settings > Equaliser page, switched off |  | ✓ |
+| Transitions | Settings, Playback with transitions off | ✓ | ✓ |
+| Transitions | Settings, Playback on Crossfade, with Crossfade length | ✓ | ✓ |
+| Transitions | Settings, Playback on Smart, with Crossfade length | ✓ | ✓ |
+| Transitions | Transitions menu (Comfort: pop-over) | ✓ | ✓ |
+| Transitions | Crossfade length menu (Comfort: pop-over) | ✓ | ✓ |
+| Transitions | Now Playing with the next song marked on the seek bar (Comfort: proposed, not built) | ✓ | ✓ |
 | Recap | Recap page | ✓ | ✓ |
 | Recap | Recap page, full length | ✓ | ✓ |
 | Recap | Recap, nothing played | ✓ | ✓ |
@@ -153,10 +172,114 @@ The track-menu frames over Now Playing (from Now Playing, opened with Attic, and
 gained the Equaliser row in 1.1.0, so they no longer match the 1.0.0 reference renders. The Settings
 frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback` draws it from the code.
 
+Since 1.4.0 the Playback section is Volume levelling, Transitions, Crossfade length (while the choice is
+Crossfade or Smart) and Equaliser. The `Transitions / Settings, …` frames draw it in each of the three
+choices, and `Equaliser / Settings, Playback` shows Transitions where its Crossfade row was: Off in
+Expressive, Crossfade with Crossfade length at 6 seconds in Comfort, the states 1.2.0 drew. The reference
+renders are `settings_transitions_off`, `settings_transitions_smart` and, for Expressive's seek bar,
+`now_playing_transition_mark`.
+
+Under Playback the `Transitions / Settings, …` frames follow 1.3.0's `Settings / Moods and interests row`:
+Lyrics, then Moods, then Song radio, the order the code has. `Equaliser / Settings, Playback` predates the
+Moods section and still runs from Lyrics straight to Song radio.
+
 ## Screens beyond the checklist
 
 - **Expressive:** `handoff_app_permissions`, `handoff_file_picker`, `handoff_style_switch`.
 - **Comfort:** none.
+
+## Proposed: mood mixes
+
+Version 1.3.0 (2026-11-25) adds a Moods section to the Screens page of both files, drawn by
+`design/build/<style>/moods.py`. It is a proposal: the code lands on `feature/mood-mixes`, every frame
+carries a `Proposed` annotation, and none is marked ready for development. Each frame exists in Light
+and Dark.
+
+| Area | Screen or state | Expressive | Comfort |
+|---|---|:-:|:-:|
+| Moods | Home with the Moods shelf, after the taste Mixes | ✓ | ✓ |
+| Moods | Home with the Moods shelf and the card that asks for picks | ✓ | ✓ |
+| Moods | Mood page (Chill) | ✓ | ✓ |
+| Moods | Mood page, playing | ✓ | ✓ |
+| Moods | Search: Browse with the Moods group, scrolled to it | ✓ | ✓ |
+| Moods | Search: Browse with the Moods group, full length | ✓ | ✓ |
+| Moods | Search: results for "chi" with the mood | ✓ | ✓ |
+| Moods | Moods and interests, nothing picked | ✓ | ✓ |
+| Moods | Moods and interests, picked | ✓ | ✓ |
+| Moods | Moods and interests, no genres yet | ✓ | ✓ |
+| Moods | Settings with the Moods section | ✓ | ✓ |
+| Moods | Settings with the Moods section, nothing picked | ✓ | ✓ |
+| Moods | Now Playing from Radio · Chill | ✓ | ✓ |
+
+Version 1.3.0 also drew Home, the mood page and Moods and interests at 1440 x 900 and 700 x 900 as
+`In progress` frames, with the rail, side dock and player bar as layout. Version 1.5.0 deleted them:
+the [Tablet](#tablet) page has those screens, drawn from the tablet components.
+
+The 1.0.0 frames predate the taste Mixes shelf, Browse's Genres group and the genre page. The Moods
+frames draw those from the code at dffdd29, with invented genres for the demo library.
+
+| Component | File | Page | Variants | Properties |
+|---|---|---|--:|---|
+| Mood tile | Expressive | Lists and cards | 1 | Title, Count, Description |
+| Mood picks card | Expressive | Lists and cards | 1 | Title, Body |
+| Collection header, `Kind=Mood` | Expressive | Lists and cards | new variant | Title, Meta, Second meta |
+| Cover, `Kind=Mosaic, Size=208` | Expressive | Lists and cards | new variant |  |
+| Mood tile | Comfort | Lists and cards | 1 | Title, Description, Count |
+| Mood picks card | Comfort | Lists and cards | 1 | Title, Body |
+
+## Tablet
+
+Added on 2026-11-25 with version 1.5.0 of both files, by the tablet modules
+(`design/build/<style>/tablet.py`); `coverage.py` does not write this section. The `Tablet` page draws
+[the tablet layout spec](../docs/design/2026-11-25-tablet/SPEC.md), and the tablet layouts of mood
+mixes, the equaliser and the Transitions menu, which the code gained after the spec. The layouts are in the code on
+`feature/tablet-layouts`: every frame matches it, carries its `Source` annotation and is marked ready for
+development. Frames are Landscape (1152 × 720), Portrait (720 × 1152) and
+Large landscape (1440 × 900), each in Light and Dark: 33 frames in each theme, in each file.
+
+| Area | Screen | Landscape | Portrait | Large landscape | Expressive | Comfort |
+|---|---|:-:|:-:|:-:|:-:|:-:|
+| Home | Home | ✓ | ✓ | ✓, and full length | ✓ | ✓ |
+| Library | Library (list and detail in landscape, an album open) | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Search | Search, results | ✓ | ✓ | | ✓ | ✓ |
+| Collections | Album | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Collections | Artist | ✓ | | | ✓ | ✓ |
+| Collections | Playlist | ✓ | | | ✓ | ✓ |
+| Now Playing | Now Playing, Up next | ✓ | ✓ (the phone layout in a column) | ✓ | ✓ | ✓ |
+| Now Playing | Now Playing, Lyrics | ✓ | | | ✓ | ✓ |
+| Lyrics | Lyrics, full screen | ✓ | | | ✓ | ✓ |
+| Settings | Settings | ✓ | ✓ | | ✓ | ✓ |
+| Overlays | Track menu over the album | ✓ | | | ✓ | ✓ |
+| Overlays | New playlist over the Library | ✓ | | | ✓ | ✓ |
+| First run | First run, Look | ✓ | ✓ | | ✓ | ✓ |
+| Mood mixes | Home, scrolled to the Moods shelf | ✓ | | | ✓ | ✓ |
+| Mood mixes | Mood page (Chill) | ✓ | ✓ (the header as a row) | | ✓ | ✓ |
+| Mood mixes | Search, Browse with the Moods group | ✓ | | | ✓ | ✓ |
+| Mood mixes | Moods and interests, picked | ✓ | | | ✓ | ✓ |
+| Equaliser | Equaliser sheet over Now Playing, the default | ✓ | | | ✓ | ✓ |
+| Equaliser | Settings > Equaliser page | ✓ | | | ✓ | ✓ |
+| Transitions | Settings > Playback on Smart, the Transitions menu open (Comfort: pop-over) | ✓ | | | ✓ | ✓ (from the code, no render yet) |
+
+Components added for the tablet layouts:
+
+| File | Component | Page | Variants |
+|---|---|---|---|
+| Expressive | Navigation rail | Navigation | Selected |
+| Expressive | Player bar | Navigation | State |
+| Expressive | Now playing/Side panel | Playback | Selected |
+| Comfort | Side dock | Navigation | Selected |
+| Comfort | Side dock/Tab | Navigation | Selected |
+| Comfort | Player bar | Navigation | State |
+| Comfort | Now playing/Side panel | Playback | Selected |
+
+The mood, equaliser and Transitions frames use the components the phone frames use (Mood tile, Browse tile,
+Collection header's parts, Filter chip or Chip, the equaliser's sheet and page parts, the Playback rows and
+the menu or pop-over) with the tablet components around them. Expressive's two equaliser frames draw the band graph themselves, at 608 and 720 dp:
+`Equaliser/Band graph` is 379 dp wide and can't be re-spaced inside an instance.
+
+The two Settings frames leave out the Playback group (added to the code after 4fe4dab); the Transitions
+frame draws it. Not drawn: the Crossfade length menu, Settings with its Moods section, Now Playing with
+the equaliser's indicator, the Save as preset dialog, and every screen outside the table above. `scripts/store_shots/tablet_refs.sh` renders those too.
 
 ## Components
 
@@ -181,8 +304,8 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Switch | Actions | 2 | Checked |  |
 | Toggle button | Actions | 8 | Checked, Size, Off style | Icon, Icon when on |
 | Browse tile | Lists and cards | 2 | Size | Title, Subtitle |
-| Collection header | Lists and cards | 5 | Kind | Title, Artist, Meta, Second meta |
-| Cover | Lists and cards | 19 | Kind, Size |  |
+| Collection header | Lists and cards | 6 | Kind | Title, Artist, Meta, Second meta |
+| Cover | Lists and cards | 20 | Kind, Size |  |
 | Favourites pill | Lists and cards | 2 | Height | Count, Unit |
 | Gone state | Lists and cards | 3 | Kind | Title |
 | Hero caption | Lists and cards | 1 |  | Title, Subtitle |
@@ -252,7 +375,7 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Now playing/Title block | Playback | 2 | Lyric | Lyric line, Title, Artist |
 | Queue bar | Playback | 1 |  | Context |
 | Queue row | Playback | 3 | State |  |
-| Seek bar | Playback | 2 | Playing |  |
+| Seek bar | Playback | 2 | Playing | Show next song mark |
 | Seek times | Playback | 1 |  | Elapsed, Total |
 | Transport | Playback | 2 | Playing |  |
 | Wave | Playback | 2 | Playing |  |
@@ -342,7 +465,7 @@ frames from 1.0.0 predate the Playback section; `Equaliser / Settings, Playback`
 | Lyrics line | Playback | 4 | State | Line |
 | Now playing cover | Playback | 2 | Paused |  |
 | Queue row | Playback | 4 | State |  |
-| Seek bar | Playback | 3 | Progress | Elapsed, Total |
+| Seek bar | Playback | 3 | Progress | Elapsed, Total, Show next song mark (proposed, not built) |
 | Skip button | Playback | 2 | Direction |  |
 | Transport | Playback | 2 | Playing |  |
 | Listening clock | Recap | 2 | Labels | Busiest hour |

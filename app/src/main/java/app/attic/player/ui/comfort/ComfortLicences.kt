@@ -21,8 +21,15 @@ import app.attic.player.ui.model.OpenSourceNotice
 @Composable
 fun ComfortLicences(notices: List<OpenSourceNotice>, actions: LicencesActions) {
     val title = stringResource(R.string.settings_licences)
-    RootPage(title = title, listState = rememberLazyListState(), onBack = actions.back) {
-        item(key = "hero") { Hero(title) }
+    val short = shortHeroOnTablet()
+    RootPage(
+        title = title,
+        listState = rememberLazyListState(),
+        onBack = actions.back,
+        heroHeight = if (short) ShortHeroHeight else HeroHeight,
+        inset = readableColumnInset(),
+    ) {
+        item(key = "hero") { Hero(title, short = short) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), actions.back) }
         }
@@ -41,7 +48,7 @@ fun ComfortLicences(notices: List<OpenSourceNotice>, actions: LicencesActions) {
 @Composable
 fun ComfortLicence(state: LicenceState, back: () -> Unit) {
     val colors = Comfort.colors
-    RootPage(title = state.notice.name, listState = rememberLazyListState(), onBack = back) {
+    RootPage(title = state.notice.name, listState = rememberLazyListState(), onBack = back, inset = readableColumnInset()) {
         item(key = "hero") { Hero(state.notice.name, short = true) }
         item(key = "tools") {
             LeadTools { ComfortIconButton(Symbol.ArrowBack, stringResource(R.string.back), back) }

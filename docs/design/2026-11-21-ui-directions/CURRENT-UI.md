@@ -8,7 +8,7 @@ Written 2026-11-21 from the working tree on branch `ui-redesign`, including the 
 - Strings in "double quotes" are copied from the code. `{braces}` mark a value filled in at runtime.
 - Colour role names (`surfaceContainer`, `onSurfaceVariant`, `primary`) are the Material 3 roles defined in `ui/Theme.kt`. Section 3 gives their hex values. Type style names (`titleMedium`) map to the sp sizes in the same section.
 - "Tint" always means the colour extracted from a cover. Section 3.6 explains how it is computed.
-- The app is portrait-only (`AndroidManifest.xml:31`), draws edge to edge under transparent system bars (`MainActivity.kt:29-33`), and targets phones. There is no tablet or landscape layout.
+- The app draws edge to edge under transparent system bars (`MainActivity.kt`). Phones stay in portrait, set at runtime; tablets turn freely and get the layouts in section 2.23 (added 2026-11-25). Before that it was portrait-only with no tablet layout.
 
 **Screenshots and where they disagree with the code**
 
@@ -46,6 +46,8 @@ Launch
    │  ├─ artist/{key}
    │  ├─ folder/{name} .......... read-only playlist made from a music folder
    │  ├─ genre/{key} ............ songs of one genre, from tags and analysis (added 2026-11-23)
+   │  ├─ mood/{id} .............. one mood's mix for the day (added 2026-11-25, section 2.9b)
+   │  ├─ interests .............. Moods and interests, full screen over the shell (added 2026-11-25)
    │  ├─ playlist/{id} .......... user playlist
    │  ├─ liked .................. Liked Songs
    │  ├─ settings
@@ -264,7 +266,10 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 - **"Haven't heard in a while"**: favourites, and songs played three times or more, with no play in the last 60 days, most played first (a favourite counts as three plays). A favourite you never played counts from the day you liked it.
 - **"Newly added"**: songs whose files arrived in the last 30 days, newest first, by the date MediaStore gives. Absent when every song in the library is that new, as on a phone whose music was copied over in one go.
 - These three are shelves of up to 20 songs drawn like "Recently played": cover, title, artist, and the playing song marked. Tap plays the shelf from that song, under "On repeat", "Haven't heard in a while" or "Newly added". Each is absent with fewer than four songs.
-- Order under "All": shortcuts, Recap, Instant mixes, Mixes, Recently played, On repeat, Haven't heard in a while, Newly added, Start listening, folders, Albums, More from, Top artists.
+- **"Moods"** (added 2026-11-25; `home/MoodMixes.kt`, docs/features/mood-mixes.md), straight after "Mixes", with the overline "Your songs, sorted by how they feel". A shelf of one tile per mood that has a mix today: the mood's name, "{n} songs", its one line ("Slow and easy", "Bright and cheerful", "Fast and driving", "Mostly instrumental, steady", "Made for dancing", "Sad and reflective", "Tender and warm") and a mosaic of four covers. Expressive's tile is a 200 by 108 tonal container in the first cover's hue; Comfort's is a 200 by 133 card. Tapping opens the mood's page (section 2.9b). With moods picked, only those moods show, in the picked order; with none, every mood that has a mix, in the order Chill, Happy, Energetic, Focus, Party, Melancholy, Romantic.
+  - Until picks are saved or "Not now" is tapped, a full-width card comes first under the heading: "What do you like to listen to?", "Pick moods, genres and languages, and the Moods shelf follows them.", a filled "Choose" (opens Moods and interests) and a text "Not now" (hides the card for good).
+  - The mixes change once a day, and again the same day when the picks change or more songs get mood scores. Listening during the day doesn't change them.
+- Order under "All": shortcuts, Recap, Instant mixes, Mixes, Moods, Recently played, On repeat, Haven't heard in a while, Newly added, Start listening, folders, Albums, More from, Top artists.
 
 **States**
 
@@ -273,6 +278,7 @@ One vertically scrolling list. Top to bottom with the "All" filter:
 - **No listening log**: no Wrapped card.
 - **Radio has not run yet**: no "Speed dial".
 - **Fewer than four songs for a shelf, or fewer than 12 played or liked songs analysed**: that shelf, or "Mixes", is absent (added 2026-11-23).
+- **Fewer than eight songs with mood scores**: "Moods" and its card are absent (added 2026-11-25). Scores come from stored embeddings, so they appear on the first Home refresh after analysis has run.
 - **Light theme**: tiles and chips use the light greys. The Wrapped card and Speed dial tiles keep their fixed colours.
 
 Artists have no photos. Every "artist picture" in the app is the cover of one of that artist's songs.
@@ -310,6 +316,8 @@ One flat list with no section headings, in this order:
 Matching ignores case and accents. Names that start with the query rank first, then names that contain it, then songs whose artist or album contains it and albums whose artist contains it (`ui/SearchScreen.kt:70-89`). User playlists are not searched.
 
 **No matches**: empty message, title `No results for "{query}"`, body "Check the spelling, or try fewer words."
+
+**Moods (added 2026-11-25).** Browse has "Moods" between the folders and "Genres", in the same tiles, one per mood that has a mix today, picked or not. A query also matches up to three mood names, labelled "Mood" (Expressive: a result row with a mosaic; Comfort: a tile in the results shelf).
 
 **Genres (added 2026-11-23).** In both styles Browse has "Genres" after the folders, in the folders' tiles: Expressive's tonal tiles in each genre's cover hue with a mosaic and "{n} songs", Comfort's neutral cards. Biggest genre first; a genre with fewer than five songs is not shown. A query also matches up to three genre names, labelled "Genre" (Expressive: a result row with a mosaic; Comfort: a tile in the results shelf). Section 2.9a has the genre page and where genres come from.
 
@@ -460,6 +468,17 @@ All three use the gradient header and control row from 2.6, followed by track ro
 - **Genre radio.** Context "Radio · {genre}". It opens with the song nearest the middle of the genre's sound (the normalised mean of its analysed songs' embeddings) and keeps steering towards that middle instead of the first song. With none of the genre's songs analysed yet it shows "Radio can start from this genre once its songs are analysed" and plays nothing.
 - **Gone.** A genre that no longer has five songs: "This genre is gone".
 
+### 2.9b Mood (added 2026-11-25)
+
+`ui/model/MoodModels.kt` (`rememberMoodModel`), drawn by `ExpressiveMood` and `ComfortMood` (`ui/expressive/ExpressiveMoods.kt`, `ui/comfort/ComfortMoods.kt`). Opened from Home's Moods shelf and Search.
+
+- **Layout.** The genre page's: mosaic of the mix's covers, the mood's name, "Mood mix · {n} songs, {duration}", then "Picked from how your songs sound and what you play. New each day." Then the songs, in the mix's order.
+- **Controls.** Play / pause and shuffle, plus Mood radio (`sensors` glyph, description "Mood radio"), where the genre page has its radio. No add to playlist: the mix changes daily. The mix plays under "{mood} mood mix".
+- **Mood radio.** Context "Radio · {mood}". It opens with the song that fits the mood nearest the middle of the day's mix, keeps steering toward that middle, picks only songs that fit the mood and keeps to the picked languages. When a mood mix runs out, autoplay carries on the same way, leaving out the mix's songs. Before any song has mood scores it shows "Mood radio can start once songs have been analysed".
+- **No mix.** Opened before the day's mixes are built, it builds them and shows nothing meanwhile; a mood with no mix then shows "This mood has no mix today".
+
+**Moods and interests** (`rememberInterestsModel`, drawn by `ExpressiveInterests` and `ComfortInterests`). Full screen in a window over the shell, as the first-run pages are: no tabs, dock or mini player. The large title "Moods and interests", "The Moods shelf on Home follows what you pick here. It all stays on this phone.", then three groups of filter chips: "Moods you like" (the seven moods), "Genres" (the library's genres, biggest first, up to 24; "Genres show up once your songs have genre tags or have been analysed." when there are none) and "Languages" (those the library has, from Tamil, Hindi, Telugu, Malayalam, Kannada, English and No vocals). "Save" is pinned at the bottom; it saves, rebuilds the mixes and goes back. Back leaves without saving. Expressive's group titles are in `primary`; Comfort puts each group's chips on a card under its label.
+
 ### 2.10 Now Playing
 
 Purpose: the full player. `ui/NowPlaying.kt:210-600`.
@@ -481,7 +500,7 @@ Player page, 24dp side padding, top to bottom:
 4. Flexible space.
 5. **Current lyric line** (`ui/LyricsScreen.kt:157-172`). Only when the song has synced lyrics saved and the current line is not blank: that line in `titleSmall`, one line, 12dp below. Visible in `lyrics_card.png` above the title.
 6. **Title row**: song title in `headlineSmall`, one line. 2dp below, the artist in `bodyLarge` at white 70%, one line, scrolling as a marquee after 2.5 s when too long. Tapping the artist opens the artist screen and closes the player, when that artist is in the library. On the right, the like button at 28dp.
-7. 12dp, then the **seek bar** (`ui/NowPlaying.kt:471-516`). A 28dp-tall touch area with a 3dp round-capped line: white 25% for the track, white for the elapsed part, and a round white handle of 6dp radius. **While being dragged the elapsed part and handle turn `primary` green and the handle grows to 8dp** over 120 ms. Tap anywhere to jump. Drag to scrub, with the seek applied on release. Description "Seek in {title}".
+7. 12dp, then the **seek bar** (`ui/NowPlaying.kt:471-516`). A 28dp-tall touch area with a 3dp round-capped line: white 25% for the track, white for the elapsed part, and a round white handle of 6dp radius. **While being dragged the elapsed part and handle turn `primary` green and the handle grows to 8dp** over 120 ms. Tap anywhere to jump. Drag to scrub, with the seek applied on release. Description "Seek in {title}". Since 2026-11-25 the Expressive style's seek bar (`ui/expressive/PlayControls.kt`, `SeekBar(mark)`) also marks where a Smart transition into the next song will start: a 4dp dot in `onSurfaceVariant` on the rest of the track, at the handle's own position for that moment, shown only while the handle is short of it and only when Smart has planned a transition for the song (from the session extras, `playback/TransitionSession.kt`). Comfort draws no mark.
 8. Under it: elapsed time on the left and total duration on the right, both `labelMedium` at white 70%, format `m:ss`. It shows the total, not time remaining.
 9. 4dp, then the **transport row**, spaced edge to edge:
    - Shuffle toggle.
@@ -693,9 +712,15 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
 
 - **"Playback"** section title, added 2026-11-23 after this extraction, in both styles between Appearance (Comfort: Style) and Lyrics (`ui/expressive/ExpressiveSettings.kt`, `ui/comfort/ComfortSettings.kt`; state and actions in `ui/model/SettingsModel.kt`).
   - "Volume levelling" over "Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are." with a switch. Default on. Expressive heads it with `volume_up` in a tonal circle.
-  - "Crossfade", its length shown as "Off" or "{n} seconds" (Expressive: the supporting line; Comfort: the row's value in accent ink), over "Songs from one album played in order still run straight into each other." Tapping opens the kit's menu of lengths: "Off", "2 seconds", "4 seconds", "6 seconds", "8 seconds", "10 seconds", "12 seconds", the current one ticked (Comfort's pop-over, captioned "Crossfade", opens over its row like the track menu's sleep timer). Default "Off". Expressive heads it with `transition_fade`.
+  - "Transitions" (since 2026-11-25; until then a "Crossfade" row whose menu was Off or 2 to 12 seconds), its choice shown as "Off", "Crossfade" or "Smart" (Expressive: the supporting line; Comfort: the row's value in accent ink), over what that choice does (`ui/TransitionText.kt`):
+    - Off: "The next song starts when this one ends."
+    - Crossfade: "Fades each song into the next over the crossfade length. Songs from one album played in order still run straight into each other."
+    - Smart: "Starts the next song as this one winds down, skips silence and lines up the beats when the tempos are close. Songs from one album played in order still run straight into each other."
+
+    Tapping opens the kit's menu of the three, the current one ticked (Comfort's pop-over, captioned "Transitions", opens over its row like the track menu's sleep timer). Default "Off". Expressive heads it with `transition_fade`.
+  - "Crossfade length", shown only for Crossfade and Smart, its length as "{n} seconds", with "Smart uses this for songs that aren't analysed yet." under it for Smart. Its menu lists "2 seconds" to "12 seconds" in steps of two, the current one ticked (Comfort: pop-over captioned "Crossfade length"). Default 6 seconds. Expressive heads it with `schedule`. An install that had a crossfade length set before 2026-11-25 opens on Crossfade at that length.
   - "Equaliser" (changed 2026-11-25), always shown. Its state is "Off" or the default's preset name, and when songs or albums have their own setting it adds "With their own setting: 4 songs, 2 albums" (Comfort shows "Ten bands and presets. A song or album can keep its own setting." when none do). Tapping opens the Equaliser page: "Use equaliser" with a switch; "Default" with the same chips, bands and response as the sheet, always editing the default; "Albums with their own setting" and "Songs with their own setting", each row with its preset name and a remove button (no confirmation); "Songs and albums with their own setting" with "None yet. Open Equaliser from the menu on Now Playing and choose “Save for this song”." when there are none; and "Phone equaliser" over "Opens the equaliser on this phone." when the phone has one, which opens the system's sound-effects panel or an installed equaliser app on Attic's audio session ("Couldn't open the equaliser" if that fails).
-  - Behind them (`playback/`): the equaliser is Attic's own filter chain after levelling (`playback/eq/`), so it sounds the same on every phone; levelling brings songs to about -14 LUFS without raising a peak past -1 dBFS, and an album played in order shares one gain. Crossfade never fades between consecutive songs of one album, with repeat-one, or when the sleep timer is set to "End of this song". The analysis status line counts a song once its loudness is measured as well (see "Song radio" below).
+  - Behind them (`playback/`): the equaliser is Attic's own filter chain after levelling (`playback/eq/`), so it sounds the same on every phone; levelling brings songs to about -14 LUFS without raising a peak past -1 dBFS, and an album played in order shares one gain. Neither Crossfade nor Smart fades between consecutive songs of one album, with repeat-one, or when the sleep timer is set to "End of this song". Smart plans each transition from the two songs' analysis (`playback/TransitionPlanner.kt`, `docs/features/smart-transitions.md`): it starts around the outgoing song's outro, skips silence at both ends, picks an overlap of 1 to 12 seconds from how the two songs' levels move, and lines up the beats when the tempos are within 6 %. A song not analysed yet fades for the crossfade length. The tail player that plays the outgoing song has its own equaliser, so each song keeps its own curve through a fade. The analysis status line counts a song once its loudness and its transition points are measured as well (see "Song radio" below).
 
 - **"Lyrics"** section title.
   - "{saved} of {total} songs have lyrics saved on this phone. Saved lyrics work offline." in `bodyMedium` `onSurfaceVariant`. {saved} counts lyrics read from the songs' files as well as downloaded ones.
@@ -704,10 +729,11 @@ Purpose: theme, lyrics download, radio options, backup. `ui/SettingsScreen.kt`. 
   - Running: 12dp, a linear progress bar across the width (16dp side margins), then "Checked {done} of {total}, found {found}" in `bodySmall`. The button is hidden.
   - After a run with failures, above the button in `bodySmall`: "{n} songs couldn't be checked. Download again to retry them." or, when it gave up after five failures in a row, "Stopped because the connection failed. Check your internet, then download again to continue."
 
+- **"Moods"** section title (added 2026-11-25), then one row: "Moods and interests" over the picks ("Chill, Focus, Romantic · 3 genres · Tamil, English", or "Nothing picked yet"), with a chevron; it opens Moods and interests. Expressive leads it with `partly_cloudy_day`.
 - **"Song radio"** section title.
   - A row (padding 16 sides, 12 below): "Autoplay" in `bodyLarge` over "When a queue reaches its last song, radio keeps going with similar songs." in `bodySmall` `onSurfaceVariant`, with a Material switch at the right. Tapping the row or the switch toggles it. Default on.
   - "Radio finds similar songs by listening to your files. This happens on this phone, and nothing is uploaded." in `bodyMedium` `onSurfaceVariant`.
-  - 12dp, then a linear progress bar showing analysed songs over total songs. It is always visible. Since 2026-11-23 a song counts once its styles (section 2.9a) and its loudness (the Playback section below) are stored as well, so a library analysed before then shows as part done until the next charging run has added them. A song missing both gets them from one decode; a song missing only its loudness gets a quicker decode with no model run, and those go first.
+  - 12dp, then a linear progress bar showing analysed songs over total songs. It is always visible. Since 2026-11-23 a song counts once its styles (section 2.9a) and its loudness (the Playback section below) are stored as well, and since 2026-11-25 its transition points too, so a library analysed before then shows as part done until the next charging run has added them. A song needing the model gets everything from one decode; a song missing only its loudness or its transition points gets a quicker decode with no model run. Songs missing loudness go first, then unanalysed songs, then songs missing only transition points, then songs missing styles.
   - A status line in `bodySmall`, 6dp above, one of:
     - "Analysing songs: {done} of {total}" while analysis is running
     - "All {total} songs analysed."
@@ -901,6 +927,7 @@ Purpose: short confirmations and playback or radio errors.
 | "Radio is using {n} of {total} songs until analysis finishes" | Radio started before the whole library was analysed |
 | "Added to queue" | A song row swiped to queue it (added 2026-11-23, section 2.0) |
 | "Radio can start from this genre once its songs are analysed" | Genre radio with none of the genre's songs analysed (added 2026-11-23) |
+| "Mood radio can start once songs have been analysed" | Mood radio with no song scored for moods yet (added 2026-11-25) |
 | "Skipped {title} because it can't be played" | A queued file failed to play and was dropped |
 | "Music will pause in {n} minutes" | Sleep timer set to 15, 30, 45 or 60 minutes (added 2026-11-23) |
 | "Music will pause after this song" | Sleep timer set to "End of this song" (added 2026-11-23) |
@@ -994,7 +1021,7 @@ In `notification.png` and `lock_screen.png` this renders as the system media car
 
 No notification appears on launch. It appears once playback starts.
 
-The sleep timer (section 2.13) adds nothing to the notification or the lock screen. Nor does a crossfade: the card moves to the next song when the fade starts, a few seconds before the outgoing song ends.
+The sleep timer (section 2.13) adds nothing to the notification or the lock screen. Nor does a transition: the card moves to the next song when the fade starts, a few seconds before the outgoing song ends, or with Smart where its outro begins, which can be earlier.
 
 **Analysis notification** (`analysis/AnalysisWorker.kt:105-128`). While radio analysis runs: an ongoing silent notification on the "Song analysis" channel with an equaliser-bars icon, title "Analysing your songs", text "{done} of {total}", a determinate progress bar, and one action, "Stop". Tapping it opens the app.
 
@@ -1022,6 +1049,27 @@ Added 2026-11-23. Purpose: play the library from a car screen. The car draws eve
 - **Search** groups results under "Songs", "Artists", "Albums" and "Playlists".
 - **Voice**: "Play X on Attic" plays a matching playlist, artist, album or song; "play music" carries on with the queue. When nothing matches, the car shows "Couldn't find “{query}” in your music". The same phrase said to the phone opens Attic and plays, and the miss shows as a snackbar.
 - **No audio access**: the car shows "Attic can't see your music yet. When it's safe, open Attic on your phone and allow access to music." Cars that run Android themselves add an "Open Attic" button.
+
+### 2.23 Tablets and large windows (added 2026-11-25)
+
+The rules are in `docs/design/2026-11-25-tablet/SPEC.md` and drawn on the `Tablet` page of both design files. This section says what the code does.
+
+- **Which layout.** `ui/adaptive/AdaptiveLayout.kt` reads the window from `currentWindowAdaptiveInfoV2()` and the window's size, and hands every screen a `WindowLayout` through `LocalWindowLayout` (provided in `MainActivity`). Compact windows (under 600 dp wide, or under 480 dp tall) keep every phone layout in this document unchanged. Medium windows (600 to 839 dp, the Xiaomi Pad 6 upright at 720 dp) and expanded ones (840 dp and wider, the Pad sideways at 1152 dp) get the layouts below. Panes pick their own layout from the width they are given.
+- **Orientation and resizing.** The manifest no longer locks orientation; `MainActivity` asks for portrait only when the display's smaller side is under 600 dp. The activity handles rotation, split screen and window resizing itself (`android:configChanges`), so the screen, the open overlay, scroll positions and playback carry across.
+- **Navigation.** Medium and expanded windows replace the bottom bar with a rail at the start edge. Expressive draws Material's 96 dp rail with the Headroom mark at its top (`ui/expressive/ExpressiveRail.kt`), and Home's top bar drops its own mark. Comfort draws its dock as an 80 dp floating card on the start edge, the mark at its top and the tabs stacked under it (`ui/comfort/SideDock.kt`).
+- **The playing song.** On medium windows the phone mini player floats at the bottom of the content area, at most 576 dp wide. On expanded windows a player bar runs along the bottom of the content area: cover, title and artist; previous, play or pause and next with the times and a progress bar; then favourite, queue and lyrics (`ExpressivePlayerBar.kt`, `ComfortPlayerBar.kt`). Comfort's bar is a floating card whose played-so-far fill is its progress; Expressive's bar has a wavy progress bar and no ring on its play button.
+- **Home.** Shelves show more items. Expressive puts the Recap card beside Instant mixes; Instant mixes take three columns; album, artist and folder grids take as many 160 dp columns as fit; Comfort's shortcut tray takes six columns.
+- **Library.** On an expanded window wider than it is tall, with at least 1000 dp beside the rail or dock (so the detail gets 600 dp, the Pad 6 sideways and wider), the Library is list and detail (`ui/LibraryPanes.kt`): the list in a 400 dp pane, the album, artist, playlist, folder or Favourites it opened beside it, the first item open on arrival and the open row marked. Opening an item from the list selects it instead of navigating; the detail has no back button, and a playlist's or Favourites' menu sits at the end of its header's buttons. Elsewhere list rows sit in 360 dp columns and the grid in 160 dp columns.
+- **Search.** The field is at most 720 dp wide; results and browse tiles sit in columns.
+- **Album, artist, playlist, folder, Favourites, genre.** In a pane 760 dp or wider the header (cover, title, details, buttons) sits in a 320 or 360 dp start pane and the songs scroll beside it, in columns when there is room. Between 600 and 759 dp the header becomes a row above the songs.
+- **Moods and the equaliser.** The Moods shelf on Home and the Moods group in Search's Browse follow the shelves and tile columns around them. A mood's page lays out as the other collections do (two panes, or the header as a row), with radio and without add to playlist. Moods and interests stays a centred column. The equaliser sheet is a bottom sheet, at most 640 dp wide; the Equaliser page in Settings is a centred column at most 720 dp wide.
+- **Now Playing.** On an expanded window wider than it is tall, the player takes the start half and the end half switches between Up next (the queue, with drag to reorder and swipe to remove) and Lyrics (with the full-screen button); "Up next" is `player_panel_up_next`. Otherwise the phone layout sits in a centred column at most 576 dp wide.
+- **Full-screen lyrics** on such a window keep the cover, title, seek bar and previous, play and next in a 360 dp start pane, the lines in a column at most 640 dp wide beside it.
+- **Settings, queue, Recap, licences.** Centred columns at most 720 dp wide. The Recap story keeps a phone screen's proportions, centred.
+- **Sheets and dialogs.** Bottom sheets are at most 640 dp wide and centred; dialogs at most 560 dp, one-field dialogs 400 dp, centred (Comfort's sit at the bottom only on phones).
+- **First run.** A centred column at most 560 dp wide; Comfort puts the look cards beside the theme choice when the window is landscape.
+- **Keyboard and mouse.** Space plays and pauses wherever focus is, unless a text field is taking the typing (`MainActivity.dispatchKeyEvent`); Enter activates the focused control. Esc closes what is open, as Back does, whichever control has focus; with nothing to close it clears keyboard focus and never leaves the app (`MainActivity.dispatchKeyEvent`). A right click on a song row opens its menu on medium and expanded windows. Rail, dock, player bar and panel switch items are ordinary focusable buttons with hover and focus states.
+- **Home-screen widget.** The same three layouts stretch to a tablet launcher's larger cells; Expressive's 4 x 2 crops its five recent-album tiles taller than they are wide.
 
 ---
 
@@ -1337,6 +1385,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Smart shuffle on playlists and Favourites, from the more menu, ticked while on (added 2026-11-23)
 - [ ] "is gone" state for missing items
 - [ ] Genre: songs, albums mostly in the genre, play, shuffle, genre radio, add to playlist (added 2026-11-23)
+- [ ] Mood: the day's mix, play, shuffle, Mood radio (added 2026-11-25)
+- [ ] "Moods" on Home and in Browse, mood names in results labelled "Mood", the picks card, and Moods and interests from Home and Settings (added 2026-11-25)
 
 **Song rows and the track menu**
 - [ ] Current-song highlight and animated playing indicator
@@ -1405,6 +1455,7 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Start radio from any song, and from Speed dial
 - [ ] Radio context shown as "Radio · {song title}"
 - [ ] Radio from a genre, shown as "Radio · {genre}" (added 2026-11-23)
+- [ ] Mood radio, shown as "Radio · {mood}", and autoplay after a mood mix continuing in that mood (added 2026-11-25)
 - [ ] Self-refilling queue of ten upcoming songs
 - [ ] Removing an upcoming song steers radio; "Clear" stops it
 - [ ] "Autoplay" setting (default on)
@@ -1430,8 +1481,8 @@ Every user-facing capability and control in the current app. Exact names are in 
 - [ ] Loading and empty-period states
 
 **Settings**
-- [ ] "Appearance", "Playback", "Lyrics", "Song radio", "Backup", "About" sections with the controls above
-- [ ] "Volume levelling" switch (default on), "Crossfade" length (default off) (added 2026-11-23)
+- [ ] "Appearance", "Playback", "Lyrics", "Moods", "Song radio", "Backup", "About" sections with the controls above
+- [ ] "Volume levelling" switch (default on) (added 2026-11-23), and "Transitions" (Off, Crossfade, Smart; default Off) with "Crossfade length" (default 6 seconds) for Crossfade and Smart (added 2026-11-25)
 - [ ] Equaliser (added 2026-11-25): switch (default off), ten bands, eleven presets, saved presets with rename and delete, a setting per song and per album (song, then album, then default), the sheet from Now Playing's menu and its header pill, the Settings page with the lists of own settings, and "Phone equaliser" when the phone has one
 - [ ] "Back up to a file" and "Restore from a file", with the restore confirmation, result and problem dialogs
 - [ ] Song count in "About"

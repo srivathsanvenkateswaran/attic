@@ -60,6 +60,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 import app.attic.player.R
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.model.WrappedStoryActions
 import app.attic.player.ui.model.WrappedStoryState
@@ -73,6 +75,9 @@ import kotlinx.coroutines.flow.Flow
  * the line and steps the card back. [messages] are the app's messages, shown here under the buttons
  * because the story covers the shell's snackbar.
  */
+/** A phone screen's width over its height, 411 by 914 dp, which the story keeps on a tablet. */
+private const val PhoneAspect = 411f / 914f
+
 @Composable
 fun ExpressiveRecapStory(state: WrappedStoryState, actions: WrappedStoryActions, messages: Flow<String>) {
     val cards = state.cards
@@ -90,6 +95,7 @@ fun ExpressiveRecapStory(state: WrappedStoryState, actions: WrappedStoryActions,
         }
     }
 
+    val wide = isWideWindow()
     Dialog(onDismissRequest = actions.close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         BackHandler(onBack = actions.close)
         val dark = LocalIsDark.current
@@ -105,7 +111,13 @@ fun ExpressiveRecapStory(state: WrappedStoryState, actions: WrappedStoryActions,
         FromArt(rememberRecapCardSeed(card, state.data)) {
             val colors = MaterialTheme.colorScheme
             Box(Modifier.fillMaxSize().background(if (dark) colors.surfaceContainerLowest else colors.surfaceContainer)) {
-                Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+                // On a tablet the story keeps a phone screen's proportions, as tall as the window allows (SPEC.md, Recap).
+                val frame = if (wide) {
+                    Modifier.align(Alignment.Center).fillMaxHeight().aspectRatio(PhoneAspect, matchHeightConstraintsFirst = true)
+                } else {
+                    Modifier.fillMaxSize()
+                }
+                Column(frame.statusBarsPadding().navigationBarsPadding()) {
                     TopBar(state, actions.close)
                     BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp)) {
                         // The card as large as fits beside a 40dp sliver, 20dp in from each side.

@@ -6,33 +6,58 @@ import org.junit.Test
 
 class AnalysisPlanTest {
     @Test
-    fun aSongIsDoneOnlyOnceItsModelWorkAndLoudnessAreBothSaved() {
-        assertEquals(AnalysisNeed.Full, AnalysisPlan.need("a", finished = emptySet(), measured = emptySet()))
-        assertEquals(AnalysisNeed.Full, AnalysisPlan.need("a", finished = emptySet(), measured = setOf("a")))
-        assertEquals(AnalysisNeed.Loudness, AnalysisPlan.need("a", finished = setOf("a"), measured = emptySet()))
-        assertNull(AnalysisPlan.need("a", finished = setOf("a"), measured = setOf("a")))
+    fun aSongIsDoneOnlyOnceItsModelWorkLoudnessAndTransitionsAreAllSaved() {
+        val all = setOf("a")
+        val none = emptySet<String>()
+        assertEquals(AnalysisNeed.Full, AnalysisPlan.need("a", finished = none, measured = none, transitioned = none))
+        assertEquals(AnalysisNeed.Full, AnalysisPlan.need("a", finished = none, measured = all, transitioned = all))
+        assertEquals(AnalysisNeed.Measure, AnalysisPlan.need("a", finished = all, measured = none, transitioned = all))
+        assertEquals(AnalysisNeed.Measure, AnalysisPlan.need("a", finished = all, measured = all, transitioned = none))
+        assertEquals(AnalysisNeed.Measure, AnalysisPlan.need("a", finished = all, measured = none, transitioned = none))
+        assertNull(AnalysisPlan.need("a", finished = all, measured = all, transitioned = all))
     }
 
     @Test
-    fun aSongMissingStylesAndLoudnessGetsOneFullDecodeNotTwo() {
-        // Analysed before both styles and loudness were stored: the one full decode measures loudness too.
-        val todo = AnalysisPlan.todo(listOf("old"), finished = emptySet(), analyzed = setOf("old"), measured = emptySet(), recent = emptyMap())
+    fun aSongMissingStylesLoudnessAndTransitionsGetsOneFullDecodeNotTwo() {
+        // Analysed before styles, loudness and transitions were stored: the one full decode measures them all.
+        val todo = AnalysisPlan.todo(
+            listOf("old"),
+            finished = emptySet(),
+            analyzed = setOf("old"),
+            measured = emptySet(),
+            transitioned = emptySet(),
+            recent = emptyMap(),
+        )
         assertEquals(listOf("old" to AnalysisNeed.Full), todo)
     }
 
     @Test
-    fun loudnessOnlyGoesFirstThenNewSongsThenStylesBackfill() {
+    fun loudnessFirstThenNewSongsThenTheTransitionsBackfillThenStyles() {
         val todo = AnalysisPlan.todo(
-            keys = listOf("backfill", "new", "loudness", "done"),
-            finished = setOf("loudness", "done"),
-            analyzed = setOf("backfill", "loudness", "done"),
-            measured = setOf("done"),
+            keys = listOf("styles", "transitions", "new", "loudness", "done"),
+            finished = setOf("transitions", "loudness", "done"),
+            analyzed = setOf("styles", "transitions", "loudness", "done"),
+            measured = setOf("transitions", "done"),
+            transitioned = setOf("loudness", "done"),
             recent = emptyMap(),
         )
         assertEquals(
-            listOf("loudness" to AnalysisNeed.Loudness, "new" to AnalysisNeed.Full, "backfill" to AnalysisNeed.Full),
+            listOf(
+                "loudness" to AnalysisNeed.Measure,
+                "new" to AnalysisNeed.Full,
+                "transitions" to AnalysisNeed.Measure,
+                "styles" to AnalysisNeed.Full,
+            ),
             todo,
         )
+    }
+
+    @Test
+    fun aLibraryAnalysedBeforeTransitionsNeedsOnlyQuickDecodes() {
+        val keys = listOf("a", "b", "c")
+        val todo = AnalysisPlan.todo(keys, keys.toSet(), keys.toSet(), keys.toSet(), transitioned = emptySet(), recent = mapOf("b" to 0))
+        assertEquals(listOf("b", "a", "c"), todo.map { it.first })
+        assertEquals(setOf(AnalysisNeed.Measure), todo.map { it.second }.toSet())
     }
 
     @Test
@@ -42,6 +67,7 @@ class AnalysisPlanTest {
             finished = emptySet(),
             analyzed = emptySet(),
             measured = emptySet(),
+            transitioned = emptySet(),
             recent = mapOf("c" to 0, "b" to 1),
         )
         assertEquals(listOf("c", "b", "a"), todo.map { it.first })

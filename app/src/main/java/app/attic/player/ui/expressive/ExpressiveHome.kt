@@ -3,6 +3,13 @@ package app.attic.player.ui.expressive
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
+import app.attic.player.ui.adaptive.WindowLayout
+import app.attic.player.ui.adaptive.WidthClass
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -33,6 +41,8 @@ import app.attic.player.data.Artist
 import app.attic.player.data.FolderPlaylist
 import app.attic.player.data.Track
 import app.attic.player.ui.LocalBottomPadding
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.ReadableWidthDp
 import app.attic.player.ui.model.HomeActions
 import app.attic.player.ui.model.HomeFilter
 import app.attic.player.ui.model.HomeShelf
@@ -51,6 +61,7 @@ import java.text.NumberFormat
  */
 @Composable
 fun ExpressiveHome(state: HomeState, actions: HomeActions) {
+    val wide = homeWide(LocalWindowLayout.current)
     val listState = rememberLazyListState()
     val scrolled = if (state.isEmpty) 0f else listState.scrolledFraction()
     val markFraction by animateFloatAsState(scrolled, ExpressiveMotion.defaultEffects(), label = "homeMark")
@@ -58,9 +69,11 @@ fun ExpressiveHome(state: HomeState, actions: HomeActions) {
         RootAppBar(
             title = stringResource(R.string.app_name),
             scrolled = scrolled,
-            titleLeading = {
-                AtticMarkIcon(size = lerp(32.dp, 24.dp, markFraction), tint = MaterialTheme.colorScheme.primary)
+            // On a tablet the rail carries the mark.
+            titleLeading = if (wide != null) null else {
+                { AtticMarkIcon(size = lerp(32.dp, 24.dp, markFraction), tint = MaterialTheme.colorScheme.primary) }
             },
+            titleInset = if (wide != null) WideExtraMargin else 0.dp,
         ) {
             ExpressiveIconButton(Symbol.Settings, stringResource(R.string.settings), actions.openSettings)
         }
@@ -78,7 +91,11 @@ fun ExpressiveHome(state: HomeState, actions: HomeActions) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = LocalBottomPadding.current),
+            contentPadding = if (wide == null) {
+                PaddingValues(bottom = LocalBottomPadding.current)
+            } else {
+                PaddingValues(start = WideExtraMargin, end = WideExtraMargin, bottom = LocalBottomPadding.current)
+            },
         ) {
             item(key = "filter") {
                 val labels = listOf(
@@ -87,31 +104,41 @@ fun ExpressiveHome(state: HomeState, actions: HomeActions) {
                     stringResource(R.string.home_filter_artists),
                     stringResource(R.string.home_filter_folders),
                 )
-                ConnectedButtonGroup(labels, state.filter.ordinal, { actions.setFilter(HomeFilter.entries[it]) })
+                ConnectedButtonGroup(
+                    labels,
+                    state.filter.ordinal,
+                    { actions.setFilter(HomeFilter.entries[it]) },
+                    if (wide != null) Modifier.widthIn(max = FilterMaxWidth) else Modifier,
+                )
             }
             when (state.filter) {
-                HomeFilter.All -> allSections(state, actions)
+                HomeFilter.All -> allSections(state, actions, wide)
                 HomeFilter.Albums -> item(key = "albumGrid") {
-                    FilterGrid(state.biggestAlbums) { AlbumTile(it, actions, width = null) }
+                    FilterGrid(state.biggestAlbums, columns = wide?.tileColumns ?: 2) { AlbumTile(it, actions, width = null) }
                 }
                 HomeFilter.Artists -> item(key = "artistGrid") {
-                    FilterGrid(state.biggestArtists, columns = 3) { ArtistTile(it, actions, width = null) }
+                    FilterGrid(state.biggestArtists, columns = wide?.tileColumns ?: 3) { ArtistTile(it, actions, width = null) }
                 }
                 HomeFilter.Folders -> item(key = "folderGrid") {
-                    FilterGrid(state.folders) { FolderTile(it, actions, width = null) }
+                    FilterGrid(state.folders, columns = wide?.tileColumns ?: 2) { FolderTile(it, actions, width = null) }
                 }
             }
         }
     }
 }
 
-private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
+private fun LazyListScope.allSections(state: HomeState, actions: HomeActions, wide: HomeWide?) {
+    // On a tablet the page has its 24dp margins and shelves run on through the end one to the window's edge.
+    val shelf = if (wide != null) Modifier.bleed(end = WideExtraMargin) else Modifier
     if (state.shortcuts.isNotEmpty()) {
         item(key = "hero") {
             Spacer(Modifier.height(12.dp))
-            Places(state, actions)
+            Places(state, actions, wide, shelf)
         }
     }
+    if (wide != null) {
+        wideRecapAndMixes(state, actions, wide)
+    } else {
     state.wrapped?.let { teaser ->
         item(key = "recap") { Recap(teaser, actions.openWrapped) }
     }
@@ -129,10 +156,11 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
             }
         }
     }
+    }
     if (state.tasteMixes.isNotEmpty()) {
         item(key = "tasteMixes") {
             SectionHeader(stringResource(R.string.home_mixes), overline = stringResource(R.string.home_mixes_overline))
-            Shelf {
+            Shelf(shelf) {
                 // Mixes never share a song, so the first one names the mix.
                 items(state.tasteMixes, key = { it.tracks.first().key }) { mix ->
                     Tile(
@@ -146,10 +174,21 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
             }
         }
     }
-    songShelf("recent", R.string.home_recently_played, state.recentTracks, state) { actions.playRecent(it) }
-    songShelf("onRepeat", R.string.home_on_repeat, state.onRepeat, state) { actions.playShelf(HomeShelf.OnRepeat, it) }
-    songShelf("notLately", R.string.home_not_lately, state.notLately, state) { actions.playShelf(HomeShelf.NotLately, it) }
-    songShelf("newlyAdded", R.string.home_newly_added, state.newlyAdded, state) { actions.playShelf(HomeShelf.NewlyAdded, it) }
+    if (state.moods.isNotEmpty()) {
+        item(key = "moods") {
+            SectionHeader(stringResource(R.string.home_moods), overline = stringResource(R.string.home_moods_overline))
+            if (state.askForMoods) {
+                MoodPicksCard(onChoose = actions.openInterests, onDismiss = actions.dismissMoodPrompt, modifier = Modifier.padding(bottom = 12.dp))
+            }
+            Shelf(shelf) {
+                items(state.moods, key = { it.mood.id }) { tile -> MoodTile(tile, onClick = { actions.openMood(tile) }) }
+            }
+        }
+    }
+    songShelf("recent", R.string.home_recently_played, state.recentTracks, state, shelf) { actions.playRecent(it) }
+    songShelf("onRepeat", R.string.home_on_repeat, state.onRepeat, state, shelf) { actions.playShelf(HomeShelf.OnRepeat, it) }
+    songShelf("notLately", R.string.home_not_lately, state.notLately, state, shelf) { actions.playShelf(HomeShelf.NotLately, it) }
+    songShelf("newlyAdded", R.string.home_newly_added, state.newlyAdded, state, shelf) { actions.playShelf(HomeShelf.NewlyAdded, it) }
     if (state.startListening.isNotEmpty()) {
         item(key = "startHeader") {
             SectionHeader(
@@ -157,7 +196,7 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
                 overline = stringResource(R.string.home_start_listening_overline),
             )
         }
-        groupItems(state.startListening, key = { "start:${it.key}" }) { _, track ->
+        columnGroupItems(state.startListening, columns = wide?.startColumns ?: 1, key = { "start:${it.key}" }) { _, track ->
             SongRow(
                 title = track.title,
                 subtitle = track.artist,
@@ -174,13 +213,13 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
     if (state.folders.isNotEmpty()) {
         item(key = "folders") {
             SectionHeader(stringResource(R.string.home_your_folders))
-            Shelf { items(state.folders, key = { it.name }) { FolderTile(it, actions) } }
+            Shelf(shelf) { items(state.folders, key = { it.name }) { FolderTile(it, actions) } }
         }
     }
     if (state.biggestAlbums.isNotEmpty()) {
         item(key = "albums") {
             SectionHeader(stringResource(R.string.home_albums))
-            Shelf { items(state.biggestAlbums, key = { it.key }) { AlbumTile(it, actions) } }
+            Shelf(shelf) { items(state.biggestAlbums, key = { it.key }) { AlbumTile(it, actions) } }
         }
     }
     state.spotlight?.let { artist ->
@@ -190,6 +229,7 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
                 title = artist.name,
                 art = Art.of(artist.tracks.firstOrNull()?.mediaId),
                 onOpen = { actions.openArtist(artist) },
+                modifier = if (wide != null) Modifier.widthIn(max = ReadableWidthDp.dp + 32.dp) else Modifier,
             ) {
                 Shelf {
                     items(artist.albums, key = { it.key }) { album ->
@@ -208,17 +248,24 @@ private fun LazyListScope.allSections(state: HomeState, actions: HomeActions) {
     if (state.biggestArtists.isNotEmpty()) {
         item(key = "artists") {
             SectionHeader(stringResource(R.string.home_top_artists))
-            Shelf { items(state.biggestArtists, key = { it.key }) { ArtistTile(it, actions) } }
+            Shelf(shelf) { items(state.biggestArtists, key = { it.key }) { ArtistTile(it, actions) } }
         }
     }
 }
 
 /** A shelf of songs (Recently played and the shelves after it): cover, title, artist; tap plays the shelf from that song. */
-private fun LazyListScope.songShelf(key: String, @StringRes title: Int, tracks: List<Track>, state: HomeState, onPlay: (Track) -> Unit) {
+private fun LazyListScope.songShelf(
+    key: String,
+    @StringRes title: Int,
+    tracks: List<Track>,
+    state: HomeState,
+    shelf: Modifier,
+    onPlay: (Track) -> Unit,
+) {
     if (tracks.isEmpty()) return
     item(key = key) {
         SectionHeader(stringResource(title))
-        Shelf {
+        Shelf(shelf) {
             items(tracks, key = { it.key }) { track ->
                 Tile(
                     title = track.title,
@@ -236,7 +283,8 @@ private fun LazyListScope.songShelf(key: String, @StringRes title: Int, tracks: 
 
 /** The six shortcuts as one carousel: Favourites pinned as the pill, then the recent places, the first one large. */
 @Composable
-private fun Places(state: HomeState, actions: HomeActions) {
+private fun Places(state: HomeState, actions: HomeActions, wide: HomeWide? = null, shelf: Modifier = Modifier) {
+    val heroHeight = wide?.heroHeight ?: HERO_HEIGHT
     val places = state.shortcuts.filter { it != Shortcut.Liked }
     val count = state.favouriteCount
     val pill = @Composable {
@@ -246,7 +294,7 @@ private fun Places(state: HomeState, actions: HomeActions) {
             description = stringResource(R.string.favourites),
             onClick = { actions.openShortcut(Shortcut.Liked) },
             // As tall as the covers and their caption, as `.hero-fav` stretches in its row.
-            height = if (places.isEmpty()) 200.dp else 248.dp,
+            height = if (places.isEmpty()) heroHeight else heroHeight + 48.dp,
         )
     }
     if (places.isEmpty()) {
@@ -255,6 +303,7 @@ private fun Places(state: HomeState, actions: HomeActions) {
     }
     HeroCarousel(
         count = places.size,
+        modifier = shelf,
         leading = pill,
         caption = { index ->
             when (val place = places[index]) {
@@ -264,6 +313,8 @@ private fun Places(state: HomeState, actions: HomeActions) {
             }
         },
         onItemClick = { actions.openShortcut(places[it]) },
+        height = heroHeight,
+        preferredItemWidth = wide?.heroItemWidth ?: HERO_HEIGHT,
     ) { index ->
         val place = places[index]
         val name = when (place) {
@@ -272,7 +323,8 @@ private fun Places(state: HomeState, actions: HomeActions) {
             Shortcut.Liked -> ""
         }
         // Every slot is as tall as the carousel; the picture fills that height and the slot crops its sides.
-        val art = Modifier.requiredSize(HERO_HEIGHT).semantics { contentDescription = name }
+        // A tablet's slots can be wider than tall, so there the picture covers the slot whichever is longer.
+        val art = (if (wide != null) Modifier.coverSlot() else Modifier.requiredSize(heroHeight)).semantics { contentDescription = name }
         when (place) {
             is Shortcut.ForAlbum -> Cover(Art.of(place.album.tracks.firstOrNull()?.mediaId), art, shape = RoundedCornerShape(0.dp))
             is Shortcut.ForFolder -> Mosaic(mosaicIds(place.folder.tracks).map(Art::Song), art, shape = RoundedCornerShape(0.dp))
@@ -292,12 +344,13 @@ private fun songCount(count: Int): String =
     pluralStringResource(R.plurals.song_count, count, NumberFormat.getIntegerInstance().format(count))
 
 @Composable
-private fun Recap(teaser: WrappedTeaser, onOpen: () -> Unit) {
+private fun Recap(teaser: WrappedTeaser, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val year = teaser.year.toString()
     RecapCard(
         title = stringResource(if (teaser.yearEnded) R.string.home_recap_title_year else R.string.home_recap_title_so_far, year),
         body = stringResource(R.string.home_recap_body, NumberFormat.getIntegerInstance().format(teaser.minutes)),
         onClick = onOpen,
+        modifier = modifier,
     ) { m -> Mosaic(teaser.mosaicIds.map(Art::Song), m) }
 }
 
@@ -339,3 +392,96 @@ private fun ArtistTile(artist: Artist, actions: HomeActions, width: Dp? = 112.dp
 private fun <T> FilterGrid(items: List<T>, columns: Int = 2, tile: @Composable (T) -> Unit) {
     Box(Modifier.padding(top = 16.dp)) { TileGrid(items, columns = columns, tile = tile) }
 }
+
+// ── Tablets ──────────────────────────────────────────────────────────────────
+
+/** Expressive's Home filter is at most this wide on a tablet, at the start (its own 16dp margins included). */
+private val FilterMaxWidth = 512.dp
+
+/** How Home lays itself out on a medium or expanded window (SPEC.md, Home). Null on a phone. */
+private class HomeWide(
+    /** Expanded: the Recap card beside Instant mixes, Start listening in two columns. */
+    val expanded: Boolean,
+    /** The carousel: 200dp tall around 260dp items in a window under 840dp tall, else 280 around 360. */
+    val heroHeight: Dp,
+    val heroItemWidth: Dp,
+    /** The Recap card's share of its row beside Instant mixes, its 16dp margins included. */
+    val recapWidth: Dp,
+    /** The filters' grids: cells at least 160dp wide. */
+    val tileColumns: Int,
+    val startColumns: Int,
+)
+
+private fun homeWide(window: WindowLayout): HomeWide? {
+    if (!window.wide) return null
+    val expanded = window.widthClass == WidthClass.Expanded
+    val tall = window.heightDp >= 840f
+    // The page's blocks, inside the 24dp margins and the 16 their components carry.
+    val inner = window.contentWidthDp - 2 * WideExtraMargin.value
+    val card = minOf(480f, Math.round((inner - 32f) * 0.4f / 8f) * 8f)
+    return HomeWide(
+        expanded = expanded,
+        heroHeight = if (tall) 280.dp else HERO_HEIGHT,
+        heroItemWidth = if (tall) 360.dp else 260.dp,
+        recapWidth = (card + 32f).dp,
+        tileColumns = tileColumns(window.contentWidthDp),
+        startColumns = if (expanded) 2 else 1,
+    )
+}
+
+/**
+ * The Recap card and Instant mixes on a tablet: side by side on an expanded window, the card 40% of
+ * the row (at most 480dp) and as tall as the mixes; stacked on a medium one. The mixes take three
+ * equal columns instead of the phone's sideways scroll.
+ */
+private fun LazyListScope.wideRecapAndMixes(state: HomeState, actions: HomeActions, wide: HomeWide) {
+    val teaser = state.wrapped
+    val mixes = state.speedDial
+    if (wide.expanded && teaser != null && mixes.isNotEmpty()) {
+        item(key = "recapAndMixes") {
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Recap(teaser, actions.openWrapped, Modifier.width(wide.recapWidth).fillMaxHeight())
+                Column(Modifier.weight(1f)) {
+                    SectionHeader(stringResource(R.string.home_instant_mixes))
+                    MixGrid(state, actions)
+                }
+            }
+        }
+        return
+    }
+    teaser?.let { item(key = "recap") { Recap(it, actions.openWrapped) } }
+    if (mixes.isNotEmpty()) {
+        item(key = "mixes") {
+            SectionHeader(stringResource(R.string.home_instant_mixes))
+            MixGrid(state, actions)
+        }
+    }
+}
+
+/** Instant mixes in three equal columns, 8dp apart. */
+@Composable
+private fun MixGrid(state: HomeState, actions: HomeActions) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        state.speedDial.chunked(MIX_COLUMNS).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for (column in 0 until MIX_COLUMNS) {
+                    val track = row.getOrNull(column)
+                    if (track == null) {
+                        Spacer(Modifier.weight(1f))
+                    } else {
+                        InstantMixPill(
+                            title = track.title,
+                            art = Art.of(track.mediaId),
+                            onClick = { actions.startRadio(track) },
+                            onLongClick = { actions.showMenu(track) },
+                            modifier = Modifier.weight(1f),
+                            now = track.key == state.radioSeedKey,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val MIX_COLUMNS = 3

@@ -3,7 +3,7 @@
     What Android's own backup copies. docs/backup.md has the reasoning.
 
     Cloud backup carries only the backup copy BackupRepository writes (favourites, playlists, the
-    listening log, saved lyrics, languages and the saved queue, gzipped JSON) and the settings. The
+    listening log, saved lyrics, languages, mood-mix picks and the saved queue, gzipped JSON) and the settings. The
     database stays on the phone: song analysis in it can pass the 25 MB Android allows an app, and
     past that Android uploads nothing at all. Nothing goes up unless the phone can encrypt it end to
     end, which needs Android 9 or later with a screen lock.

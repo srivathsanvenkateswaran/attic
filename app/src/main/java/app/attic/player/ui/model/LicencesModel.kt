@@ -22,7 +22,7 @@ val OpenSourceNotices = listOf(
     OpenSourceNotice("attic", "Attic", "GNU General Public License v3.0", listOf("LICENSE-attic.txt")),
     OpenSourceNotice(
         "discogs-effnet",
-        "Discogs-EffNet model",
+        "Discogs-EffNet model and mood classifiers",
         "Creative Commons BY-NC-SA 4.0",
         listOf("discogs-effnet-NOTICE.txt"),
     ),

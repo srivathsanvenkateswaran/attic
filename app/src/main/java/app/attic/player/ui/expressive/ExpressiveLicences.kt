@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.attic.player.R
+import app.attic.player.ui.adaptive.LocalWindowLayout
 import app.attic.player.ui.LocalBottomPadding
 import app.attic.player.ui.model.LicenceState
 import app.attic.player.ui.model.LicencesActions
@@ -38,7 +39,7 @@ fun ExpressiveLicences(notices: List<OpenSourceNotice>, actions: LicencesActions
     val listState = rememberLazyListState()
     val title = stringResource(R.string.settings_licences)
     LargeTitlePage(title, listState, actions.back) {
-        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 16.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = readablePadding(LocalBottomPadding.current + 16.dp)) {
             item(key = "title") { LargeTitle(title) }
             groupItems(notices, key = { it.id }) { _, notice ->
                 SetRow(
@@ -56,7 +57,7 @@ fun ExpressiveLicences(notices: List<OpenSourceNotice>, actions: LicencesActions
 fun ExpressiveLicence(state: LicenceState, back: () -> Unit) {
     val listState = rememberLazyListState()
     LargeTitlePage(state.notice.name, listState, back) {
-        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(bottom = LocalBottomPadding.current + 16.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), state = listState, contentPadding = readablePadding(LocalBottomPadding.current + 16.dp)) {
             item(key = "title") { LargeTitle(state.notice.name) }
             val paragraphs = state.paragraphs
             if (paragraphs == null) {
@@ -89,6 +90,7 @@ internal fun LargeTitlePage(title: String, listState: LazyListState, onBack: () 
             title = if (collapsed) title else "",
             onBack = onBack,
             surface = if (collapsed) AppBarSurface.Scrolled else AppBarSurface.Plain,
+            contentInset = if (isWideWindow()) WideExtraMargin else 0.dp,
         )
         content()
     }
@@ -102,4 +104,12 @@ internal fun LargeTitle(text: String, bottom: Dp = 24.dp) {
         style = Expressive.type.displaySmallEmphasized.copy(letterSpacing = (-0.4).sp),
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottom),
     )
+}
+
+/** The list's padding: [bottom], and on a tablet the inset that centres it at most 720dp wide (SPEC.md). */
+@Composable
+internal fun readablePadding(bottom: Dp): PaddingValues {
+    val window = LocalWindowLayout.current
+    val inset = if (window.wide) window.readableInset() else 0.dp
+    return PaddingValues(start = inset, end = inset, bottom = bottom)
 }

@@ -154,12 +154,13 @@ fun FavouritesPill(count: String, unit: String, description: String, onClick: ()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-private fun Modifier.combinedClickableCompat(onClick: () -> Unit, onLongClick: (() -> Unit)? = null): Modifier =
+internal fun Modifier.combinedClickableCompat(onClick: () -> Unit, onLongClick: (() -> Unit)? = null): Modifier =
     this.combinedClickable(interactionSource = null, indication = null, onClick = onClick, onLongClick = onLongClick)
 
 /**
  * Home's hero carousel (`.hero`): Material's multi-browse carousel, items 200dp tall that change width
- * as they pass through the large, medium and small slots, 8dp apart with 28dp corners. [item] draws
+ * as they pass through the large, medium and small slots, 8dp apart with 28dp corners. A tablet gives
+ * it a [height] and [preferredItemWidth] of its own (SPEC.md, Home). [item] draws
  * item [index] filling the slot; [caption] names the item in the large slot and cross-fades when it changes.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -170,6 +171,8 @@ fun HeroCarousel(
     leading: (@Composable () -> Unit)? = null,
     caption: @Composable (index: Int) -> Unit = {},
     onItemClick: (Int) -> Unit = {},
+    height: Dp = 200.dp,
+    preferredItemWidth: Dp = 200.dp,
     item: @Composable (index: Int) -> Unit,
 ) {
     val state = rememberCarouselState { count }
@@ -178,11 +181,11 @@ fun HeroCarousel(
         Column(Modifier.weight(1f)) {
             HorizontalMultiBrowseCarousel(
                 state = state,
-                preferredItemWidth = 200.dp,
+                preferredItemWidth = preferredItemWidth,
                 itemSpacing = 8.dp,
                 minSmallItemWidth = 40.dp,
                 maxSmallItemWidth = 56.dp,
-                modifier = Modifier.fillMaxWidth().height(200.dp),
+                modifier = Modifier.fillMaxWidth().height(height),
             ) { index ->
                 Box(
                     Modifier
@@ -192,7 +195,7 @@ fun HeroCarousel(
                 ) { item(index) }
             }
             androidx.compose.animation.Crossfade(state.currentItem, animationSpec = ExpressiveMotion.defaultEffects(), label = "heroCaption") { current ->
-                Box(Modifier.width(200.dp).padding(start = 4.dp, top = 10.dp, end = 4.dp)) { caption(current) }
+                Box(Modifier.width(preferredItemWidth).padding(start = 4.dp, top = 10.dp, end = 4.dp)) { caption(current) }
             }
         }
     }

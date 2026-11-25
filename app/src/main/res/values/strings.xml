@@ -76,6 +76,41 @@
     <string name="home_mix_name_one">Mix: %1$s and more</string>
     <!-- A taste mix whose songs have no artist tags. -->
     <string name="home_mix_name_numbered">Mix %1$s</string>
+    <!-- Mood mixes (docs/features/mood-mixes.md): one mix a day per mood, from the songs' mood scores and your picks. -->
+    <string name="home_moods">Moods</string>
+    <string name="home_moods_overline">Your songs, sorted by how they feel</string>
+    <string name="home_moods_prompt_title">What do you like to listen to?</string>
+    <string name="home_moods_prompt_body">Pick moods, genres and languages, and the Moods shelf follows them.</string>
+    <string name="home_moods_prompt_choose">Choose</string>
+    <string name="home_moods_prompt_dismiss">Not now</string>
+    <string name="mood_chill">Chill</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_energetic">Energetic</string>
+    <string name="mood_focus">Focus</string>
+    <string name="mood_party">Party</string>
+    <string name="mood_melancholy">Melancholy</string>
+    <string name="mood_romantic">Romantic</string>
+    <string name="mood_chill_body">Slow and easy</string>
+    <string name="mood_happy_body">Bright and cheerful</string>
+    <string name="mood_energetic_body">Fast and driving</string>
+    <string name="mood_focus_body">Mostly instrumental, steady</string>
+    <string name="mood_party_body">Made for dancing</string>
+    <string name="mood_melancholy_body">Sad and reflective</string>
+    <string name="mood_romantic_body">Tender and warm</string>
+    <!-- Under a mood's name on its page: "Mood mix · 25 songs, 1 hr 38 min". -->
+    <string name="mood_kind">Mood mix · %1$s</string>
+    <string name="mood_note">Picked from how your songs sound and what you play. New each day.</string>
+    <string name="mood_radio">Mood radio</string>
+    <!-- What a mood mix plays under, shown as "Playing from". -->
+    <string name="mood_context">%1$s mood mix</string>
+    <string name="mood_gone">This mood has no mix today</string>
+    <string name="interests_title">Moods and interests</string>
+    <string name="interests_intro">The Moods shelf on Home follows what you pick here. It all stays on this phone.</string>
+    <string name="interests_moods">Moods you like</string>
+    <string name="interests_genres">Genres</string>
+    <string name="interests_languages">Languages</string>
+    <string name="interests_genres_empty">Genres show up once your songs have genre tags or have been analysed.</string>
+    <string name="interests_save">Save</string>
     <string name="home_your_folders">Your folders</string>
     <string name="home_albums">Albums</string>
     <string name="home_more_from">More from</string>
@@ -94,6 +129,8 @@
     <string name="search_result_album">Album, %1$s</string>
     <string name="search_result_genre">Genre</string>
     <string name="search_genres">Genres</string>
+    <string name="search_moods">Moods</string>
+    <string name="search_result_mood">Mood</string>
     <string name="search_no_results_title">No results for “%1$s”</string>
     <string name="search_no_results_body">Check the spelling, or try fewer words.</string>
 
@@ -215,6 +252,8 @@
 
     <!-- Lyrics: card, inline line and full screen (2.12) -->
     <string name="lyrics_title">Lyrics</string>
+    <!-- Tablets, Now Playing beside its panel: the switch between the queue and the lyrics (the other half is lyrics_title). -->
+    <string name="player_panel_up_next">Up next</string>
     <string name="lyrics_open">Open lyrics</string>
     <string name="lyrics_instrumental">This song is instrumental.</string>
     <string name="lyrics_not_downloaded">Download once and they stay on this phone.</string>
@@ -289,9 +328,17 @@
     <string name="settings_playback">Playback</string>
     <string name="settings_volume_levelling">Volume levelling</string>
     <string name="settings_volume_levelling_body">Plays songs at a similar loudness, from their ReplayGain tags or the level measured during analysis. Songs not measured yet play as they are.</string>
+    <!-- Settings › Playback: what happens between songs. -->
+    <string name="settings_transitions">Transitions</string>
     <string name="settings_crossfade">Crossfade</string>
+    <string name="settings_transitions_smart">Smart</string>
+    <string name="settings_transitions_off_body">The next song starts when this one ends.</string>
+    <string name="settings_transitions_crossfade_body">Fades each song into the next over the crossfade length.</string>
+    <string name="settings_transitions_smart_body">Starts the next song as this one winds down, skips silence and lines up the beats when the tempos are close.</string>
     <string name="settings_crossfade_body">Songs from one album played in order still run straight into each other.</string>
     <string name="settings_crossfade_off">Off</string>
+    <string name="settings_crossfade_length">Crossfade length</string>
+    <string name="settings_crossfade_length_smart_body">Smart uses this for songs that aren\'t analysed yet.</string>
     <plurals name="settings_crossfade_seconds">
         <item quantity="one">%1$d second</item>
         <item quantity="other">%1$d seconds</item>
@@ -379,6 +426,13 @@
         <item quantity="other">%1$s songs couldn\'t be checked. Download again to retry them.</item>
     </plurals>
     <string name="settings_lyrics_gave_up">Stopped because the connection failed. Check your internet, then download again to continue.</string>
+    <string name="settings_moods">Moods</string>
+    <string name="settings_interests">Moods and interests</string>
+    <string name="settings_interests_none">Nothing picked yet</string>
+    <plurals name="settings_interests_genres">
+        <item quantity="one">%1$s genre</item>
+        <item quantity="other">%1$s genres</item>
+    </plurals>
     <string name="settings_song_radio">Song radio</string>
     <string name="settings_autoplay">Autoplay</string>
     <string name="settings_autoplay_body">When a queue reaches its last song, radio keeps going with similar songs.</string>
@@ -571,6 +625,7 @@
     <string name="message_radio_partial">Radio is using %1$s of %2$s songs until analysis finishes</string>
     <string name="message_smart_shuffle_nothing">Smart shuffle has nothing to add yet, so this is a plain shuffle</string>
     <string name="message_genre_radio_unanalysed">Radio can start from this genre once its songs are analysed</string>
+    <string name="message_mood_radio_unanalysed">Mood radio can start once songs have been analysed</string>
     <string name="message_skipped">Skipped %1$s because it can\'t be played</string>
     <!-- Stands in for the title in message_skipped when the song has none -->
     <string name="message_skipped_fallback">a song</string>
@@ -635,4 +690,7 @@
     <string name="analysis_notification_title">Analysing your songs</string>
     <string name="analysis_notification_progress">%1$s of %2$s</string>
     <string name="analysis_notification_stop">Stop</string>
+
+    <!-- Tablet, Comfort -->
+    <string name="lyrics_open_full_screen_cd">Open lyrics full screen</string>
 </resources>

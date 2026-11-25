@@ -3,7 +3,10 @@ package app.attic.player.radio
 import android.util.Log
 import app.attic.player.AtticApp
 import app.attic.player.R
+import app.attic.player.analysis.BeatTracker
 import app.attic.player.analysis.MelodyMatch
+import app.attic.player.analysis.TRANSITIONS_VERSION
+import app.attic.player.data.FlowTraitsRow
 import app.attic.player.analysis.SongAnalyzer
 import app.attic.player.analysis.saveAnalysis
 import app.attic.player.data.LanguageLabels
@@ -11,6 +14,7 @@ import app.attic.player.data.LibraryRepository
 import app.attic.player.data.SongLanguageEntity
 import app.attic.player.data.TitleCleaner
 import app.attic.player.data.Track
+import app.attic.player.home.Mood
 import app.attic.player.playback.ListenTracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +47,17 @@ object LanguageImport {
 
 /** Runs the radio session the playback service asks it to keep filled. */
 class RadioController(private val app: AtticApp) {
-    private class Session(val seedKey: String, val contextName: String, val seedVector: FloatArray? = null) {
+    private class Session(
+        val seedKey: String,
+        val contextName: String,
+        val seedVector: FloatArray? = null,
+        /** Mood radio: picks come only from songs that fit this mood (docs/features/mood-mixes.md). */
+        val mood: Mood? = null,
+        /** Songs never to pick, with their other versions: a mood mix that just played. */
+        val exclude: Set<String> = emptySet(),
+    ) {
+        /** The songs a mood session may pick from, read when it starts. Null for other radio. */
+        var pool: Set<String>? = null
         /** False until the player reports this context, so the old queue's events can't end a new session. */
         @Volatile var seen = false
         var engine: RadioEngine? = null
@@ -101,8 +115,8 @@ class RadioController(private val app: AtticApp) {
      * Genre radio passes the genre's centre as [steerTo] and its own [title]. Smart shuffle never opens
      * a session: its picks come from [smartPicks], which leaves the running session alone.
      */
-    fun begin(track: Track, title: String = track.title, steerTo: FloatArray? = null): String {
-        val started = Session(track.key, "$CONTEXT_PREFIX$title", steerTo)
+    fun begin(track: Track, title: String = track.title, steerTo: FloatArray? = null, mood: Mood? = null): String {
+        val started = Session(track.key, "$CONTEXT_PREFIX$title", steerTo, mood)
         session = started
         stoppedContext = null
         return started.contextName
@@ -130,11 +144,51 @@ class RadioController(private val app: AtticApp) {
     }
 
     /**
+     * Mood radio: opens with the song that fits [mood] nearest the middle of the day's mix ([mixKeys])
+     * and keeps steering toward that middle, picking only songs that fit the mood. [name] is the
+     * mood's name, so the queue plays as "Radio · Chill". Says so and does nothing before songs have
+     * mood scores.
+     */
+    suspend fun startFromMood(mood: Mood, name: String, mixKeys: List<String>) {
+        val library = app.library.await()
+        val fits = app.homeFeed.moodFits(mood)
+        val vectors = withContext(Dispatchers.Default) {
+            val wanted = (fits + mixKeys).toSet()
+            app.database.dao().embeddings(SongAnalyzer.MODEL_VERSION)
+                .filter { it.trackKey in wanted }
+                .associate { it.trackKey to SongAnalyzer.toFloats(it.embedding) }
+        }
+        val centre = Centroid.of(mixKeys.mapNotNull(vectors::get)) ?: Centroid.of(fits.mapNotNull(vectors::get))
+        val seed = centre?.let { c -> Centroid.nearest(c, vectors.filterKeys { it in fits.toSet() }) }?.let(library.trackByKey::get)
+        if (centre == null || seed == null) {
+            app.messages.tryEmit(app.getString(R.string.message_mood_radio_unanalysed))
+            return
+        }
+        app.player.play(listOf(seed), 0, begin(seed, title = name, steerTo = centre, mood = mood), shuffled = false)
+    }
+
+    /** Mood mixes now playing, by context name, so autoplay after one carries on as that mood's radio. */
+    private val moodMixContexts = HashMap<String, Pair<Mood, List<String>>>()
+
+    /** Called as a mood mix starts playing under [contextName]. */
+    fun playingMoodMix(contextName: String, mood: Mood, keys: List<String>) {
+        synchronized(moodMixContexts) { moodMixContexts[contextName] = mood to keys }
+    }
+
+    /**
      * Takes over when an ordinary queue reaches its last song, seeded from that song. Returns the radio's
      * context name for the player to show, or null when autoplay should stay out of this queue.
      */
     fun continueFrom(track: Track, fromContext: String?): String? {
         if (fromContext != null && fromContext == stoppedContext) return null
+        // A mood mix carries on as that mood's radio, steering toward the mix and leaving out its songs.
+        val moodMix = fromContext?.let { synchronized(moodMixContexts) { moodMixContexts[it] } }
+        if (moodMix != null) {
+            val name = "$CONTEXT_PREFIX$fromContext"
+            if (name == stoppedContext) return null
+            session = Session(track.key, name, mood = moodMix.first, exclude = moodMix.second.toSet() - track.key).apply { seen = true }
+            return name
+        }
         val name = "$CONTEXT_PREFIX${track.title}"
         if (name == stoppedContext) return null
         session = Session(track.key, name).apply { seen = true }
@@ -181,7 +235,7 @@ class RadioController(private val app: AtticApp) {
         // Background analysis may have reached more songs since this session began.
         val analyzedNow = app.database.dao().analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
         if (analyzedNow != current.analyzedCount) {
-            val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
+            val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }.inPool(current)
             synchronized(current) {
                 current.engine = RadioEngine(songs) { a, b -> sameMelody(a.key, b.key) }
                 current.analyzedCount = analyzedNow
@@ -211,7 +265,15 @@ class RadioController(private val app: AtticApp) {
             return false
         }
         val analyzedNow = dao.analyzedKeysNow(SongAnalyzer.MODEL_VERSION).size
-        val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }
+        var steer = current.seedVector
+        var languages: Set<String>? = null
+        if (current.mood != null) {
+            current.pool = app.homeFeed.moodFits(current.mood).toSet() + current.seedKey
+            languages = app.settings.interests.value.languages.toSet().ifEmpty { null }
+        }
+        val songs = loadSongs { synchronized(current) { current.tracks[it.key] = it } }.inPool(current)
+        // Autoplay after a mood mix steers toward the mix it followed.
+        if (current.mood != null && steer == null) steer = Centroid.of(songs.filter { it.key in current.exclude }.map { it.vector })
         val cross = dao.crossCounts()
         val state = RadioState(
             seedKey = current.seedKey,
@@ -220,7 +282,9 @@ class RadioController(private val app: AtticApp) {
                 skipped = cross.filter { it.outcome == ListenTracker.SKIPPED || it.outcome == ListenTracker.REMOVED }.sumOf { it.total },
             ),
             recent = dao.recentKeys(RECENT_TO_AVOID).toSet() - current.seedKey,
-            seedVector = current.seedVector,
+            seedVector = steer,
+            exclude = current.exclude,
+            languages = languages,
         )
         synchronized(current) {
             current.pendingSkips.forEach(state::skipped)
@@ -258,6 +322,12 @@ class RadioController(private val app: AtticApp) {
         picks
     }
 
+    /** A mood session's songs: those that fit its mood, and the songs it must not repeat, for spotting their other versions. */
+    private fun List<RadioSong>.inPool(current: Session): List<RadioSong> {
+        val pool = current.pool ?: return this
+        return filter { it.key in pool || it.key in current.exclude }
+    }
+
     /** Every analysed song as radio sees it, handing each track to [found]. Run again as analysis reaches more of the library. */
     private suspend fun loadSongs(found: (Track) -> Unit): List<RadioSong> {
         val dao = app.database.dao()
@@ -266,6 +336,7 @@ class RadioController(private val app: AtticApp) {
         val lyrics = dao.lyricsTexts().associateBy { it.trackKey }
         val liked = app.userData.likedSet.value
         val outcomes = dao.outcomeCounts().groupBy { it.trackKey }
+        val flow = dao.flowTraits(TRANSITIONS_VERSION).associate { it.trackKey to it.toFlowTraits() }
         return dao.embeddings(SongAnalyzer.MODEL_VERSION).mapNotNull { row ->
             val track = library.trackByKey[row.trackKey] ?: return@mapNotNull null
             val text = lyrics[track.key]
@@ -278,6 +349,7 @@ class RadioController(private val app: AtticApp) {
                 artistKey = track.artistKeys.firstOrNull(),
                 albumKey = track.albumKey,
                 composerKeys = track.composer?.let { TitleCleaner.splitCredits(it) }.orEmpty().map(TitleCleaner::normalize).toSet(),
+                flow = flow[track.key],
                 affinity = RadioTaste.affinity(
                     liked = track.key in liked,
                     finished = counts.filter { it.outcome == ListenTracker.FINISHED }.sumOf { it.total },
@@ -286,6 +358,14 @@ class RadioController(private val app: AtticApp) {
             )
         }
     }
+
+    /** Only what transition analysis was sure of: beats under the tracker's threshold, keys under 0.1, are left out. */
+    private fun FlowTraitsRow.toFlowTraits() = FlowTraits(
+        introBpm = introBpm?.takeIf { (introBeatConfidence ?: 0f) >= BeatTracker.MIN_CONFIDENCE },
+        outroBpm = outroBpm?.takeIf { (outroBeatConfidence ?: 0f) >= BeatTracker.MIN_CONFIDENCE },
+        energy = energy,
+        key = key?.takeIf { (keyConfidence ?: 0f) >= MIN_KEY_CONFIDENCE },
+    )
 
     /** Analyses the seed now if the background work hasn't reached it yet. */
     private suspend fun ensureAnalyzed(key: String): Boolean {
@@ -326,6 +406,7 @@ class RadioController(private val app: AtticApp) {
 
     private companion object {
         const val CONTEXT_PREFIX = "Radio · "
+        const val MIN_KEY_CONFIDENCE = 0.1f
         const val RECENT_TO_AVOID = 30
         const val CHROMA_CACHE = 64
         const val SPEED_DIAL_SIZE = 9

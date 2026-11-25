@@ -28,6 +28,7 @@
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
   <link rel="preload" href="fonts/onest.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -63,7 +64,7 @@
           <a class="button solid" href="https://github.com/srivathsanvenkateswaran/attic/releases/latest">Download the APK</a>
           <a class="button line" href="https://github.com/srivathsanvenkateswaran/attic">View source on GitHub</a>
         </div>
-        <p class="hero-note">For Android 13 or newer on a 64-bit ARM phone. The APK is 58 MB, from GitHub Releases.</p>
+        <p class="hero-note">For Android 13 or newer on a 64-bit ARM phone. The APK is 64 MB, from GitHub Releases.</p>
       </div>
       <div class="hero-phones">
         <div class="phone back">
@@ -104,13 +105,13 @@
         <div class="viewer">
           <div class="viewer-panel">
             <h2 id="styles-title">Two styles, one app</h2>
-            <p class="viewer-intro">Expressive and Comfort each restyle every screen, in light and dark. In the app, switch in Settings &gt; Appearance: the change applies at once and the song keeps playing. <span class="needs-has">Pick a style here and every screenshot on this page changes with it.</span></p>
+            <p class="viewer-intro">Expressive and Comfort each restyle every screen, in light and dark. In the app, switch in Settings &gt; Appearance: the change applies at once and the song keeps playing. <span class="needs-has">Pick a style<span data-needs-script hidden> or a theme</span> here and every screenshot on this page changes with it.</span></p>
 
             <div class="controls">
               <fieldset class="seg seg-style">
                 <legend>Style</legend>
-                <input type="radio" name="style" id="style-expressive" aria-describedby="note-expressive" checked><label for="style-expressive">Expressive</label>
-                <input type="radio" name="style" id="style-comfort" aria-describedby="note-comfort"><label for="style-comfort">Comfort</label>
+                <input type="radio" name="style" id="style-expressive" value="expressive" aria-describedby="note-expressive" checked><label for="style-expressive">Expressive</label>
+                <input type="radio" name="style" id="style-comfort" value="comfort" aria-describedby="note-comfort"><label for="style-comfort">Comfort</label>
               </fieldset>
               <p class="style-note only-expressive" id="note-expressive">Colour taken from the album art and the phone's wallpaper, a wavy progress line, and buttons that change shape as you press them.</p>
               <p class="style-note only-comfort" id="note-comfort">Soft rounded cards, a warm amber accent, and a dock at the bottom for Home, Search and Library. Album pages still take a tint from the cover.</p>
@@ -121,11 +122,11 @@
                 <input type="radio" name="screen" id="s-album"><label for="s-album">Album</label>
                 <input type="radio" name="screen" id="s-artist"><label for="s-artist">Artist</label>
               </fieldset>
-              <fieldset class="seg">
+              <fieldset class="seg" data-needs-script hidden>
                 <legend>Theme</legend>
-                <input type="radio" name="theme" id="t-auto" checked><label for="t-auto">Match device</label>
-                <input type="radio" name="theme" id="t-light"><label for="t-light">Light</label>
-                <input type="radio" name="theme" id="t-dark"><label for="t-dark">Dark</label>
+                <input type="radio" name="theme" id="t-auto" value="auto" checked><label for="t-auto">Match device</label>
+                <input type="radio" name="theme" id="t-light" value="light"><label for="t-light">Light</label>
+                <input type="radio" name="theme" id="t-dark" value="dark"><label for="t-dark">Dark</label>
               </fieldset>
             </div>
           </div>
@@ -133,85 +134,69 @@
           <div class="phone viewer-phone">
             <div class="only-expressive">
               <div class="screen" data-screen="home">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-360.png">
                   <source type="image/webp" srcset="img/screens/expressive-light-home-360.webp 360w, img/screens/expressive-light-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-light-home-360.png" width="360" height="800" alt="Home in the Expressive style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-home-360.webp 360w, img/screens/expressive-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-dark-home-360.png" width="360" height="800" alt="Home in the Expressive style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/expressive-light-home-360.png" width="360" height="800" alt="Home in the Expressive style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="now-playing">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-now-playing-360.png">
                   <source type="image/webp" srcset="img/screens/expressive-light-now-playing-360.webp 360w, img/screens/expressive-light-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-now-playing-360.webp 360w, img/screens/expressive-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/expressive-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Expressive style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="album">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-album-360.webp 360w, img/screens/expressive-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-album-360.png">
                   <source type="image/webp" srcset="img/screens/expressive-light-album-360.webp 360w, img/screens/expressive-light-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-light-album-360.png" width="360" height="800" alt="Album in the Expressive style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-album-360.webp 360w, img/screens/expressive-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-dark-album-360.png" width="360" height="800" alt="Album in the Expressive style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/expressive-light-album-360.png" width="360" height="800" alt="Album in the Expressive style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="artist">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-artist-360.webp 360w, img/screens/expressive-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-artist-360.png">
                   <source type="image/webp" srcset="img/screens/expressive-light-artist-360.webp 360w, img/screens/expressive-light-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-light-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/expressive-dark-artist-360.webp 360w, img/screens/expressive-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/expressive-dark-artist-360.png" width="360" height="800" alt="Artist in the Expressive style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/expressive-light-artist-360.png" width="360" height="800" alt="Artist in the Expressive style" loading="lazy" decoding="async">
                 </picture>
               </div>
             </div>
             <div class="only-comfort">
               <div class="screen" data-screen="home">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-360.png">
                   <source type="image/webp" srcset="img/screens/comfort-light-home-360.webp 360w, img/screens/comfort-light-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-home-360.webp 360w, img/screens/comfort-dark-home-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-dark-home-360.png" width="360" height="800" alt="Home in the Comfort style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/comfort-light-home-360.png" width="360" height="800" alt="Home in the Comfort style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="now-playing">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-now-playing-360.png">
                   <source type="image/webp" srcset="img/screens/comfort-light-now-playing-360.webp 360w, img/screens/comfort-light-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-now-playing-360.webp 360w, img/screens/comfort-dark-now-playing-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-dark-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/comfort-light-now-playing-360.png" width="360" height="800" alt="Now Playing in the Comfort style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="album">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-album-360.webp 360w, img/screens/comfort-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-album-360.png">
                   <source type="image/webp" srcset="img/screens/comfort-light-album-360.webp 360w, img/screens/comfort-light-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-light-album-360.png" width="360" height="800" alt="Album in the Comfort style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-album-360.webp 360w, img/screens/comfort-dark-album-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-dark-album-360.png" width="360" height="800" alt="Album in the Comfort style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/comfort-light-album-360.png" width="360" height="800" alt="Album in the Comfort style" loading="lazy" decoding="async">
                 </picture>
               </div>
               <div class="screen" data-screen="artist">
-                <picture class="shot-light">
+                <picture>
+                  <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-artist-360.webp 360w, img/screens/comfort-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
+                  <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-artist-360.png">
                   <source type="image/webp" srcset="img/screens/comfort-light-artist-360.webp 360w, img/screens/comfort-light-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-light-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, light theme" loading="lazy" decoding="async">
-                </picture>
-                <picture class="shot-dark">
-                  <source type="image/webp" srcset="img/screens/comfort-dark-artist-360.webp 360w, img/screens/comfort-dark-artist-720.webp 720w" sizes="(min-width: 641px) 304px, 240px">
-                  <img src="img/screens/comfort-dark-artist-360.png" width="360" height="800" alt="Artist in the Comfort style, dark theme" loading="lazy" decoding="async">
+                  <img src="img/screens/comfort-light-artist-360.png" width="360" height="800" alt="Artist in the Comfort style" loading="lazy" decoding="async">
                 </picture>
               </div>
             </div>
@@ -264,6 +249,7 @@
             <ul>
               <li>Learns from skips, finishes and likes, in a listening log kept on the phone</li>
               <li>Stays in the language you're listening to, with about one song in ten from another language when the match is strong</li>
+              <li>Leans slightly towards songs whose tempo, energy and key follow on from the one before</li>
               <li>Spots the same song in another language and plays one version, so a Tamil session gets Aaruyire and a Hindi session gets Tere Bina, not both</li>
               <li>Nine instant mixes on Home, from your favourites and unplayed songs that sound like them, changing daily</li>
             </ul>
@@ -318,6 +304,82 @@
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-mixes-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-home-mixes-360.webp 360w, img/screens/comfort-light-home-mixes-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <img src="img/screens/comfort-light-home-mixes-360.png" width="360" height="800" alt="Home in the Comfort style: three mixes named after their artists, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature flip" id="moods">
+          <div class="feature-copy">
+            <p class="new">New in 1.3</p>
+            <h3>Mood mixes, sorted by how each song sounds</h3>
+            <p>Home has a Moods shelf after the mixes: Chill, Happy, Energetic, Focus, Party, Melancholy and Romantic. Each mood that at least 8 of your songs fit gets one mix a day, of up to 25 songs. The same tiles are in Search, in a Moods group above Genres.</p>
+            <dl class="ledger">
+              <div>
+                <dt>Song analysis <span class="value">1,280 numbers a song</span></dt>
+                <dd>Analysis already runs while the phone charges, and stores 1,280 numbers that describe how each song sounds. Moods are read from those numbers, not from the audio.</dd>
+              </div>
+              <div>
+                <dt>Classifiers <span class="value">Nine, on the phone</span></dt>
+                <dd>Nine small classifiers that come with Attic score each song for qualities such as happy, sad, relaxed, aggressive, party, danceable and instrumental, and for 56 mood and theme tags. They use no network.</dd>
+              </div>
+              <div>
+                <dt>Fit <span class="value">Ranked within your library</span></dt>
+                <dd>Each mood is a weighted mean of a few of those scores, each taken as its rank among your own songs. Chill leans most on the relaxed score, and a high aggressive score counts against it. A limit on the raw scores keeps the saddest songs of a party library from becoming a Melancholy mix.</dd>
+              </div>
+            </dl>
+            <p class="note">After an update from 1.2, Romantic needs analysis to read each song once more, while the phone charges, so it fills in later. The other moods appear the first time Home opens.</p>
+          </div>
+          <div class="phone feature-phone">
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-home-moods-360.webp 360w, img/screens/expressive-dark-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-home-moods-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-home-moods-360.webp 360w, img/screens/expressive-light-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-home-moods-360.png" width="360" height="800" alt="Home in the Expressive style, scrolled to the Moods shelf under the line &quot;Your songs, sorted by how they feel&quot;: a Chill tile with 25 songs and &quot;Slow and easy&quot;, and a Happy tile with 23 songs and &quot;Bright and cheerful&quot;, each with four small covers, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-home-moods-360.webp 360w, img/screens/comfort-dark-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-home-moods-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-home-moods-360.webp 360w, img/screens/comfort-light-home-moods-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-home-moods-360.png" width="360" height="800" alt="Home in the Comfort style, scrolled to the Moods shelf beside the line &quot;Your songs, sorted by how they feel&quot;: a Chill card with 25 songs and &quot;Slow and easy&quot;, and a Happy card with 23 songs and &quot;Bright and cheerful&quot;, each with four small covers, above the Recently played and On repeat shelves" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </article>
+
+        <article class="feature" id="mood-page">
+          <div class="feature-copy">
+            <h3>Each day's mix follows your picks and what you play</h3>
+            <p>A mood's page lists the day's songs, with Play, shuffle and Mood radio. When more songs fit a mood than a mix holds, Attic ranks them and draws the day's 25.</p>
+            <dl class="ledger">
+              <div>
+                <dt>Ranking <span class="value">Fit counts most</span></dt>
+                <dd>By how well a song fits the mood, then by your picks and listening. A picked genre or language, a like and finished listens move a song up, and skips move it down. Recent listening counts more, and a song heard in the last few hours drops back.</dd>
+              </div>
+              <div>
+                <dt>The day's draw <span class="value">25 from the top 50</span></dt>
+                <dd>A weighted draw from the 50 highest-ranked songs, by a random generator seeded with the date, with at most 3 songs by one artist and 2 from one album. The same library and picks give the same mix all day, and the next day gives a new draw.</dd>
+              </div>
+              <div>
+                <dt>Mood radio <span class="value">On a mood's page</span></dt>
+                <dd>Starts a radio that steers towards the middle of the day's mix and picks only songs that fit the mood. When a mood mix ends, autoplay carries on in that mood without repeating the mix.</dd>
+              </div>
+              <div>
+                <dt>Moods and interests <span class="value">Settings &gt; Moods</span></dt>
+                <dd>A page of moods, genres and languages to pick, all optional, also offered by a card at the start of the Moods shelf. With moods picked, Home shows those moods in your order; with none, every mood that has a mix. With languages picked, a mix leaves out songs in other languages unless fewer than 8 would be left.</dd>
+              </div>
+            </dl>
+          </div>
+          <div class="phone feature-phone">
+            <picture class="only-expressive">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-mood-360.webp 360w, img/screens/expressive-dark-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-mood-360.png">
+              <source type="image/webp" srcset="img/screens/expressive-light-mood-360.webp 360w, img/screens/expressive-light-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/expressive-light-mood-360.png" width="360" height="800" alt="Chill's page in the Expressive style: &quot;Mood mix · 25 songs, 1 hr 32 min&quot; and the line &quot;Picked from how your songs sound and what you play. New each day.&quot;, then four covers beside a large Play button with shuffle and Mood radio buttons under it, and the first four songs of the mix, the second one playing" loading="lazy" decoding="async">
+            </picture>
+            <picture class="only-comfort">
+              <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-mood-360.webp 360w, img/screens/comfort-dark-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-mood-360.png">
+              <source type="image/webp" srcset="img/screens/comfort-light-mood-360.webp 360w, img/screens/comfort-light-mood-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
+              <img src="img/screens/comfort-light-mood-360.png" width="360" height="800" alt="Chill's page in the Comfort style: four covers in one square, then &quot;Mood mix · 25 songs, 1 hr 32 min&quot; and the line &quot;Picked from how your songs sound and what you play. New each day.&quot;, a Play button with shuffle and Mood radio buttons beside it, and the first four songs of the mix, the second one playing" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
@@ -396,7 +458,7 @@
           <div>
             <h3>Backup and first run</h3>
             <ul>
-              <li>Back up favourites, playlists, listening history, saved lyrics, equaliser settings and presets, and app settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
+              <li>Back up favourites, playlists, listening history, saved lyrics, equaliser settings and presets, your mood picks, and app settings to a file, and restore it on any phone. A restore adds to what is there and deletes nothing</li>
               <li>Android's own backup keeps the same data, encrypted end to end, and a new phone picks it up on first launch</li>
               <li>On first run, pick a style and theme, allow access to your music, and Attic shows the songs it found</li>
             </ul>
@@ -441,40 +503,68 @@
 
         <article class="feature">
           <div class="feature-copy">
-            <p class="new">New in 1.1</p>
-            <h3>Level volume, and a crossfade when you want one</h3>
-            <p>Settings has a Playback section with three rows.</p>
+            <p class="new">New in 1.3</p>
+            <h3>Smart transitions that start where a song winds down</h3>
+            <p>Settings &gt; Playback &gt; Transitions is Off, Crossfade or Smart. Crossfade fades each song into the next over a fixed length. Smart starts the next song where this one's ending begins, skips silence at both ends, and picks an overlap of 1 to 12 seconds from how the two songs' levels move. Songs from one album played in order still run straight into each other.</p>
             <dl class="ledger">
+              <div>
+                <dt>Beats <span class="value">When the tempos are close</span></dt>
+                <dd>When two songs' tempos are within 6% of each other, counting half and double time, Smart lines up a beat of each in the middle of the overlap. Otherwise it just fades. It never stretches or pitch-shifts the audio.</dd>
+              </div>
+              <div>
+                <dt>Crossfade length <span class="value">2 to 12 seconds, 6 by default</span></dt>
+                <dd>The length of every Crossfade, and of Smart's fade into or out of a song that hasn't been analysed yet.</dd>
+              </div>
               <div>
                 <dt>Volume levelling <span class="value">On by default</span></dt>
                 <dd>Plays songs at a similar loudness, from their ReplayGain tags or, without tags, from the loudness Attic measures on the phone. An album played in order shares one level, so its quiet and loud songs keep their balance.</dd>
-              </div>
-              <div>
-                <dt>Crossfade <span class="value">Off, or 2 to 12 seconds</span></dt>
-                <dd>Fades each song into the next. Songs from one album played in order still run straight into each other.</dd>
               </div>
               <div>
                 <dt>Equaliser <span class="value">Off by default</span></dt>
                 <dd>Opens a page with the default curve, which every song without its own setting plays with, and the songs and albums that have one. A Phone equaliser row there opens the phone's own equaliser, and shows only when the phone has one.</dd>
               </div>
             </dl>
-            <p class="note">Loudness is measured during song analysis, which runs while the phone charges. A song that hasn't been measured plays as it is, so after an update from 1.0, levelling reaches more of the library as analysis goes on.</p>
+            <p class="note">Smart's readings of each song's start, end and tempo, and the loudness that levelling uses, come from song analysis, which runs while the phone charges. After an update, Smart and levelling reach more of the library as analysis goes on, and until then a song plays as it is. Transitions are off on a new install, and a crossfade set in an earlier version carries over.</p>
           </div>
           <div class="phone feature-phone">
             <picture class="only-expressive">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/expressive-dark-settings-playback-360.webp 360w, img/screens/expressive-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/expressive-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/expressive-light-settings-playback-360.webp 360w, img/screens/expressive-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
+              <img src="img/screens/expressive-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Expressive style, showing the Playback rows: Volume levelling switched on, Transitions set to Smart, Crossfade length 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
             <picture class="only-comfort">
               <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/comfort-dark-settings-playback-360.webp 360w, img/screens/comfort-dark-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
               <source media="(prefers-color-scheme: dark)" srcset="img/screens/comfort-dark-settings-playback-360.png">
               <source type="image/webp" srcset="img/screens/comfort-light-settings-playback-360.webp 360w, img/screens/comfort-light-settings-playback-720.webp 720w" sizes="(min-width: 700px) 260px, 200px">
-              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Crossfade set to 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
+              <img src="img/screens/comfort-light-settings-playback-360.png" width="360" height="800" alt="Settings in the Comfort style, showing the Playback rows: Volume levelling switched on, Transitions set to Smart, Crossfade length 6 seconds, and Equaliser set to Bass boost, with 4 songs and 2 albums that have their own setting" loading="lazy" decoding="async">
             </picture>
           </div>
         </article>
+      </div>
+    </section>
+
+    <section class="tablets" id="tablets" aria-labelledby="tablets-title">
+      <div class="wrap">
+        <div class="feature-copy tablets-copy">
+          <p class="new">New in 1.3</p>
+          <h2 id="tablets-title">A side rail and two panes on tablets</h2>
+          <p>On a tablet, Home, Search and Library sit in a rail at the side and the player runs along the bottom. Held sideways, the Library opens an album beside the list and Now Playing shows the queue or lyrics next to the song, and you can turn it either way without losing your place.</p>
+        </div>
+        <div class="tablet">
+          <picture class="only-expressive">
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/tablet-expressive-dark-library-720.webp 720w, img/screens/tablet-expressive-dark-library-1440.webp 1440w" sizes="(min-width: 900px) 812px, 88vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/tablet-expressive-dark-library-720.png">
+            <source type="image/webp" srcset="img/screens/tablet-expressive-light-library-720.webp 720w, img/screens/tablet-expressive-light-library-1440.webp 1440w" sizes="(min-width: 900px) 812px, 88vw">
+            <img src="img/screens/tablet-expressive-light-library-720.png" width="720" height="450" alt="The Library on a tablet held sideways, in the Expressive style: a rail at the side, the list of albums, and the album Paper Lanterns open beside it with its eight songs" loading="lazy" decoding="async">
+          </picture>
+          <picture class="only-comfort">
+            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="img/screens/tablet-comfort-dark-library-720.webp 720w, img/screens/tablet-comfort-dark-library-1440.webp 1440w" sizes="(min-width: 900px) 812px, 88vw">
+            <source media="(prefers-color-scheme: dark)" srcset="img/screens/tablet-comfort-dark-library-720.png">
+            <source type="image/webp" srcset="img/screens/tablet-comfort-light-library-720.webp 720w, img/screens/tablet-comfort-light-library-1440.webp 1440w" sizes="(min-width: 900px) 812px, 88vw">
+            <img src="img/screens/tablet-comfort-light-library-720.png" width="720" height="450" alt="The Library on a tablet held sideways, in the Comfort style: a rail at the side, the list of albums, and the album Paper Lanterns open beside it with its eight songs" loading="lazy" decoding="async">
+          </picture>
+        </div>
       </div>
     </section>
 
@@ -482,7 +572,7 @@
       <div class="wrap privacy-grid">
         <div>
           <h2 id="privacy-title">What leaves your phone</h2>
-          <p class="privacy-lead">Attic has no account, no analytics, no ads and no crash reporting, and the developer receives no data from the app. Playback and song analysis never touch the network. The one request Attic makes itself is a lyrics lookup.</p>
+          <p class="privacy-lead">Attic has no account, no analytics, no ads and no crash reporting, and the developer receives no data from the app. Playback, song analysis and mood scoring never touch the network. The one request Attic makes itself is a lyrics lookup.</p>
           <p><a href="privacy.html">Read the privacy policy</a></p>
         </div>
         <dl class="ledger">
@@ -492,7 +582,7 @@
           </div>
           <div>
             <dt>Copied by Android's backup, if you turn it on</dt>
-            <dd>Favourites, playlists, the listening log, downloaded lyrics, equaliser settings and presets, and app settings, encrypted end to end so neither Google nor the developer can read them</dd>
+            <dd>Favourites, playlists, the listening log, downloaded lyrics, equaliser settings and presets, the moods, genres and languages you picked, and app settings, encrypted end to end so neither Google nor the developer can read them</dd>
           </div>
           <div>
             <dt>Shown on a car's screen, if you use Android Auto</dt>
@@ -500,7 +590,7 @@
           </div>
           <div>
             <dt>Never uploaded</dt>
-            <dd>Your music files and the results of song analysis</dd>
+            <dd>Your music files and the results of song analysis, mood scores included</dd>
           </div>
           <div>
             <dt>Switched off</dt>
@@ -551,7 +641,7 @@
           </div>
           <div>
             <dt>Licences</dt>
-            <dd>Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, licensed for non-commercial use, and ONNX Runtime under the MIT License. The Onest and Google Sans Flex fonts are under the SIL Open Font License and the Material Symbols icons under the Apache License 2.0. <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/third_party">See the notices</a>.</dd>
+            <dd>Song analysis uses the Discogs-EffNet model by the Music Technology Group, Universitat Pompeu Fabra, and mood scores use nine of the MTG's Essentia classifier models trained on it, all licensed for non-commercial use, and ONNX Runtime under the MIT License. The Onest and Google Sans Flex fonts are under the SIL Open Font License and the Material Symbols icons under the Apache License 2.0. <a href="https://github.com/srivathsanvenkateswaran/attic/tree/main/third_party">See the notices</a>.</dd>
           </div>
         </dl>
       </div>
@@ -579,11 +669,19 @@
           </details>
           <details>
             <summary>Is there crossfade?</summary>
-            <p>Yes. Settings &gt; Playback &gt; Crossfade blends songs over 2 to 12 seconds, and is off until you choose a length. Songs from one album played in order still run straight into each other.</p>
+            <p>Yes. Settings &gt; Playback &gt; Transitions has Crossfade, which blends songs over a fixed 2 to 12 seconds, and Smart, which starts the next song where the current one winds down, skips silence, and lines up a beat of each when their tempos are within 6%. Smart needs song analysis, which runs while the phone charges, and fades for the crossfade length into and out of songs that haven't been analysed yet. Transitions are off on a new install, and songs from one album played in order still run straight into each other.</p>
           </details>
           <details>
             <summary>Is there an equaliser?</summary>
             <p>Yes, Attic has its own, with ten bands from 31 Hz to 16 kHz and eleven presets. Open Equaliser from the menu on Now Playing. A song or an album can keep its own setting, which comes back whenever it plays, and Settings &gt; Playback &gt; Equaliser sets the default for everything else. It is off until you choose a preset or move a band. The same Settings page has a Phone equaliser row that opens the phone's own equaliser, when the phone has one.</p>
+          </details>
+          <details>
+            <summary>How does Attic pick songs for a mood?</summary>
+            <p>From how the songs sound. Song analysis, which runs while the phone charges, stores a description of each song's sound, and nine small classifiers that come with Attic score it for qualities such as happy, sad, relaxed, danceable and instrumental. Each mood combines a few of those scores, compared across your own library, and a song is in the running when it scores high enough. The genres and languages you pick, your likes and skips, and what you played in the last few hours then move songs up or down, and each day Attic draws 25 songs from the best 50, with at most three by one artist. The draw is seeded by the date, so a mood's mix stays the same all day and changes the next. You pick moods, genres and languages in Settings &gt; Moods. <a href="#moods">Mood mixes</a> above has the details.</p>
+          </details>
+          <details>
+            <summary>Does mood detection send anything off the phone?</summary>
+            <p>No. The classifiers run on the phone, on the analysis already stored there, and the mixes are built there too. Your picks are kept in the app's settings. They leave the phone only in a backup: a backup file you make yourself, or Android's backup if you have it turned on, which is encrypted end to end. Mood scores aren't backed up at all; a new phone works them out again.</p>
           </details>
           <details>
             <summary>Does it work with Android Auto?</summary>
@@ -598,8 +696,8 @@
             <p>Android 13 or newer, on a 64-bit ARM phone. The release build has been tested on one phone so far, so <a href="https://github.com/srivathsanvenkateswaran/attic/issues">reports from other phones</a> are welcome.</p>
           </details>
           <details>
-            <summary>Why is the APK 58 MB?</summary>
-            <p>It carries the song analysis model and its runtime, which radio, mixes and genres use to compare how songs sound. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
+            <summary>Why is the APK 64 MB?</summary>
+            <p>It carries the song analysis model and its runtime, which radio, mixes and genres use to compare how songs sound, and the nine mood classifiers, about 6.5 MB of it. That runtime is also why Attic only runs on 64-bit ARM phones.</p>
           </details>
         </div>
       </div>

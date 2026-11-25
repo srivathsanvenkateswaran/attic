@@ -244,11 +244,18 @@ fun CollectionPlayButton(playing: Boolean, onClick: () -> Unit, modifier: Modifi
     )
 }
 
+/** The row's padding under a stacked header: 16 at the sides, 20 above, 4 below. */
+internal val CollectionActionsPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp)
+
 /** `.c-actions`: Play, then tonal toggles (shuffle, add to playlist; a playlist adds add songs and reorder). */
 @Composable
-fun CollectionActions(modifier: Modifier = Modifier, content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+fun CollectionActions(
+    modifier: Modifier = Modifier,
+    padding: androidx.compose.foundation.layout.PaddingValues = CollectionActionsPadding,
+    content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit,
+) {
     Row(
-        modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 4.dp),
+        modifier.fillMaxWidth().padding(padding),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         content = content,

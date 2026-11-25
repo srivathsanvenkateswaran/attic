@@ -88,6 +88,32 @@ class Doc:
         self._page_cursor: dict[str, list] = {}
         self.ann_categories: dict[str, str] = {}
 
+    # ----------------------------------------------------------------- editing a saved file
+    def open_existing(self, path: str | Path):
+        """Open a saved `.figcraft` file in this session and index it by name, so the helpers
+        (`instance("Mini player")`, `text(style="Title/Large")`, `page("Screens")`, `icon(...)`)
+        work on it as they did while it was generated. Use this to edit a file; `save(path)`
+        writes it back. Screens already in the file are not indexed into `self.screens`."""
+        self.tool("open_file", path=str(Path(path).resolve()))
+        self.cmd("text.refit")
+        self.comp.clear()
+        for c in self.cmd("component.list"):
+            # Variants of a set are listed too; index sets and standalone components by name.
+            if c.get("type") == "COMPONENT_SET" or "=" not in c.get("name", ""):
+                self.comp.setdefault(c["name"], c["id"])
+        self.icon_names = {n for n in self.comp if n.startswith("Icon/")}
+        for s in self.cmd("style.list"):
+            kind = (s.get("type") or "").lower()
+            if kind == "text":
+                self.text_styles[s["name"]] = s["id"]
+            elif kind == "effect":
+                self.effect_styles[s["name"]] = s["id"]
+        self.pages = {p["name"]: p["id"] for p in self.cmd("page.list") if not p.get("divider")}
+        self._first_page = False
+        cats = self.cmd("annotation.categories").get("categories", [])
+        self.ann_categories = {c["name"]: c["id"] for c in cats}
+        return self
+
     # ----------------------------------------------------------------- raw access
     def cmd(self, command: str, **params):
         return self.fc.cmd(command, **params)

@@ -2,6 +2,8 @@ package app.attic.player.data
 
 import android.content.Context
 import android.os.Build
+import app.attic.player.playback.TransitionMode
+import app.attic.player.playback.TransitionPlanner
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +30,22 @@ enum class UiStyle {
         fun resolve(saved: String?, manufacturer: String): UiStyle =
             entries.firstOrNull { it.name == saved } ?: defaultFor(manufacturer)
     }
+}
+
+/**
+ * The moods, genres and languages you picked for mood mixes: [Mood] ids, [Genre.key]s and
+ * [LanguageLabels] codes, moods in the order you chose them. [updatedAt] is 0 until you first save.
+ */
+data class Interests(
+    val moods: List<String> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val languages: List<String> = emptyList(),
+    val updatedAt: Long = 0,
+) {
+    val isEmpty: Boolean get() = moods.isEmpty() && genres.isEmpty() && languages.isEmpty()
+
+    /** Never saved: a restore may fill these in. */
+    val isUnset: Boolean get() = updatedAt == 0L && isEmpty
 }
 
 class AppSettings(context: Context) {
@@ -85,13 +103,25 @@ class AppSettings(context: Context) {
         _volumeLevelling.value = enabled
     }
 
-    private val _crossfadeSeconds = MutableStateFlow(prefs.getInt(KEY_CROSSFADE_SECONDS, 0))
+    private val savedTransitions = TransitionSetting.read(prefs.getString(KEY_TRANSITIONS, null), prefs.getInt(KEY_CROSSFADE_SECONDS, 0))
 
-    /** How long one song fades into the next, in seconds. 0 is off, the default. */
+    private val _transitions = MutableStateFlow(savedTransitions.mode)
+
+    /** What happens between songs. Off by default. */
+    val transitions: StateFlow<TransitionMode> = _transitions.asStateFlow()
+
+    fun setTransitions(mode: TransitionMode) {
+        prefs.edit().putString(KEY_TRANSITIONS, mode.name).putInt(KEY_CROSSFADE_SECONDS, _crossfadeSeconds.value).apply()
+        _transitions.value = mode
+    }
+
+    private val _crossfadeSeconds = MutableStateFlow(savedTransitions.seconds)
+
+    /** The crossfade length, 2 to 12 seconds: Crossfade's fade, and Smart's for songs not analysed yet. */
     val crossfadeSeconds: StateFlow<Int> = _crossfadeSeconds.asStateFlow()
 
     fun setCrossfadeSeconds(seconds: Int) {
-        prefs.edit().putInt(KEY_CROSSFADE_SECONDS, seconds).apply()
+        prefs.edit().putInt(KEY_CROSSFADE_SECONDS, seconds).putString(KEY_TRANSITIONS, _transitions.value.name).apply()
         _crossfadeSeconds.value = seconds
     }
 
@@ -120,14 +150,69 @@ class AppSettings(context: Context) {
         _equaliserDefault.value = gains
     }
 
+    private val _interests = MutableStateFlow(readInterests())
+
+    /** What mood mixes follow. Stored here rather than in the database: a few short lists that need no migration. */
+    val interests: StateFlow<Interests> = _interests.asStateFlow()
+
+    fun setInterests(interests: Interests) {
+        prefs.edit()
+            .putString(KEY_INTEREST_MOODS, interests.moods.joinToString(LIST_SEPARATOR))
+            .putString(KEY_INTEREST_GENRES, interests.genres.joinToString(LIST_SEPARATOR))
+            .putString(KEY_INTEREST_LANGUAGES, interests.languages.joinToString(LIST_SEPARATOR))
+            .putLong(KEY_INTERESTS_UPDATED, interests.updatedAt)
+            .apply()
+        _interests.value = interests
+    }
+
+    private fun readInterests(): Interests {
+        fun list(key: String) = prefs.getString(key, null).orEmpty().split(LIST_SEPARATOR).filter { it.isNotEmpty() }
+        return Interests(list(KEY_INTEREST_MOODS), list(KEY_INTEREST_GENRES), list(KEY_INTEREST_LANGUAGES), prefs.getLong(KEY_INTERESTS_UPDATED, 0))
+    }
+
+    private val _moodPromptDismissed = MutableStateFlow(prefs.getBoolean(KEY_MOOD_PROMPT_DISMISSED, false))
+
+    /** True once Home's card asking for picks was answered with "Not now" or the picks were saved. */
+    val moodPromptDismissed: StateFlow<Boolean> = _moodPromptDismissed.asStateFlow()
+
+    fun dismissMoodPrompt() {
+        prefs.edit().putBoolean(KEY_MOOD_PROMPT_DISMISSED, true).apply()
+        _moodPromptDismissed.value = true
+    }
+
     private companion object {
         const val KEY_EQUALISER_ON = "equaliser_on"
         const val KEY_EQUALISER_DEFAULT = "equaliser_default"
+        const val KEY_INTEREST_MOODS = "interest_moods"
+        const val KEY_INTEREST_GENRES = "interest_genres"
+        const val KEY_INTEREST_LANGUAGES = "interest_languages"
+        const val KEY_INTERESTS_UPDATED = "interests_updated_at"
+        const val KEY_MOOD_PROMPT_DISMISSED = "mood_prompt_dismissed"
+
+        /** No genre name or language code holds it. */
+        const val LIST_SEPARATOR = "\u001F"
         const val KEY_THEME = "theme"
         const val KEY_CROSSFADE_SECONDS = "crossfade_seconds"
+        const val KEY_TRANSITIONS = "transitions"
         const val KEY_VOLUME_LEVELLING = "volume_levelling"
         const val KEY_UI_STYLE = "ui_style"
         const val KEY_AUTOPLAY = "autoplay"
         const val KEY_ONBOARDING_DONE = "onboarding_done"
+    }
+}
+
+/**
+ * The saved transition setting. Before Smart existed there was only `crossfade_seconds`, with 0 for off,
+ * so an install that has no `transitions` value reads its mode from that: a length means Crossfade at
+ * that length, 0 means Off with the default length.
+ */
+data class TransitionSetting(val mode: TransitionMode, val seconds: Int) {
+    companion object {
+        fun read(savedMode: String?, savedSeconds: Int): TransitionSetting {
+            val seconds = savedSeconds.takeIf { it in TransitionPlanner.lengthChoices } ?: TransitionPlanner.DEFAULT_LENGTH_SECONDS
+            val mode = TransitionMode.entries.firstOrNull { it.name == savedMode }
+                ?: if (savedSeconds > 0) TransitionMode.Crossfade else TransitionMode.Off
+            return TransitionSetting(mode, seconds)
+        }
     }
 }

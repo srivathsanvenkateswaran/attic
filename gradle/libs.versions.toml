@@ -28,6 +28,8 @@ compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeB
 compose-ui = { module = "androidx.compose.ui:ui" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
+# Window size classes (currentWindowAdaptiveInfo). In the Compose BOM.
+compose-material3-adaptive = { module = "androidx.compose.material3.adaptive:adaptive" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 lifecycle-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }

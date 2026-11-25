@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -40,6 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import app.attic.player.R
 import app.attic.player.ui.LocalBottomPadding
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.WidthClass
+import app.attic.player.ui.adaptive.adaptiveColumns
 import app.attic.player.ui.expressive.Art
 import app.attic.player.ui.expressive.Symbol
 import app.attic.player.ui.model.BrowseTile as BrowseItem
@@ -80,28 +85,37 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
     val imeBottom = with(density) { WindowInsets.ime.getBottom(this).toDp() }
     val bottom = if (typing) max(dock, imeBottom + TypebarHeight) else dock
 
+    // A tablet: the field at most 720dp wide at the start, Browse in columns at least 180dp wide, and
+    // the songs in cards at least 360dp wide (docs/design/2026-11-25-tablet/SPEC.md, Search).
+    val window = LocalWindowLayout.current
+    val wide = if (window.widthClass == WidthClass.Compact) null else window.contentWidthDp()
+    val short = wide != null && window.heightDp < 840f
+    val heroHeight = if (short) ShortHeroHeight else HeroHeight
+    val browseColumns = if (wide == null) 2 else adaptiveColumns(wide - 32f, 180f, 12f)
+    val songColumns = if (wide == null) 1 else rowColumns(wide)
+
     val browseState = rememberLazyListState()
     val resultsState = rememberLazyListState()
-    val collapsed by rememberCollapsed(browseState)
+    val collapsed by rememberCollapsed(browseState, heroHeight)
     // Where the field's row is in the browse list, while it is on screen.
     val rowTop by remember(browseState) {
         derivedStateOf { browseState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == FIND_ROW }?.offset }
     }
     val pinnedTop = with(density) { (barBottom + 2.dp).roundToPx() }
     // Before the list's first layout the row is where the hero leaves it.
-    val restingTop = with(density) { (statusTop + HeroHeight).roundToPx() }
+    val restingTop = with(density) { (statusTop + heroHeight).roundToPx() }
     val fieldTop = rowTop ?: if (browseState.firstVisibleItemIndex <= 1) restingTop else pinnedTop
     val fieldPinned = !browsing || fieldTop < pinnedTop
     val showBar = !browsing || collapsed || fieldPinned
 
     Box(Modifier.fillMaxSize()) {
         when {
-            browsing -> Browse(state, actions, browseState, bottom)
+            browsing -> Browse(state, actions, browseState, bottom, columns = browseColumns, short = short)
             else -> {
                 val top = barBottom + if (typing) 0.dp else PinHeight
                 val results = state.results
                 when {
-                    results == null -> Browse(state, actions, resultsState, bottom, top = top)
+                    results == null -> Browse(state, actions, resultsState, bottom, top = top, columns = browseColumns)
                     results.isEmpty -> EmptyState(
                         title = stringResource(R.string.search_no_results_title, state.query),
                         body = stringResource(R.string.search_no_results_body),
@@ -109,7 +123,7 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
                         fill = true,
                         modifier = Modifier.padding(top = top, bottom = if (typing) bottom else dock),
                     )
-                    else -> Results(results, state, actions, resultsState, top, bottom)
+                    else -> Results(results, state, actions, resultsState, top, bottom, songColumns)
                 }
             }
         }
@@ -146,7 +160,7 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
                 .fillMaxWidth()
                 .padding(end = 40.dp)
         }
-        Box(fieldModifier) {
+        Box(fieldModifier.then(if (wide != null && !typing) Modifier.wrapContentWidth(Alignment.Start).widthIn(max = FieldMaxWidth) else Modifier)) {
             CompositionLocalProvider(LocalComfortContainer provides if (typing) ComfortContainer.Card else ComfortContainer.Ground) {
                 SearchField(
                     query = state.query,
@@ -161,20 +175,31 @@ fun ComfortSearch(state: SearchState, actions: SearchActions) {
 
 private const val FIND_ROW = "findRow"
 
+/** The field's widest on a tablet: 720dp, and its 16dp margins. */
+private val FieldMaxWidth = 752.dp
+
 /**
  * Browse: every folder, then the biggest albums, as neutral cards two across, with the mosaic or the
  * cover upright in the corner; then "Genres" in the same cards. At rest it opens with the hero and the field's row; [top] is set when it
  * shows under the bar instead (the keyboard is up with nothing typed).
  */
 @Composable
-private fun Browse(state: SearchState, actions: SearchActions, listState: LazyListState, bottom: Dp, top: Dp? = null) {
+private fun Browse(
+    state: SearchState,
+    actions: SearchActions,
+    listState: LazyListState,
+    bottom: Dp,
+    top: Dp? = null,
+    columns: Int = 2,
+    short: Boolean = false,
+) {
     LazyColumn(
         Modifier.fillMaxSize(),
         state = listState,
         contentPadding = PaddingValues(top = top ?: 0.dp, bottom = bottom + 8.dp),
     ) {
         if (top == null) {
-            item(key = "hero") { Hero(stringResource(R.string.search_title)) }
+            item(key = "hero") { Hero(stringResource(R.string.search_title), short = short) }
             item(key = FIND_ROW) {
                 // The field itself is drawn over this row by the screen; the row holds the gear.
                 Row(Modifier.fillMaxWidth().height(FieldRow).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -184,21 +209,25 @@ private fun Browse(state: SearchState, actions: SearchActions, listState: LazyLi
             }
         }
         item(key = "browseLabel") { Label(stringResource(R.string.search_browse)) }
-        browseCards(state.tiles, "browse", actions)
+        browseCards(state.tiles, "browse", actions, columns)
+        if (state.moods.isNotEmpty()) {
+            item(key = "moodsLabel") { Label(stringResource(R.string.search_moods)) }
+            browseCards(state.moods, "moods", actions, columns)
+        }
         if (state.genres.isNotEmpty()) {
             item(key = "genresLabel") { Label(stringResource(R.string.search_genres)) }
-            browseCards(state.genres, "genres", actions)
+            browseCards(state.genres, "genres", actions, columns)
         }
     }
 }
 
-private fun LazyListScope.browseCards(tiles: List<BrowseItem>, section: String, actions: SearchActions) {
-    items(tiles.chunked(2), key = { row -> "$section:${row.first().destination}" }) { row ->
+private fun LazyListScope.browseCards(tiles: List<BrowseItem>, section: String, actions: SearchActions, columns: Int = 2) {
+    items(tiles.chunked(columns), key = { row -> "$section:${row.first().destination}" }) { row ->
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            for (column in 0 until 2) {
+            for (column in 0 until columns) {
                 val tile = row.getOrNull(column)
                 if (tile == null) Spacer(Modifier.weight(1f)) else BrowseCard(tile, actions, Modifier.weight(1f))
             }
@@ -209,7 +238,7 @@ private fun LazyListScope.browseCards(tiles: List<BrowseItem>, section: String, 
 @Composable
 private fun BrowseCard(tile: BrowseItem, actions: SearchActions, modifier: Modifier) {
     // Folders and genres are gatherings of songs: a mosaic and a count. An album is its cover and artist.
-    val gathered = tile.destination is Destination.Folder || tile.destination is Destination.Genre
+    val gathered = tile.destination is Destination.Folder || tile.destination is Destination.Genre || tile.destination is Destination.Mood
     BrowseTile(
         title = tile.title,
         onClick = { actions.open(tile.destination) },
@@ -221,13 +250,21 @@ private fun BrowseCard(tile: BrowseItem, actions: SearchActions, modifier: Modif
 
 /** Matching artists, folders and albums as a shelf of objects with their type under each name, then the songs. */
 @Composable
-private fun Results(results: SearchResults, state: SearchState, actions: SearchActions, listState: LazyListState, top: Dp, bottom: Dp) {
+private fun Results(
+    results: SearchResults,
+    state: SearchState,
+    actions: SearchActions,
+    listState: LazyListState,
+    top: Dp,
+    bottom: Dp,
+    columns: Int = 1,
+) {
     LazyColumn(
         Modifier.fillMaxSize(),
         state = listState,
         contentPadding = PaddingValues(top = top, bottom = bottom + 8.dp),
     ) {
-        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty() || results.genres.isNotEmpty()) {
+        if (results.artists.isNotEmpty() || results.folders.isNotEmpty() || results.albums.isNotEmpty() || results.genres.isNotEmpty() || results.moods.isNotEmpty()) {
             item(key = "found") {
                 Shelf(Modifier.padding(top = 16.dp)) {
                     items(results.artists, key = { "artist:${it.key}" }) { artist ->
@@ -251,6 +288,13 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
                             { actions.open(Destination.Album(album.key)) },
                         ) { m -> Cover(Art.of(album.tracks.firstOrNull()?.mediaId), m) }
                     }
+                    items(results.moods, key = { "mood:${it.destination}" }) { mood ->
+                        ResultTile(
+                            mood.title,
+                            stringResource(R.string.search_result_mood),
+                            { actions.open(mood.destination) },
+                        ) { m -> Mosaic(mood.mosaicIds.map(Art::Song), m) }
+                    }
                     items(results.genres, key = { "genre:${it.key}" }) { genre ->
                         ResultTile(
                             genre.name,
@@ -264,7 +308,7 @@ private fun Results(results: SearchResults, state: SearchState, actions: SearchA
         if (results.tracks.isNotEmpty()) {
             // "Songs" is the library filter's word, shared.
             item(key = "songsLabel") { Label(stringResource(R.string.library_filter_songs)) }
-            groupItems(results.tracks, key = { "track:${it.key}" }) { _, track ->
+            columnGroupItems(results.tracks, columns, "track", key = { it.key }) { _, track ->
                 SongRow(
                     title = track.title,
                     subtitle = track.artist,

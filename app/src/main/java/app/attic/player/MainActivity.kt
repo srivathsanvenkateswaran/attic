@@ -1,7 +1,12 @@
 package app.attic.player
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -23,12 +28,16 @@ import app.attic.player.widget.PlayerWidget
 import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.LocalUiStyle
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.currentWindowLayout
+import app.attic.player.ui.adaptive.locksToPortrait
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         if (attic.settings.uiStyle.value == UiStyle.Comfort) setTheme(R.style.Theme_Attic_Comfort)
         super.onCreate(savedInstanceState)
+        lockPhonesToPortrait()
         // The system draws the splash before any app code runs, so each style's splash is handed over
         // now and used from the next cold start. The system keeps the choice.
         lifecycleScope.launch {
@@ -47,7 +56,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
             val uiStyle by attic.settings.uiStyle.collectAsStateWithLifecycle()
-            CompositionLocalProvider(LocalUiStyle provides uiStyle) {
+            CompositionLocalProvider(LocalUiStyle provides uiStyle, LocalWindowLayout provides currentWindowLayout()) {
                 AtticTheme(mode, uiStyle) {
                     val dark = LocalIsDark.current
                     LaunchedEffect(dark) {
@@ -65,6 +74,57 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         handleWidgetIntent(intent)
         OpenWith.handle(attic, intent) || PlayFromSearch.handle(attic, intent)
+    }
+
+    /**
+     * Keyboard keys the app takes before the screen does, since once a key press has left touch mode
+     * Compose focuses a control and would otherwise use them itself:
+     * - Space plays and pauses, unless a text field is taking the typing (the search field gets its
+     *   space). Enter still activates the focused control.
+     * - Esc does what Back does (closes Now Playing, the queue or lyrics, or leaves a screen) when
+     *   there is something to close. On a tab's root it passes, so it clears keyboard focus as usual
+     *   and never leaves the app. Sheets and dialogs are windows of their own and close on Esc there.
+     *
+     * This overrides android.app.Activity's public dispatchKeyEvent; androidx.core's ComponentActivity
+     * re-declares it as restricted only for its own key-event helpers, hence the suppression.
+     */
+    @SuppressLint("RestrictedApi")
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (!event.isCtrlPressed && !event.isAltPressed) {
+            val down = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_SPACE -> if (!typing()) {
+                    if (down) attic.player.togglePlayPause()
+                    return true
+                }
+                KeyEvent.KEYCODE_ESCAPE -> if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    if (down) onBackPressedDispatcher.onBackPressed()
+                    return true
+                }
+            }
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    /** A text field has the input method's attention, so keys are text. */
+    private fun typing(): Boolean = getSystemService(InputMethodManager::class.java)?.isAcceptingText == true
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // A foldable opened or closed changes the display without recreating the activity.
+        lockPhonesToPortrait()
+    }
+
+    /**
+     * Phones stay in portrait, which every phone screen is drawn for; tablets and unfolded foldables
+     * turn freely. Judged on the whole display, not the window, so a small floating window on a tablet
+     * doesn't lock it. Android ignores the request in multi-window and, from Android 16, on large screens.
+     */
+    private fun lockPhonesToPortrait() {
+        val bounds = windowManager.maximumWindowMetrics.bounds
+        val smallestSideDp = minOf(bounds.width(), bounds.height()) / resources.displayMetrics.density
+        val wanted = if (locksToPortrait(smallestSideDp)) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (requestedOrientation != wanted) requestedOrientation = wanted
     }
 
     private fun handleWidgetIntent(intent: Intent?) {
