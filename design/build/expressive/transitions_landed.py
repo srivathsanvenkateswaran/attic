@@ -1,4 +1,4 @@
-"""Smart transitions are in the code: Attic Expressive's Transitions frames stop being a proposal (version 1.3.0).
+"""Smart transitions are in the code: Attic Expressive's Transitions frames stop being a proposal (version 1.4.0).
 
 Like `transitions.py` this edits the saved file and rebuilds nothing. The code landed as `transitions.py` drew it,
 so the Transitions frames export the same pixels before and after. What changes is the handoff, and one frame of
@@ -7,10 +7,12 @@ the Equaliser section.
     cd design/build
     python3 -m expressive.transitions_landed /tmp/attic-design/expressive-transitions.figcraft \
         /tmp/attic-design/expressive-landed.figcraft \
-        [--export /tmp/attic-dev/smart-transitions-design/landed] [--check /tmp/attic-design/expressive-landed-check]
+        [--export /tmp/attic-dev/smart-transitions-design/landed] \
+        [--check /tmp/attic-design/expressive-landed-check [--against "../Attic Expressive.figcraft"]]
 
 Look at the result, then copy it over the file in design/. It refuses a file without the Transitions section and
-a file whose Transitions frames are already marked ready.
+a file whose Transitions frames are already marked ready. The Moods section (1.3.0) and its handoff marks are
+left as they are.
 
 Screens (section "Transitions", all 6 states, Light and Dark)
 -------------------------------------------------------------
@@ -22,7 +24,8 @@ Screens (section "Equaliser")
 -----------------------------
 Settings, Playback: 1.2.0 drew the whole Playback group, with the Crossfade row the code had then (Off). The code
 has Transitions there now, so the row becomes Transitions in the same state: Off, with what Off does as its third
-line. The Equaliser row, its link to the Settings page and every other frame of the section are untouched.
+line. The Equaliser row, its link to the Settings page and every other frame of the section are untouched. So is
+the rest of this frame: it predates mood mixes and still runs from Lyrics straight to Song radio.
 
 Components
 ----------
@@ -35,12 +38,14 @@ List row/Setting   untouched. Its description still gives "Crossfade's note" as 
 
 Handoff
 -------
-Cover 1.3.0, without the sentence that called the section a proposal; the 1.3.0 Changelog entry `transitions.py`
+Cover 1.4.0, without the sentence that called the section a proposal; the 1.4.0 Changelog entry `transitions.py`
 wrote is rewritten to say what landed, so the version has one entry, dated 2026-11-25.
 
 --export writes the 12 frames, the redrawn Equaliser frame, Seek bar's spec card, the Cover and the Changelog entry
-as PNG. --check exports frames this module doesn't redraw from the source and from the result, and fails unless
-each pair is pixel-identical.
+as PNG. --check exports every frame on the Screens page that this module doesn't redraw, from the source and from
+the result, and fails unless each pair is pixel-identical. With --against it takes the frames from that file
+instead of the source: give it the file `transitions.py` started from (1.3.0) to check both steps at once, every
+frame that file has but the redrawn Equaliser one.
 """
 from __future__ import annotations
 
@@ -55,7 +60,7 @@ from figbuild.kit import Doc, DENSITY
 from expressive import transitions as T
 from expressive.transitions import attach, card_of, restack, screen_frame, top_named
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 UPDATED = "2026-11-25"
 AUTHOR = "Attic maintainers"
 NOTE = "Note"
@@ -75,21 +80,24 @@ SOURCES["transitions_now_playing"] = T.SRC_NP
 EQ_FRAME = "Equaliser / Settings, Playback"
 
 # What the code does that a frame can't show, in place of each frame's Proposed annotation.
+# The Settings frames are copies of a frame of the Moods section, which is still marked as a proposal there.
+REST_NOTE = (f"Under Playback the page is a copy of {T.SETTINGS_OF}, in this file's Moods section: Lyrics, then Moods, "
+             "then Song radio, the order ExpressiveSettings.kt has.")
 NOTES = {
     "transitions_settings_off": [
         "Off is the default and hides Crossfade length (SettingsState.showsCrossfadeLength). The Equaliser row under "
-        "it is EqualiserRow, as the Equaliser section draws it."],
+        "it is EqualiserRow, as the Equaliser section draws it.", REST_NOTE],
     "transitions_settings_crossfade": [
         "Crossfade length is there only while the choice is Crossfade or Smart. Its menu lists 2 to 12 seconds, "
-        "6 to start with."],
+        "6 to start with.", REST_NOTE],
     "transitions_settings_smart": [
         "With Smart, Crossfade length gains a third line saying what it is for: songs Smart has no analysis for "
-        "yet play a crossfade of this length."],
+        "yet play a crossfade of this length.", REST_NOTE],
     "transitions_picker": [
         "ExpressiveMenu anchored to the Transitions row: under the row, its start edge on the row's. "
-        "ExpressiveMenuItem ticks the current choice and keeps the glyph's space on the others."],
+        "ExpressiveMenuItem ticks the current choice and keeps the glyph's space on the others.", REST_NOTE],
     "transitions_length_picker": [
-        "ExpressiveMenu anchored to the Crossfade length row: 2 to 12 seconds, the current one ticked."],
+        "ExpressiveMenu anchored to the Crossfade length row: 2 to 12 seconds, the current one ticked.", REST_NOTE],
     "transitions_now_playing": [
         "SeekBar's mark: a 4dp dot in on-surface-variant on the rest of the track where the next song starts coming "
         "in, here at 3:41 of 3:52. Now Playing passes it only while Smart has a plan for this song "
@@ -122,20 +130,18 @@ CHANGES = (
     "Playback with transitions off, on Crossfade and on Smart; the Transitions menu; the Crossfade length menu; Now "
     "Playing with the next song marked on the seek bar. The Settings frames' Source names TransitionsRow and "
     "CrossfadeLengthRow in ExpressiveSettings.kt, and a Note on each frame says what the code does that the drawing "
-    "can't show.\n"
+    "can't show. Under Playback they are copies of Settings / Moods and interests row (1.3.0), so Moods sits between "
+    "Lyrics and Song radio.\n"
     "• Changed component: Seek bar gains Show next song mark, SeekBar's mark parameter in PlayControls.kt: a 4dp dot "
     "on the rest of the track where the next song starts coming in.\n"
     "• Equaliser / Settings, Playback: the Crossfade row is redrawn as Transitions, in the same state (Off). The "
-    "Equaliser row is as 1.2.0 drew it.\n"
+    "Equaliser row and the rest of the frame are as 1.2.0 drew them.\n"
     "• Prototype: flow 13 Transitions, from Settings > Playback.\n"
     "• The Comfort style's mark for the same point was reviewed and not built. Attic Comfort's Changelog says why.")
 
-# Frames this module doesn't redraw, for --check: the Transitions frames, and these.
-UNTOUCHED = ["Settings / Top", "Settings / Whole list (full length)", "Settings / Backup",
-             "Now Playing / Playing", "Home / All", "Queue / Up next", "Search / Results", "Equaliser / Settings page",
-             "Equaliser / Settings page, nothing saved", "Equaliser / Sheet, default",
-             "Equaliser / Sheet, song's own setting", "Equaliser / Now Playing, indicator",
-             "Equaliser / Track menu, song's own setting"]
+# The frames this module redraws, which --check leaves out: every other frame on the Screens page must come out
+# the same, the Transitions, Equaliser and Moods ones included.
+REDRAWN = [f"{EQ_FRAME} · Light", f"{EQ_FRAME} · Dark"]
 
 
 # ───────────────────────────────────────────────────────────────── screens
@@ -304,8 +310,9 @@ def export(d: Doc, ctx: dict, out: Path, style: str = "expressive"):
     d.export_png(ctx["landed_entry"], out / f"{style}-changelog-entry.png", scale=1)
 
 
-def _shots(path: Path, out: Path, names: list[str]) -> dict[str, Path]:
-    """Export screen frames of a saved file, Light and Dark, at the renders' density."""
+def _shots(path: Path, out: Path, only: set | None = None) -> dict[tuple, Path]:
+    """Export the screen frames of a saved file at the renders' density: every frame in a section of the Screens
+    page but the redrawn ones, or just those in `only`. Keyed by (section, frame name)."""
     out.mkdir(parents=True, exist_ok=True)
     d = Doc("Attic Expressive", read_roots=[path.resolve().parent], write_roots=[out.resolve()])
     got = {}
@@ -313,29 +320,38 @@ def _shots(path: Path, out: Path, names: list[str]) -> dict[str, Path]:
         d.tool("open_file", path=str(path.resolve()))
         attach(d, {})
         d.page(T.SCREENS)
-        for name in names:
-            for theme in ("Light", "Dark"):
-                p = out / (re.sub(r"[^a-z0-9]+", "-", f"{name} {theme}".lower()).strip("-") + ".png")
-                d.export_png(screen_frame(d, name, theme), p, scale=DENSITY)
-                got[f"{name} · {theme}"] = p
+        for sec in d.get(d.pages[T.SCREENS], depth=2).get("children", []):
+            if sec.get("type") != "SECTION":
+                continue
+            for n in sec.get("children") or []:
+                key = (sec["name"], n["name"])
+                if n.get("type") != "FRAME" or n["name"] in REDRAWN or (only is not None and key not in only):
+                    continue
+                if key in got:
+                    raise SystemExit(f"transitions_landed: two frames are named {n['name']!r} in {sec['name']}")
+                p = out / (f"{len(got):03d}-" + re.sub(r"[^a-z0-9]+", "-", n["name"].lower()).strip("-")[:80] + ".png")
+                d.export_png(n["id"], p, scale=DENSITY)
+                got[key] = p
     finally:
         d.close()
     return got
 
 
-def check(src: Path, out: Path, work: Path, names: list[str] | None = None) -> list[str]:
-    """Export the same frames from `src` and from `out` and compare them pixel for pixel. Returns the frames that
-    differ. The default frames are ones this module doesn't touch; the Transitions frames should pass too."""
-    names = names or UNTOUCHED + list(NAMES.values())
-    before = _shots(src, work / "before", names)
-    after = _shots(out, work / "after", names)
+def check(base: Path, out: Path, work: Path) -> tuple[int, list[str]]:
+    """Export every frame `base` has on its Screens page, but the redrawn ones, from `base` and from `out`, and
+    compare them pixel for pixel. Returns how many were compared and the frames that differ or are gone."""
+    before = _shots(base, work / "before")
+    after = _shots(out, work / "after", set(before))
     differ = []
-    for name, b in before.items():
-        x, y = Image.open(b).convert("RGBA"), Image.open(after[name]).convert("RGBA")
+    for key, b in before.items():
+        if key not in after:
+            differ.append(f"{key[1]} (gone from {key[0]})")
+            continue
+        x, y = Image.open(b).convert("RGBA"), Image.open(after[key]).convert("RGBA")
         # Bytes, not ImageChops.difference(x, y).getbbox(): on an RGBA image Pillow 10 looks at alpha alone there.
         if x.size != y.size or x.tobytes() != y.tobytes():
-            differ.append(name)
-    return differ
+            differ.append(key[1])
+    return len(before), differ
 
 
 def run(src: Path, out: Path, export_dir: Path | None = None, log=None) -> dict:
@@ -360,15 +376,18 @@ def main(argv=None):
     ap.add_argument("out", type=Path)
     ap.add_argument("--export", type=Path, help="write the changed frames, spec card, Cover and Changelog entry here")
     ap.add_argument("--check", type=Path, help="compare frames of src and out pixel for pixel, working in this folder")
+    ap.add_argument("--against", type=Path, help="with --check: compare out with this file instead of src")
     a = ap.parse_args(argv)
     ctx = run(a.src, a.out, a.export)
     print(f"saved {a.out} ({a.out.stat().st_size // 1024} KB): {len(ctx['landed_frames'])} frames marked ready, "
           f"cover line {ctx.get('landed_cover_line')!r}")
     if a.check:
-        differ = check(a.src, a.out, a.check)
+        base = a.against or a.src
+        compared, differ = check(base, a.out, a.check)
         if differ:
             raise SystemExit(f"these frames changed: {differ}")
-        print(f"pixel-identical before and after: {len(UNTOUCHED) + len(NAMES)} frames in Light and Dark")
+        print(f"pixel-identical in {base.name} and {a.out.name}: {compared} frames, every one on the Screens page "
+              f"but {EQ_FRAME}")
 
 
 if __name__ == "__main__":

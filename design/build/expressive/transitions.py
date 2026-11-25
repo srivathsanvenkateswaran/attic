@@ -1,4 +1,4 @@
-"""Smart transitions in Attic Expressive, drawn as a proposal (version 1.3.0).
+"""Smart transitions in Attic Expressive, drawn as a proposal (version 1.4.0).
 
 Unlike the modules that built 1.0.0 this one adds to a file that already exists. `Attic Expressive.figcraft` is
 the source now, so nothing here rebuilds what the file holds: `attach` reads the opened file's pages, styles,
@@ -8,14 +8,16 @@ tokens and components into the Doc, and `build` adds to them.
     python3 -m expressive.transitions "../Attic Expressive.figcraft" /tmp/attic-design/expressive-transitions.figcraft \
         [--export /tmp/attic-dev/smart-transitions-design]
 
-Look at the result, then copy it over the file in design/. It runs on the 1.2.0 file, the one with the equaliser:
-Settings > Playback uses what `expressive.equaliser` added (Icon/transition_fade, Icon/equalizer and List
-row/Setting's Status line=Plain) and ends in the Equaliser row that file draws, so it refuses a file without the
-equaliser. It also refuses a file that already has the Transitions section.
+Look at the result, then copy it over the file in design/. It runs on the 1.3.0 file, the one with the equaliser
+and mood mixes. Settings > Playback uses what `expressive.equaliser` added (Icon/transition_fade, Icon/equalizer
+and List row/Setting's Status line=Plain) and ends in the Equaliser row that file draws, and the rest of the page
+is a copy of the Settings frame `expressive.moods` drew, so it refuses a file without the equaliser or without the
+Moods section. It also refuses a file that already has the Transitions section. It leaves the Moods section and
+its handoff marks as they are, and the new section goes under it.
 
 The feature is docs/features/smart-transitions.md; section 4 is the brief. This module draws the proposal: every
 new frame carries a `Proposed` annotation and none is marked ready for development. `expressive.transitions_landed`
-then marks what the code built. The two steps are one version, 1.3.0: this module writes the Changelog entry and
+then marks what the code built. The two steps are one version, 1.4.0: this module writes the Changelog entry and
 that one rewrites it.
 
 Changed components
@@ -26,9 +28,10 @@ Seek bar           gains the layer "Next song mark" (hidden) and the boolean "Sh
 Screens (section "Transitions" on the Screens page, Light and Dark)
 ------------------------------------------------------------------
 transitions_settings_off, transitions_settings_crossfade, transitions_settings_smart, transitions_picker,
-transitions_length_picker, transitions_now_playing. The settings frames are copies of Settings / Top with the
-Playback group added as Equaliser / Settings, Playback has it: Volume levelling, Transitions, Crossfade length
-and the Equaliser row of 1.2.0.
+transitions_length_picker, transitions_now_playing. The settings frames are copies of Settings / Moods and
+interests row (1.3.0: Settings with the Moods section between Lyrics and Song radio) with the Playback group
+added as Equaliser / Settings, Playback has it: Volume levelling, Transitions, Crossfade length and the Equaliser
+row of 1.2.0.
 
 Prototype
 ---------
@@ -37,10 +40,11 @@ the length row, which opens its own menu.
 
 Handoff
 -------
-A Source and a Proposed annotation on every new frame; Cover 1.3.0; a Changelog entry dated 2026-11-25.
+A Source and a Proposed annotation on every new frame; Cover 1.4.0; a Changelog entry dated 2026-11-25.
 
 In a build from scratch (`figbuild.run expressive`) this module does nothing but say so: it copies frames that
-only a finished file has. Build 1.0.0, run `expressive.equaliser` on the saved file, then this module.
+only a finished file has. Build 1.0.0, run `expressive.equaliser` and `expressive.moods` on the saved file, then
+this module.
 """
 from __future__ import annotations
 
@@ -56,7 +60,7 @@ from expressive.components_core import frame, inst, vname
 
 REFS: dict[str, str] = {}
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 UPDATED = "2026-11-25"
 AUTHOR = "Attic maintainers"
 SECTION = "Transitions"
@@ -245,7 +249,20 @@ def has_equaliser(d: Doc, ctx: dict) -> bool:
             and vname(NEEDS_ROW) in ctx["components"]["List row/Setting"]["variants"])
 
 
-SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.3.0). This frame draws the "
+# The Settings frame of 1.3.0 that the settings frames are copies of: `expressive.moods` drew it in its Moods
+# section, with the page's Moods section between Lyrics and Song radio, where ExpressiveSettings.kt has it.
+SETTINGS_OF = "Settings / Moods and interests row"
+
+
+def has_moods(d: Doc) -> bool:
+    try:
+        screen_frame(d, SETTINGS_OF)
+    except KeyError:
+        return False
+    return True
+
+
+SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.4.0). This frame draws the "
                "same as before.")
 
 
@@ -399,9 +416,10 @@ class Screens:
 
     def settings(self, key: str, name: str, mode: str) -> dict:
         """Settings scrolled until Playback is under the bar, the group in one of the three transition modes and
-        ending in the Equaliser row as 1.2.0 draws it."""
+        ending in the Equaliser row as 1.2.0 draws it. Everything else on the page is 1.3.0's: Lyrics, Moods and
+        Song radio follow as the copied frame has them."""
         d = self.d
-        f = self.copy(key, name, SRC_SETTINGS, screen_frame(d, "Settings / Top"))
+        f = self.copy(key, name, SRC_SETTINGS, screen_frame(d, SETTINGS_OF))
         lst = top_named(d, f, "Settings list")
         names = [k["name"] for k in d.get(lst, depth=1)["children"]]
         at = names.index("Section Lyrics")
@@ -592,8 +610,9 @@ def update_changelog(d: Doc, ctx: dict):
 # ───────────────────────────────────────────────────────────────── build
 def build(d: Doc, ctx: dict):
     if not ctx.get("attached"):
-        print("    transitions: skipped in a build from scratch. Run `expressive.equaliser`, then `python3 -m "
-              "expressive.transitions OUT.figcraft OUT-1.3.0.figcraft`, on the saved file to add it.", flush=True)
+        print("    transitions: skipped in a build from scratch. Run `expressive.equaliser` and `expressive.moods`, "
+              "then `python3 -m expressive.transitions OUT.figcraft OUT-1.4.0.figcraft`, on the saved file to add it.",
+              flush=True)
         return
     try:
         screen_frame(d, "Transitions / Settings, off")
@@ -603,6 +622,9 @@ def build(d: Doc, ctx: dict):
         raise SystemExit("transitions: this file already has the Transitions section")
     if not has_equaliser(d, ctx):
         raise SystemExit("transitions: this file has no equaliser (1.2.0); run expressive.equaliser on it first")
+    if not has_moods(d):
+        raise SystemExit(f"transitions: this file has no {SETTINGS_OF!r} frame (1.3.0); run expressive.moods on it "
+                         "first")
     before = changed_frames(d)
     update_seek_bar(d, ctx)
     restack(d, "Components / Playback")

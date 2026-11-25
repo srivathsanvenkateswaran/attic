@@ -1,4 +1,4 @@
-"""Smart transitions in Attic Comfort, drawn as a proposal (version 1.3.0). Pages: Components / Playback, Screens,
+"""Smart transitions in Attic Comfort, drawn as a proposal (version 1.4.0). Pages: Components / Playback, Screens,
 Cover, Changelog.
 
 Unlike the modules that built 1.0.0 this one works on a file that already exists: `attach()` reads the components,
@@ -9,14 +9,17 @@ look at the result, then copy it back:
     python3 -m comfort.transitions "../Attic Comfort.figcraft" /tmp/attic-design/comfort-transitions.figcraft \
         [--export /tmp/attic-dev/smart-transitions-design]
 
-It runs on the 1.2.0 file, the one with the equaliser: Settings > Playback ends in the Equaliser row that file
-draws (Settings row, Control=Value and chevron), so it refuses a file without the equaliser. It also refuses a file
-that already has the Transitions section. In a build from scratch (`figbuild.run comfort`) it does nothing but say
-so: build 1.0.0, run `comfort.equaliser` on the saved file, then this module.
+It runs on the 1.3.0 file, the one with the equaliser and mood mixes. Settings > Playback ends in the Equaliser row
+the equaliser's file draws (Settings row, Control=Value and chevron), and under Lyrics the page has the Moods card
+that `comfort.moods` drew in Settings / Moods and interests row, so it refuses a file without the equaliser or
+without that frame. It also refuses a file that already has the Transitions section. It leaves the Moods section and
+its handoff marks as they are, and the new section goes under it. In a build from scratch (`figbuild.run comfort`)
+it does nothing but say so: build 1.0.0, run `comfort.equaliser` and `comfort.moods` on the saved file, then this
+module.
 
 The feature is docs/features/smart-transitions.md; section 4 is the brief. This module draws the proposal: every
 new frame carries a `Proposed` annotation and none is marked ready for development. `comfort.transitions_landed`
-then marks what the code built. The two steps are one version, 1.3.0: this module writes the Changelog entry and
+then marks what the code built. The two steps are one version, 1.4.0: this module writes the Changelog entry and
 that one rewrites it.
 
 COMPONENTS / PLAYBACK
@@ -27,14 +30,15 @@ SCREENS (section "Transitions", Light above Dark, keys in KEYS)
   Settings, off; Settings, Crossfade; Settings, Smart; Transitions pop-over; Crossfade length pop-over; Now Playing,
   next song marked. The settings frames are Settings scrolled to Playback, as Equaliser / Settings, Playback draws
   it: Volume levelling, Transitions, Crossfade length and the Equaliser row of 1.2.0, built from Settings row
-  (Control=Switch on, Value, Value and chevron) and the Menu, Menu caption and Menu row the file has.
+  (Control=Switch on, Value, Value and chevron) and the Menu, Menu caption and Menu row the file has. Lyrics, Moods
+  and Song radio follow, as 1.3.0's Settings / Moods and interests row has them.
 
 PROTOTYPE
   The flow "Transitions" starts at Settings, off: the Transitions row opens its pop-over, Smart shows the length
   row, which opens its own.
 
 HANDOFF
-  A Source and a Proposed annotation on every new frame; Cover 1.3.0; the Changelog entry.
+  A Source and a Proposed annotation on every new frame; Cover 1.4.0; the Changelog entry.
 """
 from __future__ import annotations
 
@@ -50,7 +54,7 @@ from .components_core import K
 from .components_states import block, group, row, setp
 from .foundations import MODE_COLLECTIONS
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 UPDATED = "2026-11-25"
 SECTION = "Transitions"
 DOC = "docs/features/smart-transitions.md"
@@ -82,7 +86,13 @@ S = {
     "equaliser": "Equaliser",                                                   # equaliser
     "equaliser_value": "Bass boost",                                            # the default's preset (equaliserRowValue)
     "equaliser_own": "With their own setting: 4 songs, 2 albums",               # settings_equaliser_own
+    # The Moods card, as comfort/moods.py's settings draws it in 1.3.0.
+    "moods": "Moods",                                                           # settings_moods
+    "interests": "Moods and interests",                                         # settings_interests
+    "interests_value": "Chill, Focus, Romantic · 3 genres · Tamil, English",    # interestsSummary, with picks
 }
+# The Settings frame of 1.3.0 whose page the settings frames follow under Playback.
+SETTINGS_OF = "Settings / Moods and interests row"
 MODES = [S["off"], S["crossfade"], S["smart"]]
 LENGTHS = [2, 4, 6, 8, 10, 12]
 LENGTH = 6                                  # the default, and DemoStates.kt's crossfadeSeconds
@@ -187,7 +197,7 @@ def _descriptions(d: Doc) -> dict[int, str]:
 
 
 # ============================================================================== the seek bar's mark
-SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.3.0). This frame draws the "
+SAME_PIXELS = ("Seek bar gained Next song mark, a hidden layer, for smart transitions (1.4.0). This frame draws the "
                "same as before.")
 
 
@@ -327,7 +337,7 @@ def _copy(d: Doc, a: Area, ctx: dict, key: str, name: str, source: str, of: str)
 
 def _settings(d: Doc, ss, a: Area, key: str, name: str, mode: str) -> dict:
     """Settings scrolled to Playback (ComfortSettings.kt): Volume levelling, the proposed rows and the Equaliser row
-    as 1.2.0 draws it, then Lyrics and Song radio as the Settings frames have them."""
+    as 1.2.0 draws it, then Lyrics, Moods and Song radio as 1.3.0's Settings / Moods and interests row has them."""
     f, col = ss.phone(a, key, name, SETTINGS_SRC)
     d.screens[key]["status"] = "proposed"
     out = {"frame": f}
@@ -349,6 +359,10 @@ def _settings(d: Doc, ss, a: Area, key: str, name: str, mode: str) -> dict:
     block(d, g, "Lyrics: saved", text="51 of 69 songs have lyrics saved on this phone. Saved lyrics work offline.",
           bold="51 of 69 songs", small_above="Downloading sends each song's title, artist, album and length to lrclib.net. "
                                              "Your music files are never sent.", button="Download lyrics for all songs")
+    ss.label(col, S["moods"])
+    g, _ = group(d, col, "Moods")
+    row(d, g, "Settings row", "Moods and interests", Control="Chevron", Title=S["interests"], Summary=S["interests_value"],
+        **{"Show summary": True, "Show hairline": False})
     ss.label(col, "Song radio")
     g, _ = group(d, col, "Song radio")
     row(d, g, "Settings row", "Autoplay", Control="Switch on", Title="Autoplay",
@@ -487,14 +501,16 @@ def _cover(d: Doc):
 # ============================================================================== build
 def build(d: Doc, ctx: dict):
     if not ctx.get("opened"):
-        print("    transitions: skipped in a build from scratch. Run `comfort.equaliser`, then `python3 -m "
-              "comfort.transitions OUT.figcraft OUT-1.3.0.figcraft`, on the saved file to add it.", flush=True)
+        print("    transitions: skipped in a build from scratch. Run `comfort.equaliser` and `comfort.moods`, then "
+              "`python3 -m comfort.transitions OUT.figcraft OUT-1.4.0.figcraft`, on the saved file to add it.", flush=True)
         return
     frames = attach(d, ctx)
     if "Transitions / Settings, off · Light" in frames:
         raise SystemExit("this file already has the Transitions section; nothing to add")
     if "Equaliser / Settings, Playback · Light" not in frames:
         raise SystemExit("transitions: this file has no equaliser (1.2.0); run comfort.equaliser on it first")
+    if f"{SETTINGS_OF} · Light" not in frames:
+        raise SystemExit(f"transitions: this file has no {SETTINGS_OF!r} frame (1.3.0); run comfort.moods on it first")
     ctx["descriptions"] = _descriptions(d)
     before = changed_frames(d)
     _seek_bar(d, ctx)
