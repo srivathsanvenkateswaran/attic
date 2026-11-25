@@ -1,6 +1,8 @@
 package app.attic.player
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -23,12 +25,16 @@ import app.attic.player.widget.PlayerWidget
 import app.attic.player.ui.AtticTheme
 import app.attic.player.ui.LocalIsDark
 import app.attic.player.ui.LocalUiStyle
+import app.attic.player.ui.adaptive.LocalWindowLayout
+import app.attic.player.ui.adaptive.currentWindowLayout
+import app.attic.player.ui.adaptive.locksToPortrait
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         if (attic.settings.uiStyle.value == UiStyle.Comfort) setTheme(R.style.Theme_Attic_Comfort)
         super.onCreate(savedInstanceState)
+        lockPhonesToPortrait()
         // The system draws the splash before any app code runs, so each style's splash is handed over
         // now and used from the next cold start. The system keeps the choice.
         lifecycleScope.launch {
@@ -47,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val mode by attic.settings.themeMode.collectAsStateWithLifecycle()
             val uiStyle by attic.settings.uiStyle.collectAsStateWithLifecycle()
-            CompositionLocalProvider(LocalUiStyle provides uiStyle) {
+            CompositionLocalProvider(LocalUiStyle provides uiStyle, LocalWindowLayout provides currentWindowLayout()) {
                 AtticTheme(mode, uiStyle) {
                     val dark = LocalIsDark.current
                     LaunchedEffect(dark) {
@@ -65,6 +71,24 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         handleWidgetIntent(intent)
         OpenWith.handle(attic, intent) || PlayFromSearch.handle(attic, intent)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // A foldable opened or closed changes the display without recreating the activity.
+        lockPhonesToPortrait()
+    }
+
+    /**
+     * Phones stay in portrait, which every phone screen is drawn for; tablets and unfolded foldables
+     * turn freely. Judged on the whole display, not the window, so a small floating window on a tablet
+     * doesn't lock it. Android ignores the request in multi-window and, from Android 16, on large screens.
+     */
+    private fun lockPhonesToPortrait() {
+        val bounds = windowManager.maximumWindowMetrics.bounds
+        val smallestSideDp = minOf(bounds.width(), bounds.height()) / resources.displayMetrics.density
+        val wanted = if (locksToPortrait(smallestSideDp)) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        if (requestedOrientation != wanted) requestedOrientation = wanted
     }
 
     private fun handleWidgetIntent(intent: Intent?) {

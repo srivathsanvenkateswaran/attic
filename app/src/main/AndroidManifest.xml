@@ -55,13 +55,19 @@
             android:name="com.google.android.gms.car.application.theme"
             android:resource="@style/Theme.Attic.Car" />
 
+        <!--
+            No orientation in the manifest: tablets turn freely, and MainActivity keeps phones in portrait
+            at runtime (ui/adaptive/AdaptiveLayout.kt, locksToPortrait). Rotating, resizing and split
+            screen are handled in place by Compose rather than by recreating the activity, so the player
+            connection, the open overlay and every scroll position stay as they were.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
