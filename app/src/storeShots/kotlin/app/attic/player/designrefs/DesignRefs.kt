@@ -421,10 +421,13 @@ class Ref(
                     sheet = menu(d.trackMenu(DemoLibrary.nowPlaying, fromNowPlaying = true, timer = d.timerRunning), overPlayer = true),
                 )
                 "sheet_equaliser" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetDefault) })
-                "sheet_equaliser_song" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetSong) })
-                "sheet_equaliser_album" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetAlbum) })
+                // A song with its own or its album's setting shows the header's indicator behind the sheet, as the app does.
+                "sheet_equaliser_song" -> overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetSong) })
+                "sheet_equaliser_album" ->
+                    overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithAlbumEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetAlbum) })
                 "sheet_equaliser_off" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetOff) })
-                "dialog_equaliser_save_preset" -> overlayRef(Capture.Screen, sheet = { EqSheet(style, EqualiserDemo.sheetSavePreset) })
+                "dialog_equaliser_save_preset" ->
+                    overlayRef(Capture.Screen, nowPlaying = d.nowPlayingWithEqualiser, sheet = { EqSheet(style, EqualiserDemo.sheetSavePreset) })
                 "now_playing_equaliser" -> overlayRef(nowPlaying = d.nowPlayingWithEqualiser)
                 "settings_equaliser" -> shell(Tab.Home) {
                     val page = EqualiserDemo.page()

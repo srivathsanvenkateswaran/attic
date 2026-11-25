@@ -253,12 +253,17 @@ object DesignStates {
     val radioContext = "Radio · ${now.title}"
 
     /** Now Playing for a song with its own equaliser setting: the header shows the indicator. */
-    val nowPlayingWithEqualiser: NowPlayingState get() {
+    val nowPlayingWithEqualiser: NowPlayingState get() = nowPlayingWithEqualiser(EqScope.Song)
+
+    /** Now Playing for a song that plays with its album's setting: the indicator reads "This album". */
+    val nowPlayingWithAlbumEqualiser: NowPlayingState get() = nowPlayingWithEqualiser(EqScope.Album)
+
+    private fun nowPlayingWithEqualiser(scope: EqScope): NowPlayingState {
         val n = nowPlaying
         return NowPlayingState(
             track = n.track, contextName = n.contextName, contextKind = n.contextKind, isPlaying = n.isPlaying, shuffle = n.shuffle,
             repeatMode = n.repeatMode, queue = n.queue, currentIndex = n.currentIndex, liked = n.liked, artist = n.artist,
-            lyrics = n.lyrics, clock = n.clock, equaliser = EqScope.Song,
+            lyrics = n.lyrics, clock = n.clock, equaliser = scope,
         )
     }
 
