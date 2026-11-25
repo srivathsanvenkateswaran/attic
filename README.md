@@ -54,7 +54,7 @@ It was built for one phone and its library of 740 songs, 279 MP3 and 461 M4A. Ev
 - Learns from skips, finishes and likes in a listening log kept on the phone
 
 **Plays it the way you set it**
-- Transitions between songs: off by default, a crossfade of 2 to 12 seconds, or Smart, which starts the next song as this one winds down, skips silence and lines up the beats when the tempos are close. Songs from one album played in order still run straight into each other
+- Transitions between songs: off by default, a crossfade of 2 to 12 seconds, or Smart, which starts the next song as this one winds down, skips silence, picks an overlap of 1 to 12 seconds and lines up a beat of each when the tempos are within 6%. Songs not analysed yet get the crossfade length, and songs from one album played in order still run straight into each other
 - Volume levelling, on by default: songs play at a similar loudness, from their ReplayGain tags or the loudness measured during analysis
 - A ten-band equaliser of Attic's own, off by default, with eleven presets and your own. Open it from the menu on Now Playing
 - A song or an album can keep its own equaliser setting, which comes back whenever it plays: a song uses its own, else its album's, else the default. A pill on Now Playing shows when one is in use
@@ -158,7 +158,7 @@ Worth reading if you open the code:
 - **Shuffle reorders the real playlist** instead of keeping a separate play order, so the queue screen always shows what will actually play. See [`PhysicalShuffle.kt`](app/src/main/java/app/attic/player/playback/PhysicalShuffle.kt).
 - **Saved data points at file paths, not MediaStore IDs**, so likes and playlists survive a media rescan.
 
-## How radio, mixes, moods and levelling work
+## How radio, mixes, moods, transitions and levelling work
 
 Each file is decoded on the phone and passed through [Discogs-EffNet](https://essentia.upf.edu/models.html), which turns its sound into 1,280 numbers. Radio finds the songs nearest to the session by cosine similarity, then re-ranks them by composer, likes and skips. A separate melody comparison, based on cover-song detection, spots the same song in another language or edit.
 
@@ -167,6 +167,8 @@ The same pass keeps the five Discogs styles the model scores highest for each so
 Home's Mixes come from the same numbers. The songs you have played or liked are grouped by k-means into three to five clusters, one more for every 20 such songs, and each cluster of four or more becomes a mix of up to 25 songs, a third of them songs you rarely play that sound like the rest. Smart shuffle and genre radio use the same search as song radio, seeded with the average sound of the playlist or genre.
 
 Mood mixes start from the same numbers too. Nine small classifiers bundled with the app read each song's stored analysis and score it for things like happy, sad, relaxed, danceable and instrumental. Each mood is a weighted mean of those scores, ranked within your own library, plus a limit on the raw scores, so the saddest songs in a party library don't become a Melancholy mix. Songs that fit a mood are ranked by that fit, then nudged by the genres and languages you picked and by your likes and skips, and away from what you heard in the last few hours. The day's 25 songs are a weighted draw from the top 50, with at most three per artist and two per album, using a random generator seeded by the date, so the same library and picks give the same mix all day and a different one tomorrow. [`docs/features/mood-mixes.md`](docs/features/mood-mixes.md) has the formulas.
+
+The pass also reads where each song really starts and ends, where its outro begins, how its level moves near both ends, and its tempo and beat positions there. Smart transitions plan each overlap from those readings, choosing a start and a length of 1 to 12 seconds that keep two loud passages from clashing, avoid fading away music and leave no dead air. When both songs have a clear beat and their tempos are within 6%, counting half and double time, the overlap is kept short enough that the beats drift apart by no more than 40 ms, and its middle is moved onto a beat of each song. Beats line up; bars may not. Neither song is stretched or pitch-shifted. Radio and smart shuffle add a small preference for songs whose tempo, energy and key follow on from the last one.
 
 The pass also measures each song's loudness. Volume levelling brings a song to about -14 LUFS, from its ReplayGain tags when it has them, without raising its loudest peak past -1 dBFS, and an album played in order shares one gain so its quiet and loud tracks keep their balance.
 
@@ -192,7 +194,8 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 - Android draws the lock-screen player, so the app controls its content but not its layout.
 - Songs with no lyrics in their files depend on what LRCLIB has, which found them for 236 of the 279 MP3s tested.
 - Radio can't tell a song's language from romanized lyrics, so those songs stay unknown until labelled.
-- Radio doesn't yet match tempo or energy between neighbouring songs.
+- Radio's lean towards songs whose tempo, energy and key follow on is small: it reorders close matches and never brings in a song radio wouldn't otherwise play.
+- Smart transitions haven't yet lined up beats on a phone: none of the song pairs tried there had tempos within 6% of each other. How they sound still needs listening.
 - Android Auto support hasn't been tried in a car or on a head unit yet.
 - Title cleanup is a set of rules, so an unusual upload title can still come out wrong.
 
