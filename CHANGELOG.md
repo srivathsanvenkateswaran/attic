@@ -19,15 +19,6 @@ All notable changes to Attic are listed here. Versions follow [Semantic Versioni
 - Radio and smart shuffle lean slightly towards songs whose tempo, energy and key follow on from the last one
 - Analysis also measures each song's start, end, outro, tempo and key
 
-### Backup
-- Backups carry your moods, genres and languages. A backup file made by 1.3.0 can't be restored by an older Attic. Files from 1.0, 1.1 and 1.2 still restore
-
-### Upgrading from 1.2.0
-- Songs already analysed get mood scores the first time Home opens, from what analysis stored. Romantic and Smart transitions need one more decode of each song, so analysis runs once more while the phone charges, and until it has, Settings shows analysis as not finished, Romantic has no mix and Smart uses the crossfade length for those songs
-- The APK grows by about 6.5 MB, for the mood classifiers
-
-<!-- TODO: tablets -->
-
 ### Tablets
 - Laid out for tablets and other large windows, in both styles, light and dark. A navigation rail (Expressive) or a side dock (Comfort) replaces the bottom bar, and a player bar runs along the bottom of the screen
 - The Library shows the album, artist or playlist you open beside its list when the tablet is sideways; albums, artists and playlists put their cover and buttons beside the songs
@@ -35,6 +26,13 @@ All notable changes to Attic are listed here. Versions follow [Semantic Versioni
 - Home, Search and the Library spread into columns; Settings, the queue and the Recap page stay a readable width; sheets and dialogs no longer stretch across the screen
 - Tablets turn freely and keep the screen, the open player and your place in a list when rotated or resized, including in split screen and floating windows. Phones stay in portrait
 - With a keyboard, Space plays and pauses and Esc closes what is open; with a mouse, a right click on a song opens its menu
+
+### Backup
+- Backups carry your moods, genres and languages. A backup file made by 1.3.0 can't be restored by an older Attic. Files from 1.0, 1.1 and 1.2 still restore
+
+### Upgrading from 1.2.0
+- Songs already analysed get mood scores the first time Home opens, from what analysis stored. Romantic and Smart transitions need one more decode of each song, so analysis runs once more while the phone charges, and until it has, Settings shows analysis as not finished, Romantic has no mix and Smart uses the crossfade length for those songs
+- The APK grows by about 6.5 MB, for the mood classifiers
 
 ## [1.2.0] - 2026-11-25
 

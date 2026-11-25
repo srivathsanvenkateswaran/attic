@@ -10,9 +10,10 @@ PLAYS YOUR LIBRARY
 - Favourites and your own playlists, stored on the device
 - Dark and light themes, or match the phone
 - Two styles to pick from in Settings: Expressive and Comfort
+- Tablet layouts: a side rail, and two panes when the tablet is sideways
 
 FINDS WHAT TO PLAY NEXT, OFFLINE
-- Start radio from any song: Attic keeps ten similar songs in the queue
+- Start radio from any song: Attic keeps ten similar songs queued
 - Mixes on Home, new each day: nine instant mixes from your favourites, and mixes of the songs you play, grouped by how they sound
 - Mood mixes: a mix a day for Chill, Focus, Party and four more moods, from how your songs sound and the moods, genres and languages you pick. Each has its own radio
 - On repeat, Haven't heard in a while and Newly added shelves on Home
@@ -22,11 +23,11 @@ FINDS WHAT TO PLAY NEXT, OFFLINE
 - Plays one version of a song that exists in more than one language
 - Learns from skips, finishes and likes in a listening log kept on the phone
 
-Radio, mixes, moods and genres come from analysing each song's sound on the phone. Nothing is uploaded. Analysis runs while the phone charges.
+Radio, mixes, moods and genres come from analysing each song's sound on the phone while it charges. Nothing is uploaded.
 
 PLAYBACK
 - A ten-band equaliser with eleven presets and your own. A song or an album can keep its own setting, which comes back whenever it plays
-- It runs inside Attic, so it sounds the same on every phone and switches exactly between songs. Boost presets play quieter rather than distort
+- It runs inside Attic, so it sounds the same on every phone. Boost presets play quieter rather than distort
 - Smart transitions start the next song where this one winds down, skip silence and line up beats when tempos are close. Or a plain 2 to 12 s crossfade
 - Volume levelling, from ReplayGain tags or the loudness measured during analysis
 
@@ -37,7 +38,7 @@ KEEPS PLAYING OUTSIDE THE APP
 - Supports Android Auto: browse your library, search, and ask for music by voice
 
 SHOWS LYRICS, THEN KEEPS THEM
-- Synced lyrics highlight the current line, and tapping a line jumps to it
+- Synced lyrics highlight the current line; tap a line to jump to it
 - Download lyrics for one song or the whole library from LRCLIB, then use them offline
 
 CLEANS UP MESSY TAGS
@@ -52,6 +53,6 @@ Attic has no account, analytics or ads, and playback and song analysis never tou
 GOOD TO KNOW
 - Attic finds songs in any folder on the phone or its SD card, and leaves out ringtones, recordings, podcasts, audiobooks and voice notes
 - It needs Android 13 or newer and a 64-bit ARM phone
-- The release build has been tested on one phone, with a library of 740 MP3 and M4A songs
+- Tested on one phone with 740 songs, including at a tablet's screen size
 
 Attic is free software under the GNU General Public License v3.0 or later. The source code and issue tracker are at github.com/srivathsanvenkateswaran/attic.

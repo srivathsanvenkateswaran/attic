@@ -3,6 +3,6 @@ Mood mixes: a Moods shelf on Home with a mix a day for moods like Chill, Focus a
 - Pick moods, genres and languages in Settings > Moods
 - Each mood page has Play, shuffle and Mood radio
 - Smart transitions: the next song starts as this one winds down, skipping silence, with beats lined up when tempos are close
+- Tablets: a side rail, and two panes when the tablet is sideways
 
 Romantic and Smart fill in as Attic analyses while the phone charges.
-<!-- TODO: tablets -->
