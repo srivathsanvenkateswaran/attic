@@ -17,7 +17,7 @@ struct CollectionScreen: View {
     @State private var confirmingDelete = false
 
     /// How far the header scrolls before its title is under the bar (68 below the bar's top, DESIGN.md).
-    private static let titleUnderBarOffset: CGFloat = 48
+    private static let titleUnderBarOffset: CGFloat = 40
 
     var body: some View {
         let model = makeCollectionModel(app: app, router: router, kind: kind)
@@ -94,7 +94,6 @@ struct CollectionScreen: View {
                 }
             }
             .contentMargins(.bottom, AtticSpacing.dockClearance, for: .scrollContent)
-            .ignoresSafeArea(edges: .top)
             .onScrollGeometryChange(for: Bool.self) { geometry in
                 geometry.contentOffset.y + geometry.contentInsets.top > Self.titleUnderBarOffset
             } action: { _, under in

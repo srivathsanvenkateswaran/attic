@@ -29,9 +29,8 @@ struct LibraryScreen: View {
         VStack(spacing: 0) {
             RootAppBar(S.libraryTitle, scrolled: scrolled) {
                 AtticIconButton(.search, label: S.librarySearchCd, action: actions.openSearch)
-                AtticToggleButton(
-                    .gridView,
-                    isOn: state.grid,
+                AtticIconButton(
+                    state.grid ? .viewList : .gridView,
                     label: state.grid ? S.libraryShowListCd : S.libraryShowGridCd,
                     action: actions.toggleGrid
                 )

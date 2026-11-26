@@ -345,7 +345,7 @@ public enum S {
     public static let onboardingStart = "Start listening"
     public static func onboardingStep(_ a0: Int, _ a1: Int) -> String { "Step \(a0) of \(a1)" }
     public static let onboardingTheme = "Theme"
-    public static let onboardingWelcomeBody = "Attic plays the music files on this phone. There's no account, and everything works offline."
+    public static let onboardingWelcomeBody = "Attic plays the music files on this iPhone. There's no account, and everything works offline."
     public static let onboardingWelcomeTitle = "Welcome to Attic"
     public static let openWithUntitled = "Audio file"
     public static let pause = "Pause"

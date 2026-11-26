@@ -62,6 +62,7 @@ private struct QueueSheet: View {
 
     private var list: some View {
         List {
+            Group {
             if let current = state.current {
                 ListLabel(S.queueNowPlaying)
                 ArtworkImage(track: current, maxPixel: 144) { image in
@@ -82,8 +83,9 @@ private struct QueueSheet: View {
                 EmptyState(title: S.queueNothingUpNext, body: nil, symbol: .queueMusic, clover: true)
                     .padding(.top, 48)
             } else {
-                HStack(alignment: .bottom, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
                     ListLabel(state.upNextLabel)
+                    Spacer(minLength: 0)
                     AtticButton(S.queueClear, variant: .text) { actions.clearUpNext() }
                 }
                 .padding(.trailing, 20)
@@ -110,20 +112,25 @@ private struct QueueSheet: View {
                     }
                 }
                 .onMove { from, to in
-                    guard let source = from.first,
-                          state.upNext.indices.contains(source), state.upNext.indices.contains(to) else { return }
-                    actions.move(state.upNext[source].queueIndex, to)
+                    // SwiftUI's `to` counts the row being moved, so a move downwards lands one later.
+                    guard let source = from.first, state.upNext.indices.contains(source) else { return }
+                    let destination = to > source ? to - 1 : to
+                    guard state.upNext.indices.contains(destination), destination != source else { return }
+                    actions.move(state.upNext[source].queueIndex, destination)
                 }
             }
 
             // 40pt under the last row (DESIGN.md, Queue).
             Color.clear.frame(height: 40)
+            }
+            // On the rows, where List reads them; on the List itself they do nothing.
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets())
-        .listRowBackground(Color.clear)
+        .environment(\.defaultMinListRowHeight, 0)
         .groupCellColor(scheme.surfaceContainerHigh)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

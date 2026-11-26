@@ -58,10 +58,13 @@ struct AppShell: View {
             stack(.search, path: $router.searchPath) { SearchScreen() }
             stack(.library, path: $router.libraryPath) { LibraryScreen() }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        // An overlay, not a safe-area inset: an inset on the ZStack stops at the NavigationStacks, so
+        // the screens inside would not know about the dock. Each stack's content gets the padding instead.
+        .overlay(alignment: .bottom) {
             dock
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { dockHeight = $0 }
         }
+        .environment(\.dockInset, keyboardUp ? 0 : dockHeight)
         .snackbar($router.message, bottomInset: keyboardUp ? 0 : dockHeight)
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
             keyboardUp = true
@@ -130,6 +133,7 @@ struct AppShell: View {
         return NavigationStack(path: path) {
             root()
                 .toolbar(.hidden, for: .navigationBar)
+                .dockPadded()
                 .withRoutes()
         }
         .opacity(selected ? 1 : 0)
@@ -160,16 +164,41 @@ extension View {
     /// Every pushed screen, for a tab's NavigationStack.
     func withRoutes() -> some View {
         navigationDestination(for: Route.self) { route in
-            switch route {
-            case .album(let key): AlbumScreen(key: key)
-            case .artist(let key): ArtistScreen(key: key)
-            case .folder(let path): FolderScreen(path: path)
-            case .playlist(let id): PlaylistScreen(id: id)
-            case .favourites: FavouritesScreen()
-            case .settings: SettingsScreen()
-            case .licences: LicencesScreen()
-            case .licence(let id): LicenceScreen(id: id)
+            Group {
+                switch route {
+                case .album(let key): AlbumScreen(key: key)
+                case .artist(let key): ArtistScreen(key: key)
+                case .folder(let path): FolderScreen(path: path)
+                case .playlist(let id): PlaylistScreen(id: id)
+                case .favourites: FavouritesScreen()
+                case .settings: SettingsScreen()
+                case .licences: LicencesScreen()
+                case .licence(let id): LicenceScreen(id: id)
+                }
             }
+            .onSurface()
+            .dockPadded()
         }
     }
+}
+
+extension EnvironmentValues {
+    /// The dock's height (tab bar plus mini player), which every tab screen keeps clear of.
+    @Entry var dockInset: CGFloat = 0
+}
+
+private struct DockPadding: ViewModifier {
+    @Environment(\.dockInset) private var inset
+    func body(content: Content) -> some View { content.safeAreaPadding(.bottom, inset) }
+}
+
+/// Pushed screens draw on `surface`; without it the system's white or black shows behind them.
+private struct SurfaceBackground: ViewModifier {
+    @Environment(\.atticScheme) private var scheme
+    func body(content: Content) -> some View { content.background(scheme.surface.ignoresSafeArea()) }
+}
+
+extension View {
+    func dockPadded() -> some View { modifier(DockPadding()) }
+    func onSurface() -> some View { modifier(SurfaceBackground()) }
 }

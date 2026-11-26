@@ -81,7 +81,7 @@ func makeQueueModel(app: AppModel, router: Router) -> (state: QueueState, action
     case .artist: .person
     case .playlist: .playlistPlay
     case .folder: .folder
-    case .other: nil
+    case .other: .libraryMusic
     }
 
     let state = QueueState(
