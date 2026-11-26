@@ -59,7 +59,9 @@ public final class AudioPlayer: PlaybackControlling {
     // MARK: - Loading
 
     /// Makes `position` current and fills the player with it and the song after it.
-    private func load(position: Int, play shouldPlay: Bool) {
+    /// `announce` is false when the queue ran out and the last song is only made ready again,
+    /// which must not count as a play.
+    private func load(position: Int, play shouldPlay: Bool, announce: Bool = true) {
         isLoading = true
         defer { isLoading = false }
 
@@ -97,7 +99,7 @@ public final class AudioPlayer: PlaybackControlling {
         }
         setPlaying(shouldPlay)
         syncState()
-        if let track = queue.current { onTrackStarted?(track) }
+        if announce, let track = queue.current { onTrackStarted?(track) }
     }
 
     /// Preloads the song that plays after `item`, if there is one.
@@ -290,7 +292,7 @@ public final class AudioPlayer: PlaybackControlling {
         guard let item = player.currentItem else {
             setPlaying(false)
             // With repeat off the last song stays ready at its start.
-            if !queue.isEmpty { load(position: queue.position, play: false) }
+            if !queue.isEmpty { load(position: queue.position, play: false, announce: false) }
             return
         }
         let id = ObjectIdentifier(item)
