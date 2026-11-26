@@ -7,6 +7,10 @@ import SwiftUI
 ///
 /// Wrap it in `.fromArt(seed:)` for a collection with a cover. The detail bar floats over its top 64
 /// points, so the block starts its text 68 below the status bar.
+///
+/// Put it first in a scroll view that keeps the top safe area. The block's fill runs on above the
+/// header, under the status bar and into the gap a pull-down opens; the scroll view must not ignore the
+/// top safe area, or the title starts under the bar.
 public struct CollectionHeader<CoverArt: View>: View {
     @Environment(\.atticScheme) private var scheme
     private let title: String
@@ -65,6 +69,9 @@ public struct CollectionHeader<CoverArt: View>: View {
     /// The side of the cover.
     public static var coverSize: CGFloat { 208 }
 
+    /// How far the fill runs above the header: past the status bar and any pull-down.
+    private static var fillAbove: CGFloat { 1000 }
+
     public var body: some View {
         let shape = UnevenRoundedRectangle(
             topLeadingRadius: 0,
@@ -91,7 +98,7 @@ public struct CollectionHeader<CoverArt: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(EdgeInsets(top: 68, leading: AtticSpacing.screenMargin, bottom: 20, trailing: AtticSpacing.screenMargin))
-        .background(scheme.surfaceContainer.clipShape(shape).ignoresSafeArea(edges: .top))
+        .background(scheme.surfaceContainer.clipShape(shape).padding(.top, -Self.fillAbove))
     }
 
     private var titleText: some View {
