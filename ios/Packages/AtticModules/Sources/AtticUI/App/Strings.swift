@@ -160,7 +160,7 @@ public enum S {
     public static let favouritesEmptyBody = "Tap the heart on a song to save it."
     public static let favouritesEmptyTitle = "Songs you like will appear here"
     public static let favouritesOptionsCd = "Favourites options"
-    public static let folderSubtitle = "Playlist from a folder on this phone"
+    public static let folderSubtitle = "Playlist from a folder on this iPhone"
     public static let genreSubtitle = "Genre, from tags and analysis"
     public static let homeAlbumNoYear = "Album"
     public static let homeAlbums = "Albums"

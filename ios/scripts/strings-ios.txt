@@ -19,3 +19,4 @@ lyrics_not_downloaded = Download once and they stay on this iPhone.
 settings_theme_system = Match iPhone
 mini_player_open_hint = Opens the player
 loading = Loading
+folder_subtitle = Playlist from a folder on this iPhone

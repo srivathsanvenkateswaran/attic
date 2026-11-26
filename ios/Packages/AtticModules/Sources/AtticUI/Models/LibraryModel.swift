@@ -143,7 +143,7 @@ func makeLibraryModel(
     }
 
     func playlistSubtitle(_ count: Int) -> String {
-        S.libraryPlaylistSubtitle(count: count, Format.songs(count))
+        S.libraryPlaylistSubtitle(count: count, S.grouped(count))
     }
 
     let likedCount = app.favourites.count
