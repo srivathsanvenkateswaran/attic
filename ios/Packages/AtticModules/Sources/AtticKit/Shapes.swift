@@ -40,12 +40,20 @@ public enum AtticRadius {
 }
 
 /// A rounded square whose corner follows the size it is drawn at, by `AtticRadius.cover(_:)`.
-public struct CoverShape: Shape {
+public struct CoverShape: InsettableShape {
+    private var inset: CGFloat = 0
+
     public init() {}
 
     public func path(in rect: CGRect) -> Path {
-        let radius = AtticRadius.cover(min(rect.width, rect.height))
-        return Path(roundedRect: rect, cornerRadius: radius, style: .circular)
+        let radius = max(0, AtticRadius.cover(min(rect.width, rect.height)) - inset)
+        return Path(roundedRect: rect.insetBy(dx: inset, dy: inset), cornerRadius: radius, style: .circular)
+    }
+
+    public func inset(by amount: CGFloat) -> CoverShape {
+        var copy = self
+        copy.inset += amount
+        return copy
     }
 }
 
