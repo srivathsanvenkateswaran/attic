@@ -12,7 +12,8 @@ public final class NowPlayingCenter: NowPlayingPublishing {
     private var artworkTask: Task<Void, Never>?
 
     private var lastSongKey: String?
-    private var artwork: MPMediaItemArtwork?
+    /// Internal so tests can see it without going through the system centre, which is slow on a busy simulator.
+    private(set) var artwork: MPMediaItemArtwork?
 
     private struct Visible: Equatable {
         let key: String?

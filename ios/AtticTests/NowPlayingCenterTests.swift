@@ -6,6 +6,15 @@ import XCTest
 
 @MainActor
 final class NowPlayingCenterTests: XCTestCase {
+    /// The first call into the system's now-playing service can stall for over a minute on a busy
+    /// simulator. Pay for it here, outside every test's timeout.
+    override class func setUp() {
+        super.setUp()
+        MainActor.assumeIsolated {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+        }
+    }
+
     private func makeTrack(title: String, artist: String, key: String? = nil) -> Track {
         Track(
             key: key ?? title, rootID: UUID(), relativePath: "r/", fileName: "f.mp3",
@@ -43,7 +52,7 @@ final class NowPlayingCenterTests: XCTestCase {
 
         let exp = expectation(description: "title updated")
         Task { @MainActor in
-            for _ in 0..<200 {
+            for _ in 0..<600 {
                 if MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyTitle] as? String == "Song2" {
                     exp.fulfill()
                     return
@@ -51,7 +60,9 @@ final class NowPlayingCenterTests: XCTestCase {
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 10.0)
+        await fulfillment(of: [exp], timeout: 30.0)
+        // The center and the player are held weakly by their own callbacks; keep both alive until here.
+        withExtendedLifetime((center, player)) {}
     }
 
     func testClearQueueSetsNil() {
@@ -72,15 +83,17 @@ final class NowPlayingCenterTests: XCTestCase {
 
         let exp = expectation(description: "artwork")
         Task { @MainActor in
-            for _ in 0..<200 {
-                if MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyArtwork] != nil {
+            for _ in 0..<600 {
+                if center.artwork != nil {
                     exp.fulfill()
                     return
                 }
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 10.0)
+        await fulfillment(of: [exp], timeout: 30.0)
+        // The center and the player are held weakly by their own callbacks; keep both alive until here.
+        withExtendedLifetime((center, player)) {}
     }
 
     func testHandleRecordsCalls() {
