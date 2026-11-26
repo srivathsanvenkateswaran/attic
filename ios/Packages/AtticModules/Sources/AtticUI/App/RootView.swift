@@ -25,7 +25,12 @@ public struct RootView: View {
         .environment(router)
         .atticTheme(app.themeMode.kitMode)
         .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-        .task { await app.start() }
+        .task {
+            #if DEBUG
+            await DebugLaunch.run(app: app, router: router)
+            #endif
+            await app.start()
+        }
     }
 }
 
