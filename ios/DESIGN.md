@@ -399,8 +399,8 @@ ends above it.
 - **Queue** and **Lyrics** are `.sheet`s from Now Playing with `.presentationDetents([.large])`,
   `.presentationDragIndicator(.hidden)` (the screen draws `SheetHandle`),
   `.presentationCornerRadius(AtticRadius.extraLarge)` and `.presentationBackground(scheme.surface)`.
-  Both are inside `.fromArt(seed:)`; a sheet does not inherit the environment override, so apply it
-  again on the sheet's content.
+  Apply `.fromArt(seed:)` again on each sheet's content, so its default text colour and tint follow
+  the cover too.
 - A song's menu is a system `Menu` on the row's more button and the same items as a `.contextMenu`
   on the row. Naming a playlist is a system `.alert` with a text field. Deleting a playlist is a
   `.confirmationDialog`.
@@ -439,8 +439,9 @@ Everything is `public` in `AtticKit`. Every component reads `\.atticScheme` itse
 | `SongRow(title:subtitle:lead:isCurrent:isPlaying:isLiked:action:trailing:)` | 64pt minimum. Padding 12 / 4 / 8 / 8, 12 between parts. Lead: `.cover(Image?)` 48pt, `.number(Int)` 28pt wide in `labelLarge` tabular `onSurfaceVariant`, `.rankedCover(Int, Image?)`, `.none`. Title `bodyLarge` weight 500, line 22, one line. Subtitle `bodyMedium` `onSurfaceVariant`, one line; an empty subtitle is left out. `isLiked` draws a 16pt filled heart in `primary` after the text. `isCurrent`: the row fills with `secondaryContainer` on `defaultEffects`, the title is weight 700, title and subtitle are `onSecondaryContainer`, and the wave is drawn over the cover (on `secondaryContainer` at 80%) or in place of the number | One element: "title, subtitle"; adds "Playing" when current; the trailing control is its own element |
 | `RowMoreMenu(title:) { menu items }` | A 48pt target with `.moreVert` in `onSurfaceVariant` that opens a system `Menu` | "More options for {title}" |
 | `RowMoreButton(title:action:)` | The same glyph as a plain button | "More options for {title}" |
-| `RowDragHandle(title:)` | 48pt, `.dragHandle` in `onSurfaceVariant`; decoration for a row the list can reorder | Hidden |
-| `CollectionRow(title:subtitle:action:lead:trailing:)` | 72pt minimum, a 56pt lead (a `Cover`, `Mosaic`, `FavouritesArt`), same padding and text as a song row | One element: "title, subtitle" |
+| `RowDragHandle()` | 48pt, `.dragHandle` in `onSurfaceVariant`; decoration for a row the list can reorder | Hidden |
+| `RowCount(_ text:)` | A figure at the end of a row ("187 plays"): `labelMedium` tabular `onSurfaceVariant`, 12 from the trailing edge | |
+| `CollectionRow(title:subtitle:isSelected:action:lead:trailing:)` | 72pt minimum, a 56pt lead (a `Cover`, `Mosaic`, `FavouritesArt`), same padding and text as a song row | One element: "title, subtitle" |
 | `SectionHeader(_ title:, overline: String? = nil) { trailing }` | Title `titleLargeEmphasized`; overline `bodyMedium` `onSurfaceVariant` 2pt above it. 28 above, 12 below, 16 at the sides | A header |
 | `ListLabel(_ text:)` | `labelLarge` weight 600 `onSurfaceVariant`; 20 above, 8 below, 32 at the sides | A header |
 
@@ -450,14 +451,15 @@ Everything is `public` in `AtticKit`. Every component reads `\.atticScheme` itse
 |---|---|---|
 | `Tile(title:subtitle:width:isArtist:isCurrent:isPlaying:action:art:)` | The art fills the width (148 by default; `nil` fills the cell), 8pt, title `titleSmall` tracking 0, subtitle `bodySmall` `onSurfaceVariant`, one line each. `isArtist` centres the text. `isCurrent` turns the title `primary` with the wave before it | One button: "title, subtitle" |
 | `Shelf { tiles }` | A horizontal scroll, 12 between tiles, 16 at the edges, no indicator | |
-| `TileGrid(items, columns: 2) { tile }` | 12 between columns; 20 between rows, 16 with three columns; 16 at the sides | |
+| `TileGrid(items, columns: 2) { item in tile }` | `items` are `Identifiable`. 12 between columns; 20 between rows, 16 with three columns; 16 at the sides | |
 | `FavouritesPill(count:unit:height:action:)` | 64 wide, 200 tall, 32pt corners, `tertiaryContainer`; a 28pt filled heart 18 from the top; the count in `titleLargeEmphasized` (line 24) over the unit in `labelSmall`, 16 from the bottom; all `onTertiaryContainer` | "Favourites, {count} {unit}" |
+| `HeroTile(title:subtitle:size:action:art:)` | One of Home's big covers: the art in a 200pt square with 28pt corners, and 10pt under it the title in `titleMedium` weight 600 (line 22) over the subtitle in `bodySmall` `onSurfaceVariant`. Pass `Cover(image, shape: .square)` as the art | One button: "title, subtitle" |
 
 ### Buttons
 
 | Component | Spec | VoiceOver |
 |---|---|---|
-| `AtticButton(_ title:, variant:, size:, leading:, trailing:, squared:, tint:, action:)` | `variant`: `.filled` (`primary`), `.tonal` (`secondaryContainer`), `.outlined` (1pt `outlineVariant`, `onSurfaceVariant` text), `.text` (`primary` text, or `tint`). `size`: `.small` 40pt tall, 16 side padding, label `labelLarge` weight 600, 20pt icon; `.medium` 56pt, 24 side padding, label 16/24 weight 600, 24pt icon. 8 between icon and label; the padding on an icon's side is 4 less. A capsule; `squared` gives it 12 (small) or 16 (medium) corners on `fastSpatial`. Disabled: 38% opacity. Pressed: 92% opacity | The title |
+| `AtticButton(_ title:, variant:, size:, leading:, trailing:, squared:, tint:, fillsWidth:, action:)` | `variant`: `.filled` (`primary`), `.tonal` (`secondaryContainer`), `.outlined` (1pt `outlineVariant`, `onSurfaceVariant` text), `.text` (`primary` text, or `tint`). `size`: `.small` 40pt tall, 16 side padding, label `labelLarge` weight 600, 20pt icon; `.medium` 56pt, 24 side padding, label 16/24 weight 600, 24pt icon. 8 between icon and label; the padding on an icon's side is 4 less. A capsule; `squared` gives it 12 (small) or 16 (medium) corners on `fastSpatial`. `fillsWidth: true` stretches it across the width it is given. Disabled (`.disabled(true)`): 38% opacity. Pressed: 92% opacity | The title |
 | `AtticIconButton(_ symbol:, label:, variant:, medium:, width:, filled:, tint:, action:)` | A 40pt circle in a 48pt target; 56pt with `medium`. `variant`: `.standard` (no container, `onSurfaceVariant`), `.filled`, `.tonal`, `.outlined`. `width`: `.narrow` (32, or 48 medium), `.standard`, `.wide` (52, or 72 medium), `.fill` (takes the width it is given). 24pt glyph | `label` |
 | `AtticToggleButton(_ symbol:, isOn:, label:, medium:, width:, tonalWhenOff:, action:)` | Round while off. On: `primary` container, `onPrimary` filled glyph, corners `onCorner(height)`. The corner moves on `fastSpatial`, the colours on `fastEffects` | `label`; trait "selected" while on |
 | `HeartButton(isFavourite:action:)` | A 40pt target in 48, no container. Outline in `onSurfaceVariant`, or filled in `primary`. Pops from 0.8 to 1 on `fastSpatial` when it changes. A light impact haptic when turned on | "Add to favourites" / "Remove from favourites" |
@@ -501,9 +503,9 @@ tall, plus the times row when `showsTimes`.
 |---|---|---|
 | `AtticTabBar(items:selection:onReselect:)` | 64pt on `surfaceContainer`. Each `AtticTabItem(title:symbol:)` is an equal column: a 56×32 capsule (clear, or `secondaryContainer` when selected, fading on `fastEffects`) holding the 24pt glyph (`onSurfaceVariant`; filled and `onSecondaryContainer` when selected), 4pt, the label in `labelMedium` (weight 500 `onSurfaceVariant`; weight 700 `onSurface` when selected). The whole column is the target | The title; traits "tab", "selected" |
 | `RootAppBar(_ title:, scrolled:, leading:, actions:)` | One row, 16 leading, 8 trailing. At rest: 72pt tall, the title in `displaySmallEmphasized` tracking -0.4, clear. As `scrolled` goes 0 to 1 the row shrinks to 64, the title to `titleLargeEmphasized`, and past 0.5 the bar takes `surfaceContainer` up to the top edge, on `defaultEffects`. `leading` sits 10pt before the title (Home's mark) | The title is a header |
-| `DetailAppBar(_ title:, surface:, onBack:, actions:)` | 64pt, 4 side padding: a back button (`.arrowBack`), the title in `titleLarge` weight 500 (4 side padding, one line), actions. `surface`: `.plain` (clear), `.scrolled` (`surfaceContainer` to the top edge), `.overArt` (clear, no title, each button on a `surface` circle at 62% with `onSurface` glyphs) | "Back"; the title is a header |
-| `ScrollOffsetReader` / `.onScrollFraction(_:)` | Reports how far a scroll view has moved from its top as 0 to 1 over the first 120pt, for the two bars | |
-| `SearchField(text:placeholder:onSubmit:onBack:)` | A 56pt capsule on `surfaceContainerHigh`: `.search` in `onSurface` (16 leading, 12 after), the text in `bodyLarge`, the placeholder in `onSurfaceVariant`, a clear button (`.close`) once there is text. With `onBack` a back button replaces the glyph. The cursor is `primary`. Return key: search | "Clear search" |
+| `DetailAppBar(_ title:, surface:, backSymbol:, backLabel:, onBack:, actions:)` | 64pt, 4 side padding: a back button (`.arrowBack`; pass `backSymbol: .close` and a label for a bar that closes), the title in `titleLarge` weight 500 (4 side padding, one line), actions. `surface`: `.plain` (clear), `.scrolled` (`surfaceContainer` to the top edge), `.overArt` (clear, no title, each button on a `surface` circle at 62% with `onSurface` glyphs) | "Back"; the title is a header |
+| `.onScrollFraction { fraction in }` | On a `ScrollView` or `List`: reports how far it has moved from its top as 0 to 1 over the first 120pt, for the two bars. `.onScrollOffset { points in }` reports the distance itself | |
+| `SearchField(text:placeholder:focus:onSubmit:onBack:)` | A 56pt capsule on `surfaceContainerHigh`: `.search` in `onSurface` (16 leading, 12 after), the text in `bodyLarge`, the placeholder in `onSurfaceVariant`, a clear button (`.close`) once there is text. With `onBack` a back button replaces the glyph. `focus` is an optional `FocusState<Bool>.Binding`, for reading or setting the keyboard focus. The cursor is `primary`. Return key: search | "Clear search" |
 | `ChipRow { chips }` | A horizontal scroll of chips 8 apart, 16 at the sides | |
 | `FilterChip(_ label:, isSelected:, action:)` | 32pt tall in a 48pt target, 8pt corners, `labelLarge`. Off: a 1pt `outlineVariant` border, `onSurfaceVariant` text, 16 side padding. On: `secondaryContainer`, `onSecondaryContainer`, an 18pt tick before the label (8 leading, 8 after the tick, 16 trailing) | The label; trait "selected" |
 | `ConnectedButtonGroup(_ options:, selection:, onGroupCell:, action:)` | A one-of-N switch. Segments 40pt tall, 2 apart; 16 at the sides, 4 above and below. The group's ends are 20pt corners, inner corners 8. Selected: `primary`, `onPrimary`, an 18pt tick 6pt before the label, weight 600, all four corners 20, 15% wider. Others: `surfaceContainerHigh` (`surfaceContainerHighest` with `onGroupCell`), `onSurfaceVariant`, weight 500. Corners and width move on `fastSpatial`, colours on `fastEffects` | Each label; trait "selected" |
@@ -513,8 +515,9 @@ tall, plus the times row when `showsTimes`.
 | Component | Spec | VoiceOver |
 |---|---|---|
 | `MiniPlayerBar(title:artist:cover:isPlaying:isLiked:progress:onOpen:onPlayPause:onNext:onToggleLike:)` | A 64pt capsule on `surfaceContainerHigh`, 8 leading, 6 trailing: a 48pt cover with 16pt corners, 12pt, the title in `labelLarge` weight 600 over the artist in `bodySmall` `onSurfaceVariant` (one line each), a `HeartButton`, a small `PlayButton` whose ring shows `progress`, and a standard icon button with `.skipNext` (filled). Tapping anywhere else calls `onOpen`. Swiping the text left calls `onNext`. The screen wraps it in `.fromArt(seed:)` | The text is one button: "{title}, {artist}", hint "Opens the player"; then "Add to favourites", "Play" / "Pause", "Next" |
-| `CollectionHeader(title:isArtist:byline:meta:isPlaying:shuffleOn:isEnabled:name:onPlay:onShuffle:onAdd:cover:)` | A block on `surfaceContainer` with 32pt bottom corners, running to the top edge. Padding 16 at the sides, 68 below the status bar (the bar floats over it), 20 at the bottom. The title: `headlineLargeEmphasized`, line 36, tracking -0.4, up to three lines, narrowed to 75 if one line does not fit; for an artist `displayMediumEmphasized`, line 48, tracking -0.8. `byline` (an album's artist): 10pt above, a 28pt cookie, 8pt, the name in `bodyLarge` weight 600 `primary`, a button. Each `meta` line: `bodyMedium` `onSurfaceVariant`, 6pt above. Then, 18pt down, a 208pt row: the 208pt cover, 12pt, and the play cluster filling the rest: a play button that fills the cluster (`primary`, corners 48 idle and 28 playing on `fastSpatial`, a 40pt filled glyph over "Play" or "Pause" in `bodyLarge` weight 600), 8pt, a row of a shuffle toggle and an add-to-playlist button, both medium, tonal, `.fill`, 8 apart. Not `isEnabled`: the cluster is 38% and inert | "Play" / "Pause"; "Shuffle {name}"; "Add {name} to a playlist" |
+| `CollectionHeader(title:isArtist:byline:bylineImage:onByline:meta:name:isPlaying:shuffleOn:isEnabled:onPlay:onShuffle:onAdd:cover:)` | A block on `surfaceContainer` with 32pt bottom corners, running to the top edge. Padding 16 at the sides, 68 below the status bar (the bar floats over it), 20 at the bottom. The title: `headlineLargeEmphasized`, line 36, tracking -0.4, up to three lines, narrowed to 75 if one line does not fit; for an artist `displayMediumEmphasized`, line 48, tracking -0.8. `byline` (an album's artist): 10pt above, a 28pt cookie of `bylineImage`, 8pt, the name in `bodyLarge` weight 600 `primary`, a button that calls `onByline`. `name` is the collection's name for the labels and defaults to the title. A nil `onAdd` leaves that button out. Each `meta` line: `bodyMedium` `onSurfaceVariant`, 6pt above. Then, 18pt down, a 208pt row: the 208pt cover, 12pt, and the play cluster filling the rest: a play button that fills the cluster (`primary`, corners 48 idle and 28 playing on `fastSpatial`, a 40pt filled glyph over "Play" or "Pause" in `bodyLarge` weight 600), 8pt, a row of a shuffle toggle and an add-to-playlist button, both medium, tonal, `.fill`, 8 apart. Not `isEnabled`: the cluster is 38% and inert | "Play" / "Pause"; "Shuffle {name}"; "Add {name} to a playlist" |
 | `InfoCard(title:symbol:) { content }` | `surfaceContainer`, 28pt corners, 20 padding; a heading of a 20pt glyph, 8pt, `labelLarge` weight 600, both `onSurfaceVariant`, 14 above the content | The heading is a header |
+| `LyricLine(_ text:, state:, maxLines:)` | A line of lyrics in a card: `titleLargeEmphasized`, 8 below; the current line `onSurface`, a line to come `outline` | The text |
 | `SyncedLyricLine(_ text:, state:, action:)` | `LyricLineState`: `.sung` (`outline`), `.current` (`primary`), `.upcoming` (`onSurfaceVariant`). Current: 34/40 weight 700 rounded, tracking -0.3, 4 above and 20 below. Others: 24/32 weight 500, 14 below. Size and colour move on `defaultSpatial` and `defaultEffects`. Leading aligned, wraps | The text; a button |
 
 ### Sheets, settings and states
@@ -530,9 +533,10 @@ tall, plus the times row when `showsTimes`.
 | `SettingsRow(title:summary:symbol:) { trailing }` | 64pt minimum; 16 at the sides, 12 above and below, 16 between parts. With a symbol: a 40pt `secondaryContainer` circle holding the 20pt glyph in `onSecondaryContainer`. Title `bodyLarge` weight 500; summary `bodyMedium` `onSurfaceVariant`, wraps | One element |
 | `SettingsToggleRow(title:summary:symbol:isOn:)` | A `SettingsRow` ending in a system `Toggle` tinted `primary`; the whole row toggles | A switch |
 | `SettingsChoiceRow(title:summary:isSelected:action:)` | A `SettingsRow` ending in a 24pt tick in `primary` when selected | Trait "selected" |
-| `SettingsNavigationRow(title:summary:symbol:action:)` | A `SettingsRow` ending in `.chevronRight` in `onSurfaceVariant` | A button |
+| `SettingsNavigationRow(title:summary:symbol:showsChevron:action:)` | A `SettingsRow` ending in `.chevronRight` in `onSurfaceVariant`; `showsChevron: false` for a row that does something in place | A button |
+| `LargeTitle(_ text:, bottom:)` | The title a page under Settings opens with: `displaySmallEmphasized` tracking -0.4, 16 at the sides, 8 above | A header |
 | `SettingsNote(_ text:)` | `bodyMedium` `onSurfaceVariant`, 16 padding, in a group cell | |
-| `EmptyState(title:body:symbol:clover:) { action }` | Centred; 32 at the sides, 48 above and below. A 112pt square with 36pt corners (or the 128pt clover) on `secondaryContainer` holding a 48pt glyph in `onSecondaryContainer`; 24pt; the title in `headlineSmallEmphasized`; 8pt; the body in `bodyMedium` `onSurfaceVariant`; 24pt; the action. All centred text | One element, then the action |
+| `EmptyState(title:body:symbol:clover:) { action }` | Centred; a nil `symbol` leaves the picture out; 32 at the sides, 48 above and below. A 112pt square with 36pt corners (or the 128pt clover) on `secondaryContainer` holding a 48pt glyph in `onSecondaryContainer`; 24pt; the title in `headlineSmallEmphasized`; 8pt; the body in `bodyMedium` `onSurfaceVariant`; 24pt; the action. All centred text | One element, then the action |
 | `LoadingState(_ label: String? = nil)` | A `LoadingIndicator` centred in the space it is given, with the label 16pt under it in `bodyLarge` `onSurfaceVariant`. It appears after 400 ms, so a quick load never flashes it | "Loading", or the label |
 | `Snackbar(_ text:)` | `inverseSurface`, 8pt corners, 16 side padding, 14 above and below, `bodyMedium` in `inverseOnSurface`, as wide as the screen less 32 | Announced when shown |
 | `.snackbar(_ message: Binding<String?>, bottomInset:)` | Shows a `Snackbar` over the view's bottom edge, `bottomInset` + 16 up; it rises and fades in on `defaultSpatial`, stays 3 s, then sets the binding to nil | |
@@ -557,18 +561,18 @@ sides. Three steps, moved between on `AtticMotion.defaultSpatial` with a cross-f
 1. **Welcome.** Centred vertically: `AtticMarkIcon(size: 72)` in `primary`; 32pt;
    `onboarding_welcome_title` in `headlineLargeEmphasized` tracking -0.3; 14pt;
    `onboarding_welcome_body` in `bodyLarge` `onSurfaceVariant`. Pinned to the bottom, 24 above the
-   home indicator: `AtticButton(onboarding_get_started, size: .medium)` at full width.
+   home indicator: `AtticButton(onboarding_get_started, size: .medium, fillsWidth: true)`.
 2. **Choose a music folder.** From the top, 32 below the status bar: `onboarding_step` ("Step 1 of
    2") in `labelLarge` `primary`; 8pt; `onboarding_access_title` in `headlineLargeEmphasized`; 14pt;
    `ios_folder_body` in `bodyLarge` `onSurfaceVariant`; 24pt; a `ListGroup` of one
    `SettingsRow(title: ios_folder_row_title, summary: ios_folder_row_body, symbol: .folderOpen)`
    whose trailing is `AtticButton(ios_folder_choose, variant: .tonal)`. Once a folder is chosen the
    summary is the folder's name and the trailing is a 24pt tick in `primary`. Pinned to the bottom:
-   `AtticButton(onboarding_continue, size: .medium)` at full width, disabled until a folder is
+   `AtticButton(onboarding_continue, size: .medium, fillsWidth: true)`, disabled until a folder is
    chosen. "Choose" opens `.fileImporter(allowedContentTypes: [.folder])`.
 3. **Finding your songs.** "Step 2 of 2". While scanning: `LoadingState(onboarding_scanning)`.
    After: `onboarding_found` ("Found 127 songs") in `headlineLargeEmphasized`, and
-   `AtticButton(onboarding_start, size: .medium)` pinned to the bottom. With no songs:
+   `AtticButton(onboarding_start, size: .medium, fillsWidth: true)` pinned to the bottom. With no songs:
    `EmptyState(title: home_empty_title, body: home_empty_body, symbol: .musicOff, clover: true)` with
    a tonal `ios_folder_choose_another` button, and `onboarding_start` still offered.
 
@@ -580,10 +584,10 @@ sides. Three steps, moved between on `AtticMotion.defaultSpatial` with a cross-f
   home_filter_folders])`.
 - **All:**
   1. 12pt, then the hero row, 16 from the leading edge: `FavouritesPill` (only when there are
-     favourites; opens Favourites) and, 8pt after it, a horizontal scroll of the biggest albums as
-     200pt square covers with 28pt corners, 8 apart, each with a caption 10pt under it: the album in
-     `titleMedium` weight 600 (line 22) over `home_hero_album_subtitle` ("Mira Okafor, 2025") in
-     `bodySmall` `onSurfaceVariant`. A cover opens its album.
+     favourites; opens Favourites) and, 8pt after it, the biggest albums as `HeroTile`s 8 apart, in
+     one horizontal scroll with the pill (an `HStack(alignment: .top, spacing: 8)`). A tile's title
+     is the album and its subtitle `home_hero_album_subtitle` ("Mira Okafor, 2025"). A tile opens its
+     album.
   2. Song shelves, each a `SectionHeader` and a `Shelf` of `Tile(width: 112)` with the song's cover,
      title and artist, shown only when it has songs: `home_recently_played`, `home_on_repeat`,
      `home_not_lately`, `home_newly_added`. Tapping a tile plays the shelf from that song. The tile of
@@ -618,7 +622,7 @@ sides. Three steps, moved between on `AtticMotion.defaultSpatial` with a cross-f
 - **Playlists**, **Albums**, **Artists:** that one group alone.
 - **Grid:** a three-column `LazyVGrid`, 12 between columns, 16 between rows, 16 at the sides, of
   `Tile(width: nil)`.
-- **Songs:** `AtticButton(library_shuffle_all_cd, size: .medium, leading: .shuffle)` at full width
+- **Songs:** `AtticButton(library_shuffle_all_cd, size: .medium, leading: .shuffle, fillsWidth: true)`
   (16 at the sides, 4 above); then a row (32 leading, 16 trailing, 12 above, 8 below) of
   `song_count` in `labelLarge` weight 600 `onSurfaceVariant` and a `SplitButton(sort name, leading:
   .sort, menuLabel: library_sort_menu_cd)` whose action cycles the sort and whose menu lists
@@ -665,8 +669,8 @@ variant: .tonal, leading: .add)` (filled when the playlist is empty) and
 `SongRow(lead: .cover)`. A folder has neither the menu nor the two buttons.
 
 - **Empty:** `EmptyState(playlist_empty_title, playlist_empty_body)` with no picture.
-- **Reorder:** the bar becomes a close button (`.close`, `close`), `playlist_reorder_cd` as the
-  title and a filled `AtticIconButton(.check, label: playlist_reorder_done_cd)`. The list is a
+- **Reorder:** the bar becomes `DetailAppBar(playlist_reorder_cd, backSymbol: .close, backLabel:
+  close)` with a filled `AtticIconButton(.check, label: playlist_reorder_done_cd)`. The list is a
   `List` as in the queue, rows ending in `RowDragHandle`.
 
 ### Favourites
@@ -737,7 +741,7 @@ A sheet from Now Playing on the cover's scheme.
    - A row of `ListLabel(queue_up_next)` ("Up next, 9 songs") and, 20 from the trailing edge,
      `AtticButton(queue_clear, variant: .text)`.
    - The songs up next, each `SongRow(lead: .cover)` with `.groupCell(index:count:)` and
-     `RowDragHandle` as trailing. Tapping jumps to it. `.onMove` reorders (press and hold, then
+     `RowDragHandle()` as trailing. Tapping jumps to it. `.onMove` reorders (press and hold, then
      drag); `.swipeActions(edge: .trailing, allowsFullSwipe: true)` has one destructive button,
      `queue_remove` with `.delete`, tinted `scheme.error`.
    - **Nothing up next:** `EmptyState(queue_nothing_up_next, body: nil, symbol: .queueMusic, clover:
@@ -768,8 +772,8 @@ A sheet from Now Playing on the cover's scheme, on `scheme.surface`.
 ### Settings
 
 Pushed from any root bar. `DetailAppBar(settings_title, surface: .plain, then .scrolled once the
-large title has gone)`; the bar's title is hidden until then. The page opens with `settings_title`
-in `displaySmallEmphasized` tracking -0.4 (16 at the sides, 8 above).
+large title has gone)`; pass an empty title to the bar until then. The page opens with
+`LargeTitle(settings_title)`.
 
 1. `SettingsSection(settings_appearance)`; a `ListGroup` of one cell holding
    `ConnectedButtonGroup([settings_theme_system, settings_theme_light, settings_theme_dark],
