@@ -48,8 +48,8 @@ the blue scheme the store screenshots are drawn in (seed `#2A4174`, the scheme's
 | `onSecondaryContainer` | `#FFFFFF` | `#000000` |
 | `tertiary` | `#553A55` | `#E4BFE2` |
 | `onTertiary` | `#FFFFFF` | `#240D26` |
-| `tertiaryContainer` | `#8A6A89` | `#A886A6` |
-| `onTertiaryContainer` | `#FFFFFF` | `#000000` |
+| `tertiaryContainer` | `#8A6A89` | `#8A6A89` |
+| `onTertiaryContainer` | `#FFFFFF` | `#FFFFFF` |
 | `error` | `#B3261E` | `#F2B8B5` |
 | `onError` | `#FFFFFF` | `#601410` |
 | `errorContainer` | `#F9DEDC` | `#8C1D18` |
@@ -69,6 +69,9 @@ the blue scheme the store screenshots are drawn in (seed `#2A4174`, the scheme's
 | `inverseSurface` | `#121318` | `#FAF8FF` |
 | `inverseOnSurface` | `#FCFAFF` | `#1A1B20` |
 | `scrim` | `#000000` | `#000000` |
+
+The tertiary container is the same in both themes, as on Android, where dark takes the fixed tertiary
+roles so the Favourites heart stays light on mauve.
 
 ### What each role is for
 
@@ -515,7 +518,7 @@ tall, plus the times row when `showsTimes`.
 | Component | Spec | VoiceOver |
 |---|---|---|
 | `MiniPlayerBar(title:artist:cover:isPlaying:isLiked:progress:onOpen:onPlayPause:onNext:onToggleLike:)` | A 64pt capsule on `surfaceContainerHigh`, 8 leading, 6 trailing: a 48pt cover with 16pt corners, 12pt, the title in `labelLarge` weight 600 over the artist in `bodySmall` `onSurfaceVariant` (one line each), a `HeartButton`, a small `PlayButton` whose ring shows `progress`, and a standard icon button with `.skipNext` (filled). Tapping anywhere else calls `onOpen`. Swiping the text left calls `onNext`. The screen wraps it in `.fromArt(seed:)` | The text is one button: "{title}, {artist}", hint "Opens the player"; then "Add to favourites", "Play" / "Pause", "Next" |
-| `CollectionHeader(title:isArtist:byline:bylineImage:onByline:meta:name:isPlaying:shuffleOn:isEnabled:onPlay:onShuffle:onAdd:cover:)` | A block on `surfaceContainer` with 32pt bottom corners, running to the top edge. Padding 16 at the sides, 68 below the status bar (the bar floats over it), 20 at the bottom. The title: `headlineLargeEmphasized`, line 36, tracking -0.4, up to three lines, narrowed to 75 if one line does not fit; for an artist `displayMediumEmphasized`, line 48, tracking -0.8. `byline` (an album's artist): 10pt above, a 28pt cookie of `bylineImage`, 8pt, the name in `bodyLarge` weight 600 `primary`, a button that calls `onByline`. `name` is the collection's name for the labels and defaults to the title. A nil `onAdd` leaves that button out. Each `meta` line: `bodyMedium` `onSurfaceVariant`, 6pt above. Then, 18pt down, a 208pt row: the 208pt cover, 12pt, and the play cluster filling the rest: a play button that fills the cluster (`primary`, corners 48 idle and 28 playing on `fastSpatial`, a 40pt filled glyph over "Play" or "Pause" in `bodyLarge` weight 600), 8pt, a row of a shuffle toggle and an add-to-playlist button, both medium, tonal, `.fill`, 8 apart. Not `isEnabled`: the cluster is 38% and inert | "Play" / "Pause"; "Shuffle {name}"; "Add {name} to a playlist" |
+| `CollectionHeader(title:isArtist:byline:bylineImage:onByline:meta:name:isPlaying:shuffleOn:isEnabled:onPlay:onShuffle:onAdd:cover:)` | A block on `surfaceContainer` with 32pt bottom corners. Its fill runs 1000pt above it, so it reaches the top edge and covers a pull-down when it is the first thing in a scroll view that keeps the top safe area. Padding 16 at the sides, 68 below the status bar (the bar floats over it), 20 at the bottom. The title: `headlineLargeEmphasized`, line 36, tracking -0.4, up to three lines, narrowed to 75 if one line does not fit; for an artist `displayMediumEmphasized`, line 48, tracking -0.8. `byline` (an album's artist): 10pt above, a 28pt cookie of `bylineImage`, 8pt, the name in `bodyLarge` weight 600 `primary`, a button that calls `onByline`. `name` is the collection's name for the labels and defaults to the title. A nil `onAdd` leaves that button out. Each `meta` line: `bodyMedium` `onSurfaceVariant`, 6pt above. Then, 18pt down, a 208pt row: the 208pt cover, 12pt, and the play cluster filling the rest: a play button that fills the cluster (`primary`, corners 48 idle and 28 playing on `fastSpatial`, a 40pt filled glyph over "Play" or "Pause" in `bodyLarge` weight 600), 8pt, a row of a shuffle toggle and an add-to-playlist button, both medium, tonal, `.fill`, 8 apart. Not `isEnabled`: the cluster is 38% and inert | "Play" / "Pause"; "Shuffle {name}"; "Add {name} to a playlist" |
 | `InfoCard(title:symbol:) { content }` | `surfaceContainer`, 28pt corners, 20 padding; a heading of a 20pt glyph, 8pt, `labelLarge` weight 600, both `onSurfaceVariant`, 14 above the content | The heading is a header |
 | `LyricLine(_ text:, state:, maxLines:)` | A line of lyrics in a card: `titleLargeEmphasized`, 8 below; the current line `onSurface`, a line to come `outline` | The text |
 | `SyncedLyricLine(_ text:, state:, action:)` | `LyricLineState`: `.sung` (`outline`), `.current` (`primary`), `.upcoming` (`onSurfaceVariant`). Current: 34/40 weight 700 rounded, tracking -0.3, 4 above and 20 below. Others: 24/32 weight 500, 14 below. Size and colour move on `defaultSpatial` and `defaultEffects`. Leading aligned, wraps | The text; a button |
@@ -638,7 +641,8 @@ sides. Three steps, moved between on `AtticMotion.defaultSpatial` with a cross-f
 
 - A `ZStack(alignment: .top)`: the scroll view, and over it `DetailAppBar(album name, surface:
   .overArt until the header's title has scrolled under the bar, then .scrolled)`. No actions.
-- The scroll view starts at the top edge (`.ignoresSafeArea(edges: .top)`):
+- The scroll view keeps the top safe area (no `.ignoresSafeArea`); the header's fill runs up under the
+  status bar by itself:
   1. `CollectionHeader(title: album, byline: artist (opens the artist), meta: [album_kind_year
      ("Album • 2025"), songs_and_duration ("8 songs, 30 min")], cover:)` inside `.fromArt(seed:)`.
      The bar is inside the same `.fromArt`.
