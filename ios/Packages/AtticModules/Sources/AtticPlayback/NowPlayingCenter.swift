@@ -111,7 +111,7 @@ public final class NowPlayingCenter: NowPlayingPublishing {
             _ = player.state
         } onChange: {
             Task { @MainActor [weak self] in
-                self?.update()
+                self?.update(force: false)
                 self?.observe()
             }
         }
@@ -119,8 +119,9 @@ public final class NowPlayingCenter: NowPlayingPublishing {
 
     // MARK: - Update
 
+    /// Forced, because callers use it after a seek, which leaves the visible state unchanged.
     public func update() {
-        update(force: false)
+        update(force: true)
     }
 
     private func update(force: Bool) {
@@ -162,7 +163,7 @@ public final class NowPlayingCenter: NowPlayingPublishing {
                     guard let self else { return }
                     guard self.player?.state.current?.key == currentKey else { return }
                     if let image {
-                        self.artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                        self.artwork = Self.makeArtwork(image)
                     }
                     self.update(force: true)
                 }
@@ -188,6 +189,11 @@ public final class NowPlayingCenter: NowPlayingPublishing {
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
+    }
+
+    /// Nonisolated, so the request handler MediaPlayer calls off the main thread isn't main-actor isolated.
+    private nonisolated static func makeArtwork(_ image: UIImage) -> MPMediaItemArtwork {
+        MPMediaItemArtwork(boundsSize: image.size) { _ in image }
     }
 
     // MARK: - Commands (testable)

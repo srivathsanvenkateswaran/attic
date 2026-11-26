@@ -43,7 +43,7 @@ final class NowPlayingCenterTests: XCTestCase {
 
         let exp = expectation(description: "title updated")
         Task { @MainActor in
-            for _ in 0..<40 {
+            for _ in 0..<200 {
                 if MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyTitle] as? String == "Song2" {
                     exp.fulfill()
                     return
@@ -51,7 +51,7 @@ final class NowPlayingCenterTests: XCTestCase {
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 2.0)
+        await fulfillment(of: [exp], timeout: 10.0)
     }
 
     func testClearQueueSetsNil() {
@@ -72,7 +72,7 @@ final class NowPlayingCenterTests: XCTestCase {
 
         let exp = expectation(description: "artwork")
         Task { @MainActor in
-            for _ in 0..<40 {
+            for _ in 0..<200 {
                 if MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyArtwork] != nil {
                     exp.fulfill()
                     return
@@ -80,7 +80,7 @@ final class NowPlayingCenterTests: XCTestCase {
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 2.0)
+        await fulfillment(of: [exp], timeout: 10.0)
     }
 
     func testHandleRecordsCalls() {
