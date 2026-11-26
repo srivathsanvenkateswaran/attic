@@ -120,8 +120,10 @@ public struct AtticScheme: Equatable, Sendable {
         onSecondaryContainer: Color(atticRgb: 0x000000),
         tertiary: Color(atticRgb: 0xE4BFE2),
         onTertiary: Color(atticRgb: 0x240D26),
-        tertiaryContainer: Color(atticRgb: 0xA886A6),
-        onTertiaryContainer: Color(atticRgb: 0x000000),
+        // Android's dark scheme takes the fixed tertiary roles here (ExpressiveTheme.kt), so Favourites
+        // is the same light-on-mauve in both themes. The wallpaper values (#A886A6, #000000) draw a black heart.
+        tertiaryContainer: Color(atticRgb: 0x8A6A89),
+        onTertiaryContainer: Color(atticRgb: 0xFFFFFF),
         error: Color(atticRgb: 0xF2B8B5),
         onError: Color(atticRgb: 0x601410),
         errorContainer: Color(atticRgb: 0x8C1D18),
