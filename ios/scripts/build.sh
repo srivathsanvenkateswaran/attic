@@ -8,6 +8,8 @@ cd "$(dirname "$0")/.."
 action="${1:-test}"
 sims=("iPhone 17 Pro" "iPhone 17" "iPhone 17 Pro Max")
 slot=""
+# The orchestrator's merge gate has its own lane and simulator, so it doesn't queue behind branch builds.
+if [ "${ATTIC_GATE:-}" = 1 ]; then slot=gate; sims[3]="iPhone Air"; mkdir -p /tmp/attic-ios-xcb-slot-gate; fi
 while [ -z "$slot" ]; do
   for i in 0 1 2; do
     if mkdir "/tmp/attic-ios-xcb-slot-$i" 2>/dev/null; then slot=$i; break; fi
@@ -16,7 +18,7 @@ while [ -z "$slot" ]; do
 done
 # Disk is tight: a used simulator keeps 1-2 GB of data, so the test app is removed afterwards.
 trap 'xcrun simctl uninstall "$sim" app.attic.ios >/dev/null 2>&1; rmdir "/tmp/attic-ios-xcb-slot-$slot"' EXIT
-sim="${sims[$slot]}"
+if [ "$slot" = gate ]; then sim="iPhone Air"; else sim="${sims[$slot]}"; fi
 echo "Using slot $slot, simulator: $sim"
 xcodegen generate --quiet || exit 1
 if [ "$action" = "build" ]; then steps="build"; else steps="build test"; fi
