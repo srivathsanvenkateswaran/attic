@@ -854,6 +854,8 @@ because Android's speak of permissions or of the phone's storage:
 | `collection_gone_body` | It may have been removed from your music folders. |
 | `lyrics_not_downloaded` | Download once and they stay on this iPhone. |
 | `settings_theme_system` | Match iPhone |
+| `folder_subtitle` | Playlist from a folder on this iPhone |
+| `onboarding_welcome_body` | Attic plays the music files on this iPhone. There's no account, and everything works offline. |
 | `mini_player_open_hint` | Opens the player |
 | `loading` | Loading |
 
