@@ -1,0 +1,23 @@
+# iOS additions and changes to the Android strings (see ios/DESIGN.md, Copy).
+ios_folder_body = Attic plays the music files in a folder you choose, in Files or iCloud Drive. Nothing is copied or uploaded.
+ios_folder_row_title = Music folder
+ios_folder_row_body = Required. Attic plays the songs in this folder and the folders inside it.
+ios_folder_choose = Choose
+ios_folder_choose_another = Choose another folder
+home_empty_title = No songs in your music folders
+home_empty_body = Copy music files into a folder you have added, and they will show up here.
+settings_folders = Music folders
+settings_folders_add = Add a folder
+settings_folders_rescan = Look for new songs
+settings_folders_remove_cd = Remove %1$s
+settings_folders_remove_title = Remove %1$s?
+settings_folders_remove_body = Its songs leave your library. The files stay where they are.
+settings_version = Version
+settings_about_body = Attic plays your own music files, from any folder. It has no account and no streaming. %1$s in your library.
+collection_gone_body = It may have been removed from your music folders.
+lyrics_not_downloaded = Download once and they stay on this iPhone.
+settings_theme_system = Match iPhone
+mini_player_open_hint = Opens the player
+loading = Loading
+folder_subtitle = Playlist from a folder on this iPhone
+onboarding_welcome_body = Attic plays the music files on this iPhone. There's no account, and everything works offline.
