@@ -25,7 +25,20 @@ public final class NowPlayingCenter: NowPlayingPublishing {
 
     private var tokens: [(MPRemoteCommand, Any)] = []
 
-    public init() {}
+    /// Where the info goes. The system centre in the app; a recorder in tests, because the
+    /// simulator's now-playing service can stall the main thread for a minute.
+    private let publish: @MainActor ([String: Any]?, MPNowPlayingPlaybackState) -> Void
+
+    public init() {
+        publish = { info, state in
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+            MPNowPlayingInfoCenter.default().playbackState = state
+        }
+    }
+
+    init(publish: @escaping @MainActor ([String: Any]?, MPNowPlayingPlaybackState) -> Void) {
+        self.publish = publish
+    }
 
     public func attach(to player: PlaybackControlling, artwork: ArtworkProviding) {
         // Drop handlers registered for a previous player.
@@ -130,8 +143,7 @@ public final class NowPlayingCenter: NowPlayingPublishing {
         let state = player.state
 
         guard let track = state.current else {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-            MPNowPlayingInfoCenter.default().playbackState = .stopped
+            publish(nil, .stopped)
             lastSongKey = nil
             artwork = nil
             artworkTask?.cancel()
@@ -188,8 +200,7 @@ public final class NowPlayingCenter: NowPlayingPublishing {
             info[MPMediaItemPropertyArtwork] = artwork
         }
 
-        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        MPNowPlayingInfoCenter.default().playbackState = state.isPlaying ? .playing : .paused
+        publish(info, state.isPlaying ? .playing : .paused)
     }
 
     /// Nonisolated, so the request handler MediaPlayer calls off the main thread isn't main-actor isolated.

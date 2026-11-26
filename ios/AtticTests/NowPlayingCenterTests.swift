@@ -6,13 +6,11 @@ import XCTest
 
 @MainActor
 final class NowPlayingCenterTests: XCTestCase {
-    /// The first call into the system's now-playing service can stall for over a minute on a busy
-    /// simulator. Pay for it here, outside every test's timeout.
-    override class func setUp() {
-        super.setUp()
-        MainActor.assumeIsolated {
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-        }
+    /// What the center last published, instead of the system centre.
+    private var info: [String: Any]?
+
+    private func makeCenter() -> NowPlayingCenter {
+        NowPlayingCenter(publish: { [weak self] info, _ in self?.info = info })
     }
 
     private func makeTrack(title: String, artist: String, key: String? = nil) -> Track {
@@ -31,18 +29,18 @@ final class NowPlayingCenterTests: XCTestCase {
     }
 
     func testAttachShowsTitle() {
-        let center = NowPlayingCenter()
+        let center = makeCenter()
         let track = makeTrack(title: "Song", artist: "Band")
         let player = makePlayer(track: track)
         center.attach(to: player, artwork: FakeArtwork())
         XCTAssertEqual(
-            MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyTitle] as? String,
+            self.info?[MPMediaItemPropertyTitle] as? String,
             "Song"
         )
     }
 
     func testStateChangeUpdatesTitle() async {
-        let center = NowPlayingCenter()
+        let center = makeCenter()
         let track = makeTrack(title: "Song", artist: "Band")
         let player = makePlayer(track: track)
         center.attach(to: player, artwork: FakeArtwork())
@@ -52,38 +50,38 @@ final class NowPlayingCenterTests: XCTestCase {
 
         let exp = expectation(description: "title updated")
         Task { @MainActor in
-            for _ in 0..<600 {
-                if MPNowPlayingInfoCenter.default().nowPlayingInfo?[MPMediaItemPropertyTitle] as? String == "Song2" {
+            for _ in 0..<100 {
+                if self.info?[MPMediaItemPropertyTitle] as? String == "Song2" {
                     exp.fulfill()
                     return
                 }
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 30.0)
+        await fulfillment(of: [exp], timeout: 5.0)
         // The center and the player are held weakly by their own callbacks; keep both alive until here.
         withExtendedLifetime((center, player)) {}
     }
 
     func testClearQueueSetsNil() {
-        let center = NowPlayingCenter()
+        let center = makeCenter()
         let track = makeTrack(title: "Song", artist: "Band")
         let player = makePlayer(track: track)
         center.attach(to: player, artwork: FakeArtwork())
         player.state = PlayerState()
         center.update()
-        XCTAssertNil(MPNowPlayingInfoCenter.default().nowPlayingInfo)
+        XCTAssertNil(self.info)
     }
 
     func testArtworkAppears() async {
-        let center = NowPlayingCenter()
+        let center = makeCenter()
         let track = makeTrack(title: "Song", artist: "Band")
         let player = makePlayer(track: track)
         center.attach(to: player, artwork: FakeArtwork())
 
         let exp = expectation(description: "artwork")
         Task { @MainActor in
-            for _ in 0..<600 {
+            for _ in 0..<100 {
                 if center.artwork != nil {
                     exp.fulfill()
                     return
@@ -91,13 +89,13 @@ final class NowPlayingCenterTests: XCTestCase {
                 try? await Task.sleep(nanoseconds: 50_000_000)
             }
         }
-        await fulfillment(of: [exp], timeout: 30.0)
+        await fulfillment(of: [exp], timeout: 5.0)
         // The center and the player are held weakly by their own callbacks; keep both alive until here.
         withExtendedLifetime((center, player)) {}
     }
 
     func testHandleRecordsCalls() {
-        let center = NowPlayingCenter()
+        let center = makeCenter()
         let track = makeTrack(title: "Song", artist: "Band")
         let player = makePlayer(track: track)
         center.attach(to: player, artwork: FakeArtwork())
@@ -143,8 +141,12 @@ final class FakePlayer: PlaybackControlling {
 }
 
 struct FakeArtwork: ArtworkProviding {
+    /// Made from a CGImage, without UIKit's renderer, so it is safe off the main thread.
     func image(for track: Track, maxPixel: Int) async -> UIImage? {
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 2, height: 2))
-        return renderer.image { _ in }
+        let context = CGContext(
+            data: nil, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        )
+        return context?.makeImage().map { UIImage(cgImage: $0) }
     }
 }
