@@ -51,6 +51,32 @@ public final class AppModel {
         await library.rescan()
     }
 
+    // MARK: Playback
+
+    /// Plays `tracks` from `startAt`. `context` is what Now Playing says it plays from
+    /// (an album, playlist or folder name, or `S.favourites`); nil for the whole library.
+    public func play(_ tracks: [Track], startAt: Int = 0, context: String?, shuffle: Bool? = nil) {
+        guard !tracks.isEmpty else { return }
+        player.play(tracks, startAt: startAt, context: context, shuffle: shuffle)
+    }
+
+    /// Plays `tracks` shuffled, from a random song.
+    public func shuffle(_ tracks: [Track], context: String?) {
+        guard !tracks.isEmpty else { return }
+        player.play(tracks, startAt: Int.random(in: 0..<tracks.count), context: context, shuffle: true)
+    }
+
+    /// Seeks and tells the lock screen, whose elapsed time would otherwise drift.
+    public func seek(toMs ms: Int64) {
+        player.seek(toMs: ms)
+        nowPlaying.update()
+    }
+
+    /// True when `context` is what the player is playing from.
+    public func isPlayingFrom(_ context: String) -> Bool {
+        player.state.contextName == context && player.state.current != nil
+    }
+
     // MARK: User data
 
     public func isLiked(_ track: Track?) -> Bool { track.map { likedSet.contains($0.key) } ?? false }

@@ -39,6 +39,10 @@ public final class Router {
     public var showNowPlaying = false
     public var showQueue = false
     public var showLyrics = false
+    /// The snackbar's text while one is showing (`.snackbar($router.message)` in the shell).
+    public var message: String?
+    /// Songs waiting for the playlist picker sheet ("Add to playlist").
+    public var addingToPlaylist: [Track]?
 
     public init() {}
 
@@ -54,6 +58,17 @@ public final class Router {
     public func open(_ destination: Destination) {
         showNowPlaying = false
         push(Route(destination))
+    }
+
+    public func show(_ message: String) { self.message = message }
+
+    /// Pops the selected tab to its root, as tapping the selected tab does.
+    public func popToRoot() {
+        switch tab {
+        case .home: homePath.removeAll()
+        case .search: searchPath.removeAll()
+        case .library: libraryPath.removeAll()
+        }
     }
 
     public func pop() {
