@@ -13,7 +13,12 @@ struct AtticApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(app: app)
+            // `-kitGallery` shows the component gallery, for design review.
+            if ProcessInfo.processInfo.arguments.contains("-kitGallery") {
+                KitGallery()
+            } else {
+                RootView(app: app)
+            }
         }
     }
 }
