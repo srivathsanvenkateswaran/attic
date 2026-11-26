@@ -15,8 +15,9 @@ ios/scripts/build.sh build    # build only
 ```
 
 The project file is generated from `project.yml` and is not in git. DerivedData goes to
-`ios/.build`. The script runs at most three builds at once on one Mac and gives each its own
-simulator; `ATTIC_GATE=1` runs in a fourth lane on "iPhone Air", for the merge gate.
+`ios/.build`. The script runs at most three builds at once on one Mac (`ATTIC_GATE=1` adds a fourth
+lane for the merge gate) and uses one simulator, "iPhone Air": builds run in parallel, test runs take
+turns on it.
 
 To run it, install `ios/.build/Build/Products/Debug-iphonesimulator/Attic.app` on a booted
 simulator and launch `app.attic.ios`. On first run it asks for a music folder through the Files
@@ -72,6 +73,8 @@ picking a folder called `Music` gives the same keys as Android's `Music/` files.
 
 ## What doesn't, yet
 
+- The Files picker on first run and in Settings was not driven in the simulator (nothing here can
+  tap); the folder was added with the `-atticFolder` launch argument, which calls the same code.
 - Checked only in the simulator. The lock screen itself was not looked at: this Mac has no
   Simulator app, so it was verified through the system's media service log (Attic registered as
   the now-playing app, with title, cover and a moving position in the background) and unit tests.
