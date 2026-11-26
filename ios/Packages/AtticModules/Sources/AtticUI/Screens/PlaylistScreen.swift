@@ -1,14 +1,11 @@
-import AtticCore
-import AtticKit
+import Foundation
 import SwiftUI
 
-/// STUB: built by its screen task against ios/DESIGN.md and AtticKit.
+/// One of the person's playlists.
 struct PlaylistScreen: View {
     let id: UUID
-    @Environment(AppModel.self) private var app
-    @Environment(Router.self) private var router
 
     var body: some View {
-        Text("Playlist")
+        CollectionScreen(kind: .playlist(id: id))
     }
 }
