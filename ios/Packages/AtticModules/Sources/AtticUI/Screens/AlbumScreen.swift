@@ -1,14 +1,10 @@
-import AtticCore
-import AtticKit
 import SwiftUI
 
-/// STUB: built by its screen task against ios/DESIGN.md and AtticKit.
+/// An album: its cover and artist, then its songs in track order.
 struct AlbumScreen: View {
     let key: String
-    @Environment(AppModel.self) private var app
-    @Environment(Router.self) private var router
 
     var body: some View {
-        Text("Album")
+        CollectionScreen(kind: .album(key: key))
     }
 }

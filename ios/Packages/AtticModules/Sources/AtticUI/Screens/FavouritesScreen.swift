@@ -1,14 +1,8 @@
-import AtticCore
-import AtticKit
 import SwiftUI
 
-/// STUB: built by its screen task against ios/DESIGN.md and AtticKit.
+/// The songs the person has liked, newest first.
 struct FavouritesScreen: View {
-
-    @Environment(AppModel.self) private var app
-    @Environment(Router.self) private var router
-
     var body: some View {
-        Text("Favourites")
+        CollectionScreen(kind: .favourites)
     }
 }
